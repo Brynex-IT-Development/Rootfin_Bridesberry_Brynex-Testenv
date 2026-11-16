@@ -1,192 +1,78 @@
-import React, { useEffect, useMemo, useState } from "react";
-import Headers from "../components/Header.jsx";
-import Select from "react-select";
-import baseUrl from "../api/api.js";
-import { CSVLink } from "react-csv";
+import Headers from '../components/Header.jsx';
+import { useEffect, useState } from "react";
+import baseUrl from '../api/api.js';
+import { CSVLink } from 'react-csv';
 import { Helmet } from "react-helmet";
-import { FiDownload, FiSliders } from "react-icons/fi";
-import { Loader2 } from "lucide-react";
-import { useSidebar } from "../hooks/useSidebar.js";
+import { SlidersHorizontal, Download, Calendar, ChevronDown, X } from "lucide-react";
+import useSidebar from '../hooks/useSidebar.js';
 
-// Helper to format date into "01 Sep, 2026"
-const formatDisplayDate = (dateStr) => {
-  if (!dateStr) return "-";
-  try {
-    const cleanStr = String(dateStr).split("T")[0];
-    const parts = cleanStr.split("-");
-    if (parts.length === 3) {
-      const year = parts[0];
-      const monthIndex = parseInt(parts[1], 10) - 1;
-      const day = parts[2].padStart(2, "0");
-      const monthNames = [
-        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-      ];
-      if (monthIndex >= 0 && monthIndex < 12) {
-        return `${day} ${monthNames[monthIndex]}, ${year}`;
-      }
-    }
-    const d = new Date(dateStr);
-    if (!isNaN(d.getTime())) {
-      const day = String(d.getDate()).padStart(2, "0");
-      const month = d.toLocaleString("en-US", { month: "short" });
-      const year = d.getFullYear();
-      return `${day} ${month}, ${year}`;
-    }
-    return dateStr;
-  } catch {
-    return dateStr;
-  }
-};
-
-// Helper to format currency
-const formatCurrency = (amount) => {
-  if (amount === undefined || amount === null || isNaN(amount)) return "₹0";
-  const num = Number(amount);
-  return `₹${num.toLocaleString("en-IN")}`;
-};
-
-// Custom React-Select styles for clean modern UI
-const customSelectStyles = {
-  control: (provided, state) => ({
-    ...provided,
-    backgroundColor: "#ffffff",
-    borderColor: state.isFocused ? "#9333ea" : "#d1d5db",
-    borderRadius: "0.5rem",
-    padding: "1px 2px",
-    minHeight: "40px",
-    boxShadow: state.isFocused ? "0 0 0 2px rgba(147, 51, 234, 0.2)" : "none",
-    "&:hover": {
-      borderColor: "#9ca3af",
-    },
-    fontSize: "0.875rem",
-    color: "#1f2937",
-    cursor: "pointer",
-  }),
-  option: (provided, state) => ({
-    ...provided,
-    backgroundColor: state.isSelected
-      ? "#9333ea"
-      : state.isFocused
-      ? "#f3e8ff"
-      : "#ffffff",
-    color: state.isSelected ? "#ffffff" : "#374151",
-    fontSize: "0.875rem",
-    cursor: "pointer",
-  }),
-  menu: (provided) => ({
-    ...provided,
-    borderRadius: "0.5rem",
-    boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
-    zIndex: 50,
-  }),
-};
+/* ── tiny native select wrapper ── */
+const NativeSelect = ({ value, onChange, options, placeholder }) => (
+  <div className="relative">
+    <select
+      value={value || ""}
+      onChange={(e) => onChange(e.target.value || null)}
+      className="w-full h-[40px] border border-gray-300 rounded-md pl-3 pr-9 text-sm text-gray-700 bg-white focus:outline-none focus:border-purple-500 appearance-none"
+    >
+      <option value="">{placeholder}</option>
+      {options.map(o => (
+        <option key={o.value || "__null__"} value={o.value || ""}>{o.label}</option>
+      ))}
+    </select>
+    <ChevronDown size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+  </div>
+);
 
 const SalesByInvoiceReport = () => {
   const isSidebarOpen = useSidebar();
-  const todayStr = new Date().toISOString().split("T")[0];
+  const todayStr = new Date().toISOString().split('T')[0];
   const [fromDate, setFromDate] = useState(todayStr);
   const [toDate, setToDate] = useState(todayStr);
   const [selectedStore, setSelectedStore] = useState("all");
   const [loading, setLoading] = useState(false);
   const [reportData, setReportData] = useState(null);
-  const [hasFetched, setHasFetched] = useState(false);
+  const [csvData, setCsvData] = useState([]);
 
-  // Advanced filtering states
+  // Advanced filter states
   const [categoryFilter, setCategoryFilter] = useState(null);
   const [skuSearch, setSkuSearch] = useState("");
   const [sizeFilter, setSizeFilter] = useState(null);
   const [customerSearch, setCustomerSearch] = useState("");
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(true);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
-  const currentUser = JSON.parse(localStorage.getItem("rootfinuser") || "{}");
+  const currentUser = JSON.parse(localStorage.getItem("rootfinuser"));
   const isAdmin = (currentUser?.power || "").toLowerCase() === "admin";
-  const isClusterManager =
-    (currentUser?.role || "").toLowerCase() === "cluster_manager";
+  const isMainAdmin = currentUser?.locCode === '858' || currentUser?.locCode === '103' || (currentUser?.email && ['officebrynex@gmail.com'].includes(currentUser.email.toLowerCase()));
+  const isWarehouse = (currentUser?.power || "").toLowerCase() === "warehouse";
+  const canSeeCost = isAdmin || isWarehouse || isMainAdmin;
+  const isClusterManager = (currentUser?.role || "").toLowerCase() === "cluster_manager";
   const clusterAllowedLocCodes = currentUser?.allowedLocCodes || [];
   const canSelectStore = isAdmin || isClusterManager;
 
   useEffect(() => {
-    if (!canSelectStore && currentUser?.locCode) {
-      setSelectedStore(currentUser.locCode);
-    }
-    if (
-      isClusterManager &&
-      clusterAllowedLocCodes.length > 0 &&
-      selectedStore === "all"
-    ) {
-      setSelectedStore(clusterAllowedLocCodes[0]);
-    }
+    if (!canSelectStore && currentUser?.locCode) setSelectedStore(currentUser.locCode);
+    if (isClusterManager && clusterAllowedLocCodes.length > 0 && selectedStore === "all") setSelectedStore(clusterAllowedLocCodes[0]);
   }, []);
 
   const storeOptions = [
     { value: "all", label: "All Stores" },
-    { value: "702", label: "SG - Edappally" },
-    { value: "144", label: "Z-Edapally" },
+    { value: "155", label: "Brides Berry" },
     { value: "858", label: "Warehouse" },
-    { value: "759", label: "HEAD OFFICE01" },
-    { value: "700", label: "SG-Trivandrum" },
-    { value: "100", label: "Z-Edappal" },
-    { value: "133", label: "Z.Perinthalmanna" },
-    { value: "122", label: "Z.Kottakkal" },
-    { value: "701", label: "G.Kottayam" },
-    { value: "703", label: "G.Perumbavoor" },
-    { value: "704", label: "G.Thrissur" },
-    { value: "706", label: "G.Chavakkad" },
-    { value: "712", label: "G.Calicut" },
-    { value: "708", label: "G.Vadakara" },
-    { value: "707", label: "G.Edappal" },
-    { value: "709", label: "G.Perinthalmanna" },
-    { value: "711", label: "G.Kottakkal" },
-    { value: "710", label: "G.Manjeri" },
-    { value: "705", label: "G.Palakkad" },
-    { value: "717", label: "G.Kalpetta" },
-    { value: "716", label: "G.Kannur" },
-    { value: "718", label: "G.MG Road" },
-    { value: "101", label: "Production" },
-    { value: "102", label: "Office" },
-    { value: "103", label: "WAREHOUSE" },
+   
   ];
 
   const categoryOptions = [
-    { value: null, label: "All Categories" },
     { value: "Shoes", label: "Shoes" },
     { value: "Shirts", label: "Shirts" },
     { value: "Accessories", label: "Accessories" },
-    { value: "Others", label: "Others" },
+    { value: "Others", label: "Others" }
   ];
 
-  const sizeOptions = [
-    { value: null, label: "All Size" },
-    { value: "XS", label: "XS" },
-    { value: "S", label: "S" },
-    { value: "M", label: "M" },
-    { value: "L", label: "L" },
-    { value: "XL", label: "XL" },
-    { value: "XXL", label: "XXL" },
-    { value: "6", label: "6" },
-    { value: "7", label: "7" },
-    { value: "8", label: "8" },
-    { value: "9", label: "9" },
-    { value: "10", label: "10" },
-    { value: "11", label: "11" },
-    { value: "12", label: "12" },
-    { value: "28", label: "28" },
-    { value: "30", label: "30" },
-    { value: "32", label: "32" },
-    { value: "34", label: "34" },
-    { value: "36", label: "36" },
-    { value: "38", label: "38" },
-    { value: "40", label: "40" },
-    { value: "42", label: "42" },
-  ];
+  const sizeOptions = ["XS","S","M","L","XL","XXL","6","7","8","9","10","11","12","28","30","32","34","36","38","40","42"].map(v => ({ value: v, label: v }));
 
   const fetchReport = async () => {
     setLoading(true);
-    setHasFetched(true);
     try {
-      const endpoint = `api/reports/sales/by-invoice`;
-
       const params = new URLSearchParams({
         dateFrom: fromDate,
         dateTo: toDate,
@@ -194,518 +80,276 @@ const SalesByInvoiceReport = () => {
         userId: currentUser?.email || currentUser?.userId,
         isAdmin: isAdmin ? "true" : "false",
         isClusterManager: isClusterManager ? "true" : "false",
-        ...(isClusterManager && clusterAllowedLocCodes.length > 0
-          ? { allowedLocCodes: clusterAllowedLocCodes.join(",") }
-          : {}),
+        ...(isClusterManager && clusterAllowedLocCodes.length > 0 ? { allowedLocCodes: clusterAllowedLocCodes.join(",") } : {}),
         ...(categoryFilter && { category: categoryFilter }),
         ...(skuSearch && { sku: skuSearch }),
         ...(sizeFilter && { size: sizeFilter }),
-        ...(customerSearch && { customer: customerSearch }),
+        ...(customerSearch && { customer: customerSearch })
       });
-
-      const response = await fetch(`${baseUrl.baseUrl}${endpoint}?${params}`);
-
-      if (!response.ok) {
-        const text = await response.text();
-        console.error("API Error:", response.status, text);
-        alert(`API Error: ${response.status}`);
-        return;
-      }
-
+      const response = await fetch(`${baseUrl.baseUrl}api/reports/sales/by-invoice?${params}`);
+      if (!response.ok) { alert(`API Error: ${response.status}`); return; }
       const result = await response.json();
-
       if (result.success) {
-        setReportData(result.data);
-      } else {
-        alert(
-          "Failed to fetch report: " + (result.message || "Unknown error")
-        );
-      }
-    } catch (error) {
-      console.error("Error fetching report:", error);
-      alert("Error fetching report: " + error.message);
-    } finally {
-      setLoading(false);
-    }
+        const allInvoices = result.data.invoices || [];
+
+        // Fix: Exclude returned invoices (itemCount === 0) from summary totals
+        const nonReturned = allInvoices.filter(inv => inv.itemCount > 0);
+        const returnedCount = allInvoices.length - nonReturned.length;
+        const totalSales = nonReturned.reduce((s, inv) => s + (inv.totalAmount || 0), 0);
+        const totalItems = nonReturned.reduce((s, inv) => s + (inv.itemCount || 0), 0);
+        const avgInvoiceValue = nonReturned.length > 0 ? totalSales / nonReturned.length : 0;
+
+        setReportData({
+          ...result.data,
+          summary: {
+            ...(result.data.summary || {}),
+            totalInvoices: nonReturned.length,
+            totalSales,
+            totalItems,
+            avgInvoiceValue,
+            returnedCount
+          }
+        });
+
+        const csv = allInvoices.map(inv => ({
+          Date: inv.date, "Invoice No": inv.invoiceNumber, Customer: inv.customer,
+          SKU: inv.skus || "N/A", Category: inv.category, "Item Count": inv.itemCount,
+          "Total Amount": inv.totalAmount, Discount: inv.discount,
+          ...(canSeeCost ? { "Net Amount": inv.netAmount, Profit: inv.profit || 0 } : {}),
+          "Payment Method": inv.paymentMethod, Branch: inv.branch,
+          "Status": inv.itemCount === 0 ? "RETURNED" : "Active"
+        }));
+        setCsvData(csv);
+      } else { alert("Failed to fetch report: " + (result.message || "Unknown error")); }
+    } catch (error) { alert("Error: " + error.message); }
+    finally { setLoading(false); }
+
   };
 
-  const handleClearFilters = () => {
-    setCategoryFilter(null);
-    setSizeFilter(null);
-    setSkuSearch("");
-    setCustomerSearch("");
-  };
+  const clearFilters = () => { setCategoryFilter(null); setSkuSearch(""); setSizeFilter(null); setCustomerSearch(""); };
+  const hasActiveFilters = categoryFilter || skuSearch || sizeFilter || customerSearch;
 
-  // Prepare CSV Export Data
-  const csvHeaders = [
-    { label: "DATE", key: "date" },
-    { label: "INVOICE NO.", key: "invoiceNumber" },
-    { label: "CUSTOMER NAME", key: "customer" },
-    { label: "STATUS", key: "status" },
-    { label: "SKU", key: "skus" },
-    { label: "CATEGORY", key: "category" },
-    { label: "ITEMS", key: "items" },
-    { label: "AMOUNT", key: "totalAmount" },
-    { label: "DISCOUNT", key: "discount" },
-    { label: "NET AMOUNT", key: "netAmount" },
-    { label: "PAYMENT", key: "paymentMethod" },
-    { label: "BRANCH", key: "branch" },
-  ];
+  const fmt = (n) => new Intl.NumberFormat('en-IN').format(n || 0);
+  const fmtRs = (n) => `₹${fmt(n)}`;
 
-  const csvExportData = useMemo(() => {
-    if (!reportData?.invoices || reportData.invoices.length === 0) return [];
-    return reportData.invoices.map((inv) => ({
-      date: formatDisplayDate(inv.date),
-      invoiceNumber: inv.invoiceNumber,
-      customer: inv.customer,
-      status: inv.isReturned ? (inv.returnStatus === "partial" ? "Returned (Partial)" : "Returned") : "Active",
-      skus: inv.skus || "N/A",
-      category: inv.category || "Income",
-      items: inv.items || inv.subCategory || "Balance Payable",
-      totalAmount: inv.totalAmount || 0,
-      discount: inv.discount || 0,
-      netAmount: inv.netAmount || 0,
-      paymentMethod: inv.paymentMethod || "UPI",
-      branch: inv.branch || "SG Edappally",
-    }));
-  }, [reportData]);
-
-  const invoices = reportData?.invoices || [];
-  const summary = reportData?.summary || {
-    totalInvoices: 0,
-    totalSales: 0,
-    totalItems: 0,
-    avgInvoiceValue: 0,
+  const paymentBadgeStyle = (method) => {
+    const m = (method || "").toLowerCase();
+    if (m.includes("upi")) return "bg-purple-100 text-purple-700";
+    if (m.includes("card") || m.includes("bank")) return "bg-blue-100 text-blue-700";
+    if (m.includes("cash")) return "bg-green-100 text-green-700";
+    return "bg-gray-100 text-gray-600";
   };
 
   return (
     <>
-      <Helmet>
-        <title>Sales by Invoice | RootFin</title>
-      </Helmet>
+      <Helmet><title>Sales by Invoice Report | RootFin</title></Helmet>
+      <Headers />
+      <div className={`transition-all duration-300 min-h-screen bg-white ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
 
-      <div className="min-h-screen bg-[#f8f9fa]">
-        <Headers title={"Sales by Invoice Report"} />
-
-        <div
-          className={`transition-all duration-300 ${
-            isSidebarOpen ? "ml-[240px]" : "ml-0"
-          }`}
-        >
-          <div className="p-6 md:p-8 space-y-6">
-            {/* Top Control & Filter Container */}
-            <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 space-y-5">
-              {/* Row 1: Primary Controls */}
-              <div className="flex flex-wrap items-end justify-between gap-4">
-                <div className="flex flex-wrap items-end gap-4">
-                  {/* From Date */}
-                  <div className="flex flex-col gap-1.5">
-                    <label
-                      htmlFor="fromDate"
-                      className="text-xs font-semibold text-gray-600 tracking-wide"
-                    >
-                      From Date
-                    </label>
-                    <input
-                      type="date"
-                      id="fromDate"
-                      value={fromDate}
-                      onChange={(e) => setFromDate(e.target.value)}
-                      className="w-44 px-3.5 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 shadow-sm transition-all"
-                    />
-                  </div>
-
-                  {/* To Date */}
-                  <div className="flex flex-col gap-1.5">
-                    <label
-                      htmlFor="toDate"
-                      className="text-xs font-semibold text-gray-600 tracking-wide"
-                    >
-                      To Date
-                    </label>
-                    <input
-                      type="date"
-                      id="toDate"
-                      value={toDate}
-                      onChange={(e) => setToDate(e.target.value)}
-                      className="w-44 px-3.5 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 shadow-sm transition-all"
-                    />
-                  </div>
-
-                  {/* Store Selector */}
-                  <div className="flex flex-col gap-1.5 min-w-[200px]">
-                    <label className="text-xs font-semibold text-gray-600 tracking-wide">
-                      Store
-                    </label>
-                    {canSelectStore ? (
-                      <Select
-                        options={
-                          isClusterManager
-                            ? [
-                                { value: "all", label: "All Stores" },
-                                ...storeOptions.filter((s) =>
-                                  clusterAllowedLocCodes.includes(s.value)
-                                ),
-                              ]
-                            : storeOptions
-                        }
-                        value={
-                          storeOptions.find(
-                            (s) => s.value === selectedStore
-                          ) || {
-                            value: selectedStore,
-                            label: selectedStore,
-                          }
-                        }
-                        onChange={(opt) => setSelectedStore(opt.value)}
-                        isSearchable
-                        placeholder="Select Store..."
-                        styles={customSelectStyles}
-                      />
-                    ) : (
-                      <div className="px-3.5 py-2 text-sm text-gray-800 bg-gray-50 border border-gray-300 rounded-lg">
-                        {storeOptions.find((s) => s.value === selectedStore)
-                          ?.label || selectedStore}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Fetch Data Button */}
-                  <button
-                    type="button"
-                    onClick={fetchReport}
-                    disabled={loading}
-                    className="px-6 py-2 text-sm font-medium text-white bg-[#9333ea] hover:bg-[#7e22ce] active:bg-[#6b21a8] rounded-lg shadow-sm hover:shadow transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
-                  >
-                    {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                    <span>{loading ? "Fetching..." : "Fetch Data"}</span>
-                  </button>
-                </div>
-
-                {/* Filters Toggle Button */}
-                <button
-                  type="button"
-                  onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                  className="px-4 py-2 text-sm font-medium text-gray-800 bg-[#f3f4f6] hover:bg-[#e5e7eb] rounded-lg border border-gray-300 flex items-center gap-2 shadow-sm transition-all cursor-pointer"
-                >
-                  <span>Filters</span>
-                  <FiSliders className="w-4 h-4 text-gray-700" />
-                </button>
+        {/* ── Row 1: Primary Filters ── */}
+        <div className="flex items-end justify-between px-6 pt-5 pb-4 border-b border-gray-100">
+          <div className="flex items-end gap-4">
+            {/* From Date */}
+            <div className="flex flex-col gap-1">
+              <label className="text-[12px] font-medium text-gray-500">From Date</label>
+              <div className="relative">
+                <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)}
+                  className="w-[150px] h-[40px] border border-gray-300 rounded-md pl-3 pr-10 text-sm text-gray-700 bg-white focus:outline-none focus:border-purple-500 z-10" />
+                <Calendar size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none z-0" />
               </div>
-
-              {/* Row 2: Secondary Filter Bar */}
-              {showAdvancedFilters && (
-                <div className="pt-4 border-t border-gray-100 flex flex-wrap items-end justify-between gap-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 flex-1">
-                    {/* Category */}
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-semibold text-gray-600 tracking-wide">
-                        Category
-                      </label>
-                      <Select
-                        options={categoryOptions}
-                        value={categoryOptions.find(
-                          (c) => c.value === categoryFilter
-                        )}
-                        onChange={(opt) => setCategoryFilter(opt.value)}
-                        placeholder="All Categories"
-                        styles={customSelectStyles}
-                      />
-                    </div>
-
-                    {/* Size */}
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-semibold text-gray-600 tracking-wide">
-                        Size
-                      </label>
-                      <Select
-                        options={sizeOptions}
-                        value={sizeOptions.find((s) => s.value === sizeFilter)}
-                        onChange={(opt) => setSizeFilter(opt.value)}
-                        placeholder="All Size"
-                        styles={customSelectStyles}
-                      />
-                    </div>
-
-                    {/* Item SKU */}
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-semibold text-gray-600 tracking-wide">
-                        Item SKU
-                      </label>
-                      <input
-                        type="text"
-                        value={skuSearch}
-                        onChange={(e) => setSkuSearch(e.target.value)}
-                        placeholder="Search by SKU"
-                        className="px-3.5 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 shadow-sm transition-all"
-                      />
-                    </div>
-
-                    {/* Customer */}
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-semibold text-gray-600 tracking-wide">
-                        Customer
-                      </label>
-                      <input
-                        type="text"
-                        value={customerSearch}
-                        onChange={(e) => setCustomerSearch(e.target.value)}
-                        placeholder="Search Customer"
-                        className="px-3.5 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 shadow-sm transition-all"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Clear all Filters */}
-                  <button
-                    type="button"
-                    onClick={handleClearFilters}
-                    className="px-5 py-2 text-sm font-medium text-[#9333ea] hover:bg-purple-50 border border-[#9333ea] rounded-lg transition-all cursor-pointer whitespace-nowrap"
-                  >
-                    Clear all Filters
-                  </button>
-                </div>
-              )}
             </div>
-
-            {/* KPI Summary Cards Bar */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-wrap items-center justify-between gap-6">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-12 flex-1 divide-x divide-gray-100">
-                {/* Total Invoices */}
-                <div className="space-y-1">
-                  <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                    TOTAL INVOICES
-                  </div>
-                  <div className="text-2xl md:text-3xl font-bold text-gray-900">
-                    {summary.totalInvoices || 0}
-                  </div>
-                </div>
-
-                {/* Total Sales */}
-                <div className="space-y-1 pl-6 md:pl-12">
-                  <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                    TOTAL SALES
-                  </div>
-                  <div className="text-2xl md:text-3xl font-bold text-gray-900">
-                    {Number(summary.totalSales || 0).toLocaleString("en-IN")}
-                  </div>
-                </div>
-
-                {/* Total Items */}
-                <div className="space-y-1 pl-6 md:pl-12">
-                  <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                    TOTAL ITEMS
-                  </div>
-                  <div className="text-2xl md:text-3xl font-bold text-gray-900">
-                    {summary.totalItems || 0}
-                  </div>
-                </div>
-
-                {/* Avg Invoice Value */}
-                <div className="space-y-1 pl-6 md:pl-12">
-                  <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                    AVG INVOICE VALUE
-                  </div>
-                  <div className="text-2xl md:text-3xl font-bold text-gray-900">
-                    {Number(summary.avgInvoiceValue || 0).toLocaleString("en-IN")}
-                  </div>
-                </div>
+            {/* To Date */}
+            <div className="flex flex-col gap-1">
+              <label className="text-[12px] font-medium text-gray-500">To Date</label>
+              <div className="relative">
+                <input type="date" value={toDate} onChange={e => setToDate(e.target.value)}
+                  className="w-[150px] h-[40px] border border-gray-300 rounded-md pl-3 pr-10 text-sm text-gray-700 bg-white focus:outline-none focus:border-purple-500 z-10" />
+                <Calendar size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none z-0" />
               </div>
-
-              {/* Export CSV Button */}
-              {csvExportData.length > 0 ? (
-                <CSVLink
-                  data={csvExportData}
-                  headers={csvHeaders}
-                  filename={`Sales_By_Invoice_${fromDate}_to_${toDate}.csv`}
-                  className="px-4 py-2 text-sm font-medium text-gray-800 bg-[#f3f4f6] hover:bg-[#e5e7eb] rounded-lg border border-gray-300 flex items-center gap-2 shadow-sm transition-all cursor-pointer whitespace-nowrap"
-                >
-                  <span>Export CSV</span>
-                  <FiDownload className="w-4 h-4 text-gray-700" />
-                </CSVLink>
+            </div>
+            {/* Store */}
+            <div className="flex flex-col gap-1">
+              <label className="text-[12px] font-medium text-gray-500">Store</label>
+              {canSelectStore ? (
+                <NativeSelect
+                  value={selectedStore}
+                  onChange={setSelectedStore}
+                  placeholder="Select Store"
+                  options={isClusterManager
+                    ? [{ value: "all", label: "All My Stores" }, ...storeOptions.filter(s => clusterAllowedLocCodes.includes(s.value))]
+                    : storeOptions}
+                />
               ) : (
-                <button
-                  type="button"
-                  disabled
-                  className="px-4 py-2 text-sm font-medium text-gray-400 bg-[#f3f4f6] rounded-lg border border-gray-200 flex items-center gap-2 cursor-not-allowed opacity-60 whitespace-nowrap"
-                >
-                  <span>Export CSV</span>
-                  <FiDownload className="w-4 h-4 text-gray-400" />
-                </button>
+                <div className="h-[40px] flex items-center px-3 border border-gray-300 rounded-md text-sm text-gray-700 bg-gray-50 w-[170px]">
+                  {storeOptions.find(s => s.value === selectedStore)?.label || selectedStore}
+                </div>
               )}
             </div>
+            {/* Fetch */}
+            <button onClick={fetchReport} disabled={loading}
+              className="h-[40px] px-7 bg-[#a855f7] hover:bg-[#9333ea] text-white text-sm font-semibold rounded-md transition-colors flex items-center gap-2 disabled:opacity-60">
+              {loading ? (
+                <><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                </svg>Loading...</>
+              ) : 'Fetch Data'}
+            </button>
+          </div>
+          {/* Filters toggle */}
+          <button onClick={() => setShowAdvancedFilters(v => !v)}
+            className="h-[38px] px-4 border border-gray-300 bg-gray-100 hover:bg-gray-200 text-gray-800 text-[13px] font-medium rounded-lg flex items-center gap-2 transition-colors shadow-sm">
+            Filters <SlidersHorizontal size={14} strokeWidth={2} />
+          </button>
+        </div>
 
-            {/* Invoices Table Card */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  {/* Black Header */}
+        {/* ── Row 2: Advanced Filters (collapsible) ── */}
+        {showAdvancedFilters && (
+          <div className="flex flex-wrap items-end gap-4 px-6 py-4 border-b border-gray-100 bg-gray-50">
+            {/* Category */}
+            <div className="flex flex-col gap-1 w-[200px]">
+              <label className="text-[12px] font-medium text-gray-500">Category</label>
+              <NativeSelect value={categoryFilter} onChange={setCategoryFilter} placeholder="All Categories" options={categoryOptions} />
+            </div>
+            {/* Size */}
+            <div className="flex flex-col gap-1 w-[170px]">
+              <label className="text-[12px] font-medium text-gray-500">Size</label>
+              <NativeSelect value={sizeFilter} onChange={setSizeFilter} placeholder="All Size" options={sizeOptions} />
+            </div>
+            {/* Item SKU */}
+            <div className="flex flex-col gap-1 w-[200px]">
+              <label className="text-[12px] font-medium text-gray-500">Item SKU</label>
+              <div className="relative">
+                <input type="text" value={skuSearch} onChange={e => setSkuSearch(e.target.value)} placeholder="Search by SKU"
+                  className="w-full h-[40px] border border-gray-300 rounded-md pl-3 pr-9 text-sm text-gray-700 bg-white focus:outline-none focus:border-purple-500" />
+                <ChevronDown size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              </div>
+            </div>
+            {/* Customer */}
+            <div className="flex flex-col gap-1 w-[220px]">
+              <label className="text-[12px] font-medium text-gray-500">Customer</label>
+              <div className="relative">
+                <input type="text" value={customerSearch} onChange={e => setCustomerSearch(e.target.value)} placeholder="Search Customer"
+                  className="w-full h-[40px] border border-gray-300 rounded-md pl-3 pr-9 text-sm text-gray-700 bg-white focus:outline-none focus:border-purple-500" />
+                <ChevronDown size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              </div>
+            </div>
+            {/* Clear */}
+            {hasActiveFilters && (
+              <button onClick={clearFilters}
+                className="h-[38px] px-5 border border-purple-500 text-purple-600 text-[13px] font-medium rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors flex items-center">
+                Clear all Filters
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* ── Body ── */}
+        <div className="px-6 py-5">
+          {reportData ? (
+            <>
+              {/* Summary + Export row */}
+              <div className="flex items-end justify-between mb-5">
+                <div className="flex items-center gap-10">
+                  <div>
+                    <div className="text-[11px] font-semibold tracking-widest text-gray-400 uppercase mb-1">Total Invoices</div>
+                    <div className="text-2xl font-bold text-gray-900">{fmt(reportData.summary?.totalInvoices)}</div>
+                  </div>
+                  <div>
+                    <div className="text-[11px] font-semibold tracking-widest text-gray-400 uppercase mb-1">Total Sales</div>
+                    <div className="text-2xl font-bold text-gray-900">{fmt(reportData.summary?.totalSales)}</div>
+                  </div>
+                  <div>
+                    <div className="text-[11px] font-semibold tracking-widest text-gray-400 uppercase mb-1">Total Items</div>
+                    <div className="text-2xl font-bold text-gray-900">{fmt(reportData.summary?.totalItems)}</div>
+                  </div>
+                  <div>
+                    <div className="text-[11px] font-semibold tracking-widest text-gray-400 uppercase mb-1">Avg Invoice Value</div>
+                    <div className="text-2xl font-bold text-gray-900">{fmt(reportData.summary?.avgInvoiceValue)}</div>
+                  </div>
+                  {reportData.summary?.returnedCount > 0 && (
+                    <div>
+                      <div className="text-[11px] font-semibold tracking-widest text-red-400 uppercase mb-1">Returns (Excluded)</div>
+                      <div className="text-2xl font-bold text-red-500">{fmt(reportData.summary?.returnedCount)}</div>
+                    </div>
+                  )}
+                </div>
+                {csvData.length > 0 && (
+                  <CSVLink data={csvData} filename={`sales-by-invoice-${fromDate}-to-${toDate}.csv`}
+                    className="h-[40px] px-5 border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-md transition-colors flex items-center gap-2 no-underline">
+                    Export CSV <Download size={15} />
+                  </CSVLink>
+                )}
+              </div>
+
+              {/* Table */}
+              <div className="border border-gray-200 overflow-x-auto">
+                <table className="w-full text-sm min-w-max">
                   <thead>
-                    <tr className="bg-[#18181b] text-white text-xs font-bold uppercase tracking-wider select-none">
-                      <th className="py-3.5 px-4 text-left border-r border-zinc-700/60 whitespace-nowrap">
-                        DATE
-                      </th>
-                      <th className="py-3.5 px-4 text-left border-r border-zinc-700/60 whitespace-nowrap">
-                        INVOICE NO.
-                      </th>
-                      <th className="py-3.5 px-4 text-left border-r border-zinc-700/60 whitespace-nowrap">
-                        CUSTOMER NAME
-                      </th>
-                      <th className="py-3.5 px-4 text-left border-r border-zinc-700/60 whitespace-nowrap">
-                        SKU
-                      </th>
-                      <th className="py-3.5 px-4 text-center border-r border-zinc-700/60 whitespace-nowrap">
-                        CATEGORY
-                      </th>
-                      <th className="py-3.5 px-4 text-left border-r border-zinc-700/60 whitespace-nowrap">
-                        ITEMS
-                      </th>
-                      <th className="py-3.5 px-4 text-right border-r border-zinc-700/60 whitespace-nowrap">
-                        AMOUNT
-                      </th>
-                      <th className="py-3.5 px-4 text-right border-r border-zinc-700/60 whitespace-nowrap">
-                        DISCOUNT
-                      </th>
-                      <th className="py-3.5 px-4 text-right border-r border-zinc-700/60 whitespace-nowrap">
-                        NET AMOUNT
-                      </th>
-                      <th className="py-3.5 px-4 text-center border-r border-zinc-700/60 whitespace-nowrap">
-                        PAYMENT
-                      </th>
-                      <th className="py-3.5 px-4 text-left whitespace-nowrap">
-                        BRANCH
-                      </th>
+                    <tr className="bg-[#1a1f2e]">
+                      <th className="px-4 py-3 text-left text-[11px] font-semibold tracking-widest text-white uppercase whitespace-nowrap">Date</th>
+                      <th className="px-4 py-3 text-left text-[11px] font-semibold tracking-widest text-white uppercase whitespace-nowrap">Invoice No.</th>
+                      <th className="px-4 py-3 text-left text-[11px] font-semibold tracking-widest text-white uppercase whitespace-nowrap">Customer Name</th>
+                      <th className="px-4 py-3 text-left text-[11px] font-semibold tracking-widest text-white uppercase whitespace-nowrap">SKU</th>
+                      <th className="px-4 py-3 text-left text-[11px] font-semibold tracking-widest text-white uppercase whitespace-nowrap">Category</th>
+                      <th className="px-4 py-3 text-left text-[11px] font-semibold tracking-widest text-white uppercase whitespace-nowrap">Items</th>
+                      <th className="px-4 py-3 text-left text-[11px] font-semibold tracking-widest text-white uppercase whitespace-nowrap">Amount</th>
+                      <th className="px-4 py-3 text-left text-[11px] font-semibold tracking-widest text-white uppercase whitespace-nowrap">Discount</th>
+                      <th className="px-4 py-3 text-left text-[11px] font-semibold tracking-widest text-white uppercase whitespace-nowrap">Net Amount</th>
+                      <th className="px-4 py-3 text-left text-[11px] font-semibold tracking-widest text-white uppercase whitespace-nowrap">Payment</th>
+                      <th className="px-4 py-3 text-left text-[11px] font-semibold tracking-widest text-white uppercase whitespace-nowrap">Branch</th>
                     </tr>
                   </thead>
-
-                  {/* Table Body */}
-                  <tbody className="divide-y divide-gray-200 text-sm text-gray-700 bg-white">
-                    {loading ? (
-                      <tr>
-                        <td
-                          colSpan={11}
-                          className="py-16 text-center text-gray-500"
-                        >
-                          <div className="flex flex-col items-center justify-center gap-3">
-                            <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
-                            <span className="text-sm font-medium">
-                              Fetching sales records...
-                            </span>
-                          </div>
-                        </td>
-                      </tr>
-                    ) : invoices.length > 0 ? (
-                      invoices.map((inv, idx) => (
-                        <tr
-                          key={idx}
-                          className={`transition-colors ${
-                            inv.isReturned
-                              ? "bg-red-50/60 hover:bg-red-100/60 border-l-4 border-l-red-500"
-                              : "hover:bg-gray-50/80"
-                          }`}
-                        >
-                          {/* Date */}
-                          <td className="py-3 px-4 border-r border-gray-200 whitespace-nowrap font-normal text-gray-700">
-                            {formatDisplayDate(inv.date)}
+                  <tbody>
+                    {reportData.invoices?.length > 0 ? reportData.invoices.map((inv, idx) => {
+                      const isReturned = inv.itemCount === 0;
+                      return (
+                        <tr key={idx} className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${isReturned ? 'bg-red-50' : 'bg-white'}`}>
+                          <td className="px-4 py-3 text-gray-700 whitespace-nowrap">{inv.date}</td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <span className={`font-medium ${isReturned ? 'text-red-500' : 'text-gray-700'}`}>{inv.invoiceNumber}</span>
+                            {isReturned && <span className="ml-2 px-1.5 py-0.5 bg-red-500 text-white text-[9px] font-bold rounded">RETURNED</span>}
                           </td>
-
-                          {/* Invoice No */}
-                          <td className="py-3 px-4 border-r border-gray-200 whitespace-nowrap font-normal text-gray-700">
-                            <div className="flex items-center gap-2">
-                              <span className={inv.isReturned ? "font-semibold text-red-700" : "text-gray-800"}>
-                                {inv.invoiceNumber || "-"}
-                              </span>
-                              {inv.isReturned && (
-                                <span className="inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-red-700 bg-red-100 border border-red-200 rounded">
-                                  {inv.returnStatus === "partial" ? "Partial Return" : "Returned"}
-                                </span>
-                              )}
-                            </div>
+                          <td className="px-4 py-3 text-gray-700 whitespace-nowrap">{inv.customer}</td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <span className="text-purple-500 font-mono text-xs">{inv.skus || "N/A"}</span>
                           </td>
-
-                          {/* Customer Name */}
-                          <td className="py-3 px-4 border-r border-gray-200 whitespace-nowrap font-normal text-gray-800">
-                            {inv.customer || "-"}
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <span className="px-2.5 py-0.5 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">{inv.category}</span>
                           </td>
-
-                          {/* SKU (Purple color) */}
-                          <td className="py-3 px-4 border-r border-gray-200 whitespace-nowrap font-normal text-[#9333ea]">
-                            {inv.skus || "-"}
-                          </td>
-
-                          {/* Category (Lavender / Red Badge) */}
-                          <td className="py-3 px-4 border-r border-gray-200 text-center whitespace-nowrap">
-                            <span
-                              className={`inline-block px-3.5 py-1 text-xs font-semibold rounded-full ${
-                                inv.isReturned
-                                  ? "text-red-700 bg-red-100 border border-red-200"
-                                  : "text-[#9333ea] bg-[#f3e8ff]"
-                              }`}
-                            >
-                              {inv.isReturned
-                                ? inv.returnStatus === "partial"
-                                  ? "Returned (Partial)"
-                                  : "Returned"
-                                : inv.category || "General"}
+                          <td className="px-4 py-3 text-gray-700 whitespace-nowrap font-medium">{inv.itemCount}</td>
+                          <td className="px-4 py-3 text-gray-700 whitespace-nowrap">₹{fmt(inv.totalAmount)}</td>
+                          <td className="px-4 py-3 text-gray-700 whitespace-nowrap">₹{fmt(inv.discount)}</td>
+                          <td className="px-4 py-3 font-semibold text-green-600 whitespace-nowrap">₹{fmt(inv.netAmount)}</td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <span className={`px-2.5 py-0.5 text-xs font-medium rounded-full ${paymentBadgeStyle(inv.paymentMethod)}`}>
+                              {inv.paymentMethod}
                             </span>
                           </td>
-
-                          {/* Items / Sub Category */}
-                          <td className="py-3 px-4 border-r border-gray-200 whitespace-nowrap text-gray-700">
-                            {inv.items || inv.subCategory || "Balance Payable"}
-                          </td>
-
-                          {/* Amount */}
-                          <td className="py-3 px-4 border-r border-gray-200 text-right whitespace-nowrap text-gray-700">
-                            {formatCurrency(inv.totalAmount || 0)}
-                          </td>
-
-                          {/* Discount */}
-                          <td className="py-3 px-4 border-r border-gray-200 text-right whitespace-nowrap text-gray-700">
-                            {formatCurrency(inv.discount || 0)}
-                          </td>
-
-                          {/* Net Amount (Green or Red color) */}
-                          <td
-                            className={`py-3 px-4 border-r border-gray-200 text-right whitespace-nowrap font-semibold ${
-                              inv.isReturned
-                                ? "text-red-600 line-through decoration-red-400"
-                                : "text-[#16a34a]"
-                            }`}
-                          >
-                            {formatCurrency(inv.netAmount || 0)}
-                          </td>
-
-                          {/* Payment (Lavender Badge) */}
-                          <td className="py-3 px-4 border-r border-gray-200 text-center whitespace-nowrap">
-                            <span className="inline-block px-3.5 py-1 text-xs font-semibold text-[#9333ea] bg-[#f3e8ff] rounded-full">
-                              {inv.paymentMethod || "Cash"}
-                            </span>
-                          </td>
-
-                          {/* Branch */}
-                          <td className="py-3 px-4 whitespace-nowrap text-gray-700">
-                            {inv.branch || "-"}
-                          </td>
+                          <td className="px-4 py-3 text-gray-700 whitespace-nowrap">{inv.branch}</td>
                         </tr>
-                      ))
-                    ) : (
+                      );
+                    }) : (
                       <tr>
-                        <td
-                          colSpan={11}
-                          className="py-14 text-center text-gray-500 font-medium text-sm"
-                        >
-                          {!hasFetched
-                            ? "Select Date range and click Fetch Data"
-                            : "No invoice records found for the selected criteria."}
-                        </td>
+                        <td colSpan="11" className="px-4 py-14 text-center text-gray-400 text-sm">No invoices found for the selected criteria</td>
                       </tr>
                     )}
                   </tbody>
                 </table>
               </div>
+            </>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-24 text-gray-400">
+              {loading ? (
+                <><svg className="animate-spin h-8 w-8 text-purple-400 mb-3" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                </svg><span className="text-sm">Loading report...</span></>
+              ) : (
+                <><span className="text-4xl mb-3">📊</span><span className="text-sm">Select a date range and click Fetch Data</span></>
+              )}
             </div>
-          </div>
+          )}
         </div>
       </div>
     </>
