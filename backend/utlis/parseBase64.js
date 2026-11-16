@@ -10,7 +10,8 @@ export default function parseBase64(dataUrl) {
   const ext         = contentType.split("/")[1] || "bin";
   const buffer      = Buffer.from(m[2], "base64");
 
-  const filename    = `attachment.${ext}`;   // you can improve this
+  const safeExt = ext.replace(/[^a-z0-9.+-]/gi, "") || "bin";
+  const filename = `receipt-${Date.now()}.${safeExt}`;
 
   return { filename, contentType, data: buffer };
 }

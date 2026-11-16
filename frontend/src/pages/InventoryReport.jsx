@@ -8,6 +8,8 @@ import { Helmet } from "react-helmet";
 import { FiDownload } from "react-icons/fi";
 import { Loader2, Printer } from "lucide-react";
 import { useSidebar } from "../hooks/useSidebar.js";
+import { getActiveStores } from "../utils/storeService.js";
+import { mapLocNameToWarehouse } from "../utils/warehouseMapping.js";
 
 // Helper to format currency
 const formatCurrency = (amount) => {
@@ -52,29 +54,87 @@ const customSelectStyles = {
   }),
 };
 
-const storeOptions = [
-  { value: "All Stores", label: "All Stores" },
-  { value: "858", label: "Warehouse" },
-  { value: "702", label: "G-Edappally" },
-  { value: "759", label: "HEAD OFFICE01" },
-  { value: "700", label: "SG-Trivandrum" },
-  { value: "701", label: "G.Kottayam" },
-  { value: "703", label: "G.Perumbavoor" },
-  { value: "704", label: "G.Thrissur" },
-  { value: "706", label: "G.Chavakkad" },
-  { value: "712", label: "G.Calicut" },
-  { value: "708", label: "G.Vadakara" },
-  { value: "707", label: "G.Edappal" },
-  { value: "709", label: "G.Perinthalmanna" },
-  { value: "711", label: "G.Kottakkal" },
-  { value: "710", label: "G.Manjeri" },
-  { value: "705", label: "G.Palakkad" },
-  { value: "717", label: "G.Kalpetta" },
-  { value: "716", label: "G.Kannur" },
-  { value: "718", label: "G.Mg Road" },
-  { value: "101", label: "Production" },
-  { value: "102", label: "Office" },
-];
+const buildStoreOptions = () => {
+  const activeStores = getActiveStores() || [];
+  const map = new Map();
+  map.set("All Stores", { value: "All Stores", label: "All Stores" });
+
+  activeStores.forEach((s) => {
+    const val = (s.value || s.locCode || "").toString();
+    const lbl = s.label || s.locName || s.name || val;
+    if (val) {
+      map.set(val, { value: val, label: lbl });
+    }
+  });
+
+  if (!map.has("858")) {
+    map.set("858", { value: "858", label: "Warehouse" });
+  }
+  if (!map.has("155")) {
+    map.set("155", { value: "155", label: "BridesBerry" });
+  }
+
+  const legacyStores = [
+    { value: "702", label: "G-Edappally" },
+    { value: "759", label: "HEAD OFFICE01" },
+    { value: "700", label: "SG-Trivandrum" },
+    { value: "701", label: "G.Kottayam" },
+    { value: "703", label: "G.Perumbavoor" },
+    { value: "704", label: "G.Thrissur" },
+    { value: "706", label: "G.Chavakkad" },
+    { value: "712", label: "G.Calicut" },
+    { value: "708", label: "G.Vadakara" },
+    { value: "707", label: "G.Edappal" },
+    { value: "709", label: "G.Perinthalmanna" },
+    { value: "711", label: "G.Kottakkal" },
+    { value: "710", label: "G.Manjeri" },
+    { value: "705", label: "G.Palakkad" },
+    { value: "717", label: "G.Kalpetta" },
+    { value: "716", label: "G.Kannur" },
+    { value: "718", label: "G.Mg Road" },
+    { value: "101", label: "Production" },
+    { value: "102", label: "Office" },
+  ];
+  legacyStores.forEach((s) => {
+    if (!map.has(s.value)) {
+      map.set(s.value, s);
+    }
+  });
+
+  return Array.from(map.values());
+};
+
+const normalizeStoreIdentity = (value) =>
+  (value || "")
+    .toString()
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+
+// Prefer a store name carried by the authenticated user when it matches a
+// known store. This prevents a stale/duplicated locCode cache entry from
+// showing (and querying) another branch for the current user.
+const resolveUserStore = (user, options) => {
+  const userStoreNames = [user?.storeName, user?.locName, user?.username]
+    .map((name) => ({ name, normalized: normalizeStoreIdentity(name) }))
+    .filter(({ normalized }) => normalized);
+
+  const matchedByName = options.find((option) => {
+    const optionName = normalizeStoreIdentity(option.label);
+    return userStoreNames.some(({ normalized }) => normalized === optionName);
+  });
+
+  if (matchedByName) return matchedByName;
+
+  const userLocCode = (user?.locCode || "").toString();
+  const matchedByCode = options.find((option) => option.value === userLocCode);
+  if (matchedByCode) return matchedByCode;
+
+  const fallbackName = userStoreNames[0]?.name || userLocCode;
+  return fallbackName
+    ? { value: userLocCode || fallbackName, label: fallbackName }
+    : { value: "", label: "" };
+};
 
 const reportTypeOptions = [
   { value: "summary", label: "Inventory Summary" },
@@ -93,6 +153,7 @@ const categoryOptions = [
 const InventoryReport = () => {
   const isSidebarOpen = useSidebar();
   const navigate = useNavigate();
+  const [storeOptions, setStoreOptions] = useState(() => buildStoreOptions());
   const [selectedStore, setSelectedStore] = useState("All Stores");
   const [reportType, setReportType] = useState("summary");
   const [loading, setLoading] = useState(false);
@@ -113,58 +174,81 @@ const InventoryReport = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
 
   const currentUser = JSON.parse(localStorage.getItem("rootfinuser") || "{}");
-  const isAdmin = (currentUser?.power || "").toLowerCase() === "admin";
-  const isClusterManager = (currentUser?.role || "").toLowerCase() === "cluster_manager";
-  const clusterAllowedLocCodes = currentUser?.allowedLocCodes || [];
-  const adminEmails = ["officerootments@gmail.com"];
-  const isMainAdmin =
+  const adminEmails = [
+    "officerootments@gmail.com",
+    "brynex@gmail.com",
+    "operationsrootments@gmail.com",
+    "headoffice01@gmail.com",
+  ];
+  const isAdmin =
+    (currentUser?.power || "").toLowerCase() === "admin" ||
+    (currentUser?.power || "").toLowerCase() === "super_admin" ||
+    (currentUser?.role || "").toLowerCase() === "admin" ||
+    (currentUser?.role || "").toLowerCase() === "superadmin" ||
     adminEmails.some((email) => (currentUser?.email || "").toLowerCase() === email.toLowerCase()) ||
     ["858", "103"].includes(currentUser?.locCode);
-  const canChooseStore = (isAdmin && isMainAdmin) || isClusterManager;
+
+  const isClusterManager = (currentUser?.role || "").toLowerCase() === "cluster_manager";
+  const clusterAllowedLocCodes = currentUser?.allowedLocCodes || [];
+  const canChooseStore = isAdmin || isClusterManager;
+  const currentUserStore = resolveUserStore(currentUser, storeOptions);
+  const reportLocCode = canChooseStore
+    ? (currentUser?.locCode || "")
+    : (currentUserStore.value || currentUser?.locCode || "");
 
   useEffect(() => {
-    if (!canChooseStore && currentUser?.locCode) {
-      setSelectedStore(currentUser.locCode);
-    }
-    if (isClusterManager && clusterAllowedLocCodes.length > 0 && selectedStore === "All Stores") {
+    const opts = buildStoreOptions();
+    setStoreOptions(opts);
+
+    if (!canChooseStore) {
+      const resolvedStore = resolveUserStore(currentUser, opts);
+      if (resolvedStore.value) setSelectedStore(resolvedStore.value);
+    } else if (isClusterManager && clusterAllowedLocCodes.length > 0 && selectedStore === "All Stores") {
       setSelectedStore(clusterAllowedLocCodes[0]);
     }
   }, []);
-
-  useEffect(() => {
-    if (reportType === "aging") {
-      navigate("/reports/aging");
-      return;
-    }
-    setCurrentPage(1);
-    setReportData(null);
-    setCsvData([]);
-    setHasFetched(false);
-    if (reportType !== "stock-summary") {
-      setSelectedCategory("all");
-    }
-  }, [reportType, navigate]);
 
   const fetchReport = async () => {
     setLoading(true);
     setHasFetched(true);
     try {
       const endpoint = `api/reports/inventory/${reportType}`;
-      const selectedStoreLabel = storeOptions.find((s) => s.value === selectedStore)?.label;
-      const currentUserStoreLabel = storeOptions.find((s) => s.value === currentUser?.locCode)?.label;
-      const warehouseParam = canChooseStore
-        ? selectedStoreLabel || selectedStore
-        : currentUserStoreLabel || selectedStoreLabel || currentUser?.locCode || selectedStore;
+
+      let warehouseParam = "All Stores";
+      if (!canChooseStore) {
+        const rawStoreName =
+          currentUserStore.label ||
+          currentUser?.storeName ||
+          currentUser?.locName ||
+          currentUser?.username ||
+          currentUser?.locCode ||
+          selectedStore;
+        warehouseParam = mapLocNameToWarehouse(rawStoreName) || rawStoreName;
+      } else {
+        if (selectedStore === "All Stores") {
+          warehouseParam = "All Stores";
+        } else {
+          const storeOpt = storeOptions.find((s) => s.value === selectedStore);
+          const rawStoreName = storeOpt?.label || selectedStore;
+          warehouseParam = mapLocNameToWarehouse(rawStoreName) || rawStoreName;
+        }
+      }
 
       const params = new URLSearchParams({
         warehouse: warehouseParam,
         userId: currentUser?.email || currentUser?.userId || "",
-        locCode: currentUser?.locCode || "",
+        locCode: reportLocCode,
+        userPower: currentUser?.power || "",
+        userRole: currentUser?.role || "",
       });
 
       if (isClusterManager && clusterAllowedLocCodes.length > 0) {
         const clusterStoreLabels = clusterAllowedLocCodes
-          .map((code) => storeOptions.find((s) => s.value === code)?.label)
+          .map((code) => {
+            const opt = storeOptions.find((s) => s.value === code);
+            const lbl = opt?.label || code;
+            return mapLocNameToWarehouse(lbl) || lbl;
+          })
           .filter(Boolean);
         if (clusterStoreLabels.length > 0) {
           params.append("allowedLocCodes", clusterStoreLabels.join(","));
@@ -210,54 +294,91 @@ const InventoryReport = () => {
     }
   };
 
+  useEffect(() => {
+    if (reportType === "aging") {
+      navigate("/reports/aging");
+      return;
+    }
+    setCurrentPage(1);
+    setReportData(null);
+    setCsvData([]);
+    setHasFetched(false);
+    if (reportType !== "stock-summary") {
+      setSelectedCategory("all");
+    }
+    fetchReport();
+  }, [reportType, navigate]);
+
   const prepareCsvData = (data, type) => {
     let csv = [];
     if (type === "summary") {
-      csv = data.items?.map((item) => ({
-        "Item Name": item.itemName,
-        SKU: item.sku,
-        Category: item.category,
-        Cost: item.cost,
-        "Total Stock": item.totalStock,
-        "Total Value": item.totalValue,
-      })) || [];
+      csv =
+        data.items?.map((item) => {
+          const row = {
+            "Item Name": item.itemName,
+            SKU: item.sku,
+            Category: item.category,
+            "Total Stock": item.totalStock,
+          };
+          if (isAdmin) {
+            row["Cost"] = item.cost;
+            row["Total Value"] = item.totalValue;
+          }
+          return row;
+        }) || [];
     } else if (type === "stock-summary") {
       const corruptedStores = ["arehouse Branch", "Grooms Trivandum"];
-      const filteredWarehouses = data.warehouses?.filter((wh) =>
-        !corruptedStores.includes(wh.warehouse)
-      ) || [];
+      const filteredWarehouses =
+        data.warehouses?.filter((wh) => !corruptedStores.includes(wh.warehouse)) || [];
 
-      csv = filteredWarehouses.map((wh) => ({
-        Warehouse: wh.warehouse,
-        "Total Quantity": wh.totalQuantity,
-        "Total Value": wh.totalValue,
-        "Item Count": wh.itemCount,
-      }));
+      csv = filteredWarehouses.map((wh) => {
+        const row = {
+          Warehouse: wh.warehouse,
+          "Total Quantity": wh.totalQuantity,
+          "Item Count": wh.itemCount,
+        };
+        if (isAdmin) {
+          row["Total Value"] = wh.totalValue;
+        }
+        return row;
+      });
     } else if (type === "opening-stock") {
-      csv = data.itemDetails?.map((item) => ({
-        "Item Name": item.itemName,
-        SKU: item.sku || "",
-        Store: item.store,
-        "Opening Stock": item.openingStock,
-        "Opening Value": item.openingValue,
-        "Date Added": new Date(item.createdAt).toLocaleDateString("en-IN"),
-        Type: item.type,
-        "Group Name": item.groupName || "",
-      })) || [];
+      csv =
+        data.itemDetails?.map((item) => {
+          const row = {
+            "Item Name": item.itemName,
+            SKU: item.sku || "",
+            Store: item.store,
+            "Opening Stock": item.openingStock,
+            "Date Added": new Date(item.createdAt).toLocaleDateString("en-IN"),
+            Type: item.type,
+            "Group Name": item.groupName || "",
+          };
+          if (isAdmin) {
+            row["Opening Value"] = item.openingValue;
+          }
+          return row;
+        }) || [];
     } else if (type === "stock-on-hand") {
-      csv = data.itemDetails?.map((item) => ({
-        "Item Name": item.itemName,
-        SKU: item.sku || "",
-        Category: item.category,
-        Warehouse: item.warehouse,
-        "Opening Stock": item.openingStock,
-        "Stock In": item.stockIn,
-        "Stock Out": item.stockOut,
-        "Closing Stock": item.closingStock,
-        "Cost Price": item.costPrice,
-        "Stock Value": item.stockValue,
-        "Group Name": item.itemGroupName || "",
-      })) || [];
+      csv =
+        data.itemDetails?.map((item) => {
+          const row = {
+            "Item Name": item.itemName,
+            SKU: item.sku || "",
+            Category: item.category,
+            Warehouse: item.warehouse,
+            "Opening Stock": item.openingStock,
+            "Stock In": item.stockIn,
+            "Stock Out": item.stockOut,
+            "Closing Stock": item.closingStock,
+            "Group Name": item.itemGroupName || "",
+          };
+          if (isAdmin) {
+            row["Cost Price"] = item.costPrice;
+            row["Stock Value"] = item.stockValue;
+          }
+          return row;
+        }) || [];
     }
     setCsvData(csv);
   };
@@ -483,9 +604,7 @@ const InventoryReport = () => {
                       />
                     ) : (
                       <div className="px-3.5 py-2 text-sm text-gray-800 bg-gray-50 border border-gray-300 rounded-lg">
-                        {storeOptions.find((s) => s.value === currentUser?.locCode)?.label ||
-                          currentUser?.locCode ||
-                          selectedStore}
+                        {currentUserStore.label || selectedStore}
                       </div>
                     )}
                   </div>
@@ -648,9 +767,13 @@ const InventoryReport = () => {
                             <th className="py-3.5 px-4 text-[11px] font-bold tracking-wider text-white uppercase">ITEM NAME</th>
                             <th className="py-3.5 px-4 text-[11px] font-bold tracking-wider text-white uppercase">SKU</th>
                             <th className="py-3.5 px-4 text-[11px] font-bold tracking-wider text-white uppercase">CATEGORY</th>
-                            <th className="py-3.5 px-4 text-right text-[11px] font-bold tracking-wider text-white uppercase">COST</th>
+                            {isAdmin && (
+                              <th className="py-3.5 px-4 text-right text-[11px] font-bold tracking-wider text-white uppercase">COST</th>
+                            )}
                             <th className="py-3.5 px-4 text-right text-[11px] font-bold tracking-wider text-white uppercase">TOTAL STOCK</th>
-                            <th className="py-3.5 px-4 text-right text-[11px] font-bold tracking-wider text-white uppercase">TOTAL VALUE</th>
+                            {isAdmin && (
+                              <th className="py-3.5 px-4 text-right text-[11px] font-bold tracking-wider text-white uppercase">TOTAL VALUE</th>
+                            )}
                           </>
                         )}
                         {reportType === "stock-summary" && (
@@ -681,15 +804,19 @@ const InventoryReport = () => {
                             <th className="py-3.5 px-4 text-right text-[11px] font-bold tracking-wider text-white uppercase">IN</th>
                             <th className="py-3.5 px-4 text-right text-[11px] font-bold tracking-wider text-white uppercase">OUT</th>
                             <th className="py-3.5 px-4 text-right text-[11px] font-bold tracking-wider text-white uppercase">CLOSING</th>
-                            <th className="py-3.5 px-4 text-right text-[11px] font-bold tracking-wider text-white uppercase">COST</th>
-                            <th className="py-3.5 px-4 text-right text-[11px] font-bold tracking-wider text-white uppercase">STOCK VALUE</th>
+                            {isAdmin && (
+                              <>
+                                <th className="py-3.5 px-4 text-right text-[11px] font-bold tracking-wider text-white uppercase">COST</th>
+                                <th className="py-3.5 px-4 text-right text-[11px] font-bold tracking-wider text-white uppercase">STOCK VALUE</th>
+                              </>
+                            )}
                           </>
                         )}
                       </tr>
                     </thead>
                     <tbody>
                       <tr>
-                        <td colSpan={10} className="py-24 text-center">
+                        <td colSpan={isAdmin ? 10 : 8} className="py-24 text-center">
                           <p className="text-sm font-medium text-gray-500">
                             {hasFetched ? "No data found for the selected criteria" : "Select options and click Generate Report"}
                           </p>
@@ -710,7 +837,7 @@ const InventoryReport = () => {
                 {/* 1. INVENTORY SUMMARY */}
                 {reportType === "summary" && (
                   <>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className={`grid grid-cols-1 ${isAdmin ? "sm:grid-cols-3" : "sm:grid-cols-2"} gap-4`}>
                       <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
                         <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1.5">Total Items</div>
                         <div className="text-3xl font-bold text-gray-900">{reportData.summary?.totalItems || 0}</div>
@@ -719,10 +846,12 @@ const InventoryReport = () => {
                         <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1.5">Total Quantity</div>
                         <div className="text-3xl font-bold text-[#9333ea]">{reportData.summary?.totalQuantity || 0}</div>
                       </div>
-                      <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                        <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1.5">Total Stock Value</div>
-                        <div className="text-3xl font-bold text-emerald-600">{formatCurrency(reportData.summary?.totalStockValue || 0)}</div>
-                      </div>
+                      {isAdmin && (
+                        <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                          <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1.5">Total Stock Value</div>
+                          <div className="text-3xl font-bold text-emerald-600">{formatCurrency(reportData.summary?.totalStockValue || 0)}</div>
+                        </div>
+                      )}
                     </div>
 
                     <div className="w-full bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
@@ -733,9 +862,13 @@ const InventoryReport = () => {
                               <th className="py-3.5 px-4 text-[11px] font-bold tracking-wider text-white uppercase border-r border-zinc-700/60">ITEM NAME</th>
                               <th className="py-3.5 px-4 text-[11px] font-bold tracking-wider text-white uppercase border-r border-zinc-700/60">SKU</th>
                               <th className="py-3.5 px-4 text-[11px] font-bold tracking-wider text-white uppercase border-r border-zinc-700/60">CATEGORY</th>
-                              <th className="py-3.5 px-4 text-right text-[11px] font-bold tracking-wider text-white uppercase border-r border-zinc-700/60">COST</th>
-                              <th className="py-3.5 px-4 text-right text-[11px] font-bold tracking-wider text-white uppercase border-r border-zinc-700/60">TOTAL STOCK</th>
-                              <th className="py-3.5 px-4 text-right text-[11px] font-bold tracking-wider text-white uppercase">TOTAL VALUE</th>
+                              {isAdmin && (
+                                <th className="py-3.5 px-4 text-right text-[11px] font-bold tracking-wider text-white uppercase border-r border-zinc-700/60">COST</th>
+                              )}
+                              <th className={`py-3.5 px-4 text-right text-[11px] font-bold tracking-wider text-white uppercase ${isAdmin ? "border-r border-zinc-700/60" : ""}`}>TOTAL STOCK</th>
+                              {isAdmin && (
+                                <th className="py-3.5 px-4 text-right text-[11px] font-bold tracking-wider text-white uppercase">TOTAL VALUE</th>
+                              )}
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-gray-200 bg-white text-sm">
@@ -748,9 +881,13 @@ const InventoryReport = () => {
                                     {item.category}
                                   </span>
                                 </td>
-                                <td className="py-3 px-4 text-right text-gray-700 border-r border-gray-200">{formatCurrency(item.cost)}</td>
-                                <td className="py-3 px-4 text-right font-bold text-[#9333ea] border-r border-gray-200">{item.totalStock}</td>
-                                <td className="py-3 px-4 text-right font-bold text-emerald-600">{formatCurrency(item.totalValue)}</td>
+                                {isAdmin && (
+                                  <td className="py-3 px-4 text-right text-gray-700 border-r border-gray-200">{formatCurrency(item.cost)}</td>
+                                )}
+                                <td className={`py-3 px-4 text-right font-bold text-[#9333ea] ${isAdmin ? "border-r border-gray-200" : ""}`}>{item.totalStock}</td>
+                                {isAdmin && (
+                                  <td className="py-3 px-4 text-right font-bold text-emerald-600">{formatCurrency(item.totalValue)}</td>
+                                )}
                               </tr>
                             ))}
                           </tbody>
@@ -917,7 +1054,7 @@ const InventoryReport = () => {
                 {/* 4. STOCK ON HAND REPORT */}
                 {reportType === "stock-on-hand" && (
                   <>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+                    <div className={`grid grid-cols-2 sm:grid-cols-3 ${isAdmin ? "lg:grid-cols-6" : "lg:grid-cols-5"} gap-4`}>
                       <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
                         <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">Opening Stock</div>
                         <div className="text-2xl font-bold text-gray-800">{reportData.summary?.totalOpeningStock || 0}</div>
@@ -934,10 +1071,12 @@ const InventoryReport = () => {
                         <div className="text-xs font-semibold uppercase tracking-wider text-[#9333ea] mb-1">Closing Stock</div>
                         <div className="text-2xl font-bold text-[#9333ea]">{reportData.summary?.totalClosingStock || 0}</div>
                       </div>
-                      <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                        <div className="text-xs font-semibold uppercase tracking-wider text-emerald-700 mb-1">Stock Value</div>
-                        <div className="text-2xl font-bold text-emerald-600">{formatCurrency(reportData.summary?.totalStockValue || 0)}</div>
-                      </div>
+                      {isAdmin && (
+                        <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                          <div className="text-xs font-semibold uppercase tracking-wider text-emerald-700 mb-1">Stock Value</div>
+                          <div className="text-2xl font-bold text-emerald-600">{formatCurrency(reportData.summary?.totalStockValue || 0)}</div>
+                        </div>
+                      )}
                       <div className="bg-purple-50/50 p-4 rounded-xl border border-purple-100 shadow-sm hover:shadow-md transition-shadow">
                         <div className="text-xs font-semibold uppercase tracking-wider text-purple-700 mb-1">Period</div>
                         <div className="text-sm font-bold text-purple-900 truncate">{reportData.summary?.period || "Current"}</div>
@@ -961,15 +1100,19 @@ const InventoryReport = () => {
                                 <th className="py-3.5 px-4 text-right text-[11px] font-bold tracking-wider text-white uppercase border-r border-zinc-700/60">OPENING</th>
                                 <th className="py-3.5 px-4 text-right text-[11px] font-bold tracking-wider text-white uppercase border-r border-zinc-700/60">IN</th>
                                 <th className="py-3.5 px-4 text-right text-[11px] font-bold tracking-wider text-white uppercase border-r border-zinc-700/60">OUT</th>
-                                <th className="py-3.5 px-4 text-right text-[11px] font-bold tracking-wider text-white uppercase border-r border-zinc-700/60">CLOSING</th>
-                                <th className="py-3.5 px-4 text-right text-[11px] font-bold tracking-wider text-white uppercase border-r border-zinc-700/60">COST</th>
-                                <th className="py-3.5 px-4 text-right text-[11px] font-bold tracking-wider text-white uppercase">STOCK VALUE</th>
+                                <th className={`py-3.5 px-4 text-right text-[11px] font-bold tracking-wider text-white uppercase ${isAdmin ? "border-r border-zinc-700/60" : ""}`}>CLOSING</th>
+                                {isAdmin && (
+                                  <>
+                                    <th className="py-3.5 px-4 text-right text-[11px] font-bold tracking-wider text-white uppercase border-r border-zinc-700/60">COST</th>
+                                    <th className="py-3.5 px-4 text-right text-[11px] font-bold tracking-wider text-white uppercase">STOCK VALUE</th>
+                                  </>
+                                )}
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200 bg-white text-sm">
                               {reportData.itemDetails?.length === 0 ? (
                                 <tr>
-                                  <td colSpan={10} className="py-12 text-center text-gray-500">
+                                  <td colSpan={isAdmin ? 10 : 8} className="py-12 text-center text-gray-500">
                                     No items found for the selected criteria.
                                   </td>
                                 </tr>
@@ -992,9 +1135,13 @@ const InventoryReport = () => {
                                     <td className="py-3 px-4 text-right text-gray-600 border-r border-gray-200">{item.openingStock || 0}</td>
                                     <td className="py-3 px-4 text-right font-bold text-emerald-600 border-r border-gray-200">{item.stockIn || 0}</td>
                                     <td className="py-3 px-4 text-right font-bold text-red-500 border-r border-gray-200">{item.stockOut || 0}</td>
-                                    <td className="py-3 px-4 text-right font-bold text-[#9333ea] border-r border-gray-200">{item.closingStock || 0}</td>
-                                    <td className="py-3 px-4 text-right text-gray-700 border-r border-gray-200">{formatCurrency(item.costPrice || 0)}</td>
-                                    <td className="py-3 px-4 text-right font-bold text-emerald-600">{formatCurrency(item.stockValue || 0)}</td>
+                                    <td className={`py-3 px-4 text-right font-bold text-[#9333ea] ${isAdmin ? "border-r border-gray-200" : ""}`}>{item.closingStock || 0}</td>
+                                    {isAdmin && (
+                                      <>
+                                        <td className="py-3 px-4 text-right text-gray-700 border-r border-gray-200">{formatCurrency(item.costPrice || 0)}</td>
+                                        <td className="py-3 px-4 text-right font-bold text-emerald-600">{formatCurrency(item.stockValue || 0)}</td>
+                                      </>
+                                    )}
                                   </tr>
                                 ))
                               )}
@@ -1016,8 +1163,10 @@ const InventoryReport = () => {
                             <thead className="bg-[#18181b] text-white">
                               <tr>
                                 <th className="py-3.5 px-4 text-[11px] font-bold tracking-wider text-white uppercase border-r border-zinc-700/60">WAREHOUSE</th>
-                                <th className="py-3.5 px-4 text-right text-[11px] font-bold tracking-wider text-white uppercase border-r border-zinc-700/60">TOTAL STOCK</th>
-                                <th className="py-3.5 px-4 text-right text-[11px] font-bold tracking-wider text-white uppercase border-r border-zinc-700/60">TOTAL VALUE</th>
+                                <th className={`py-3.5 px-4 text-right text-[11px] font-bold tracking-wider text-white uppercase ${isAdmin ? "border-r border-zinc-700/60" : ""}`}>TOTAL STOCK</th>
+                                {isAdmin && (
+                                  <th className="py-3.5 px-4 text-right text-[11px] font-bold tracking-wider text-white uppercase border-r border-zinc-700/60">TOTAL VALUE</th>
+                                )}
                                 <th className="py-3.5 px-4 text-right text-[11px] font-bold tracking-wider text-white uppercase">ITEM COUNT</th>
                               </tr>
                             </thead>
@@ -1025,8 +1174,10 @@ const InventoryReport = () => {
                               {reportData.warehouseReport?.map((wh, idx) => (
                                 <tr key={idx} className="hover:bg-purple-50/40 transition-colors">
                                   <td className="py-3 px-4 font-semibold text-gray-900 border-r border-gray-200">{wh.warehouse}</td>
-                                  <td className="py-3 px-4 text-right font-bold text-[#9333ea] border-r border-gray-200">{wh.totalStock}</td>
-                                  <td className="py-3 px-4 text-right font-bold text-emerald-600 border-r border-gray-200">{formatCurrency(wh.totalValue)}</td>
+                                  <td className={`py-3 px-4 text-right font-bold text-[#9333ea] ${isAdmin ? "border-r border-gray-200" : ""}`}>{wh.totalStock}</td>
+                                  {isAdmin && (
+                                    <td className="py-3 px-4 text-right font-bold text-emerald-600 border-r border-gray-200">{formatCurrency(wh.totalValue)}</td>
+                                  )}
                                   <td className="py-3 px-4 text-right text-gray-700">{wh.totalItems}</td>
                                 </tr>
                               ))}

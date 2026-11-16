@@ -76,6 +76,8 @@ import ReorderAlerts from "./pages/ReorderAlerts.jsx";
 import Income from "./pages/Income.jsx";
 import Expenses from "./pages/Expenses.jsx";
 import IncomeExpenseReport from "./pages/IncomeExpenseReport.jsx";
+import RecordExpenses from "./pages/RecordExpenses.jsx";
+import DirectIndirectExpenses from "./pages/DirectIndirectExpenses.jsx";
 
 const App = () => {
   const location = useLocation();
@@ -242,6 +244,11 @@ const App = () => {
           <Route path="/Income&Expenses" element={currentuser ? <ClusterGuard><SecurityReturn /></ClusterGuard> : <Navigate to="/login" />} />
           <Route path="/income" element={currentuser ? <ClusterGuard><Income /></ClusterGuard> : <Navigate to="/login" />} />
           <Route path="/expenses" element={currentuser ? <ClusterGuard><Expenses /></ClusterGuard> : <Navigate to="/login" />} />
+          <Route path="/record-expense" element={currentuser ? <ClusterGuard><RecordExpenses /></ClusterGuard> : <Navigate to="/login" />} />
+          <Route path="/record-expenses" element={currentuser ? <ClusterGuard><RecordExpenses /></ClusterGuard> : <Navigate to="/login" />} />
+          <Route path="/record-expense/new" element={currentuser ? <ClusterGuard><DirectIndirectExpenses initialType="direct" /></ClusterGuard> : <Navigate to="/login" />} />
+          <Route path="/direct-expenses" element={currentuser ? <ClusterGuard><DirectIndirectExpenses initialType="direct" /></ClusterGuard> : <Navigate to="/login" />} />
+          <Route path="/indirect-expenses" element={currentuser ? <ClusterGuard><DirectIndirectExpenses initialType="indirect" /></ClusterGuard> : <Navigate to="/login" />} />
           <Route path="/CashBankLedger" element={currentuser ? <ClusterGuard><SecurityPending /></ClusterGuard> : <Navigate to="/login" />} />
           <Route path="/securityReport" element={currentuser ? <Security /> : <Navigate to='/login' />} />
           <Route path="/CloseReport" element={currentuser?.power === 'admin' ? <CloseReport /> : <Navigate to='/' />} />
@@ -262,7 +269,7 @@ const App = () => {
           <Route path="/shoe-sales/items/:itemId" element={currentuser ? <ShoeSalesItemDetail /> : <Navigate to="/login" />} />
           <Route path="/shoe-sales/items/new" element={currentuser ? <ShoeSalesItemCreate /> : <Navigate to="/login" />} />
           <Route path="/shoe-sales/item-groups" element={currentuser ? <ShoeSalesItemGroups /> : <Navigate to="/login" />} />
-          <Route path="/shoe-sales/item-groups/new" element={currentuser ? <ShoeSalesItemGroupCreate /> : <Navigate to="/login" />} />
+          <Route path="/shoe-sales/item-groups/new" element={isAdmin ? <ShoeSalesItemGroupCreate /> : <Navigate to="/shoe-sales/item-groups" />} />
           <Route path="/shoe-sales/item-groups/:id/items/new" element={currentuser ? <ShoeSalesItemCreate /> : <Navigate to="/login" />} />
           <Route path="/shoe-sales/item-groups/:id/items/:itemId/edit" element={currentuser ? <ShoeSalesItemCreate /> : <Navigate to="/login" />} />
           <Route path="/shoe-sales/item-groups/:id/items/:itemId/stocks" element={(currentuser?.power === 'admin' || currentuser?.power === 'warehouse') ? <ItemStockManagement /> : <Navigate to="/" />} />

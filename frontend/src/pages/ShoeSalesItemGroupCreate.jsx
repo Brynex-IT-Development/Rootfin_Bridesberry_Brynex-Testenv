@@ -49,6 +49,32 @@ const ShoeSalesItemGroupCreate = () => {
   const isSidebarOpen = useSidebar();
   const { id } = useParams();
   const navigate = useNavigate();
+
+  const userStr = localStorage.getItem("rootfinuser");
+  const user = userStr ? JSON.parse(userStr) : null;
+  const userRole = (user?.role || "").toLowerCase().trim();
+  const userPower = (user?.power || "").toLowerCase().trim();
+  const userEmail = (user?.email || user?.username || "").toLowerCase().trim();
+  const adminEmails = [
+    "officerootments@gmail.com",
+    "brynex@gmail.com",
+    "operationsrootments@gmail.com",
+    "headoffice01@gmail.com"
+  ];
+  const isAdminEmail = adminEmails.includes(userEmail);
+  const isAdmin = isAdminEmail ||
+                  userPower === "admin" || 
+                  userPower === "super_admin" || 
+                  userRole === "admin" || 
+                  userRole === "superadmin" ||
+                  (user?.locCode && (String(user.locCode) === '858' || String(user.locCode) === '103'));
+
+  useEffect(() => {
+    if (!isAdmin) {
+      navigate("/shoe-sales/item-groups");
+    }
+  }, [isAdmin, navigate]);
+
   const isEditMode = !!id;
   const [loading, setLoading] = useState(isEditMode);
   const [showAccounts, setShowAccounts] = useState(false);

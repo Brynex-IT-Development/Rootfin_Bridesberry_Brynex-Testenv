@@ -778,7 +778,7 @@ const ShoeSalesItems = () => {
                 <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2 block">
                   Group Destination
                 </label>
-                <div className="grid grid-cols-2 gap-2 p-1 bg-gray-100 rounded-none border border-gray-200">
+                <div className={`grid ${isAdmin ? "grid-cols-2" : "grid-cols-1"} gap-2 p-1 bg-gray-100 rounded-none border border-gray-200`}>
                   <button
                     type="button"
                     onClick={() => setGroupOption("existing")}
@@ -791,18 +791,20 @@ const ShoeSalesItems = () => {
                     <Layers size={14} />
                     <span>Existing Group</span>
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => setGroupOption("new")}
-                    className={`flex items-center justify-center gap-2 py-2 text-xs font-bold rounded-none transition-all cursor-pointer ${
-                      groupOption === "new"
-                        ? "bg-white text-purple-700 shadow-xs border border-gray-200"
-                        : "text-gray-600 hover:text-gray-900"
-                    }`}
-                  >
-                    <Plus size={14} />
-                    <span>Create New Group</span>
-                  </button>
+                  {isAdmin && (
+                    <button
+                      type="button"
+                      onClick={() => setGroupOption("new")}
+                      className={`flex items-center justify-center gap-2 py-2 text-xs font-bold rounded-none transition-all cursor-pointer ${
+                        groupOption === "new"
+                          ? "bg-white text-purple-700 shadow-xs border border-gray-200"
+                          : "text-gray-600 hover:text-gray-900"
+                      }`}
+                    >
+                      <Plus size={14} />
+                      <span>Create New Group</span>
+                    </button>
+                  )}
                 </div>
               </div>
 

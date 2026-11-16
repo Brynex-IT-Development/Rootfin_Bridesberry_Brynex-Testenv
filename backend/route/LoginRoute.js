@@ -1,6 +1,6 @@
 import express from 'express';
 import { Login, SignUp, GetAllStores, GetAllUsers, UpdateUser, ResetPassword, DeleteUser } from '../controllers/LoginAndSignup.js';
-import { CreatePayment, GetPayment } from '../controllers/TransactionController.js';
+import { CreatePayment, GetPayment, getOptimizedTransactions } from '../controllers/TransactionController.js';
 import { CloseController, GetAllCloseData, GetCloseController, getFinancialSummaryWithEdit } from '../controllers/CloseController.js';
 import { editTransaction} from '../controllers/EditController.js';
 import Transaction from '../model/Transaction.js';
@@ -185,6 +185,7 @@ router.post('/createPayment', CreatePayment)
  *         description: Internal server error.
  */
 router.get('/Getpayment', GetPayment)
+router.get('/getOptimizedTransactions', getOptimizedTransactions)
 
 
 /**

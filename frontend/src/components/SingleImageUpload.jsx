@@ -1,10 +1,9 @@
+/* eslint-disable react/prop-types */
 import { useRef, useState } from 'react';
 import { X } from 'lucide-react';
 import {
   IMAGE_CONFIG,
-  validateImageFile,
-  validateImageDimensions,
-  fileToBase64,
+  processImageFiles,
   getFilesFromDragEvent,
   triggerFileInput,
 } from '../utils/imageUpload';
@@ -23,11 +22,13 @@ const SingleImageUpload = ({
   existingImage = null,
   onRemoveImage,
   required = false,
+  variant = 'default',
 }) => {
   const fileInputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
   const [errors, setErrors] = useState([]);
   const [dragActive, setDragActive] = useState(false);
+  const isExpenseCard = variant === 'expense-card';
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -66,35 +67,16 @@ const SingleImageUpload = ({
     setErrors([]);
 
     try {
-      // Validate file
-      const validation = validateImageFile(file);
-      if (!validation.valid) {
-        setErrors([validation.error]);
-        setUploading(false);
-        return;
+      const result = await processImageFiles([file]);
+      if (result.errors.length > 0) {
+        setErrors(result.errors);
       }
-
-      // Validate dimensions
-      const dimensionValidation = await validateImageDimensions(file);
-      if (!dimensionValidation.valid) {
-        setErrors([dimensionValidation.error]);
-        setUploading(false);
-        return;
+      if (result.images[0]) {
+        onImageSelect(result.images[0]);
       }
-
-      // Convert to base64
-      try {
-        const base64 = await fileToBase64(file);
-        onImageSelect({
-          base64,
-          name: file.name,
-          size: file.size,
-          type: file.type,
-        });
-      } catch (error) {
-        setErrors(['Failed to process image']);
-        console.error('Image upload error:', error);
-      }
+    } catch (error) {
+      setErrors(['Failed to process image']);
+      console.error('Image upload error:', error);
     } finally {
       setUploading(false);
     }
@@ -121,7 +103,10 @@ const SingleImageUpload = ({
             onDragLeave={handleDrag}
             onDragOver={handleDrag}
             onDrop={handleDrop}
-            className={`flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 text-center transition-colors ${
+            aria-required={required}
+            className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed text-center transition-colors ${
+              isExpenseCard ? 'min-h-[164px] px-6 py-5' : 'p-6'
+            } ${
               dragActive
                 ? 'border-[#2563eb] bg-[#eff6ff]'
                 : 'border-[#d7dcf5] bg-[#f8f9ff]'
@@ -131,13 +116,19 @@ const SingleImageUpload = ({
               Drag image here or browse
             </p>
             <p className="mt-2 text-xs leading-5 text-[#94a3b8]">
-              Max {IMAGE_CONFIG.MAX_FILE_SIZE / (1024 * 1024)}MB, up to {IMAGE_CONFIG.MAX_DIMENSIONS.width}x{IMAGE_CONFIG.MAX_DIMENSIONS.height}px
+              {isExpenseCard
+                ? `Images up to ${IMAGE_CONFIG.MAX_FILE_SIZE / (1024 * 1024)}MB are compressed automatically`
+                : `Max ${IMAGE_CONFIG.MAX_FILE_SIZE / (1024 * 1024)}MB, up to ${IMAGE_CONFIG.MAX_DIMENSIONS.width}x${IMAGE_CONFIG.MAX_DIMENSIONS.height}px`}
             </p>
             <button
               type="button"
               onClick={handleClickUpload}
               disabled={uploading}
-              className="mt-3 rounded-full border border-[#cbd5f5] px-3 py-1.5 text-xs font-medium text-[#3762f9] hover:bg-[#eef2ff] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className={`mt-3 font-medium text-[#3762f9] transition-colors hover:text-[#244de3] disabled:cursor-not-allowed disabled:opacity-50 ${
+                isExpenseCard
+                  ? 'rounded-lg px-4 py-1 text-base'
+                  : 'rounded-full border border-[#cbd5f5] px-3 py-1.5 text-xs hover:bg-[#eef2ff]'
+              }`}
             >
               {uploading ? 'Uploading...' : 'Browse'}
             </button>
@@ -146,7 +137,7 @@ const SingleImageUpload = ({
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/jpeg,image/png,image/gif,image/webp"
+              accept="image/jpeg,image/png,image/gif,image/webp,image/heic,image/heif"
               onChange={handleFileInput}
               style={{ display: 'none' }}
             />

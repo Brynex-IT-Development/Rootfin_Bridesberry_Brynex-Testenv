@@ -600,46 +600,50 @@ const ShoeSalesItemGroupDetail = () => {
 
           {/* Action Buttons */}
           <div className="flex items-center gap-2 shrink-0">
-            <Link
-              to={`/shoe-sales/item-groups/${id}/edit`}
-              className="inline-flex items-center gap-1.5 h-9 px-4 rounded-none bg-[#8B5CF6] hover:bg-[#7C3AED] text-xs font-bold uppercase tracking-wider text-white shadow-xs transition-colors cursor-pointer"
-            >
-              <Edit size={13} className="text-white" />
-              <span>Edit</span>
-            </Link>
+            {isAdmin && (
+              <>
+                <Link
+                  to={`/shoe-sales/item-groups/${id}/edit`}
+                  className="inline-flex items-center gap-1.5 h-9 px-4 rounded-none bg-[#8B5CF6] hover:bg-[#7C3AED] text-xs font-bold uppercase tracking-wider text-white shadow-xs transition-colors cursor-pointer"
+                >
+                  <Edit size={13} className="text-white" />
+                  <span>Edit</span>
+                </Link>
 
-            <div className="relative" ref={moreMenuRef}>
-              <button
-                onClick={() => setShowMoreMenu(!showMoreMenu)}
-                className="inline-flex items-center gap-1.5 h-9 px-3 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs transition-colors cursor-pointer"
-              >
-                <span>More</span>
-                <ChevronDown size={14} className="text-[#6B7280]" />
-              </button>
-              {showMoreMenu && (
-                <div className="absolute right-0 mt-1 w-48 rounded-none border border-[#E5E7EB] bg-white shadow-lg z-50 py-1">
+                <div className="relative" ref={moreMenuRef}>
                   <button
-                    onClick={() => {
-                      setShowInactiveModal(true);
-                      setShowMoreMenu(false);
-                    }}
-                    className="w-full px-4 py-2 text-left text-xs font-bold uppercase tracking-wider text-[#374151] hover:bg-[#F9FAFB] transition-colors cursor-pointer"
+                    onClick={() => setShowMoreMenu(!showMoreMenu)}
+                    className="inline-flex items-center gap-1.5 h-9 px-3 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs transition-colors cursor-pointer"
                   >
-                    Mark as Inactive
+                    <span>More</span>
+                    <ChevronDown size={14} className="text-[#6B7280]" />
                   </button>
-                  <div className="h-px bg-[#E5E7EB] my-1" />
-                  <button
-                    onClick={() => {
-                      setShowDeleteModal(true);
-                      setShowMoreMenu(false);
-                    }}
-                    className="w-full px-4 py-2 text-left text-xs font-bold uppercase tracking-wider text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
-                  >
-                    Delete
-                  </button>
+                  {showMoreMenu && (
+                    <div className="absolute right-0 mt-1 w-48 rounded-none border border-[#E5E7EB] bg-white shadow-lg z-50 py-1">
+                      <button
+                        onClick={() => {
+                          setShowInactiveModal(true);
+                          setShowMoreMenu(false);
+                        }}
+                        className="w-full px-4 py-2 text-left text-xs font-bold uppercase tracking-wider text-[#374151] hover:bg-[#F9FAFB] transition-colors cursor-pointer"
+                      >
+                        Mark as Inactive
+                      </button>
+                      <div className="h-px bg-[#E5E7EB] my-1" />
+                      <button
+                        onClick={() => {
+                          setShowDeleteModal(true);
+                          setShowMoreMenu(false);
+                        }}
+                        className="w-full px-4 py-2 text-left text-xs font-bold uppercase tracking-wider text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+              </>
+            )}
 
             <Link
               to="/shoe-sales/item-groups"
@@ -791,9 +795,11 @@ const ShoeSalesItemGroupDetail = () => {
                         <th className="px-6 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider border-r border-[#333333]">
                           Item Details
                         </th>
-                        <th className="px-6 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider border-r border-[#333333]">
-                          Cost Price
-                        </th>
+                        {isAdmin && (
+                          <th className="px-6 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider border-r border-[#333333]">
+                            Cost Price
+                          </th>
+                        )}
                         <th className="px-6 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider border-r border-[#333333]">
                           Selling Price
                         </th>
@@ -806,9 +812,11 @@ const ShoeSalesItemGroupDetail = () => {
                         <th className="px-6 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider border-r border-[#333333]">
                           Reorder Point
                         </th>
-                        <th className="px-6 py-3.5 text-right text-[11px] font-bold uppercase tracking-wider">
-                          Actions
-                        </th>
+                        {isAdmin && (
+                          <th className="px-6 py-3.5 text-right text-[11px] font-bold uppercase tracking-wider">
+                            Actions
+                          </th>
+                        )}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#E5E7EB] bg-white">
@@ -842,9 +850,11 @@ const ShoeSalesItemGroupDetail = () => {
                                 </div>
                               </div>
                             </td>
-                            <td className="px-6 py-4 text-xs font-mono font-bold text-[#111827]">
-                              ₹{typeof item.costPrice === 'number' ? item.costPrice.toFixed(2) : (item.costPrice || "0.00")}
-                            </td>
+                            {isAdmin && (
+                              <td className="px-6 py-4 text-xs font-mono font-bold text-[#111827]">
+                                ₹{typeof item.costPrice === 'number' ? item.costPrice.toFixed(2) : (item.costPrice || "0.00")}
+                              </td>
+                            )}
                             <td className="px-6 py-4 text-xs font-mono font-bold text-[#10B981]">
                               ₹{typeof item.sellingPrice === 'number' ? item.sellingPrice.toFixed(2) : (item.sellingPrice || "0.00")}
                             </td>
@@ -853,16 +863,18 @@ const ShoeSalesItemGroupDetail = () => {
                             </td>
                             <td className="px-6 py-4 text-xs font-mono font-bold text-[#111827]">{Math.round(itemStock)}</td>
                             <td className="px-6 py-4 text-xs font-mono text-[#6B7280]">{item.reorderPoint || "—"}</td>
-                            <td className="px-6 py-4 text-right">
-                              <Link
-                                to={`/shoe-sales/item-groups/${id}/items/${item._id || item.id}/edit`}
-                                onClick={(e) => e.stopPropagation()}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-2xs transition-colors"
-                                title="Edit Variant"
-                              >
-                                Edit Variant
-                              </Link>
-                            </td>
+                            {isAdmin && (
+                              <td className="px-6 py-4 text-right">
+                                <Link
+                                  to={`/shoe-sales/item-groups/${id}/items/${item._id || item.id}/edit`}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-2xs transition-colors"
+                                  title="Edit Variant"
+                                >
+                                  Edit Variant
+                                </Link>
+                              </td>
+                            )}
                           </tr>
                         );
                       })}

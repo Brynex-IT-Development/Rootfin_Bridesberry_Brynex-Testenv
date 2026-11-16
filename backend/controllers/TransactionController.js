@@ -2,15 +2,21 @@
 import Transaction from "../model/Transaction.js";
 import CloseTransaction from "../model/Closing.js";
 import { propagateCashDiff } from "../utils/cashPropagation.js";
-import { getCachedData, setCachedData, generateCacheKey } from "../utils/cacheManager.js";
+import {
+  clearCachePattern,
+  generateCacheKey,
+  getCachedData,
+  setCachedData,
+} from "../utils/cacheManager.js";
 
 // Optimized function to get transactions with caching and better queries
 export const getOptimizedTransactions = async (req, res) => {
-  const { LocCode, DateFrom, DateTo, category, type } = req.query;
+  const { DateFrom, DateTo, category, type } = req.query;
+  const locCode = req.query.locCode ?? req.query.LocCode;
   
   try {
     // Generate cache key
-    const cacheKey = generateCacheKey('transactions', { LocCode, DateFrom, DateTo, category, type });
+    const cacheKey = generateCacheKey('transactions', { locCode, DateFrom, DateTo, category, type });
     
     // Check cache first
     const cached = getCachedData(cacheKey);
@@ -19,20 +25,27 @@ export const getOptimizedTransactions = async (req, res) => {
     }
 
     // Build optimized query with indexes
-    const query = {
-      locCode: LocCode,
-      date: {
-        $gte: new Date(DateFrom),
-        $lte: new Date(DateTo)
-      }
-    };
+    if (!DateFrom || !DateTo) {
+      return res.status(400).json({ message: "Both 'DateFrom' and 'DateTo' are required" });
+    }
+
+    const fromDate = new Date(DateFrom);
+    const toDate = new Date(DateTo);
+    if (Number.isNaN(fromDate.getTime()) || Number.isNaN(toDate.getTime())) {
+      return res.status(400).json({ message: "Invalid date range" });
+    }
+    fromDate.setUTCHours(0, 0, 0, 0);
+    toDate.setUTCHours(23, 59, 59, 999);
+
+    const query = { date: { $gte: fromDate, $lte: toDate } };
+    if (locCode && locCode !== "all") query.locCode = String(locCode);
 
     // Add optional filters
     if (category && category !== 'all') {
       query.category = category;
     }
     if (type && type !== 'all') {
-      query.type = type;
+      query.type = { $regex: `^${String(type).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, $options: "i" };
     }
 
     // Use aggregation pipeline for better performance
@@ -41,10 +54,10 @@ export const getOptimizedTransactions = async (req, res) => {
       {
         $addFields: {
           // Ensure numeric fields for calculations
-          cashNum: { $toDouble: { $ifNull: ["$cash", 0] } },
-          rblNum: { $toDouble: { $ifNull: ["$rbl", 0] } },
-          bankNum: { $toDouble: { $ifNull: ["$bank", 0] } },
-          upiNum: { $toDouble: { $ifNull: ["$upi", 0] } }
+          cashNum: { $convert: { input: "$cash", to: "double", onError: 0, onNull: 0 } },
+          rblNum: { $convert: { input: "$rbl", to: "double", onError: 0, onNull: 0 } },
+          bankNum: { $convert: { input: "$bank", to: "double", onError: 0, onNull: 0 } },
+          upiNum: { $convert: { input: "$upi", to: "double", onError: 0, onNull: 0 } }
         }
       },
       {
@@ -53,6 +66,14 @@ export const getOptimizedTransactions = async (req, res) => {
         }
       },
       { $sort: { date: -1, createdAt: -1 } },
+      {
+        $addFields: {
+          hasAttachment: {
+            $gt: [{ $ifNull: ["$attachment.data", null] }, null]
+          },
+          attachmentFilename: "$attachment.filename"
+        }
+      },
       { $project: { attachment: 0 } }
     ];
 
@@ -72,7 +93,7 @@ export const getOptimizedTransactions = async (req, res) => {
       data: transactions,
       totals,
       count: transactions.length,
-      filters: { LocCode, DateFrom, DateTo, category, type }
+      filters: { locCode, DateFrom, DateTo, category, type }
     };
 
     // Cache for 5 minutes
@@ -99,13 +120,19 @@ export const CreatePayment = async (req, res) => {
     const {
       type,
       category,
+      subCategory,
+      expenseType,
+      entryType,
       remark,
       amount,
       cash,
+      rbl,
       bank,
       upi,
       paymentMethod,
+      bankAccount,
       locCode,
+      isAdminLevel,
       quantity,
       date,
       invoiceNo,        // may be omitted
@@ -114,23 +141,42 @@ export const CreatePayment = async (req, res) => {
     } = req.body;
 
     /* ───────── basic validation ───────── */
+    const normalizedType = String(type || "").trim();
+    const normalizedPaymentMethod = String(paymentMethod || "").toLowerCase().trim();
+    const numericAmount = Number(amount);
+    const isExpense = normalizedType.toLowerCase() === "expense";
+
     if (
-      !type || !category || !amount ||
+      !normalizedType || !String(category || "").trim() || !Number.isFinite(numericAmount) || numericAmount === 0 ||
       cash === undefined || bank === undefined || upi === undefined ||
-      !paymentMethod || !date || !locCode
+      !["cash", "bank", "upi", "split"].includes(normalizedPaymentMethod) || !date || !String(locCode || "").trim()
     ) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    /* income must include an attachment (same rule as frontend) */
-    if (type === "Expense" && !attachment) {
-      return res.status(400).json({ message: "Attachment required for expense" });
+    if (Number.isNaN(new Date(date).getTime())) {
+      return res.status(400).json({ message: "Invalid transaction date" });
+    }
+
+    if (isExpense && !attachment) {
+      return res.status(400).json({ message: "Receipt attachment is required for an expense" });
+    }
+
+    const paymentParts = [cash, bank, upi].map((value) => Number(value || 0));
+    if (paymentParts.some((value) => !Number.isFinite(value))) {
+      return res.status(400).json({ message: "Payment amounts must be valid numbers" });
+    }
+    if (
+      normalizedPaymentMethod === "split" &&
+      Math.abs(paymentParts.reduce((sum, value) => sum + Math.abs(value), 0) - Math.abs(numericAmount)) > 0.01
+    ) {
+      return res.status(400).json({ message: "Cash, bank, and UPI split must equal the total amount" });
     }
 
     /* ───────── decide if we need an invoice ───────── */
     const isMoneyTransfer =
-      type === "money transfer" &&
-      (category === "Cash to Bank" || category === "Bank to Cash");
+      normalizedType.toLowerCase() === "money transfer" &&
+      ["cash to bank", "bank to cash", "bulk amount transfer"].includes(String(category).toLowerCase().trim());
 
     let finalInvoice = invoiceNo; // keep client’s invoice if sent
 
@@ -155,24 +201,39 @@ export const CreatePayment = async (req, res) => {
     }
 
     /* ───────── create & save ───────── */
+    const expenseValue = (value) => {
+      const numericValue = Number(value || 0);
+      if (!isExpense) return String(value ?? "0");
+      return numericValue === 0 ? "0" : String(-Math.abs(numericValue));
+    };
+
     const newTx = await Transaction.create({
-      type,
-      category,
+      type: isExpense ? "expense" : normalizedType,
+      category: String(category).trim(),
+      subCategory: String(subCategory || "").trim(),
+      expenseType: String(expenseType || "").trim(),
+      entryType: String(entryType || "").trim(),
       remark,
-      amount,
+      amount: expenseValue(amount),
       quantity,
-      cash,
-      bank,
-      upi,
-      locCode,
-      paymentMethod,
+      cash: expenseValue(cash),
+      rbl: expenseValue(rbl || 0),
+      bank: expenseValue(bank),
+      upi: expenseValue(upi),
+      locCode: String(locCode).trim(),
+      paymentMethod: normalizedPaymentMethod,
+      bankAccount: String(bankAccount || "").trim(),
+      isAdminLevel: isAdminLevel === true || isAdminLevel === "true",
       date,
       invoiceNo: finalInvoice,
       attachment: attachmentObj                     // 🔺 ADDED
     });
 
+    // A newly recorded payment must be visible immediately to optimized reports.
+    clearCachePattern("transactions:");
+
     // ✅ Propagate cash to CloseTransaction for date >= txDate
-    const cashAmount = Number(cash) || 0;
+    const cashAmount = Number(newTx.cash) || 0;
     if (cashAmount !== 0 && locCode && date) {
       await propagateCashDiff(locCode, date, cashAmount, true);
     }
@@ -248,7 +309,12 @@ export const GetPayment = async (req, res) => {
         // Query transactions based on LocCode and Date Range — exclude binary attachment but include hasAttachment flag
         const transactions = await Transaction.aggregate([
           { $match: query },
-          { $addFields: { hasAttachment: { $cond: [{ $gt: [{ $ifNull: ["$attachment.data", null] }, null] }, true, false] } } },
+          {
+            $addFields: {
+              hasAttachment: { $cond: [{ $gt: [{ $ifNull: ["$attachment.data", null] }, null] }, true, false] },
+              attachmentFilename: "$attachment.filename"
+            }
+          },
           { $project: { attachment: 0 } },
           { $sort: { date: -1 } }
         ]).option({ allowDiskUse: true });

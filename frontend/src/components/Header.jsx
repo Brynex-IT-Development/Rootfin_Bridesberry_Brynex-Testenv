@@ -20,9 +20,7 @@ const formatLocationName = (name) => {
     if (/^brides\s*berry$/i.test(formatted) || /^bridesberry$/i.test(formatted)) {
         return "Brides Berry";
     }
-    if (/^g[-.\s]?mg\s*road$/i.test(formatted) || /^mg\s*road$/i.test(formatted) || /^suitorguy\s+mg\s*road$/i.test(formatted)) {
-        return "MG Road";
-    }
+  
     
     // Pattern: G- or Z- prefix with capital letter
     formatted = formatted.replace(/^([A-Z])-([A-Z][a-z])/g, '$1 $2');

@@ -53,6 +53,9 @@ const WAREHOUSE_NAME_MAPPING = {
   "GPalakkad": "Palakkad Branch",
   "Palakkad Branch": "Palakkad Branch",
   "Warehouse": "Warehouse",
+  "BridesBerry": "Brides Berry",
+  "Bridesberry": "Brides Berry",
+  "Brides Berry": "Brides Berry",
   "G.Calicut": "Calicut",
   "G.Calicut ": "Calicut",
   "GCalicut": "Calicut",
@@ -114,14 +117,15 @@ const WAREHOUSE_NAME_MAPPING = {
   "Vadakara Branch": "Vadakara Branch"
 };
 
-// Display names for the Stocks page (what users see) - restricted to Warehouse only
+// Display names used by the standalone stock editor and item detail page.
 const ALLOWED_WAREHOUSES_DISPLAY = [
-  "Warehouse"
+  "Warehouse",
+  "Brides Berry"
 ];
 
 // Helper function to normalize warehouse name to display name
 // Match a name to an allowed display name ignoring spaces/case ("Brides Berry" === "BridesBerry")
-const compactName = (n) => (n || "").toString().toLowerCase().replace(/[s.-_]/g, "");
+const compactName = (n) => (n || "").toString().toLowerCase().replace(/[\s._-]+/g, "");
 const matchAllowedWarehouse = (displayName, allowedList) => {
   if (!displayName) return null;
   if (allowedList.includes(displayName)) return displayName;
@@ -675,7 +679,9 @@ const ShoeSalesItemDetail = () => {
       setLoadingItem(true);
       setError(null);
       try {
-        const response = await fetch(`${API_ROOT}/api/shoe-sales/items/${itemId}`);
+        const response = await fetch(`${API_ROOT}/api/shoe-sales/items/${itemId}?_=${Date.now()}`, {
+          cache: "no-store",
+        });
         if (!response.ok) {
           if (response.status === 404) {
             throw new Error("Item not found.");
@@ -1472,10 +1478,12 @@ const ShoeSalesItemDetail = () => {
                     <div>
                       <h3 className="text-xs font-semibold text-[#94a3b8] uppercase tracking-wider mb-5">Pricing</h3>
                       <div className="space-y-4">
-                        <div className="flex justify-between items-center py-2">
-                          <span className="text-sm text-[#64748b]">Cost Price</span>
-                          <span className="text-sm font-semibold text-[#1a1a2e]">{formatCurrency(item.costPrice)}</span>
-                        </div>
+                        {isAdmin && (
+                          <div className="flex justify-between items-center py-2">
+                            <span className="text-sm text-[#64748b]">Cost Price</span>
+                            <span className="text-sm font-semibold text-[#1a1a2e]">{formatCurrency(item.costPrice)}</span>
+                          </div>
+                        )}
                         <div className="flex justify-between items-center py-2">
                           <span className="text-sm text-[#64748b]">Selling Price</span>
                           <span className="text-sm font-semibold text-[#10b981]">{formatCurrency(item.sellingPrice)}</span>

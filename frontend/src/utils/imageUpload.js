@@ -6,9 +6,18 @@
 // Constants for image validation
 export const IMAGE_CONFIG = {
   MAX_FILES: 15,
-  MAX_FILE_SIZE: 5 * 1024 * 1024, // 5 MB
+  MAX_FILE_SIZE: 30 * 1024 * 1024, // 30 MB before compression
+  TARGET_FILE_SIZE: 1.5 * 1024 * 1024,
+  MAX_OUTPUT_DIMENSION: 2200,
   MAX_DIMENSIONS: { width: 7000, height: 7000 },
-  ACCEPTED_FORMATS: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+  ACCEPTED_FORMATS: [
+    'image/jpeg',
+    'image/png',
+    'image/gif',
+    'image/webp',
+    'image/heic',
+    'image/heif',
+  ],
 };
 
 /**
@@ -43,6 +52,10 @@ export const validateImageFile = (file) => {
  */
 export const validateImageDimensions = (file) => {
   return new Promise((resolve) => {
+    if (file.type === 'image/heic' || file.type === 'image/heif') {
+      resolve({ valid: true, error: null });
+      return;
+    }
     const reader = new FileReader();
     reader.onload = (e) => {
       const img = new Image();
@@ -83,6 +96,54 @@ export const fileToBase64 = (file) => {
   });
 };
 
+const canvasToBlob = (canvas, type, quality) =>
+  new Promise((resolve) => canvas.toBlob(resolve, type, quality));
+
+const compressImageFile = async (file) => {
+  const originalSize = file.size;
+  const base64 = await fileToBase64(file);
+  const canCompress = ['image/jpeg', 'image/png', 'image/webp'].includes(file.type);
+
+  if (!canCompress || file.size <= IMAGE_CONFIG.TARGET_FILE_SIZE) {
+    return { base64, size: file.size, originalSize, compressed: false };
+  }
+
+  const image = await new Promise((resolve, reject) => {
+    const element = new Image();
+    element.onload = () => resolve(element);
+    element.onerror = () => reject(new Error('Unable to decode image for compression'));
+    element.src = base64;
+  });
+
+  const scale = Math.min(
+    1,
+    IMAGE_CONFIG.MAX_OUTPUT_DIMENSION / Math.max(image.width, image.height)
+  );
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.max(1, Math.round(image.width * scale));
+  canvas.height = Math.max(1, Math.round(image.height * scale));
+  const context = canvas.getContext('2d');
+  context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+  let quality = 0.86;
+  let blob = await canvasToBlob(canvas, 'image/webp', quality);
+  while (blob && blob.size > IMAGE_CONFIG.TARGET_FILE_SIZE && quality > 0.45) {
+    quality -= 0.08;
+    blob = await canvasToBlob(canvas, 'image/webp', quality);
+  }
+
+  if (!blob || blob.size >= file.size) {
+    return { base64, size: file.size, originalSize, compressed: false };
+  }
+
+  return {
+    base64: await fileToBase64(blob),
+    size: blob.size,
+    originalSize,
+    compressed: true,
+  };
+};
+
 /**
  * Handle multiple file uploads with validation
  * @param {File[]} files - Array of files to upload
@@ -109,16 +170,18 @@ export const processImageFiles = async (files) => {
       continue;
     }
 
-    // Convert to base64
+    // Compress large browser-decodable images, then convert to base64.
     try {
-      const base64 = await fileToBase64(file);
+      const processed = await compressImageFile(file);
       results.push({
-        base64,
+        base64: processed.base64,
         name: file.name,
-        size: file.size,
-        type: file.type,
+        size: processed.size,
+        originalSize: processed.originalSize,
+        compressed: processed.compressed,
+        type: processed.compressed ? 'image/webp' : file.type,
       });
-    } catch (error) {
+    } catch {
       errors.push(`${file.name}: Failed to process image`);
     }
   }

@@ -118,10 +118,105 @@ const WAREHOUSE_NAME_MAPPING = {
   "G.Vadakara": "Vadakara Branch", // Fixed: was incorrectly mapped to Warehouse
   "GVadakara": "Vadakara Branch",
   "Vadakara Branch": "Vadakara Branch",
+  // BridesBerry variations
+  "BridesBerry": "Brides Berry",
+  "bridesberry": "Brides Berry",
+  "Brides Berry": "Brides Berry",
+  "brides berry": "Brides Berry",
+  "Bridesberry": "Brides Berry",
+  // LocCode to Warehouse mappings
+  "155": "Brides Berry",
+  "858": "Warehouse",
+  "103": "Warehouse",
+  "702": "Edapally Branch",
+  "759": "Head Office",
+  "700": "Grooms Trivandrum",
+  "701": "Kottayam Branch",
+  "703": "Perumbavoor Branch",
+  "704": "Thrissur Branch",
+  "706": "Chavakkad Branch",
+  "712": "Calicut",
+  "708": "Vadakara Branch",
+  "707": "Edappal Branch",
+  "709": "Perinthalmanna Branch",
+  "711": "Kottakkal Branch",
+  "710": "Manjery Branch",
+  "705": "Palakkad Branch",
+  "717": "Kalpetta Branch",
+  "716": "Kannur Branch",
+  "718": "MG Road Branch",
+  "144": "Warehouse",
+  "100": "Warehouse",
+  "133": "Perinthalmanna Branch",
+  "122": "Kottakkal Branch",
   // Fix corrupted warehouse names
   "arehouse Branch": "Warehouse", // Missing 'W' at the beginning
   "-Kalpetta Branch": "Kalpetta Branch", // Remove leading dash
   "-Kannur Branch": "Kannur Branch", // Remove leading dash
+};
+
+export const matchesWarehouse = (itemWarehouse, targetWarehouse) => {
+  if (!itemWarehouse) return false;
+  if (!targetWarehouse || targetWarehouse === "All Stores" || targetWarehouse === "all") return true;
+
+  const itemRaw = itemWarehouse.toString().trim();
+  const targetRaw = targetWarehouse.toString().trim();
+
+  // Direct normalized match
+  const normItem = normalizeWarehouseName(itemRaw);
+  const normTarget = normalizeWarehouseName(targetRaw);
+  if (normItem && normTarget && normItem.toLowerCase() === normTarget.toLowerCase()) {
+    return true;
+  }
+
+  const itemLower = itemRaw.toLowerCase();
+  const targetLower = targetRaw.toLowerCase();
+  if (itemLower === targetLower) return true;
+
+  // Base name match (stripping branch, warehouse, and non-alphanumeric)
+  const cleanItem = itemLower.replace(/\s*(branch|warehouse)\s*$/i, "").replace(/[^a-z0-9]/g, "");
+  const cleanTarget = targetLower.replace(/\s*(branch|warehouse)\s*$/i, "").replace(/[^a-z0-9]/g, "");
+  if (cleanItem && cleanTarget && cleanItem === cleanTarget) {
+    return true;
+  }
+
+  // Brides Berry special match
+  const isItemBrides = cleanItem.includes("bridesberry") || cleanItem.includes("brides");
+  const isTargetBrides = cleanTarget.includes("bridesberry") || cleanTarget.includes("brides") || targetRaw === "155";
+  if (isItemBrides && isTargetBrides) return true;
+
+  // Trivandrum variations
+  const tvm = ["trivandrum", "groomstrivandrum", "sgtrivandrum", "tvm"];
+  if (tvm.some(v => cleanItem.includes(v)) && tvm.some(v => cleanTarget.includes(v))) {
+    return true;
+  }
+
+  // MG Road variations
+  const mg = ["mgroad", "gmgroad", "suitorguymgroad"];
+  if (mg.some(v => cleanItem.includes(v)) && mg.some(v => cleanTarget.includes(v))) {
+    return true;
+  }
+
+  // Substring inclusion (only if length >= 4 to avoid accidental short matches)
+  if (cleanItem.length >= 4 && cleanTarget.length >= 4) {
+    if (cleanItem.includes(cleanTarget) || cleanTarget.includes(cleanItem)) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
+const resolveTargetWarehouse = (warehouse, locCode) => {
+  if (warehouse && warehouse !== "All Stores") {
+    const mapped = normalizeWarehouseName(warehouse);
+    return mapped || warehouse;
+  }
+  if (locCode) {
+    const mapped = normalizeWarehouseName(locCode);
+    if (mapped) return mapped;
+  }
+  return warehouse || "";
 };
 
 const normalizeWarehouseName = (warehouseName) => {
@@ -186,68 +281,44 @@ export const getInventorySummary = async (req, res) => {
     const userId = req.query.userId || req.body.userId;
 
     // Check if user is admin
-    const adminEmails = ['officerootments@gmail.com'];
+    const adminEmails = [
+      'officerootments@gmail.com',
+      'brynex@gmail.com',
+      'operationsrootments@gmail.com',
+      'headoffice01@gmail.com'
+    ];
     const isAdminEmail = userId && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
-    const isAdmin = isAdminEmail || (locCode && (locCode === '858' || locCode === '103'));
-    const isMainAdmin = isAdmin;
+    const isMainAdmin = isAdminEmail ||
+      (req.query.userPower && (req.query.userPower.toLowerCase() === 'admin' || req.query.userPower.toLowerCase() === 'super_admin')) ||
+      (req.query.userRole && (req.query.userRole.toLowerCase() === 'admin' || req.query.userRole.toLowerCase() === 'superadmin')) ||
+      (locCode && (locCode === '858' || locCode === '103'));
+    const isAdmin = isMainAdmin;
 
     // Cluster manager: has allowedLocCodes and is not a main admin
     const clusterStoreLabels = allowedLocCodes ? allowedLocCodes.split(',').map(s => s.trim()) : [];
     const isClusterManager = !isMainAdmin && clusterStoreLabels.length > 0;
     const clusterNormalizedStores = clusterStoreLabels.map(label => normalizeWarehouseName(label)).filter(Boolean);
-    // All warehouse name variations for cluster's allowed stores
-    const clusterWarehouseVariations = clusterStoreLabels.flatMap(label => getWarehouseNameVariations(label));
 
-    let query = {};
+    // Resolve target warehouse and whether to filter by store
+    const targetWarehouse = resolveTargetWarehouse(warehouse, locCode);
+    const shouldFilterStore = !isMainAdmin || (warehouse && warehouse !== "All Stores");
 
-    // For store users (non-admin), filter by their locCode
-    if (!isAdmin && locCode && locCode !== '858' && locCode !== '103') {
-      query.$or = [
-        { warehouse: locCode },
-        { branch: locCode },
-        { locCode: locCode }
-      ];
-    }
-    // For admin users, filter by selected warehouse if specified and not "All Stores"
-    else if (isAdmin && warehouse && warehouse !== "All Stores") {
-      query.$or = [
-        { warehouse: warehouse },
-        { branch: warehouse },
-        { locCode: warehouse }
-      ];
-    }
-
-    // For store users, filter items that have stock in their warehouse
-    // For admin users viewing all stores, get all items
-    let items;
-    
-    // Normalize warehouse name
-    const normalizedWarehouse = warehouse ? normalizeWarehouseName(warehouse) : null;
-    const warehouseVariations = warehouse ? getWarehouseNameVariations(warehouse) : [];
-    
     console.log("🔍 Original warehouse:", warehouse);
-    console.log("🔍 Normalized warehouse:", normalizedWarehouse);
-    console.log("🔍 Warehouse variations:", warehouseVariations);
+    console.log("🔍 Resolved target warehouse:", targetWarehouse);
     console.log("🔍 User locCode:", locCode);
     console.log("🔍 Is Admin:", isAdmin);
-    console.log("🔍 Is Main Admin:", isMainAdmin);
-    
+    console.log("🔍 Should filter store:", shouldFilterStore);
+
     // Helper function to check if warehouse matches
     const warehouseMatches = (wsWarehouse) => {
       if (!wsWarehouse) return false;
-      const wsWarehouseStr = wsWarehouse.toString().trim();
-      const normalizedWs = normalizeWarehouseName(wsWarehouseStr);
-      
-      // Check if the warehouse matches any of the variations or the normalized name
-      return warehouseVariations.includes(wsWarehouseStr) || 
-             warehouseVariations.includes(normalizedWs) ||
-             normalizedWs === normalizedWarehouse;
+      if (!shouldFilterStore) return true;
+      return matchesWarehouse(wsWarehouse, targetWarehouse);
     };
-    
-    // Fetch standalone items - Use multiple strategies to find items
+
+    // Fetch standalone items
     let standaloneItems = [];
     if (isClusterManager && warehouse === "All Stores") {
-      // Cluster manager viewing all their stores: fetch all items, filter by any of their allowed warehouses
       standaloneItems = await ShoeItem.find({});
       standaloneItems = standaloneItems.filter(item =>
         (item.warehouseStocks || []).some(ws => {
@@ -257,75 +328,35 @@ export const getInventorySummary = async (req, res) => {
         })
       );
       console.log(`🔒 Cluster manager: ${standaloneItems.length} items across allowed stores`);
-    } else if (!isMainAdmin && locCode && locCode !== '858' && locCode !== '103') {
-      // For store users, get ALL items first, then filter by warehouseStocks in memory
-      // This ensures we only show items that have stock entries for their specific warehouse
+    } else if (shouldFilterStore && targetWarehouse) {
       standaloneItems = await ShoeItem.find({});
-      console.log(`📦 Fetched ALL ${standaloneItems.length} items for store user (will filter by warehouseStocks)`);
-      
-      // CRITICAL FIX: Filter to only include items that have warehouseStocks for this specific warehouse
+      const beforeFilter = standaloneItems.length;
       standaloneItems = standaloneItems.filter(item => {
         return (item.warehouseStocks || []).some(ws => {
           if (!ws || !ws.warehouse) return false;
           return warehouseMatches(ws.warehouse);
         });
       });
-      console.log(`🔒 After filtering: ${standaloneItems.length} items have stock entries for this warehouse`);
-    } else if (isAdmin && warehouse && warehouse !== "All Stores") {
-      // For admin viewing specific warehouse, get ALL items first
-      // We'll filter warehouseStocks in memory to show only selected warehouse stock
-      standaloneItems = await ShoeItem.find({});
-      console.log(`📦 Fetched ALL ${standaloneItems.length} items (will filter warehouseStocks in memory)`);
-      
-      // CRITICAL FIX: Filter to only include items that have warehouseStocks for the selected warehouse
-      const beforeFilter = standaloneItems.length;
-      standaloneItems = standaloneItems.filter(item => {
-        const itemWarehouses = (item.warehouseStocks || []).map(ws => ws.warehouse).join(", ");
-        const hasMatch = (item.warehouseStocks || []).some(ws => {
-          if (!ws || !ws.warehouse) return false;
-          const matches = warehouseMatches(ws.warehouse);
-          return matches;
-        });
-        
-        // Debug ALL items to see what's happening
-        if (!hasMatch) {
-          console.log(`      ❌ Filtering out "${item.itemName || item.name}" - warehouses: [${itemWarehouses}]`);
-        } else {
-          console.log(`      ✅ Keeping "${item.itemName || item.name}" - warehouses: [${itemWarehouses}]`);
-        }
-        
-        return hasMatch;
-      });
-      console.log(`🔒 After filtering: ${standaloneItems.length} items have stock entries for ${warehouse} (was ${beforeFilter})`);
+      console.log(`🔒 Store filtered: ${standaloneItems.length} items have stock entries for ${targetWarehouse} (was ${beforeFilter})`);
     } else {
-      // For "All Stores" view, get all items
       standaloneItems = await ShoeItem.find({});
     }
-    
+
     console.log(`📦 Found ${standaloneItems.length} standalone items`);
-    
-    // Debug: Log warehouse names found in the first 5 items
-    if (standaloneItems.length > 0 && standaloneItems.length <= 10) {
-      standaloneItems.forEach((item, idx) => {
-        const warehouses = item.warehouseStocks?.map(ws => ws.warehouse).join(", ") || "none";
-        console.log(`   Item ${idx + 1}: "${item.itemName || item.name}" - warehouses: [${warehouses}]`);
-      });
-    }
-    
+
     // Fetch items from item groups
     const itemGroups = await ItemGroup.find({ isActive: { $ne: false } });
     let groupItems = [];
     let groupItemsChecked = 0;
     let groupItemsIncluded = 0;
-    
+
     itemGroups.forEach(group => {
       if (group.items && Array.isArray(group.items)) {
         group.items.forEach((item, index) => {
           groupItemsChecked++;
           let shouldInclude = true;
-          
+
           if (isClusterManager && warehouse === "All Stores") {
-            // Cluster manager: include items that have stock in any of their allowed stores
             const hasStock = item.warehouseStocks && Array.isArray(item.warehouseStocks) &&
               item.warehouseStocks.some(ws => {
                 if (!ws || !ws.warehouse) return false;
@@ -333,34 +364,15 @@ export const getInventorySummary = async (req, res) => {
                 return clusterNormalizedStores.includes(norm);
               });
             shouldInclude = hasStock;
-          } else if (!isMainAdmin && locCode && locCode !== '858' && locCode !== '103') {
+          } else if (shouldFilterStore && targetWarehouse) {
             const hasStock = item.warehouseStocks && Array.isArray(item.warehouseStocks) &&
               item.warehouseStocks.some(ws => {
                 if (!ws || !ws.warehouse) return false;
                 return warehouseMatches(ws.warehouse);
               });
             shouldInclude = hasStock;
-            
-            // Debug logging for store users
-            if (groupItemsChecked <= 3) {
-              console.log(`   🔍 Group item "${item.name}": hasStock=${hasStock}, warehouses=[${(item.warehouseStocks || []).map(ws => ws.warehouse).join(", ")}]`);
-            }
-          } else if (isAdmin && warehouse && warehouse !== "All Stores") {
-            const hasStock = item.warehouseStocks && Array.isArray(item.warehouseStocks) &&
-              item.warehouseStocks.some(ws => {
-                if (!ws || !ws.warehouse) return false;
-                const matches = warehouseMatches(ws.warehouse);
-                return matches;
-              });
-            shouldInclude = hasStock;
-            
-            // Debug logging for admin viewing specific warehouse
-            if (groupItemsChecked <= 3) {
-              const itemWarehouses = (item.warehouseStocks || []).map(ws => ws.warehouse).join(", ");
-              console.log(`   🔍 Group item "${item.name}": hasStock=${hasStock}, warehouses=[${itemWarehouses}]`);
-            }
           }
-          
+
           if (shouldInclude) {
             groupItemsIncluded++;
             const standaloneItem = {
@@ -380,38 +392,30 @@ export const getInventorySummary = async (req, res) => {
         });
       }
     });
-    
+
     console.log(`📦 Found ${groupItems.length} items from groups (checked ${groupItemsChecked}, included ${groupItemsIncluded})`);
-    
-    items = [...standaloneItems.map(item => ({ ...item.toObject ? item.toObject() : item, isFromGroup: false })), ...groupItems];
-    
+
+    let items = [...standaloneItems.map(item => ({ ...item.toObject ? item.toObject() : item, isFromGroup: false })), ...groupItems];
+
     console.log(`📦 Total items after combining standalone and group items: ${items.length}`);
-    
+
     const inventorySummary = items.map(item => {
       let totalStock = 0;
       let totalValue = 0;
-      
+
       // Determine which warehouse stocks to count based on user role and selection
       let warehouseStocksToShow = item.warehouseStocks || [];
-      
-      // If a specific warehouse is selected (not "All Stores"), only count that warehouse's stock
-      if (warehouse && warehouse !== "All Stores") {
+
+      if (shouldFilterStore && targetWarehouse) {
         warehouseStocksToShow = (item.warehouseStocks || []).filter(ws => {
           if (!ws || !ws.warehouse) return false;
           return warehouseMatches(ws.warehouse);
         });
       } else if (isClusterManager) {
-        // Cluster manager viewing all their stores: only show stock for their allowed warehouses
         warehouseStocksToShow = (item.warehouseStocks || []).filter(ws => {
           if (!ws || !ws.warehouse) return false;
           const norm = normalizeWarehouseName(ws.warehouse.toString().trim());
           return clusterNormalizedStores.includes(norm);
-        });
-      } else if (!isMainAdmin && locCode && locCode !== '858' && locCode !== '103') {
-        // Store user - only show their warehouse stock
-        warehouseStocksToShow = (item.warehouseStocks || []).filter(ws => {
-          if (!ws || !ws.warehouse) return false;
-          return warehouseMatches(ws.warehouse);
         });
       }
 
@@ -435,20 +439,15 @@ export const getInventorySummary = async (req, res) => {
         warehouseStocks: warehouseStocksToShow,
         branch: item.branch || item.warehouse,
         _hasMatchingWarehouseStock: warehouseStocksToShow && warehouseStocksToShow.length > 0,
-        // Include group information for sorting
         itemGroupId: item.itemGroupId || null,
         itemGroupName: item.itemGroupName || null,
         isFromGroup: item.isFromGroup || false
       };
     }).filter(item => {
-      // For specific warehouse view, only include items that have warehouseStocks matching the warehouse
-      // This ensures we only show items that actually have stock entries for MG Road
-      if (warehouse && warehouse !== "All Stores") {
-        // Only include items that have at least one matching warehouse stock entry for MG Road
-        // (even if the stock is 0, as long as the entry exists)
+      if (shouldFilterStore && targetWarehouse) {
         return item._hasMatchingWarehouseStock === true;
       }
-      return true; // Include all items for "All Stores" view
+      return true;
     });
 
     const totalItems = inventorySummary.length;
@@ -585,10 +584,18 @@ export const getStockSummary = async (req, res) => {
     const userId = req.query.userId || req.body.userId;
 
     // Check if user is admin
-    const adminEmails = ['officerootments@gmail.com'];
+    const adminEmails = [
+      'officerootments@gmail.com',
+      'brynex@gmail.com',
+      'operationsrootments@gmail.com',
+      'headoffice01@gmail.com'
+    ];
     const isAdminEmail = userId && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
-    const isAdmin = isAdminEmail || (locCode && (locCode === '858' || locCode === '103'));
-    const isMainAdmin = isAdmin;
+    const isMainAdmin = isAdminEmail ||
+      (req.query.userPower && (req.query.userPower.toLowerCase() === 'admin' || req.query.userPower.toLowerCase() === 'super_admin')) ||
+      (req.query.userRole && (req.query.userRole.toLowerCase() === 'admin' || req.query.userRole.toLowerCase() === 'superadmin')) ||
+      (locCode && (locCode === '858' || locCode === '103'));
+    const isAdmin = isMainAdmin;
     
     // Parse allowedLocCodes if provided (for cluster managers) — these are store labels
     const clusterAllowedLocCodes = allowedLocCodes ? allowedLocCodes.split(',').map(code => code.trim()) : [];
@@ -598,26 +605,20 @@ export const getStockSummary = async (req, res) => {
       .filter(Boolean);
     const isClusterManager = !isMainAdmin && clusterNormalizedStores.length > 0;
 
-    // Normalize warehouse name
-    const normalizedWarehouse = warehouse ? normalizeWarehouseName(warehouse) : null;
-    const warehouseVariations = warehouse ? getWarehouseNameVariations(warehouse) : [];
-    
+    // Resolve target warehouse and whether to filter by store
+    const targetWarehouse = resolveTargetWarehouse(warehouse, locCode);
+    const shouldFilterStore = !isMainAdmin || (warehouse && warehouse !== "All Stores");
+
     // Helper function to check if warehouse matches
     const warehouseMatches = (wsWarehouse) => {
       if (!wsWarehouse) return false;
-      const wsWarehouseStr = wsWarehouse.toString().trim();
-      const normalizedWs = normalizeWarehouseName(wsWarehouseStr);
-      
-      // Check if the warehouse matches any of the variations or the normalized name
-      return warehouseVariations.includes(wsWarehouseStr) || 
-             warehouseVariations.includes(normalizedWs) ||
-             normalizedWs === normalizedWarehouse;
+      if (!shouldFilterStore) return true;
+      return matchesWarehouse(wsWarehouse, targetWarehouse);
     };
     
     // Fetch standalone items
     let standaloneItems = [];
     if (isClusterManager && warehouse === "All Stores") {
-      // Cluster manager: fetch all items, filter by their allowed stores
       standaloneItems = await ShoeItem.find({});
       standaloneItems = standaloneItems.filter(item =>
         (item.warehouseStocks || []).some(ws => {
@@ -627,24 +628,15 @@ export const getStockSummary = async (req, res) => {
         })
       );
       console.log(`🔒 Cluster manager: ${standaloneItems.length} standalone items across allowed stores`);
-    } else if (!isMainAdmin && locCode && locCode !== '858' && locCode !== '103') {
-      if (normalizedWarehouse && warehouseVariations.length > 0) {
-        standaloneItems = await ShoeItem.find({
-          "warehouseStocks.warehouse": { $in: warehouseVariations }
-        });
-      } else {
-        standaloneItems = await ShoeItem.find({
-          "warehouseStocks.warehouse": normalizedWarehouse
-        });
-      }
-    } else if (isAdmin && warehouse && warehouse !== "All Stores") {
-      // For admin viewing specific warehouse, get ALL items first
-      // We'll filter warehouseStocks in memory to show only MG Road stock
-      // This ensures we catch items even if they don't have warehouseStocks entries yet
+    } else if (shouldFilterStore && targetWarehouse) {
       standaloneItems = await ShoeItem.find({});
-      console.log(`📦 Fetched ALL ${standaloneItems.length} items (will filter warehouseStocks in memory)`);
+      standaloneItems = standaloneItems.filter(item => {
+        return (item.warehouseStocks || []).some(ws => {
+          if (!ws || !ws.warehouse) return false;
+          return warehouseMatches(ws.warehouse);
+        });
+      });
     } else {
-      // For "All Stores" view, get all items
       standaloneItems = await ShoeItem.find({});
     }
     
@@ -668,16 +660,7 @@ export const getStockSummary = async (req, res) => {
                 return clusterNormalizedStores.includes(norm);
               });
             shouldInclude = hasStock;
-          } else if (!isMainAdmin && locCode && locCode !== '858' && locCode !== '103') {
-            const hasStock = item.warehouseStocks && Array.isArray(item.warehouseStocks) &&
-              item.warehouseStocks.some(ws => {
-                if (!ws || !ws.warehouse) return false;
-                const wsWarehouse = ws.warehouse.toString().trim();
-                const normalizedWs = normalizeWarehouseName(wsWarehouse);
-                return warehouseMatches(wsWarehouse);
-              });
-            shouldInclude = hasStock;
-          } else if (isAdmin && warehouse && warehouse !== "All Stores") {
+          } else if (shouldFilterStore && targetWarehouse) {
             const hasStock = item.warehouseStocks && Array.isArray(item.warehouseStocks) &&
               item.warehouseStocks.some(ws => {
                 if (!ws || !ws.warehouse) return false;
@@ -771,6 +754,7 @@ export const getStockSummary = async (req, res) => {
     // Define all stores that should appear in the report
     const allStoresList = [
       "Warehouse",
+      "Brides Berry",
       "Grooms Trivandrum",
       "Palakkad Branch",
       "Calicut",
@@ -790,11 +774,11 @@ export const getStockSummary = async (req, res) => {
       "Head Office"
     ];
 
-    // If a specific warehouse is selected, only show that one.
+    // If a specific warehouse is selected or store user, only show that one.
     // If cluster manager is viewing "All My Stores", filter to their allowed stores only.
     let storesToShow;
-    if (warehouse && warehouse !== "All Stores") {
-      storesToShow = [normalizedWarehouse];
+    if (shouldFilterStore && targetWarehouse) {
+      storesToShow = [targetWarehouse];
     } else if (clusterNormalizedStores.length > 0) {
       // Filter allStoresList to only include the cluster's allowed stores
       storesToShow = allStoresList.filter(storeName => clusterNormalizedStores.includes(storeName));
@@ -813,31 +797,39 @@ export const getStockSummary = async (req, res) => {
       };
     });
 
-    const restrictToWarehouse = (!isMainAdmin && !isClusterManager && locCode && locCode !== '858' && locCode !== '103')
-      ? normalizedWarehouse
-      : null;
+    const restrictToWarehouse = shouldFilterStore ? targetWarehouse : null;
 
     filteredItems.forEach(item => {
       if (item.warehouseStocks && Array.isArray(item.warehouseStocks)) {
         item.warehouseStocks.forEach(ws => {
-          if (restrictToWarehouse && ws.warehouse !== restrictToWarehouse) return;
+          if (restrictToWarehouse && !matchesWarehouse(ws.warehouse, restrictToWarehouse)) return;
           
           // Normalize the warehouse name from the item
           const normalizedWsName = normalizeWarehouseName(ws.warehouse) || ws.warehouse || "Unknown";
           
           // If a specific warehouse is selected, only count stock for that warehouse
-          if (warehouse && warehouse !== "All Stores") {
+          if (shouldFilterStore && targetWarehouse) {
             if (!warehouseMatches(ws.warehouse)) return;
           }
           
           const stock = parseFloat(ws.stockOnHand) || parseFloat(ws.stock) || 0;
           const cost = parseFloat(item.costPrice) || 0;
 
-          // Only add to map if it's in our predefined list
-          if (warehouseStockMap[normalizedWsName]) {
-            warehouseStockMap[normalizedWsName].totalQuantity += stock;
-            warehouseStockMap[normalizedWsName].totalValue += stock * cost;
-            warehouseStockMap[normalizedWsName].itemCount++;
+          let matchedKey = Object.keys(warehouseStockMap).find(k => matchesWarehouse(normalizedWsName, k));
+          if (!matchedKey && !shouldFilterStore) {
+            warehouseStockMap[normalizedWsName] = {
+              warehouse: normalizedWsName,
+              totalQuantity: 0,
+              totalValue: 0,
+              itemCount: 0
+            };
+            matchedKey = normalizedWsName;
+          }
+
+          if (matchedKey && warehouseStockMap[matchedKey]) {
+            warehouseStockMap[matchedKey].totalQuantity += stock;
+            warehouseStockMap[matchedKey].totalValue += stock * cost;
+            warehouseStockMap[matchedKey].itemCount++;
           }
         });
       }
@@ -871,26 +863,38 @@ export const getInventoryValuation = async (req, res) => {
     const userId = req.query.userId || req.body.userId;
 
     // Check if user is admin
-    const adminEmails = ['officerootments@gmail.com'];
+    const adminEmails = [
+      'officerootments@gmail.com',
+      'brynex@gmail.com',
+      'operationsrootments@gmail.com',
+      'headoffice01@gmail.com'
+    ];
     const isAdminEmail = userId && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
-    const isAdmin = isAdminEmail || (locCode && (locCode === '858' || locCode === '103'));
-    const isMainAdmin = isAdmin;
+    const isMainAdmin = isAdminEmail ||
+      (req.query.userPower && (req.query.userPower.toLowerCase() === 'admin' || req.query.userPower.toLowerCase() === 'super_admin')) ||
+      (req.query.userRole && (req.query.userRole.toLowerCase() === 'admin' || req.query.userRole.toLowerCase() === 'superadmin')) ||
+      (locCode && (locCode === '858' || locCode === '103'));
+    const isAdmin = isMainAdmin;
 
-    // Normalize warehouse name
-    const normalizedWarehouse = warehouse ? normalizeWarehouseName(warehouse) : null;
+    // Resolve target warehouse and whether to filter by store
+    const targetWarehouse = resolveTargetWarehouse(warehouse, locCode);
+    const shouldFilterStore = !isMainAdmin || (warehouse && warehouse !== "All Stores");
+
+    const warehouseMatches = (wsWarehouse) => {
+      if (!wsWarehouse) return false;
+      if (!shouldFilterStore) return true;
+      return matchesWarehouse(wsWarehouse, targetWarehouse);
+    };
     
     // Fetch standalone items
-    let standaloneItems = [];
-    if (!isMainAdmin && locCode && locCode !== '858' && locCode !== '103') {
-      standaloneItems = await ShoeItem.find({
-        "warehouseStocks.warehouse": normalizedWarehouse
+    let standaloneItems = await ShoeItem.find({});
+    if (shouldFilterStore && targetWarehouse) {
+      standaloneItems = standaloneItems.filter(item => {
+        return (item.warehouseStocks || []).some(ws => {
+          if (!ws || !ws.warehouse) return false;
+          return warehouseMatches(ws.warehouse);
+        });
       });
-    } else if (isAdmin && warehouse && warehouse !== "All Stores") {
-      standaloneItems = await ShoeItem.find({
-        "warehouseStocks.warehouse": normalizedWarehouse
-      });
-    } else {
-      standaloneItems = await ShoeItem.find({});
     }
     
     // Fetch items from item groups
@@ -902,13 +906,9 @@ export const getInventoryValuation = async (req, res) => {
         group.items.forEach((item, index) => {
           let shouldInclude = true;
           
-          if (!isMainAdmin && locCode && locCode !== '858' && locCode !== '103') {
+          if (shouldFilterStore && targetWarehouse) {
             const hasStock = item.warehouseStocks && Array.isArray(item.warehouseStocks) &&
-              item.warehouseStocks.some(ws => ws.warehouse === normalizedWarehouse);
-            shouldInclude = hasStock;
-          } else if (isAdmin && warehouse && warehouse !== "All Stores") {
-            const hasStock = item.warehouseStocks && Array.isArray(item.warehouseStocks) &&
-              item.warehouseStocks.some(ws => ws.warehouse === normalizedWarehouse);
+              item.warehouseStocks.some(ws => ws && ws.warehouse && warehouseMatches(ws.warehouse));
             shouldInclude = hasStock;
           }
           
@@ -942,7 +942,7 @@ export const getInventoryValuation = async (req, res) => {
 
       if (item.warehouseStocks && Array.isArray(item.warehouseStocks)) {
         item.warehouseStocks.forEach(ws => {
-          if (!isMainAdmin && locCode && locCode !== '858' && locCode !== '103' && ws.warehouse !== normalizedWarehouse) return;
+          if (shouldFilterStore && targetWarehouse && !warehouseMatches(ws.warehouse)) return;
           const stock = parseFloat(ws.stockOnHand) || parseFloat(ws.stock) || 0;
           const cost = parseFloat(item.costPrice) || 0;
           itemValue += stock * cost;
@@ -1149,11 +1149,12 @@ export const getOpeningStockReport = async (req, res) => {
     let filteredStoreReport = storeReport;
     let filteredItemDetails = itemDetails;
     
-    if (warehouse && warehouse !== 'all' && warehouse !== 'Warehouse') {
-      const targetWarehouse = normalizeWarehouseName(warehouse);
-      
-      filteredStoreReport = storeReport.filter(store => store.store === targetWarehouse);
-      filteredItemDetails = itemDetails.filter(item => item.store === targetWarehouse);
+    const targetWarehouse = resolveTargetWarehouse(warehouse, locCode);
+    const shouldFilterStore = (locCode && locCode !== '858' && locCode !== '103') || (warehouse && warehouse !== 'all' && warehouse !== 'All Stores' && warehouse !== 'Warehouse');
+
+    if (shouldFilterStore && targetWarehouse) {
+      filteredStoreReport = storeReport.filter(store => matchesWarehouse(store.store, targetWarehouse));
+      filteredItemDetails = itemDetails.filter(item => matchesWarehouse(item.store, targetWarehouse));
       
       // Recalculate totals for filtered data
       totalOpeningStock = filteredItemDetails.reduce((sum, item) => sum + item.openingStock, 0);
@@ -1202,10 +1203,18 @@ export const getStockOnHandReport = async (req, res) => {
     console.log("📊 Stock On Hand Report Request:", { locCode, warehouse, startDate, endDate });
 
     // Check if user is admin
-    const adminEmails = ['officerootments@gmail.com'];
+    const adminEmails = [
+      'officerootments@gmail.com',
+      'brynex@gmail.com',
+      'operationsrootments@gmail.com',
+      'headoffice01@gmail.com'
+    ];
     const isAdminEmail = userId && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
-    const isAdmin = isAdminEmail || (locCode && (locCode === '858' || locCode === '103'));
-    const isMainAdmin = isAdmin;
+    const isMainAdmin = isAdminEmail ||
+      (req.query.userPower && (req.query.userPower.toLowerCase() === 'admin' || req.query.userPower.toLowerCase() === 'super_admin')) ||
+      (req.query.userRole && (req.query.userRole.toLowerCase() === 'admin' || req.query.userRole.toLowerCase() === 'superadmin')) ||
+      (locCode && (locCode === '858' || locCode === '103'));
+    const isAdmin = isMainAdmin;
     
     // Date range setup
     let endDateObj = new Date();
@@ -1228,41 +1237,26 @@ export const getStockOnHandReport = async (req, res) => {
       startDateObj.setHours(0, 0, 0, 0);
     }
     
-    // Normalize warehouse name
-    const normalizedWarehouse = warehouse ? normalizeWarehouseName(warehouse) : null;
-    const warehouseVariations = warehouse ? getWarehouseNameVariations(warehouse) : [];
+    // Resolve target warehouse
+    const targetWarehouse = resolveTargetWarehouse(warehouse, locCode);
+    const shouldFilterStore = !isMainAdmin || (warehouse && warehouse !== "All Stores");
     
     // Helper function to check if warehouse matches
     const warehouseMatches = (wsWarehouse) => {
       if (!wsWarehouse) return false;
-      const wsWarehouseStr = wsWarehouse.toString().trim();
-      const normalizedWs = normalizeWarehouseName(wsWarehouseStr);
-      
-      return warehouseVariations.includes(wsWarehouseStr) || 
-             warehouseVariations.includes(normalizedWs) ||
-             normalizedWs === normalizedWarehouse;
+      if (!shouldFilterStore) return true;
+      return matchesWarehouse(wsWarehouse, targetWarehouse);
     };
     
     // Fetch standalone items
-    let standaloneItems = [];
-    if (!isMainAdmin && locCode && locCode !== '858' && locCode !== '103') {
-      standaloneItems = await ShoeItem.find({});
+    let standaloneItems = await ShoeItem.find({});
+    if (shouldFilterStore) {
       standaloneItems = standaloneItems.filter(item => {
         return (item.warehouseStocks || []).some(ws => {
           if (!ws || !ws.warehouse) return false;
           return warehouseMatches(ws.warehouse);
         });
       });
-    } else if (isAdmin && warehouse && warehouse !== "All Stores") {
-      standaloneItems = await ShoeItem.find({});
-      standaloneItems = standaloneItems.filter(item => {
-        return (item.warehouseStocks || []).some(ws => {
-          if (!ws || !ws.warehouse) return false;
-          return warehouseMatches(ws.warehouse);
-        });
-      });
-    } else {
-      standaloneItems = await ShoeItem.find({});
     }
     
     // Fetch items from item groups
@@ -1274,14 +1268,7 @@ export const getStockOnHandReport = async (req, res) => {
         group.items.forEach((item, index) => {
           let shouldInclude = true;
           
-          if (!isMainAdmin && locCode && locCode !== '858' && locCode !== '103') {
-            const hasStock = item.warehouseStocks && Array.isArray(item.warehouseStocks) &&
-              item.warehouseStocks.some(ws => {
-                if (!ws || !ws.warehouse) return false;
-                return warehouseMatches(ws.warehouse);
-              });
-            shouldInclude = hasStock;
-          } else if (isAdmin && warehouse && warehouse !== "All Stores") {
+          if (shouldFilterStore) {
             const hasStock = item.warehouseStocks && Array.isArray(item.warehouseStocks) &&
               item.warehouseStocks.some(ws => {
                 if (!ws || !ws.warehouse) return false;
@@ -1372,16 +1359,13 @@ export const getStockOnHandReport = async (req, res) => {
 
       // Determine which warehouse stocks to process
       let warehouseStocksToProcess = item.warehouseStocks || [];
-      if (warehouse && warehouse !== "All Stores") {
-        warehouseStocksToProcess = warehouseStocksToProcess.filter(ws => ws?.warehouse && warehouseMatches(ws.warehouse));
-      } else if (!isMainAdmin && locCode && locCode !== '858' && locCode !== '103') {
+      if (shouldFilterStore) {
         warehouseStocksToProcess = warehouseStocksToProcess.filter(ws => ws?.warehouse && warehouseMatches(ws.warehouse));
       }
       
       for (const warehouseStock of warehouseStocksToProcess) {
-        const warehouseName = normalizeWarehouseName(warehouseStock.warehouse);
-        const wsVariations = getWarehouseNameVariations(warehouseName);
-        const wsMatch = (wh) => wh && (wsVariations.includes(wh) || wsVariations.includes(normalizeWarehouseName(wh)) || normalizeWarehouseName(wh) === warehouseName);
+        const warehouseName = normalizeWarehouseName(warehouseStock.warehouse) || warehouseStock.warehouse;
+        const wsMatch = (wh) => matchesWarehouse(wh, warehouseStock.warehouse);
 
         const originalOpeningStock = parseFloat(warehouseStock.openingStock) || 0;
         const itemCreationDate = new Date(item.createdAt || '2020-01-01');
@@ -1526,59 +1510,66 @@ export const getStockOnHandReport = async (req, res) => {
 // Get Inventory Aging Report
 export const getInventoryAging = async (req, res) => {
   try {
-    const { locCode, warehouse, category, asOfDate, allowedLocCodes, search, bracket } = req.query;
+    const {
+      locCode,
+      warehouse,
+      category,
+      group,
+      salesStatus,
+      asOfDate,
+      allowedLocCodes,
+      search,
+      bracket
+    } = req.query;
     const userId = req.query.userId || req.body.userId;
 
     // Check admin / permissions
-    const adminEmails = ['officerootments@gmail.com', 'brynex@gmail.com'];
+    const adminEmails = [
+      'officerootments@gmail.com',
+      'brynex@gmail.com',
+      'operationsrootments@gmail.com',
+      'headoffice01@gmail.com'
+    ];
     const isAdminEmail = userId && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
-    const isAdmin = isAdminEmail || (locCode && (locCode === '858' || locCode === '103')) || !locCode || locCode === 'admin';
-    const isMainAdmin = isAdmin;
+    const isMainAdmin = isAdminEmail ||
+      (req.query.userPower && (req.query.userPower.toLowerCase() === 'admin' || req.query.userPower.toLowerCase() === 'super_admin')) ||
+      (req.query.userRole && (req.query.userRole.toLowerCase() === 'admin' || req.query.userRole.toLowerCase() === 'superadmin')) ||
+      (locCode && (locCode === '858' || locCode === '103'));
+    const isAdmin = isMainAdmin;
 
     const clusterStoreLabels = allowedLocCodes ? allowedLocCodes.split(',').map(s => s.trim()) : [];
     const isClusterManager = !isMainAdmin && clusterStoreLabels.length > 0;
-    const clusterWarehouseVariations = clusterStoreLabels.flatMap(label => getWarehouseNameVariations(label));
 
     // Target evaluation date (default today)
     const targetDate = asOfDate ? new Date(asOfDate) : new Date();
     const evaluationTime = targetDate.getTime();
 
-    // Normalizing warehouse filters
-    const normalizedWarehouse = warehouse && warehouse !== "All Stores" ? normalizeWarehouseName(warehouse) : null;
-    const warehouseVariations = warehouse && warehouse !== "All Stores" ? getWarehouseNameVariations(warehouse) : [];
+    // Resolve target warehouse
+    const targetWarehouse = resolveTargetWarehouse(warehouse, locCode);
+    const shouldFilterStore = !isMainAdmin || (warehouse && warehouse !== "All Stores");
 
     // Helper to check if warehouse matches query
     const warehouseMatches = (wsWarehouse) => {
       if (!wsWarehouse) return false;
-      const wsWarehouseStr = wsWarehouse.toString().trim();
-      const normalizedWs = normalizeWarehouseName(wsWarehouseStr);
-
-      if (isClusterManager && warehouse === "All Stores") {
-        return clusterWarehouseVariations.includes(wsWarehouseStr) ||
-               clusterWarehouseVariations.includes(normalizedWs);
+      if (isClusterManager && (!warehouse || warehouse === "All Stores")) {
+        return clusterStoreLabels.some(label => matchesWarehouse(wsWarehouse, label));
       }
-
-      if (!isAdmin && locCode && locCode !== '858' && locCode !== '103') {
-        const userWarehouse = normalizeWarehouseName(locCode);
-        const userVariations = getWarehouseNameVariations(locCode);
-        return userVariations.includes(wsWarehouseStr) || normalizedWs === userWarehouse;
-      }
-
-      if (!normalizedWarehouse || warehouse === "All Stores") {
-        return true;
-      }
-
-      return warehouseVariations.includes(wsWarehouseStr) ||
-             warehouseVariations.includes(normalizedWs) ||
-             normalizedWs === normalizedWarehouse;
+      if (!shouldFilterStore) return true;
+      return matchesWarehouse(wsWarehouse, targetWarehouse);
     };
 
     // 1. Fetch Inward Transactions to find stock addition dates (Bills, Receives, Transfers, Adjustments)
-    const [bills, receives, transferOrders, adjustments, standaloneItems, itemGroups] = await Promise.all([
+    const salesCutoff = new Date(targetDate);
+    salesCutoff.setUTCHours(23, 59, 59, 999);
+
+    const [bills, receives, transferOrders, adjustments, salesInvoices, standaloneItems, itemGroups] = await Promise.all([
       Bill.find({}).select('billNumber billDate warehouse branch items createdAt').lean(),
       PurchaseReceive.find({ status: { $ne: 'cancelled' } }).select('receiveNumber receivedDate toWarehouse items createdAt').lean(),
       TransferOrder.find({ status: { $in: ['transferred', 'in_transit'] } }).select('transferOrderNumber date destinationWarehouse items createdAt').lean(),
       InventoryAdjustment.find({}).select('adjustmentNumber date warehouse branch items createdAt').lean(),
+      SalesInvoice.find({ invoiceDate: { $lte: salesCutoff } })
+        .select('invoiceNumber invoiceDate warehouse branch locCode category status lineItems')
+        .lean(),
       ShoeItem.find({ isActive: { $ne: false } }).lean(),
       ItemGroup.find({ isActive: { $ne: false } }).lean(),
     ]);
@@ -1670,18 +1661,140 @@ export const getInventoryAging = async (req, res) => {
       });
     });
 
+    // Index sales by item and warehouse so the report can distinguish items
+    // with sales history from stock that has never sold. Multiple identifiers
+    // point to the same aggregate to support standalone items and group variants.
+    const salesHistoryMap = new Map();
+    const normalizeIdentity = (value) =>
+      (value || "").toString().trim().toLowerCase().replace(/\s+/g, " ");
+
+    const getSalesAliases = (item, normalizedWarehouse) => {
+      if (!item || !normalizedWarehouse) return [];
+
+      const ids = [item._id, item.id, item.itemId]
+        .map(normalizeIdentity)
+        .filter(Boolean)
+        .map(value => `id:${value}@${normalizedWarehouse}`);
+      const skus = [item.sku, item.itemSku]
+        .map(normalizeIdentity)
+        .filter(Boolean)
+        .map(value => `sku:${value}@${normalizedWarehouse}`);
+      const names = [item.itemName, item.name, item.item]
+        .map(normalizeIdentity)
+        .filter(Boolean)
+        .map(value => `name:${value}@${normalizedWarehouse}`);
+
+      return [...new Set([...ids, ...skus, ...names])];
+    };
+
+    salesInvoices.forEach(invoice => {
+      const categoryName = (invoice.category || "").toString().trim().toLowerCase();
+      const invoiceNumber = (invoice.invoiceNumber || "").toString().trim().toUpperCase();
+      const isReturn =
+        ["return", "refund", "cancel", "cancelled"].includes(categoryName) ||
+        invoiceNumber.startsWith("RTN-") ||
+        invoiceNumber.startsWith("RET-");
+      if (isReturn) return;
+
+      const invoiceWarehouse = normalizeWarehouseName(
+        invoice.warehouse || invoice.branch || invoice.locCode || "Warehouse"
+      );
+      if (!invoiceWarehouse) return;
+
+      const invoiceDate = new Date(invoice.invoiceDate);
+      if (isNaN(invoiceDate.getTime())) return;
+
+      (invoice.lineItems || []).forEach(lineItem => {
+        const quantity = parseFloat(lineItem.quantity || 0) || 0;
+        if (quantity <= 0) return;
+
+        const itemData = lineItem.itemData || {};
+        const aliases = getSalesAliases({
+          _id: itemData._id || itemData.id || lineItem.itemId,
+          sku: itemData.sku || lineItem.itemSku,
+          itemName: itemData.itemName || itemData.name || lineItem.item,
+        }, invoiceWarehouse);
+        if (aliases.length === 0) return;
+
+        let aggregate = aliases.map(alias => salesHistoryMap.get(alias)).find(Boolean);
+        if (!aggregate) {
+          aggregate = { soldQuantity: 0, soldValue: 0, lastSaleDate: null };
+        }
+
+        aggregate.soldQuantity += quantity;
+        aggregate.soldValue += parseFloat(lineItem.amount) ||
+          ((parseFloat(lineItem.rate) || 0) * quantity);
+        if (!aggregate.lastSaleDate || invoiceDate > aggregate.lastSaleDate) {
+          aggregate.lastSaleDate = invoiceDate;
+        }
+
+        aliases.forEach(alias => salesHistoryMap.set(alias, aggregate));
+      });
+    });
+
     // 2. Process All Items and compute stock aging
     const agingRecords = [];
 
+    const availableGroups = [...new Set(
+      itemGroups
+        .map(itemGroup => (itemGroup.name || itemGroup.groupName || "").trim())
+        .filter(Boolean)
+    )].sort((a, b) => a.localeCompare(b));
+
     // Target warehouses to consider
-    const targetWarehouses = (warehouse && warehouse !== "All Stores")
-      ? [warehouse]
-      : ["Warehouse", "MG Road"];
+    let targetWarehouses = [];
+    if (shouldFilterStore) {
+      targetWarehouses = [targetWarehouse];
+    } else if (isClusterManager) {
+      targetWarehouses = clusterStoreLabels;
+    } else {
+      const whSet = new Set();
+      standaloneItems.forEach(i => (i.warehouseStocks || []).forEach(ws => {
+        if (ws.warehouse) whSet.add(normalizeWarehouseName(ws.warehouse) || ws.warehouse);
+      }));
+      itemGroups.forEach(g => {
+        (g.items || []).forEach(it => (it.warehouseStocks || []).forEach(ws => {
+          if (ws.warehouse) whSet.add(normalizeWarehouseName(ws.warehouse) || ws.warehouse);
+        }));
+        (g.itemsList || []).forEach(it => (it.warehouseStocks || []).forEach(ws => {
+          if (ws.warehouse) whSet.add(normalizeWarehouseName(ws.warehouse) || ws.warehouse);
+        }));
+      });
+      targetWarehouses = Array.from(whSet);
+      if (targetWarehouses.length === 0) {
+        targetWarehouses = ["Warehouse", "MG Road Branch", "Brides Berry"];
+      }
+    }
 
     // Helper to process a single item/variant
     const processItemStock = (item, isGroupVariant = false, parentGroup = null) => {
+      const effectiveCategory = (
+        item.category || parentGroup?.category || "other"
+      ).toString().trim().toLowerCase();
+      const effectiveGroupName = (
+        parentGroup?.name || parentGroup?.groupName || item.groupName || ""
+      ).toString().trim();
+
       // Category filter check
-      if (category && category !== "all" && item.category && item.category.toLowerCase() !== category.toLowerCase()) {
+      if (category && category !== "all" && effectiveCategory !== category.toLowerCase()) {
+        return;
+      }
+
+      // Item group filter check
+      if (group && group !== "all") {
+        if (group === "ungrouped" && effectiveGroupName) {
+          return;
+        }
+        if (
+          group !== "ungrouped" &&
+          effectiveGroupName.toLowerCase() !== group.toLowerCase()
+        ) {
+          return;
+        }
+      }
+
+      // A grouped variant marked inactive should not appear in active aging data.
+      if (item.isActive === false) {
         return;
       }
 
@@ -1702,24 +1815,36 @@ export const getInventoryAging = async (req, res) => {
 
       // For each target warehouse, find stock or record
       targetWarehouses.forEach(targetWh => {
-        const normalizedTarget = normalizeWarehouseName(targetWh) || targetWh;
-        const targetVariations = getWarehouseNameVariations(targetWh);
-
         // Find matching warehouse stock entries and sum quantities
         const matchingStocks = warehouseStocks.filter(ws => {
           if (!ws.warehouse) return false;
-          const wsStr = ws.warehouse.toString().trim();
-          const wsNorm = normalizeWarehouseName(wsStr);
-          return targetVariations.includes(wsStr) || 
-                 targetVariations.includes(wsNorm) ||
-                 wsNorm === normalizedTarget ||
-                 wsStr.toLowerCase().includes(targetWh.toLowerCase()) ||
-                 targetWh.toLowerCase().includes(wsStr.toLowerCase());
+          return matchesWarehouse(ws.warehouse, targetWh);
         });
 
         const currentQty = matchingStocks.reduce((sum, ws) => {
           return sum + (parseFloat(ws.stockOnHand ?? ws.availableForSale ?? 0) || 0);
         }, 0);
+
+        if (matchingStocks.length === 0 || currentQty <= 0) {
+          return;
+        }
+
+        const normalizedTarget = normalizeWarehouseName(targetWh) || targetWh;
+        const targetVariations = getWarehouseNameVariations(targetWh);
+
+        const salesAliases = getSalesAliases(item, normalizedTarget);
+        const salesInfo = salesAliases.map(alias => salesHistoryMap.get(alias)).find(Boolean) || {
+          soldQuantity: 0,
+          soldValue: 0,
+          lastSaleDate: null,
+        };
+
+        if (salesStatus === "sold" && salesInfo.soldQuantity <= 0) {
+          return;
+        }
+        if (salesStatus === "unsold" && salesInfo.soldQuantity > 0) {
+          return;
+        }
 
         // Find inward date for this warehouse
         let inwardInfo = null;
@@ -1779,8 +1904,8 @@ export const getInventoryAging = async (req, res) => {
           itemName: item.itemName || item.name || (parentGroup ? `${parentGroup.name || parentGroup.groupName} - ${item.size || item.sku}` : "Unnamed Item"),
           sku: item.sku || "N/A",
           size: item.size || "-",
-          category: item.category || parentGroup?.category || "other",
-          groupName: parentGroup?.name || parentGroup?.groupName || item.groupName || null,
+          category: effectiveCategory,
+          groupName: effectiveGroupName || null,
           isGroupVariant,
           warehouse: targetWh,
           stockOnHand: currentQty,
@@ -1793,7 +1918,12 @@ export const getInventoryAging = async (req, res) => {
           ageInDays,
           ageBracket,
           bracketLabel,
-          bracketColor
+          bracketColor,
+          soldQuantity: salesInfo.soldQuantity,
+          soldValue: salesInfo.soldValue,
+          lastSaleDate: salesInfo.lastSaleDate
+            ? salesInfo.lastSaleDate.toISOString().split('T')[0]
+            : null
         });
       });
     };
@@ -1833,24 +1963,36 @@ export const getInventoryAging = async (req, res) => {
     let grandTotalStock = 0;
     let grandTotalValue = 0;
     let totalAgeDaysWeighted = 0;
+    let totalSoldQuantity = 0;
+    let totalSoldValue = 0;
+    let totalSoldItems = 0;
+    let totalUnsoldItems = 0;
 
     const bracketsSummary = {
-      "0_30": { bracket: "0_30", label: "0 - 30 Days", count: 0, stock: 0, value: 0, color: "emerald", badgeBg: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-      "31_60": { bracket: "31_60", label: "31 - 60 Days", count: 0, stock: 0, value: 0, color: "blue", badgeBg: "bg-blue-50 text-blue-700 border-blue-200" },
-      "61_90": { bracket: "61_90", label: "61 - 90 Days", count: 0, stock: 0, value: 0, color: "amber", badgeBg: "bg-amber-50 text-amber-700 border-amber-200" },
-      "91_120": { bracket: "91_120", label: "91 - 120 Days", count: 0, stock: 0, value: 0, color: "orange", badgeBg: "bg-orange-50 text-orange-700 border-orange-200" },
-      "120_plus": { bracket: "120_plus", label: "120+ Days", count: 0, stock: 0, value: 0, color: "red", badgeBg: "bg-red-50 text-red-700 border-red-200" }
+      "0_30": { bracket: "0_30", label: "0 - 30 Days", count: 0, stock: 0, value: 0, soldQty: 0, color: "emerald", badgeBg: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+      "31_60": { bracket: "31_60", label: "31 - 60 Days", count: 0, stock: 0, value: 0, soldQty: 0, color: "blue", badgeBg: "bg-blue-50 text-blue-700 border-blue-200" },
+      "61_90": { bracket: "61_90", label: "61 - 90 Days", count: 0, stock: 0, value: 0, soldQty: 0, color: "amber", badgeBg: "bg-amber-50 text-amber-700 border-amber-200" },
+      "91_120": { bracket: "91_120", label: "91 - 120 Days", count: 0, stock: 0, value: 0, soldQty: 0, color: "orange", badgeBg: "bg-orange-50 text-orange-700 border-orange-200" },
+      "120_plus": { bracket: "120_plus", label: "120+ Days", count: 0, stock: 0, value: 0, soldQty: 0, color: "red", badgeBg: "bg-red-50 text-red-700 border-red-200" }
     };
 
     agingRecords.forEach(rec => {
       grandTotalStock += rec.stockOnHand;
       grandTotalValue += rec.stockValue;
       totalAgeDaysWeighted += (rec.ageInDays * rec.stockOnHand);
+      totalSoldQuantity += rec.soldQuantity || 0;
+      totalSoldValue += rec.soldValue || 0;
+      if ((rec.soldQuantity || 0) > 0) {
+        totalSoldItems += 1;
+      } else {
+        totalUnsoldItems += 1;
+      }
 
       if (bracketsSummary[rec.ageBracket]) {
         bracketsSummary[rec.ageBracket].count += 1;
         bracketsSummary[rec.ageBracket].stock += rec.stockOnHand;
         bracketsSummary[rec.ageBracket].value += rec.stockValue;
+        bracketsSummary[rec.ageBracket].soldQty += rec.soldQuantity || 0;
       }
     });
 
@@ -1865,6 +2007,10 @@ export const getInventoryAging = async (req, res) => {
           totalItems: agingRecords.length,
           totalStock: grandTotalStock,
           totalValue: grandTotalValue,
+          totalSoldQuantity,
+          totalSoldValue,
+          totalSoldItems,
+          totalUnsoldItems,
           averageAgeDays,
           criticalAgedValue,
           criticalAgedStock,
@@ -1872,6 +2018,7 @@ export const getInventoryAging = async (req, res) => {
           warehouse: warehouse || "All Stores"
         },
         brackets: bracketsSummary,
+        groups: availableGroups,
         items: agingRecords
       }
     });

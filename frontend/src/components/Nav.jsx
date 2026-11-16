@@ -225,7 +225,9 @@ const Nav = () => {
 
     const singleLinkClasses = (path) =>
         `flex items-center gap-3 px-4 py-2.5 text-[12px] whitespace-nowrap truncate transition-colors ${
-            activePath === path
+            (path === "/record-expense"
+                ? ["/record-expense", "/record-expenses", "/record-expense/new", "/direct-expenses", "/indirect-expenses"].includes(activePath)
+                : activePath === path)
                 ? "text-white font-medium"
                 : "text-[#a1a1aa] font-normal hover:text-white"
         }`;
@@ -417,6 +419,7 @@ const Nav = () => {
 
                             {/* Income & Expenses */}
                             <Link to="/income" className={singleLinkClasses("/income")}><DollarSign size={16} /><span>Income</span></Link>
+                            <Link to="/record-expense" className={singleLinkClasses("/record-expense")}><DollarSign size={16} /><span>Record Expense</span></Link>
                             <Link to="/expenses" className={singleLinkClasses("/expenses")}><DollarSign size={16} /><span>Expenses</span></Link>
 
                             {/* Admin only */}

@@ -7,6 +7,7 @@ import Headers from "../components/Header.jsx";
 import useFetch from "../hooks/useFetch.jsx";
 import openingBalanceMap from "../data/openingBalance.json";
 import { useSidebar } from "../hooks/useSidebar.js";
+import { FALLBACK_STORES } from "../utils/storeService.js";
 import { Download, Printer, Loader2 } from "lucide-react";
 
 /* ---------- Store master list ---------- */
@@ -32,7 +33,10 @@ const AllLoation = [
   { locName: "G.Kannur", locCode: "716" },
   { locName: "G.Mg Road", locCode: "718" },
 ];
-const getStoreName = (c) => AllLoation.find((l) => l.locCode === c)?.locName || "Unknown";
+const getStoreName = (c) =>
+  [...FALLBACK_STORES, ...AllLoation].find(
+    (location) => String(location.locCode) === String(c)
+  )?.locName || "Unknown";
 
 /* ---------- helpers ---------- */
 const getMonthStart = (iso) => iso.slice(0, 7) + "-01"; // YYYY-MM-01

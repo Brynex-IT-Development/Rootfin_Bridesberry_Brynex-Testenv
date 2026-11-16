@@ -135,6 +135,25 @@ const initialFormData = {
 const ShoeSalesItemCreate = () => {
   const isSidebarOpen = useSidebar();
   const navigate = useNavigate();
+
+  const userStr = localStorage.getItem("rootfinuser");
+  const user = userStr ? JSON.parse(userStr) : null;
+  const userRole = (user?.role || "").toLowerCase().trim();
+  const userPower = (user?.power || "").toLowerCase().trim();
+  const userEmail = (user?.email || user?.username || "").toLowerCase().trim();
+  const adminEmails = [
+    "officerootments@gmail.com",
+    "brynex@gmail.com",
+    "operationsrootments@gmail.com",
+    "headoffice01@gmail.com"
+  ];
+  const isAdminEmail = adminEmails.includes(userEmail);
+  const isAdmin = isAdminEmail ||
+                  userPower === "admin" || 
+                  userPower === "super_admin" || 
+                  userRole === "admin" || 
+                  userRole === "superadmin" ||
+                  (user?.locCode && (String(user.locCode) === '858' || String(user.locCode) === '103'));
   const [searchParams] = useSearchParams();
   const pieceSkuParam = searchParams.get("pieceSku");
   const unitIndexParam = searchParams.get("unitIndex");
@@ -1429,15 +1448,17 @@ const handleCheckboxChange = (field) => (event) => {
                     </label>
                   </div>
 
-                  <FloatingField
-                    label="Cost Price"
-                    placeholder="0.00"
-                    prefix="₹"
-                    name="costPrice"
-                    value={formData.costPrice}
-                    onChange={handleChange("costPrice")}
-                    disabled={!formData.purchasable || status.loading}
-                  />
+                  {isAdmin && (
+                    <FloatingField
+                      label="Cost Price"
+                      placeholder="0.00"
+                      prefix="₹"
+                      name="costPrice"
+                      value={formData.costPrice}
+                      onChange={handleChange("costPrice")}
+                      disabled={!formData.purchasable || status.loading}
+                    />
+                  )}
                 </div>
               </div>
             </div>

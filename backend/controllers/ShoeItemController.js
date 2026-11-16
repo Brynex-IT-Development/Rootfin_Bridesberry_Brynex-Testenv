@@ -20,6 +20,13 @@ const WAREHOUSE_NAME_MAPPING = {
   "Warehouse": "Warehouse",
   "warehouse": "Warehouse",
   "WAREHOUSE": "Warehouse",
+
+  // BridesBerry variations
+  "BridesBerry": "Brides Berry",
+  "Bridesberry": "Brides Berry",
+  "Brides Berry": "Brides Berry",
+  "bridesberry": "Brides Berry",
+  "brides berry": "Brides Berry",
   
   // Calicut variations
   "G.Calicut": "Calicut",
@@ -554,8 +561,9 @@ export const getShoeItems = async (req, res) => {
           let itemStockOnHand = 0;
           if (Array.isArray(item.warehouseStocks) && item.warehouseStocks.length > 0) {
             if (userWarehouse && userWarehouse !== "Warehouse") {
-              const ws = item.warehouseStocks.find(w => matchesWarehouse(w.warehouse, userWarehouse));
-              itemStockOnHand = ws ? (Number(ws.stockOnHand) || 0) : 0;
+              itemStockOnHand = item.warehouseStocks
+                .filter(w => matchesWarehouse(w.warehouse, userWarehouse))
+                .reduce((sum, ws) => sum + (Number(ws.stockOnHand) || 0), 0);
             } else {
               itemStockOnHand = item.warehouseStocks.reduce((sum, ws) => sum + (Number(ws.stockOnHand) || 0), 0);
             }
@@ -616,8 +624,9 @@ export const getShoeItems = async (req, res) => {
         let itemStockOnHand = 0;
         if (Array.isArray(item.warehouseStocks) && item.warehouseStocks.length > 0) {
           if (userWarehouse && userWarehouse !== "Warehouse") {
-            const ws = item.warehouseStocks.find(w => matchesWarehouse(w.warehouse, userWarehouse));
-            itemStockOnHand = ws ? (Number(ws.stockOnHand) || 0) : 0;
+            itemStockOnHand = item.warehouseStocks
+              .filter(w => matchesWarehouse(w.warehouse, userWarehouse))
+              .reduce((sum, ws) => sum + (Number(ws.stockOnHand) || 0), 0);
           } else {
             itemStockOnHand = item.warehouseStocks.reduce((sum, ws) => sum + (Number(ws.stockOnHand) || 0), 0);
           }

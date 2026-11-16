@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { useSidebar } from "../hooks/useSidebar.js";
 import { useActiveStores } from "../utils/storeService.js";
+import { mapLocNameToWarehouse } from "../utils/warehouseMapping.js";
 
 // Helper to format currency
 const formatCurrency = (amount) => {
@@ -88,8 +89,20 @@ const bracketOptions = [
 const salesStatusOptions = [
   { value: "all", label: "All Items (Sold & Unsold)" },
   { value: "sold", label: "Sold Items Only (Has Sales)" },
-  { value: "unsold", label: "Unsold Items Only (0 Sales / Unsailed)" },
+  { value: "unsold", label: "Unsold Items Only (0 Sales)" },
 ];
+
+const normalizeStoreIdentity = (value) =>
+  (value || "").toString().trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+
+const normalizeWarehouseIdentity = (value) =>
+  normalizeStoreIdentity(mapLocNameToWarehouse(value) || value);
+
+const isSameWarehouse = (left, right) => {
+  const normalizedLeft = normalizeWarehouseIdentity(left);
+  const normalizedRight = normalizeWarehouseIdentity(right);
+  return Boolean(normalizedLeft && normalizedRight && normalizedLeft === normalizedRight);
+};
 
 const InventoryAgingReport = () => {
   const isSidebarOpen = useSidebar();
@@ -115,25 +128,60 @@ const InventoryAgingReport = () => {
   const [itemsPerPage, setItemsPerPage] = useState("50");
 
   const currentUser = JSON.parse(localStorage.getItem("rootfinuser") || "{}");
-  const isAdmin = (currentUser?.power || "").toLowerCase() === "admin";
-  const isClusterManager = (currentUser?.role || "").toLowerCase() === "cluster_manager";
-  const clusterAllowedLocCodes = currentUser?.allowedLocCodes || [];
-  const adminEmails = ["officerootments@gmail.com", "brynex@gmail.com"];
-  const isMainAdmin =
-    isAdmin ||
+  const adminEmails = [
+    "officerootments@gmail.com",
+    "brynex@gmail.com",
+    "operationsrootments@gmail.com",
+    "headoffice01@gmail.com",
+  ];
+  const isAdmin =
+    (currentUser?.power || "").toLowerCase() === "admin" ||
+    (currentUser?.power || "").toLowerCase() === "super_admin" ||
+    (currentUser?.role || "").toLowerCase() === "admin" ||
+    (currentUser?.role || "").toLowerCase() === "superadmin" ||
     adminEmails.some((email) => (currentUser?.email || "").toLowerCase() === email.toLowerCase()) ||
     ["858", "103"].includes(currentUser?.locCode);
-  const canChooseStore = isMainAdmin || isClusterManager;
+  const isClusterManager = (currentUser?.role || "").toLowerCase() === "cluster_manager";
+  const clusterAllowedLocCodes = currentUser?.allowedLocCodes || [];
+  const isMainAdmin = isAdmin;
+  const currentUserEmail = (currentUser?.email || "").toLowerCase();
+  const userStoreIdentities = [
+    currentUser?.storeName,
+    currentUser?.locName,
+    currentUser?.username,
+    currentUserEmail.split("@")[0],
+  ]
+    .map(normalizeStoreIdentity)
+    .filter(Boolean);
+  const userStoreByName = activeStores.find((store) =>
+    userStoreIdentities.includes(normalizeStoreIdentity(store.locName))
+  );
+  const userStoreByCode = activeStores.find(
+    (store) => store.locCode === (currentUser?.locCode || "").toString()
+  );
+  const resolvedUserStore = userStoreByName || userStoreByCode || null;
+  const isDedicatedStoreAccount = Boolean(
+    resolvedUserStore &&
+    !["858", "103"].includes(resolvedUserStore.locCode) &&
+    !adminEmails.includes(currentUserEmail)
+  );
+  const canChooseStore = (isMainAdmin && !isDedicatedStoreAccount) || isClusterManager;
 
   useEffect(() => {
-    if (!canChooseStore && currentUser?.locCode) {
-      if (currentUser?.locCode === "718") {
+    if (!canChooseStore) {
+      if (resolvedUserStore) {
+        setSelectedStore(resolvedUserStore.locName);
+      } else if (currentUser?.storeName || currentUser?.locName) {
+        setSelectedStore(currentUser.storeName || currentUser.locName);
+      } else if (currentUser?.locCode === "155") {
+        setSelectedStore("Brides Berry");
+      } else if (currentUser?.locCode === "718") {
         setSelectedStore("MG Road");
       } else {
         setSelectedStore("Warehouse");
       }
     }
-  }, []);
+  }, [activeStores, canChooseStore, resolvedUserStore]);
 
   // Compute dynamic group options from backend and loaded items
   const groupOptions = useMemo(() => {
@@ -161,11 +209,19 @@ const InventoryAgingReport = () => {
     setHasFetched(true);
     try {
       const warehouseParam = selectedStore || "All Stores";
+      const selectedStoreRecord = activeStores.find((store) =>
+        isSameWarehouse(store.locName, warehouseParam)
+      );
+      const reportLocCode = !canChooseStore
+        ? (resolvedUserStore?.locCode || selectedStoreRecord?.locCode || currentUser?.locCode || "")
+        : (selectedStoreRecord?.locCode || currentUser?.locCode || "");
 
       const params = new URLSearchParams({
         warehouse: warehouseParam,
-        locCode: currentUser?.locCode || "",
+        locCode: reportLocCode,
         userId: currentUser?.email || currentUser?._id || "",
+        userPower: currentUser?.power || "",
+        userRole: currentUser?.role || "",
         category: selectedCategory,
         group: selectedGroup,
         salesStatus: selectedSalesStatus,
@@ -184,6 +240,70 @@ const InventoryAgingReport = () => {
 
       if (result.success && result.data) {
         let items = result.data.items || [];
+
+        // Never allow another warehouse's rows into a store-scoped report,
+        // even if a stale backend process or old locCode returns extra data.
+        if (warehouseParam !== "All Stores") {
+          items = items.filter((item) => isSameWarehouse(item.warehouse, warehouseParam));
+
+          // Reconcile the aging rows with the same live stock source used by
+          // the item detail page. This also handles legacy duplicate names
+          // such as "BridesBerry" and "Brides Berry" without picking a stale 0 row.
+          try {
+            const stockWarehouse = mapLocNameToWarehouse(warehouseParam) || warehouseParam;
+            const stockParams = new URLSearchParams({
+              page: "1",
+              limit: "10000",
+              warehouse: stockWarehouse,
+            });
+            const stockResponse = await fetch(
+              `${API_URL}/api/shoe-sales/items?${stockParams.toString()}`,
+              { cache: "no-store" }
+            );
+
+            if (stockResponse.ok) {
+              const stockPayload = await stockResponse.json();
+              const liveItems = Array.isArray(stockPayload)
+                ? stockPayload
+                : (stockPayload.items || []);
+              const liveById = new Map();
+              const liveBySku = new Map();
+
+              liveItems.forEach((liveItem) => {
+                const liveId = (liveItem?._id || liveItem?.id || "").toString();
+                const liveSku = (liveItem?.sku || "").toString().trim().toLowerCase();
+                if (liveId) liveById.set(liveId, liveItem);
+                if (liveSku) liveBySku.set(liveSku, liveItem);
+              });
+
+              items = items.map((agingItem) => {
+                const agingId = (agingItem.itemId || agingItem._id || "").toString();
+                const agingSku = (agingItem.sku || "").toString().trim().toLowerCase();
+                const liveItem = liveById.get(agingId) || liveBySku.get(agingSku);
+                if (!liveItem) return agingItem;
+
+                const matchingStocks = (liveItem.warehouseStocks || []).filter((stock) =>
+                  isSameWarehouse(stock.warehouse, warehouseParam)
+                );
+                const liveQuantity = matchingStocks.length > 0
+                  ? matchingStocks.reduce(
+                      (sum, stock) => sum + (Number(stock.stockOnHand) || 0),
+                      0
+                    )
+                  : (Number(liveItem.stockOnHand ?? liveItem.stock) || 0);
+
+                return {
+                  ...agingItem,
+                  stockOnHand: liveQuantity,
+                  stockValue: liveQuantity * (Number(agingItem.costPrice) || 0),
+                };
+              });
+            }
+          } catch (stockError) {
+            console.warn("Unable to reconcile live item stock for aging report", stockError);
+          }
+        }
+
         let brackets = result.data.brackets || null;
         let summary = result.data.summary || null;
         let groups = result.data.groups || [];
@@ -336,30 +456,88 @@ const InventoryAgingReport = () => {
   // CSV Data preparation including Group, Sales Status, and Sold info
   const csvData = useMemo(() => {
     if (!processedItems || processedItems.length === 0) return [];
-    return processedItems.map((item, index) => ({
-      "Sl No": index + 1,
-      "Item Name": item.itemName || "",
-      "Group Name": item.groupName || "Standalone",
-      "SKU": item.sku || "",
-      "Size": item.size || "-",
-      "Category": item.category || "",
-      "Warehouse": item.warehouse || "",
-      "Sales Status": (item.soldQuantity || 0) > 0 ? "Sold" : "Unsold",
-      "Sold Quantity (pcs)": item.soldQuantity || 0,
-      "Sold Value (₹)": item.soldValue || 0,
-      "Current Stock (pcs)": item.stockOnHand || 0,
-      "Cost Price (₹)": item.costPrice || 0,
-      "Stock Valuation (₹)": item.stockValue || 0,
-      "Inward Date": item.inwardDate || "",
-      "Inward Source": item.inwardSource || "",
-      "Last Sold Date": item.lastSaleDate || "-",
-      "Age (Days)": item.ageInDays || 0,
-      "Age Bracket": item.bracketLabel || "",
-    }));
-  }, [processedItems]);
+    return processedItems.map((item, index) => {
+      const row = {
+        "Sl No": index + 1,
+        "Item Name": item.itemName || "",
+        "Group Name": item.groupName || "Standalone",
+        "SKU": item.sku || "",
+        "Size": item.size || "-",
+        "Category": item.category || "",
+        "Warehouse": item.warehouse || "",
+        "Sales Status": (item.soldQuantity || 0) > 0 ? "Sold" : "Unsold",
+        "Sold Quantity (pcs)": item.soldQuantity || 0,
+        "Current Stock (pcs)": item.stockOnHand || 0,
+      };
+      if (isAdmin) {
+        row["Sold Value (₹)"] = item.soldValue || 0;
+        row["Cost Price (₹)"] = item.costPrice || 0;
+        row["Stock Valuation (₹)"] = item.stockValue || 0;
+      }
+      row["Inward Date"] = item.inwardDate || "";
+      row["Inward Source"] = item.inwardSource || "";
+      row["Last Sold Date"] = item.lastSaleDate || "-";
+      row["Age (Days)"] = item.ageInDays || 0;
+      row["Age Bracket"] = item.bracketLabel || "";
+      return row;
+    });
+  }, [processedItems, isAdmin]);
 
-  const summary = reportData?.summary;
-  const brackets = reportData?.brackets;
+  // Recalculate every visible total from the already store-scoped rows. This
+  // keeps KPIs and bracket cards aligned with Store, Group, Sales and Age filters.
+  const summary = useMemo(() => {
+    if (!reportData) return null;
+
+    const totalStock = processedItems.reduce((sum, item) => sum + (item.stockOnHand || 0), 0);
+    const totalValue = processedItems.reduce((sum, item) => sum + (item.stockValue || 0), 0);
+    const totalSoldQuantity = processedItems.reduce((sum, item) => sum + (item.soldQuantity || 0), 0);
+    const totalSoldValue = processedItems.reduce((sum, item) => sum + (item.soldValue || 0), 0);
+    const totalUnsoldItems = processedItems.filter((item) => (item.soldQuantity || 0) === 0).length;
+    const totalSoldItems = processedItems.length - totalUnsoldItems;
+    const weightedAge = processedItems.reduce(
+      (sum, item) => sum + ((item.ageInDays || 0) * (item.stockOnHand || 0)),
+      0
+    );
+    const criticalItems = processedItems.filter((item) => (item.ageInDays || 0) > 90);
+
+    return {
+      ...(reportData.summary || {}),
+      totalItems: processedItems.length,
+      totalStock,
+      totalValue,
+      totalSoldQuantity,
+      totalSoldValue,
+      totalSoldItems,
+      totalUnsoldItems,
+      averageAgeDays: totalStock > 0 ? Math.round(weightedAge / totalStock) : 0,
+      criticalAgedValue: criticalItems.reduce((sum, item) => sum + (item.stockValue || 0), 0),
+      criticalAgedStock: criticalItems.reduce((sum, item) => sum + (item.stockOnHand || 0), 0),
+      warehouse: selectedStore,
+    };
+  }, [reportData, processedItems, selectedStore]);
+
+  const brackets = useMemo(() => {
+    if (!reportData) return null;
+
+    const result = {
+      "0_30": { bracket: "0_30", label: "0 - 30 Days", count: 0, stock: 0, value: 0, soldQty: 0, badgeBg: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+      "31_60": { bracket: "31_60", label: "31 - 60 Days", count: 0, stock: 0, value: 0, soldQty: 0, badgeBg: "bg-blue-50 text-blue-700 border-blue-200" },
+      "61_90": { bracket: "61_90", label: "61 - 90 Days", count: 0, stock: 0, value: 0, soldQty: 0, badgeBg: "bg-amber-50 text-amber-700 border-amber-200" },
+      "91_120": { bracket: "91_120", label: "91 - 120 Days", count: 0, stock: 0, value: 0, soldQty: 0, badgeBg: "bg-orange-50 text-orange-700 border-orange-200" },
+      "120_plus": { bracket: "120_plus", label: "120+ Days", count: 0, stock: 0, value: 0, soldQty: 0, badgeBg: "bg-red-50 text-red-700 border-red-200" },
+    };
+
+    processedItems.forEach((item) => {
+      const target = result[item.ageBracket];
+      if (!target) return;
+      target.count += 1;
+      target.stock += item.stockOnHand || 0;
+      target.value += item.stockValue || 0;
+      target.soldQty += item.soldQuantity || 0;
+    });
+
+    return result;
+  }, [reportData, processedItems]);
 
   return (
     <>
@@ -583,7 +761,7 @@ const InventoryAgingReport = () => {
                 <span className="text-xl font-bold text-[#d97706]">
                   {(summary.totalUnsoldItems || 0).toLocaleString()}
                 </span>
-                <span className="text-[11px] text-[#64748b]">unsailed</span>
+                <span className="text-[11px] text-[#64748b]">items</span>
               </div>
               <div className="text-[10px] text-[#64748b] mt-0.5">0 units sold to date</div>
             </div>
@@ -863,7 +1041,9 @@ const InventoryAgingReport = () => {
                             <th className="py-2.5 px-3 text-center">Stock Age</th>
                             <th className="py-2.5 px-3 text-center">Sales Status</th>
                             <th className="py-2.5 px-3 text-right">Current Stock</th>
-                            <th className="py-2.5 px-3 text-right">Unit Cost</th>
+                            {isAdmin && (
+                              <th className="py-2.5 px-3 text-right">Unit Cost</th>
+                            )}
                             <th className="py-2.5 px-3 text-right">Stock Valuation</th>
                           </tr>
                         </thead>
@@ -937,9 +1117,11 @@ const InventoryAgingReport = () => {
                               </td>
 
                               {/* Unit Cost */}
-                              <td className="py-2.5 px-3 text-right font-medium text-[#475569]">
-                                {formatCurrency(item.costPrice)}
-                              </td>
+                              {isAdmin && (
+                                <td className="py-2.5 px-3 text-right font-medium text-[#475569]">
+                                  {formatCurrency(item.costPrice)}
+                                </td>
+                              )}
 
                               {/* Stock Valuation */}
                               <td className="py-2.5 px-3 text-right font-bold text-[#059669]">
@@ -969,7 +1151,9 @@ const InventoryAgingReport = () => {
                     <th className="py-3 px-4 text-center">Age Bracket</th>
                     <th className="py-3 px-4 text-center">Sales Status</th>
                     <th className="py-3 px-4 text-right">Current Stock</th>
-                    <th className="py-3 px-4 text-right">Unit Cost</th>
+                    {isAdmin && (
+                      <th className="py-3 px-4 text-right">Unit Cost</th>
+                    )}
                     <th className="py-3 px-4 text-right">Stock Valuation</th>
                   </tr>
                 </thead>
@@ -1068,9 +1252,11 @@ const InventoryAgingReport = () => {
                         </td>
 
                         {/* Cost Price */}
-                        <td className="py-3 px-4 text-right font-medium text-[#475569]">
-                          {formatCurrency(item.costPrice)}
-                        </td>
+                        {isAdmin && (
+                          <td className="py-3 px-4 text-right font-medium text-[#475569]">
+                            {formatCurrency(item.costPrice)}
+                          </td>
+                        )}
 
                         {/* Total Stock Valuation */}
                         <td className="py-3 px-4 text-right font-bold text-[#059669]">

@@ -46,11 +46,28 @@ const ShoeSalesItemGroups = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const API_URL = baseUrl?.baseUrl?.replace(/\/$/, "") || "http://localhost:7000";
 
+  const userStr = localStorage.getItem("rootfinuser");
+  const user = userStr ? JSON.parse(userStr) : null;
+  const userRole = (user?.role || "").toLowerCase().trim();
+  const userPower = (user?.power || "").toLowerCase().trim();
+  const userEmail = (user?.email || user?.username || "").toLowerCase().trim();
+  const adminEmails = [
+    "officerootments@gmail.com",
+    "brynex@gmail.com",
+    "operationsrootments@gmail.com",
+    "headoffice01@gmail.com"
+  ];
+  const isAdminEmail = adminEmails.includes(userEmail);
+  const isAdmin = isAdminEmail ||
+                  userPower === "admin" || 
+                  userPower === "super_admin" || 
+                  userRole === "admin" || 
+                  userRole === "superadmin" ||
+                  (user?.locCode && (String(user.locCode) === '858' || String(user.locCode) === '103'));
+
   const fetchItemGroups = async () => {
     try {
       setLoading(true);
-      const userStr = localStorage.getItem("rootfinuser");
-      const user = userStr ? JSON.parse(userStr) : null;
       const userId = user?.email || null;
       const userPower = user?.power || "";
       const userEmail = user?.email || user?.username || "";
@@ -248,7 +265,7 @@ const ShoeSalesItemGroups = () => {
       <div className={`transition-all duration-300 p-6 bg-[#f8fafc] min-h-screen ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
         <div className="flex items-center justify-end mb-6">
           <div className="flex items-center gap-3">
-            {selectedGroups.size > 0 && (
+            {isAdmin && selectedGroups.size > 0 && (
               <button
                 onClick={handleDeleteClick}
                 className="inline-flex h-10 items-center gap-2 rounded-none bg-[#dc2626] px-4 text-sm font-semibold text-white transition hover:bg-[#b91c1c] shadow-sm cursor-pointer"
@@ -257,13 +274,15 @@ const ShoeSalesItemGroups = () => {
                 <span>Delete ({selectedGroups.size})</span>
               </button>
             )}
-            <Link
-              to="/shoe-sales/item-groups/new"
-              className="inline-flex h-10 items-center gap-2 rounded-none bg-[#9B48D7] px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#8637c3]"
-            >
-              <Plus size={16} />
-              <span>New Item Group</span>
-            </Link>
+            {isAdmin && (
+              <Link
+                to="/shoe-sales/item-groups/new"
+                className="inline-flex h-10 items-center gap-2 rounded-none bg-[#9B48D7] px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#8637c3]"
+              >
+                <Plus size={16} />
+                <span>New Item Group</span>
+              </Link>
+            )}
           </div>
         </div>
 
@@ -357,7 +376,7 @@ const ShoeSalesItemGroups = () => {
                               checked={selectedGroups.has(row.id)}
                               onChange={(e) => handleCheckboxChange(row.id, e.target.checked)}
                             />
-                            {selectedGroups.has(row.id) && (
+                            {isAdmin && selectedGroups.has(row.id) && (
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();

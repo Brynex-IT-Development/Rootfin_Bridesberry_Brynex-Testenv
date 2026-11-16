@@ -105,6 +105,9 @@ const transactionSchema = new mongoose.Schema(
     category:     { type: String, required: true },
     subCategory:  { type: String, default: "" }, // Added missing subCategory field
 
+    expenseType:  { type: String, default: "" },
+    entryType:    { type: String, default: "" },
+
     remark:       { type: String, default: "" },
 
     billValue:    { type: Number, default: 0 },
@@ -117,10 +120,12 @@ const transactionSchema = new mongoose.Schema(
     upi:          { type: String,  required: true },
 
     paymentMethod:{ type: String,  enum: ["cash","bank","upi","split"], required: true },
+    bankAccount:  { type: String, default: "" },
 
     date:         { type: Date,    required: true },
 
     locCode:      { type: String,  required: true },
+    isAdminLevel: { type: Boolean, default: false },
 
     quantity:     { type: String,  default: "" },
 
