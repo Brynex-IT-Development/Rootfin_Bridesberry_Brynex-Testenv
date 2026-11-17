@@ -277,7 +277,35 @@ const ShoeSalesItemGroupDetail = () => {
     };
   };
 
-  const stockInfo = calculateStock();
+  const warehouseStockTotals = Array.from(
+    items.reduce((totals, item) => {
+      (Array.isArray(item.warehouseStocks) ? item.warehouseStocks : []).forEach((warehouseStock) => {
+        const warehouse = String(warehouseStock.warehouse || "Unassigned").trim() || "Unassigned";
+        const key = compactName(warehouse) || warehouse.toLowerCase();
+        const stockOnHand = warehouseStock.stockOnHand !== undefined && warehouseStock.stockOnHand !== null
+          ? Number(warehouseStock.stockOnHand) || 0
+          : Number(warehouseStock.openingStock) || 0;
+        const current = totals.get(key) || { warehouse, stockOnHand: 0 };
+        current.stockOnHand += stockOnHand;
+        totals.set(key, current);
+      });
+      return totals;
+    }, new Map()).values()
+  ).sort((a, b) => {
+    if (compactName(a.warehouse) === "warehouse") return -1;
+    if (compactName(b.warehouse) === "warehouse") return 1;
+    return a.warehouse.localeCompare(b.warehouse);
+  });
+
+  const currentWarehouseStock = warehouseStockTotals.reduce(
+    (total, warehouseStock) => total + warehouseStock.stockOnHand,
+    0
+  );
+  const calculatedStockInfo = calculateStock();
+  const stockInfo = {
+    ...calculatedStockInfo,
+    stockOnHand: warehouseStockTotals.length > 0 ? currentWarehouseStock : calculatedStockInfo.stockOnHand,
+  };
 
   // Prepare opening stock distribution data for modal
   const getOpeningStockDistribution = () => {
@@ -927,6 +955,23 @@ const ShoeSalesItemGroupDetail = () => {
                       {Math.round(stockInfo.stockOnHand)}
                     </span>
                   </div>
+                  {warehouseStockTotals.length > 0 && (
+                    <div className="border border-[#E5E7EB] bg-white divide-y divide-[#E5E7EB]">
+                      {warehouseStockTotals.map((warehouseStock) => (
+                        <div
+                          key={compactName(warehouseStock.warehouse) || warehouseStock.warehouse}
+                          className="flex items-center justify-between px-3.5 py-2"
+                        >
+                          <span className="text-[11px] font-semibold uppercase tracking-wide text-[#6B7280]">
+                            {warehouseStock.warehouse}
+                          </span>
+                          <span className="text-xs font-bold font-mono text-[#111827]">
+                            {Math.round(warehouseStock.stockOnHand)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                   <div className="flex items-center justify-between py-2.5 px-3.5 bg-[#F9FAFB] border border-[#E5E7EB] rounded-none">
                     <div className="flex items-center gap-2.5">
                       <div className="w-2 h-2 bg-amber-500 rounded-none"></div>

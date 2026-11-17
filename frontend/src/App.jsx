@@ -143,6 +143,8 @@ const App = () => {
   );
 
   const isStoreOrClusterAdmin = isClusterAdmin || isStoreAdmin;
+  const isStoreManager = ["store_manager", "store manager", "store-manager"].includes(userRole);
+  const canAccessRecordExpense = !isStoreManager;
 
   // Restricted modules: Inventory Adjustments, Purchase Module, Reorder Alerts, Inactive
   // Must be accessible to Admin and Warehouse.
@@ -247,11 +249,11 @@ const App = () => {
           <Route path="/Income&Expenses" element={currentuser ? <ClusterGuard><SecurityReturn /></ClusterGuard> : <Navigate to="/login" />} />
           <Route path="/income" element={currentuser ? <ClusterGuard><Income /></ClusterGuard> : <Navigate to="/login" />} />
           <Route path="/expenses" element={currentuser ? <ClusterGuard><Expenses /></ClusterGuard> : <Navigate to="/login" />} />
-          <Route path="/record-expense" element={currentuser ? <ClusterGuard><RecordExpenses /></ClusterGuard> : <Navigate to="/login" />} />
-          <Route path="/record-expenses" element={currentuser ? <ClusterGuard><RecordExpenses /></ClusterGuard> : <Navigate to="/login" />} />
-          <Route path="/record-expense/new" element={currentuser ? <ClusterGuard><DirectIndirectExpenses initialType="direct" /></ClusterGuard> : <Navigate to="/login" />} />
-          <Route path="/direct-expenses" element={currentuser ? <ClusterGuard><DirectIndirectExpenses initialType="direct" /></ClusterGuard> : <Navigate to="/login" />} />
-          <Route path="/indirect-expenses" element={currentuser ? <ClusterGuard><DirectIndirectExpenses initialType="indirect" /></ClusterGuard> : <Navigate to="/login" />} />
+          <Route path="/record-expense" element={currentuser && canAccessRecordExpense ? <ClusterGuard><RecordExpenses /></ClusterGuard> : <Navigate to={currentuser ? "/" : "/login"} />} />
+          <Route path="/record-expenses" element={currentuser && canAccessRecordExpense ? <ClusterGuard><RecordExpenses /></ClusterGuard> : <Navigate to={currentuser ? "/" : "/login"} />} />
+          <Route path="/record-expense/new" element={currentuser && canAccessRecordExpense ? <ClusterGuard><DirectIndirectExpenses initialType="direct" /></ClusterGuard> : <Navigate to={currentuser ? "/" : "/login"} />} />
+          <Route path="/direct-expenses" element={currentuser && canAccessRecordExpense ? <ClusterGuard><DirectIndirectExpenses initialType="direct" /></ClusterGuard> : <Navigate to={currentuser ? "/" : "/login"} />} />
+          <Route path="/indirect-expenses" element={currentuser && canAccessRecordExpense ? <ClusterGuard><DirectIndirectExpenses initialType="indirect" /></ClusterGuard> : <Navigate to={currentuser ? "/" : "/login"} />} />
           <Route path="/CashBankLedger" element={currentuser ? <ClusterGuard><SecurityPending /></ClusterGuard> : <Navigate to="/login" />} />
           <Route path="/securityReport" element={currentuser ? <Security /> : <Navigate to='/login' />} />
           <Route path="/CloseReport" element={currentuser?.power === 'admin' ? <CloseReport /> : <Navigate to='/' />} />

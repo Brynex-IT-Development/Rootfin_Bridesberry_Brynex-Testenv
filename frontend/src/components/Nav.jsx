@@ -90,6 +90,7 @@ const Nav = () => {
     );
 
     const isStoreOrClusterAdmin = isClusterAdmin || isStoreAdmin;
+    const isStoreManager = ["store_manager", "store manager", "store-manager"].includes(userRole);
 
     // Restricted modules: Inventory Adjustments, Purchase Module, Reorder Alerts, Inactive
     // Must be visible to Admin and Warehouse.
@@ -419,7 +420,9 @@ const Nav = () => {
 
                             {/* Income & Expenses */}
                             <Link to="/income" className={singleLinkClasses("/income")}><DollarSign size={16} /><span>Income</span></Link>
-                            <Link to="/record-expense" className={singleLinkClasses("/record-expense")}><DollarSign size={16} /><span>Record Expense</span></Link>
+                            {!isStoreManager && (
+                                <Link to="/record-expense" className={singleLinkClasses("/record-expense")}><DollarSign size={16} /><span>Record Expense</span></Link>
+                            )}
                             <Link to="/expenses" className={singleLinkClasses("/expenses")}><DollarSign size={16} /><span>Expenses</span></Link>
 
                             {(isAdmin || userRole === "financial_head") && (

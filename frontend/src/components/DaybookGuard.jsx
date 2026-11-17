@@ -11,7 +11,10 @@ const DaybookGuard = ({ user, admin = false, children }) => {
     ["admin", "superadmin", "cluster_manager", "cluster_admin", "financial_head"].includes(role);
   const needsCheck = !exempt && pathname !== "/" && pathname !== "/login";
   const date = previousDaybookDate(daybookToday());
-  const checkKey = `${pathname}:${user?.locCode || ""}:${date}`;
+  // The closure status is location/date specific, not page specific. Keeping the
+  // pathname out of the key avoids re-checking (and showing the verification
+  // screen) every time the user navigates to another page.
+  const checkKey = `${user?.locCode || ""}:${date}`;
   const [state, setState] = useState({ loading: true, reason: null, key: null });
 
   useEffect(() => {
@@ -39,7 +42,9 @@ const DaybookGuard = ({ user, admin = false, children }) => {
     }
   }, [needsCheck, checkKey, date, user?.locCode]);
 
-  useEffect(() => { checkClosure(); }, [checkClosure]);
+  useEffect(() => {
+    if (needsCheck && state.key !== checkKey) checkClosure();
+  }, [needsCheck, state.key, checkKey, checkClosure]);
 
   if (!needsCheck) return children;
   if (state.loading || state.key !== checkKey) return <div className="p-8 text-center">Verifying daybook status...</div>;

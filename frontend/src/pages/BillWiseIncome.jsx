@@ -275,56 +275,6 @@ const DayBookInc = ({ admin = false }) => {
     const isDataReady = !bookingLoading && !rentoutLoading && !returnLoading && !cancelLoading &&
         !dayBookDataLoading && !daybookLoadError;
 
-    const allowedMongoCategories = useMemo(() => [
-        "petty expenses",
-        "staff reimbursement", 
-        "maintenance expenses",
-        "telephone internet",
-        "utility bill",
-        "salary",
-        "rent",
-        "courier charges",
-        "asset purchase",
-        "promotion_services",
-        "spot incentive",
-        "bulk amount transfer",
-        "other expenses",
-        "shoe sales return",
-        "shirt sales return",
-        "cash to bank",
-        "bank to cash",
-        "compensation",
-        "shoe sales",
-        "shirt sales",
-        "write off",
-        "booking",
-        "receivable",
-        "sales",
-        "income",
-        "expense",
-        "money transfer",
-        "return",
-        "refund",
-        "cancel",
-        "rentout",
-        "rent out",
-        "dry cleaning",
-        "altration",
-        "material",
-        "travel exp",
-        "fuel exp",
-        "waste management",
-        "water charges",
-        "printing stationary",
-        "staff welfare",
-        "staff accommodation",
-        "incentive",
-        "advance",
-        "balance payable",
-        "compensation from cancellation",
-        "compensation from product damage",
-    ], []);
-
     const processedTransactions = useMemo(() => {
         if (!isDataReady) return { booking: [], rentOut: [], return: [], cancel: [], mongo: [] };
 
@@ -485,10 +435,10 @@ const DayBookInc = ({ admin = false }) => {
             return tx.Category || tx.category || "";
         };
 
-        const mongoTransactions = (dayBookData || []).filter(transaction => {
-            const cat = (transaction.category || transaction.Category || "").toLowerCase();
-            return allowedMongoCategories.includes(cat);
-        }).map(transaction => {
+        // The endpoint is already scoped to this location and business date.
+        // Include every recorded transaction so new income/expense categories
+        // affect the daybook without requiring another hard-coded allow-list.
+        const mongoTransactions = (dayBookData || []).map(transaction => {
             const isReturn = (transaction.type || "").toLowerCase() === "return";
             const rawSubCat = transaction.subCategory || transaction.SubCategory || transaction.category || "";
             const subCatLabel = isReturn && rawSubCat && !rawSubCat.toLowerCase().endsWith("return")
@@ -526,7 +476,7 @@ const DayBookInc = ({ admin = false }) => {
             cancel: canCelTransactions,
             mongo: mongoTransactions
         };
-    }, [data, data1, data2, data3, dayBookData, isDataReady, currentusers?.locCode, allowedMongoCategories]);
+    }, [data, data1, data2, data3, dayBookData, isDataReady, currentusers?.locCode]);
 
     const allTransactions = useMemo(() => {
         const combined = [
@@ -1067,8 +1017,10 @@ const DayBookInc = ({ admin = false }) => {
         parseInt(transaction.Tupi) || 0,
     }));
 
+    const isDaybookClosed = preOpen1 != null;
+
     const handleDownloadReport = () => {
-        if (csvLinkRef.current) {
+        if (isDaybookClosed && csvLinkRef.current) {
             csvLinkRef.current.link.click();
         }
     };
@@ -1465,7 +1417,9 @@ const DayBookInc = ({ admin = false }) => {
                                         <button
                                             type="button"
                                             onClick={handleDownloadReport}
-                                            className="flex-1 py-2.5 px-4 bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm font-semibold rounded-none border border-gray-200 transition-colors text-center cursor-pointer"
+                                            disabled={!isDaybookClosed}
+                                            title={!isDaybookClosed ? "Close the day book before downloading the report" : "Download day book report"}
+                                            className="flex-1 py-2.5 px-4 bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm font-semibold rounded-none border border-gray-200 transition-colors text-center cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-gray-100"
                                         >
                                             Download Report
                                         </button>

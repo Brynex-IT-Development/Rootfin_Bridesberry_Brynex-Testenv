@@ -497,6 +497,7 @@ export const getShoeItems = async (req, res) => {
     const requestedLimit = parseInt(req.query.limit) || 20;
     const limit = Math.min(requestedLimit, 10000); // Cap at 10000 for safety
     const skip = (page - 1) * limit;
+    const inStockOnly = req.query.inStockOnly === "true" || req.query.inStockOnly === true;
     
     // Get warehouse filter from query (for store users)
     let userWarehouse = req.query.warehouse || null;
@@ -653,6 +654,13 @@ export const getShoeItems = async (req, res) => {
         if (warehouseStocks.length === 0) return false;
         return itemBelongsToWarehouse(warehouseStocks, userWarehouse);
       });
+    }
+
+    // The Items page should only show products that can still be sold. This is
+    // opt-in so reports and operational screens can continue to retrieve the
+    // full product history, including products whose current stock is zero.
+    if (inStockOnly) {
+      allItems = allItems.filter(item => Number(item.stockOnHand ?? item.stock ?? 0) > 0);
     }
     
     // Apply search filter if search term is provided

@@ -85,6 +85,7 @@ const ShoeSalesItems = () => {
       const params = new URLSearchParams({
         page: currentPage.toString(),
         limit: itemsPerPage.toString(),
+        inStockOnly: "true",
       });
       
       if (searchTerm && searchTerm.trim()) {
