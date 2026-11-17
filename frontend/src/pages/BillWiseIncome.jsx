@@ -566,6 +566,12 @@ const DayBookInc = ({ admin = false }) => {
         return filteredTransactions.reduce((sum, tx) => sum + (Number(tx.totalTransaction) || 0), 0);
     }, [filteredTransactions]);
 
+    // The opening-balance row is part of the table, so the footer must include
+    // it in Amount, Total Transaction, and Cash. It must not affect bill value
+    // or any non-cash payment column.
+    const totalAmountWithOpening = totalCalculatedAmount + openingCash;
+    const totalTransactionWithOpening = totalCalculatedTxn + openingCash;
+
     const totalCalculatedDiscount = useMemo(() => {
         return filteredTransactions.reduce((sum, tx) => sum + (Number(tx.discountAmount) || 0), 0);
     }, [filteredTransactions]);
@@ -1290,10 +1296,10 @@ const DayBookInc = ({ admin = false }) => {
                                                     TOTAL
                                                 </td>
                                                 <td className="py-3.5 px-3 text-right text-xs font-bold">
-                                                    {totalCalculatedAmount}
+                                                    {totalAmountWithOpening}
                                                 </td>
                                                 <td className="py-3.5 px-3 text-right text-xs font-bold">
-                                                    {totalCalculatedTxn}
+                                                    {totalTransactionWithOpening}
                                                 </td>
                                                 <td className="py-3.5 px-3 text-right text-xs font-bold">
                                                     {totalCalculatedDiscount > 0 ? totalCalculatedDiscount : "-"}
@@ -1302,7 +1308,7 @@ const DayBookInc = ({ admin = false }) => {
                                                     {totalCalculatedBillValue > 0 ? totalCalculatedBillValue : "-"}
                                                 </td>
                                                 <td className="py-3.5 px-3 text-right text-xs font-bold">
-                                                    {calculatedTotals.dayCashTransactions}
+                                                    {calculatedTotals.totalCash}
                                                 </td>
                                                 <td className="py-3.5 px-3 text-right text-xs font-bold">
                                                     {calculatedTotals.totalRblAmount}

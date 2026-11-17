@@ -143,8 +143,7 @@ const App = () => {
   );
 
   const isStoreOrClusterAdmin = isClusterAdmin || isStoreAdmin;
-  const isStoreManager = ["store_manager", "store manager", "store-manager"].includes(userRole);
-  const canAccessRecordExpense = !isStoreManager;
+  const canAccessRecordExpense = !isStoreAdmin;
 
   // Restricted modules: Inventory Adjustments, Purchase Module, Reorder Alerts, Inactive
   // Must be accessible to Admin and Warehouse.
