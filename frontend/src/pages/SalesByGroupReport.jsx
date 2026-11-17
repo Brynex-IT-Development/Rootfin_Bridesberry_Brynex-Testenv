@@ -8,7 +8,7 @@ import useSidebar from "../hooks/useSidebar";
 const STORES = [
   { value: "all", label: "All Stores" },
   { value: "155", label: "Brides Berry" },
- 
+  { value: "858", label: "Warehouse" },
 ];
 
 const SalesByGroupReport = () => {

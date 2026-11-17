@@ -3351,11 +3351,7 @@ Customer Service Available`;
                             className="w-full h-[42px] appearance-none rounded-none border border-[#E5E7EB] bg-white px-3.5 pr-8 text-sm text-[#111827] focus:border-[#8B5CF6] focus:outline-none transition-colors cursor-pointer"
                           >
                             {(() => {
-                              const activeStores = getActiveStores?.() || [];
-                              const storeNames = activeStores.map(s => s.locName || s.name).filter(Boolean);
-                              if (!storeNames.includes("Warehouse")) storeNames.unshift("Warehouse");
-                              if (!storeNames.includes("BridesBerry")) storeNames.push("BridesBerry");
-                              if (branch && !storeNames.includes(branch)) storeNames.push(branch);
+                              const storeNames = ["Brides Berry", "Warehouse"];
                               return storeNames.map(name => (
                                 <option key={name} value={name}>{name}</option>
                               ));

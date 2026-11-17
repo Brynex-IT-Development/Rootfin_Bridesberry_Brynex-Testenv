@@ -18,30 +18,8 @@ const formatLocationName = (name) => {
 
 // Fallback locations for backward compatibility
 const fallbackLocations = [
-  { value: "Production", locCode: "101" },
-  { value: "Office", locCode: "102" },
-  { value: "WAREHOUSE", locCode: "103" },
-  { value: "Z-Edapally1", locCode: "144" },
-  { value: "G-Edappally", locCode: "702" },
-  { value: "SG-Trivandrum", locCode: "700" },
-  { value: "Z- Edappal", locCode: "100" },
-  { value: "Z.Perinthalmanna", locCode: "133" },
-  { value: "Z.Kottakkal", locCode: "122" },
-  { value: "G.Kottayam", locCode: "701" },
-  { value: "G.Perumbavoor", locCode: "703" },
-  { value: "G.Thrissur", locCode: "704" },
-  { value: "G.Chavakkad", locCode: "706" },
-  { value: "G.Calicut ", locCode: "712" },
-  { value: "G.Vadakara", locCode: "708" },
-  { value: "G.Edappal", locCode: "707" },
-  { value: "G.Perinthalmanna", locCode: "709" },
-  { value: "G.Kottakkal", locCode: "711" },
-  { value: "G.Manjeri", locCode: "710" },
-  { value: "G.Palakkad ", locCode: "705" },
-  { value: "G.Kalpetta", locCode: "717" },
-  { value: "G.Kannur", locCode: "716" },
-  { value: "G.MG Road", locCode: "718" },
-  { value: "Dappr Squad", locCode: "555" },
+  { value: "Brides Berry", locCode: "155" },
+  { value: "Warehouse", locCode: "858" },
 ];
 
 // Custom React-Select styles for clean modern UI
@@ -101,8 +79,8 @@ const AdminClose = () => {
   const email = currentUser?.email;
   const isOfficeUser = currentUser?.locCode === "102";
 
-  // Office users (locCode 102) can only close Office, Production, and Warehouse
-  const officeAllowedLocCodes = ["101", "102", "103"];
+  // Legacy office users can only close the active Warehouse location.
+  const officeAllowedLocCodes = ["858"];
 
   useEffect(() => {
     const locs = fallbackLocations
@@ -138,6 +116,11 @@ const AdminClose = () => {
             setClosingCash(data.data.Closecash?.toString() || "");
             setBank(data.data.bank?.toString() || "");
             setIsEditMode(true);
+          } else {
+            setCash("");
+            setClosingCash("");
+            setBank("");
+            setIsEditMode(false);
           }
         } else if (response.status === 404) {
           setCash("");

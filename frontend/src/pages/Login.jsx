@@ -130,6 +130,8 @@ const Login = () => {
         }
 
         localStorage.setItem("rootfinuser", JSON.stringify(userObj));
+        if (data.closureAuthToken) localStorage.setItem("rootfin_auth_token", data.closureAuthToken);
+        else localStorage.removeItem("rootfin_auth_token");
         setSuccessMessage('Login successful! Redirecting to workspace...');
 
         setTimeout(() => {

@@ -8,34 +8,14 @@ const ROLE_GROUPS = [
     { key: "admin",           label: "ADMIN" },
     { key: "store_manager",   label: "STORE MANAGER" },
     { key: "cluster_manager", label: "CLUSTER MANAGER" },
+    { key: "financial_head", label: "FINANCIAL HEAD" },
     { key: "store_user",      label: "STORE USER" },
     { key: "superadmin",      label: "SUPER ADMIN" },
 ];
 
 const availableStores = [
-    { locName: "Z-Edapally", locCode: "144" },
-    { locName: "Z-Edappal", locCode: "100" },
-    { locName: "Z-Perinthalmanna", locCode: "133" },
-    { locName: "Z-Kottakkal", locCode: "122" },
+    { locName: "Brides Berry", locCode: "155" },
     { locName: "Warehouse", locCode: "858" },
-    { locName: "G-Edappally", locCode: "702" },
-    { locName: "HEAD OFFICE01", locCode: "759" },
-    { locName: "SG-Trivandrum", locCode: "700" },
-    { locName: "G.Kottayam", locCode: "701" },
-    { locName: "G.Perumbavoor", locCode: "703" },
-    { locName: "G.Thrissur", locCode: "704" },
-    { locName: "G.Chavakkad", locCode: "706" },
-    { locName: "G.Calicut", locCode: "712" },
-    { locName: "G.Vadakara", locCode: "708" },
-    { locName: "G.Edappal", locCode: "707" },
-    { locName: "G.Perinthalmanna", locCode: "709" },
-    { locName: "G.Kottakkal", locCode: "711" },
-    { locName: "G.Manjeri", locCode: "710" },
-    { locName: "G.Palakkad", locCode: "705" },
-    { locName: "G.Kalpetta", locCode: "717" },
-    { locName: "G.Kannur", locCode: "716" },
-    { locName: "G.MG Road", locCode: "718" },
-    { locName: "WAREHOUSE", locCode: "103" },
 ];
 
 const getStoreName = (code) => {
@@ -102,6 +82,7 @@ const ExistingUsers = () => {
             if (roleKey === "admin")           return (power === "admin" || role === "admin") && role !== "superadmin" && role !== "cluster_manager" && role !== "store_manager";
             if (roleKey === "superadmin")      return role === "superadmin";
             if (roleKey === "cluster_manager") return role === "cluster_manager";
+            if (roleKey === "financial_head") return role === "financial_head";
             if (roleKey === "store_manager")   return role === "store_manager";
             // store_user: everything else (null role, normal power)
             if (roleKey === "store_user")      return !role && power === "normal";
@@ -429,6 +410,7 @@ const ExistingUsers = () => {
                                         <option value="store_user">Store User</option>
                                         <option value="store_manager">Store Manager</option>
                                         <option value="cluster_manager">Cluster Manager</option>
+                                        <option value="financial_head">Financial Head</option>
                                         <option value="admin">Admin</option>
                                         <option value="superadmin">Super Admin</option>
                                     </select>

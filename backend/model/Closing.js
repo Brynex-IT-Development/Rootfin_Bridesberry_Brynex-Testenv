@@ -27,6 +27,11 @@ const CloseSchema = new mongoose.Schema(
         email: {
             type: String,
             default: ""
+        },
+        status: {
+            type: String,
+            enum: ["closed", "pending_approval"],
+            default: "closed"
         }
     },
     { timestamps: true }
@@ -35,6 +40,7 @@ const CloseSchema = new mongoose.Schema(
 // Indexes for frequent queries by locCode + date
 CloseSchema.index({ locCode: 1, date: -1 });
 CloseSchema.index({ date: -1 });
+CloseSchema.index({ status: 1, date: -1 });
 
 const CloseTransaction = mongoose.model("Close", CloseSchema);
 export default CloseTransaction;

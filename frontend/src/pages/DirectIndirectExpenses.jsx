@@ -330,7 +330,7 @@ const DirectIndirectExpenses = ({ initialType = "direct" }) => {
         }])
     );
     const assignedCode = String(currentusers.locCode || "").trim();
-    if (assignedCode && !byCode.has(assignedCode)) {
+    if (["155", "858"].includes(assignedCode) && !byCode.has(assignedCode)) {
       byCode.set(assignedCode, {
         locCode: assignedCode,
         locName:
@@ -349,7 +349,7 @@ const DirectIndirectExpenses = ({ initialType = "direct" }) => {
     currentusers.username,
   ]);
 
-  const defaultStore = canSelectStore ? "" : (currentusers.locCode || "759");
+  const defaultStore = canSelectStore ? "" : (currentusers.locCode || "858");
 
   const [category, setCategory] = useState("");
   const [branch, setBranch] = useState(defaultStore);
@@ -455,7 +455,7 @@ const DirectIndirectExpenses = ({ initialType = "direct" }) => {
       return;
     }
 
-    const targetBranch = canSelectStore ? branch : (currentusers.locCode || "759");
+    const targetBranch = canSelectStore ? branch : (currentusers.locCode || "858");
     if (!targetBranch) {
       setStatusMessage({ type: "error", text: "Please select a Branch." });
       return;
@@ -667,7 +667,7 @@ const DirectIndirectExpenses = ({ initialType = "direct" }) => {
                 Branch <span className="text-red-500">*</span>
               </label>
               <SearchableSelect
-                value={branch || (canSelectStore ? "" : (currentusers.locCode || "759"))}
+                value={branch || (canSelectStore ? "" : (currentusers.locCode || "858"))}
                 onChange={(val) => setBranch(val)}
                 options={selectableStores.map((loc) => ({
                   value: loc.locCode,

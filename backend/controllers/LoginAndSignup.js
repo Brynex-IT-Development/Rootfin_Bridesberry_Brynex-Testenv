@@ -1,5 +1,6 @@
 import bcrypt from 'bcrypt';
 import User from '../model/UserModel.js';
+import { createClosureAuthToken } from '../utils/closureAuth.js';
 
 export const SignUp = async (req, res) => {
     try {
@@ -74,6 +75,7 @@ export const Login = async (req, res) => {
 
         res.status(200).json({
             message: 'Login successful',
+            closureAuthToken: createClosureAuthToken(user),
 
             user: {
                 email: user.email,

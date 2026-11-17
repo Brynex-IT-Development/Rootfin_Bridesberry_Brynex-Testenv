@@ -103,7 +103,7 @@ const Revenuereport = () => {
     setHasFetched(true);
 
     try {
-      const locCode = currentusers?.locCode || "144";
+      const locCode = currentusers?.locCode || "858";
       const baseUrl1 = "https://rentalapi.rootments.live/api/GetBooking";
       const bookingUrl = `${baseUrl1}/GetBookingList?LocCode=${locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
       const rentoutUrl = `${baseUrl1}/GetRentoutList?LocCode=${locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;

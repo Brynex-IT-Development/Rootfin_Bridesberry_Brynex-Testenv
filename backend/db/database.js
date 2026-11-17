@@ -27,13 +27,13 @@ const connectMongoDB = async () => {
   if (!dbURI) {
     console.error('❌ MONGODB_URI is not defined in environment file.');
     console.error('Available env vars:', Object.keys(process.env).filter(key => key.includes('MONGODB')));
-    return;
+    return false;
   }
 
   // 🛑 Safety check: Prevent connecting to production DB locally
   if (env !== 'production' && dbURI.includes('rootfin.onrender.com')) {
     console.warn('❌ Aborting: Trying to connect to production DB from non-production env.');
-    return;
+    return false;
   }
 
   // Add connection event listeners for resilience against network drops
@@ -56,14 +56,16 @@ const connectMongoDB = async () => {
         minPoolSize: 2,
       });
       console.log(`✅ MongoDB connected successfully [${env}]`);
+      return true;
     } catch (error) {
       console.error(`⚠️ MongoDB connection attempt ${attempt} failed:`, error.message);
       console.log(`⏳ Retrying MongoDB connection in 5 seconds...`);
       setTimeout(() => attemptConnect(attempt + 1), 5000);
+      return false;
     }
   };
 
-  await attemptConnect();
+  return attemptConnect();
 };
 
 export default connectMongoDB;

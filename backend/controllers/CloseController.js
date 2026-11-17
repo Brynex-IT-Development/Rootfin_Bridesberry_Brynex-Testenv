@@ -1,6 +1,8 @@
 import CloseTransaction from "../model/Closing.js";
 import Transaction from "../model/Transaction.js";
 import { propagateCashDiff } from "../utils/cashPropagation.js";
+import mongoose from "mongoose";
+import { businessDate, closureStatusFor } from "../utils/daybookDates.js";
 
 export const CloseController = async (req, res) => {
     try {
@@ -26,7 +28,7 @@ export const CloseController = async (req, res) => {
 
         console.log(bank, cash, Closecash, email, locCode, date);
 
-        if (bank === undefined || Closecash === undefined || !locCode || !date) {
+        if (bank === undefined || Closecash === undefined || cash === undefined || !locCode || !date) {
             return res.status(400).json({
                 message: "All fields are required",
             });
@@ -50,8 +52,17 @@ export const CloseController = async (req, res) => {
             });
         }
 
+        const closingDate = formattedDate.toISOString().slice(0, 10);
+        const today = businessDate();
+        if (closingDate > today) {
+            return res.status(400).json({ message: "Future daybooks cannot be closed." });
+        }
+
         // Check if an entry already exists for the given date and locCode
-        const existingClose = await CloseTransaction.findOne({ locCode, date: formattedDate });
+        const existingClose = await CloseTransaction.findOne({
+            locCode: String(locCode),
+            date: { $gte: formattedDate, $lt: new Date(formattedDate.getTime() + 86400000) }
+        });
 
         if (existingClose) {
             const oldCash = Number(existingClose.cash) || 0;
@@ -83,7 +94,8 @@ export const CloseController = async (req, res) => {
                 cash,
                 locCode,
                 date: formattedDate,
-                email
+                email,
+                status: closureStatusFor(closingDate, today)
             });
 
             await CloseCashBank.save();
@@ -118,8 +130,11 @@ export const GetCloseController = async (req, res) => {
         }
 
         const targetDate = new Date(date);
-        const startOfDay = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
-        const endOfDay = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate() + 1);
+        if (Number.isNaN(targetDate.getTime())) {
+            return res.status(400).json({ message: "Invalid date" });
+        }
+        const startOfDay = new Date(targetDate.toISOString().slice(0, 10));
+        const endOfDay = new Date(startOfDay.getTime() + 86400000);
 
         const data = await CloseTransaction.findOne({
             locCode,
@@ -158,6 +173,35 @@ export const GetCloseController = async (req, res) => {
         });
     }
 }
+
+export const GetPendingClosures = async (_req, res) => {
+    try {
+        const data = await CloseTransaction.find({
+            status: "pending_approval",
+            locCode: { $in: ["155", "858"] }
+        }).sort({ date: -1 }).lean();
+        return res.status(200).json({ data });
+    } catch (error) {
+        return res.status(500).json({ message: "Error fetching pending closures", error: error.message });
+    }
+};
+
+export const ApproveClosure = async (req, res) => {
+    try {
+        if (!mongoose.isValidObjectId(req.params.id)) {
+            return res.status(400).json({ message: "Invalid closure ID" });
+        }
+        const data = await CloseTransaction.findOneAndUpdate(
+            { _id: req.params.id, status: "pending_approval" },
+            { $set: { status: "closed" } },
+            { new: true }
+        );
+        if (!data) return res.status(404).json({ message: "Pending closure not found" });
+        return res.status(200).json({ message: "Closure approved successfully", data });
+    } catch (error) {
+        return res.status(500).json({ message: "Error approving closure", error: error.message });
+    }
+};
 
 
 export const GetAllCloseData = async (req, res) => {

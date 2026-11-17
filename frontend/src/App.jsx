@@ -8,11 +8,13 @@ import DayBook from "./pages/DayBook.jsx";
 import SecurityReturn from "./pages/SecurityReturn";
 import SecurityPending from "./pages/SecurityPending";
 import Nav from "./components/Nav.jsx";
+import DaybookGuard from "./components/DaybookGuard.jsx";
 import Login from "./pages/Login.jsx";
 import Security from "./pages/Security.jsx";
 import CloseReport from "./pages/CloseReport.jsx";
 import Revenuereport from "./pages/Revenuereport.jsx";
 import AdminClose from "./pages/AdminClose.jsx";
+import PendingDaybookClosures from "./pages/PendingDaybookClosures.jsx";
 import ManageStores from "./pages/ManageStores.jsx";
 import AddNewStore from "./pages/AddNewStore.jsx";
 import AddNewUser from "./pages/AddNewUser.jsx";
@@ -232,12 +234,13 @@ const App = () => {
     <div className="">
       {currentuser && <Nav />} {/* Show Nav only if user is logged in */}
       <div className="w-full">
+        <DaybookGuard user={currentuser} admin={isAdmin}>
         <Routes>
           {/* Login Route */}
           <Route path="/login" element={!currentuser ? <Login /> : <Navigate to="/" />} />
 
           {/* Protected Routes (Redirect to Login if Not Authenticated) */}
-          <Route path="/" element={currentuser ? (isClusterManager ? <Navigate to="/datewisedaybook" /> : <DayBookInc />) : <Navigate to="/login" />} />
+          <Route path="/" element={currentuser ? (isClusterManager ? <Navigate to="/datewisedaybook" /> : <DayBookInc admin={isAdmin} />) : <Navigate to="/login" />} />
           <Route path="/datewisedaybook" element={currentuser ? <Datewisedaybook /> : <Navigate to="/login" />} />
           <Route path="/BookingReport" element={currentuser ? <Booking /> : <Navigate to="/login" />} />
           <Route path="/RentOutReport" element={currentuser ? <DayBook /> : <Navigate to="/login" />} />
@@ -253,6 +256,7 @@ const App = () => {
           <Route path="/securityReport" element={currentuser ? <Security /> : <Navigate to='/login' />} />
           <Route path="/CloseReport" element={currentuser?.power === 'admin' ? <CloseReport /> : <Navigate to='/' />} />
           <Route path="/AdminClose" element={currentuser?.power === 'admin' || currentuser?.locCode === '102' ? <AdminClose /> : <Navigate to='/' />} />
+          <Route path="/pending-closures" element={isAdmin || userRole === "financial_head" ? <PendingDaybookClosures /> : <Navigate to="/" />} />
           <Route path="/ManageStores" element={currentuser?.power === 'admin' ? <ManageStores /> : <Navigate to='/' />} />
           
           {/* Manage Users Routes */}
@@ -343,6 +347,7 @@ const App = () => {
           <Route path="/inventory/reorder-alerts" element={<AdminRestrictedGuard><ReorderAlerts /></AdminRestrictedGuard>} />
 
         </Routes>
+        </DaybookGuard>
       </div>
     </div>
   );

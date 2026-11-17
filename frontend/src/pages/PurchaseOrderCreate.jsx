@@ -1184,8 +1184,8 @@ const PurchaseOrderCreate = () => {
     "At Line Item Level and at Transaction Level",
   ];
 
-  const branchOptions = ["Warehouse", "Branch 1", "Main Branch"];
-  const warehouseSelectOptions = ["Select a warehouse", "Warehouse", "Main Warehouse", "Secondary Warehouse"];
+  const branchOptions = ["Brides Berry", "Warehouse"];
+  const warehouseSelectOptions = ["Select a warehouse", "Brides Berry", "Warehouse"];
   const paymentTermOptions = ["Due on Receipt", "Net 7", "Net 15", "Net 30", "Net 60"];
   const shipmentPreferenceOptions = [
     "Choose the shipment preference or type to add",

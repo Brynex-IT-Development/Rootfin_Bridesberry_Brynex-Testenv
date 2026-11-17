@@ -61,7 +61,7 @@ const Income = () => {
     const currentCode = String(currentusers.locCode || "").trim();
 
     if (
-      currentCode &&
+      ["155", "858"].includes(currentCode) &&
       !result.some((store) => String(store.locCode) === currentCode)
     ) {
       result.unshift({
@@ -75,7 +75,7 @@ const Income = () => {
 
   const [selectedCategory, setSelectedCategory] = useState(cats[0]);
   const [selectedStore, setSelectedStore] = useState(() =>
-    String(currentusers.locCode || "")
+    ["155", "858"].includes(String(currentusers.locCode)) ? String(currentusers.locCode) : ""
   );
   const [amount, setAmount] = useState("");
   const [quantity, setQuantity] = useState("");

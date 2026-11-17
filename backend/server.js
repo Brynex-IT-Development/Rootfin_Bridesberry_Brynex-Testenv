@@ -164,7 +164,7 @@ app.get("/api/db-status", async (_req, res) => {
     }
 
     // Check MongoDB
-    if (process.env.DB_TYPE === 'mongodb' || process.env.DB_TYPE === 'both') {
+    if (status.dbType === 'mongodb' || status.dbType === 'both') {
       const mongoose = await import('mongoose');
       status.databases.mongodb = {
         connected: mongoose.default.connection.readyState === 1,
@@ -189,8 +189,7 @@ app.listen(PORT, async () => {
     // Connect to MongoDB
     if (DB_TYPE === 'mongodb' || DB_TYPE === 'both') {
       console.log('📊 Connecting to MongoDB database...');
-      await connectMongoDB();
-      connectedDbs.push('MongoDB');
+      if (await connectMongoDB()) connectedDbs.push('MongoDB');
     }
     
     // Connect to PostgreSQL
@@ -206,7 +205,7 @@ app.listen(PORT, async () => {
     }
     
     console.log(`🚀  Server listening on :${PORT}`);
-    console.log(`💾 Connected databases: ${connectedDbs.join(' + ')}`);
+    console.log(`💾 Connected databases: ${connectedDbs.join(' + ') || 'none (reconnection pending)'}`);
   } catch (error) {
     console.error('❌ Failed to start server:', error);
     process.exit(1);

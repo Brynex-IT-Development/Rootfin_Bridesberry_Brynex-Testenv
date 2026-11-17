@@ -6,6 +6,7 @@ import useFetch from '../hooks/useFetch.jsx';
 import baseUrl from '../api/api.js';
 import { Minus, Plus } from "lucide-react";
 import { useEnterToSave } from "../hooks/useEnterToSave";
+import { daybookToday, previousDaybookDate } from "../utils/daybookDates.js";
 
 const headers = [
     { label: "Date", key: "date" },
@@ -92,6 +93,29 @@ const denominations = [
     { label: "Coins", value: 1 },
 ];
 
+const calculateDaybookTotals = (transactions, openingCash) => {
+    const bankAmount = transactions.reduce((sum, item) => sum +
+        (parseInt(item.bookingBankAmount, 10) || 0) +
+        (parseInt(item.rentoutBankAmount, 10) || 0) +
+        (parseInt(item.rentoutUPIAmount, 10) || 0) +
+        (parseInt(item.bookingUPIAmount, 10) || 0) -
+        (parseInt(item.deleteBankAmount, 10) || 0) -
+        (parseInt(item.deleteUPIAmount, 10) || 0) +
+        (parseInt(item.returnBankAmount, 10) || 0), 0);
+    const bankAmount1 = transactions.reduce((sum, item) => sum + (parseInt(item.bank, 10) || 0), 0);
+    const bankAmountupi = transactions.reduce((sum, item) => sum + (parseInt(item.upi, 10) || 0), 0);
+    const rblAmount = transactions.reduce((sum, item) => sum + (parseInt(item.rbl, 10) || 0), 0);
+    const dayCashTransactions = transactions.reduce((sum, item) => sum + (parseInt(item.cash, 10) || 0), 0);
+    return {
+        totalBankAmount: bankAmount,
+        totalBankAmount1: bankAmount1,
+        totalBankAmountupi: bankAmountupi,
+        totalRblAmount: rblAmount,
+        dayCashTransactions,
+        totalCash: dayCashTransactions + openingCash
+    };
+};
+
 const customSelectStyles = {
     control: (provided, state) => ({
         ...provided,
@@ -125,7 +149,7 @@ const customSelectStyles = {
     }),
 };
 
-const DayBookInc = () => {
+const DayBookInc = ({ admin = false }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
     useEffect(() => {
@@ -138,9 +162,21 @@ const DayBookInc = () => {
         return () => window.removeEventListener("sidebar-changed", handleSidebarChange);
     }, []);
 
+    const today = daybookToday();
+    const yesterday = previousDaybookDate(today);
+    const requestedCloseDate = new URLSearchParams(window.location.search).get("closeDate");
+    const currentDate = requestedCloseDate === yesterday ? yesterday : today;
+    const currentusers = JSON.parse(localStorage.getItem("rootfinuser"));
+    const exemptFromLock = admin || currentusers?.power === "admin" ||
+        ["admin", "superadmin", "cluster_manager", "financial_head"].includes((currentusers?.role || "").toLowerCase());
+    const [freezeReason, setFreezeReason] = useState(null);
+    const [lockLoading, setLockLoading] = useState(!exemptFromLock);
     const [preOpen, setPreOpen] = useState(null);
     const [preOpen1, setPreOpen1] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [dayBookDataLoading, setDayBookDataLoading] = useState(true);
+    const [closingDataLoading, setClosingDataLoading] = useState(true);
+    const [localLoadError, setLocalLoadError] = useState("");
     
     // Edit functionality states
     const [editingIndex, setEditingIndex] = useState(null);
@@ -155,33 +191,44 @@ const DayBookInc = () => {
     const [selectedSubCategory, setSelectedSubCategory] = useState(subCategories[0]);
     
     const [quantities, setQuantities] = useState(() => {
-        const saved = localStorage.getItem(`denominations_${new Date().toISOString().split("T")[0]}_${JSON.parse(localStorage.getItem("rootfinuser"))?.locCode}`);
+        const saved = localStorage.getItem(`denominations_${currentDate}_${currentusers?.locCode}`);
         return saved ? JSON.parse(saved) : Array(denominations.length).fill("");
     });
 
-    const currentusers = JSON.parse(localStorage.getItem("rootfinuser"));
     const showAction = (currentusers?.power || "").toLowerCase() === "admin";
 
-    const date1 = new Date();
-    const previousDate = new Date(date1);
-    previousDate.setDate(date1.getDate() - 1);
-    const TodayDate = `${String(date1.getDate()).padStart(2, '0')}-${String(date1.getMonth() + 1).padStart(2, '0')}-${date1.getFullYear()}`;
-    const previousDate1 = `${String(previousDate.getDate()).padStart(2, '0')}-${String(previousDate.getMonth() + 1).padStart(2, '0')}-${previousDate.getFullYear()}`;
-    const date = TodayDate;
-
-    const currentDate = new Date().toISOString().split("T")[0];
-    const formatDate = (inputDate) => {
-        const [day, month, year] = inputDate.split("-");
-        return `${year}-${month}-${day}`;
-    };
-
-    const formattedDate = formatDate(previousDate1);
+    const [year, month, day] = currentDate.split("-");
+    const date = `${day}-${month}-${year}`;
+    const formattedDate = previousDaybookDate(currentDate);
 
     const displayFormattedDate = new Intl.DateTimeFormat('en-US', {
         month: 'short',
         day: 'numeric',
         year: 'numeric'
-    }).format(new Date());
+    }).format(new Date(`${currentDate}T12:00:00+05:30`));
+
+    useEffect(() => {
+        if (exemptFromLock || !currentusers?.locCode) {
+            setLockLoading(false);
+            return;
+        }
+        const checkYesterday = async () => {
+            setLockLoading(true);
+            try {
+                const params = new URLSearchParams({ locCode: String(currentusers.locCode), date: yesterday });
+                const response = await fetch(`${baseUrl.baseUrl}user/getsaveCashBank?${params}`);
+                if (!response.ok) throw new Error("Unable to check yesterday's day book");
+                const result = await response.json();
+                setFreezeReason(!result.data && currentDate !== yesterday ? "missing_yesterday" :
+                    result.data?.status === "pending_approval" ? "pending_approval" : null);
+            } catch (_error) {
+                setFreezeReason("check_failed");
+            } finally {
+                setLockLoading(false);
+            }
+        };
+        checkYesterday();
+    }, [currentDate, currentusers?.locCode, exemptFromLock, yesterday]);
 
     const apiUrl = `https://rentalapi.rootments.live/api/GetBooking/GetBookingList?LocCode=${currentusers?.locCode}&DateFrom=${currentDate}&DateTo=${currentDate}`;
     const apiurl1 = `https://rentalapi.rootments.live/api/GetBooking/GetRentoutList?LocCode=${currentusers?.locCode}&DateFrom=${currentDate}&DateTo=${currentDate}`;
@@ -204,22 +251,29 @@ const DayBookInc = () => {
 
     const fetchOptions = useMemo(() => ({}), []);
 
-    const { data } = useFetch(apiUrl, fetchOptions);
-    const { data: data1 } = useFetch(apiurl1, fetchOptions);
-    const { data: data2 } = useFetch(apiUrl2, fetchOptions);
-    const { data: data3 } = useFetch(apiUrl3, fetchOptions);
+    const { data, loading: bookingLoading, error: bookingError } = useFetch(apiUrl, fetchOptions);
+    const { data: data1, loading: rentoutLoading, error: rentoutError } = useFetch(apiurl1, fetchOptions);
+    const { data: data2, loading: returnLoading, error: returnError } = useFetch(apiUrl2, fetchOptions);
+    const { data: data3, loading: cancelLoading, error: cancelError } = useFetch(apiUrl3, fetchOptions);
 
     const [dayBookData, setDayBookData] = useState([]);
 
     // Fetch mongo transactions once on mount
     useEffect(() => {
+        setDayBookDataLoading(true);
         fetch(apiUrl4_fallback)
-            .then(r => r.ok ? r.json() : null)
+            .then(r => {
+                if (!r.ok) throw new Error("Unable to load daybook transactions.");
+                return r.json();
+            })
             .then(json => setDayBookData(json?.data || []))
-            .catch(() => setDayBookData([]));
-    }, []);
+            .catch(() => setLocalLoadError("Unable to load daybook transactions."))
+            .finally(() => setDayBookDataLoading(false));
+    }, [apiUrl4_fallback]);
 
-    const isDataReady = true;
+    const daybookLoadError = bookingError || rentoutError || returnError || cancelError;
+    const isDataReady = !bookingLoading && !rentoutLoading && !returnLoading && !cancelLoading &&
+        !dayBookDataLoading && !daybookLoadError;
 
     const allowedMongoCategories = useMemo(() => [
         "petty expenses",
@@ -551,50 +605,8 @@ const DayBookInc = () => {
 
     const openingCash = parseInt(preOpen?.cash ?? preOpen?.Closecash ?? 0, 10);
 
-    const calculatedTotals = useMemo(() => {
-        const bankAmount = filteredTransactions?.reduce((sum, item) =>
-            sum +
-            (parseInt(item.bookingBankAmount, 10) || 0) +
-            (parseInt(item.rentoutBankAmount, 10) || 0) +
-            (parseInt(item.rentoutUPIAmount, 10) || 0) +
-            (parseInt(item.bookingUPIAmount, 10) || 0) +
-            (parseInt(item.deleteBankAmount, 10) || 0) * -1 +
-            (parseInt(item.deleteUPIAmount, 10) || 0) * -1 +
-            (parseInt(item.returnBankAmount, 10) || 0),
-            0
-        ) || 0;
-
-        const bankAmount1 = filteredTransactions?.reduce((sum, item) =>
-            sum + (parseInt(item.bank, 10) || 0),
-            0
-        ) || 0;
-
-        const bankAmountupi = filteredTransactions?.reduce((sum, item) =>
-            sum + (parseInt(item.upi, 10) || 0),
-            0
-        ) || 0;
-
-        const rblAmount = filteredTransactions?.reduce((sum, item) =>
-            sum + (parseInt(item.rbl, 10) || 0),
-            0
-        ) || 0;
-
-        const dayCashTransactions = filteredTransactions?.reduce((sum, item) =>
-            sum + (parseInt(item.cash, 10) || 0),
-            0
-        ) || 0;
-
-        const totalCash = dayCashTransactions + openingCash;
-
-        return {
-            totalBankAmount: bankAmount,
-            totalBankAmount1: bankAmount1,
-            totalBankAmountupi: bankAmountupi,
-            totalRblAmount: rblAmount,
-            dayCashTransactions,
-            totalCash
-        };
-    }, [filteredTransactions, openingCash]);
+    const calculatedTotals = useMemo(() => calculateDaybookTotals(filteredTransactions, openingCash), [filteredTransactions, openingCash]);
+    const closingTotals = useMemo(() => calculateDaybookTotals(dedupedTransactions, openingCash), [dedupedTransactions, openingCash]);
 
     const totalCalculatedAmount = useMemo(() => {
         return filteredTransactions.reduce((sum, tx) => sum + (Number(tx.amount) || 0), 0);
@@ -652,12 +664,20 @@ const DayBookInc = () => {
         date,
         locCode,
         email,
-        totalCash: calculatedTotals.totalCash,
+        totalCash: closingTotals.totalCash,
         totalAmount,
-        totalBankAmount: calculatedTotals.totalBankAmount
-    }), [date, locCode, email, calculatedTotals.totalCash, totalAmount, calculatedTotals.totalBankAmount]);
+        totalBankAmount: closingTotals.totalBankAmount
+    }), [date, locCode, email, closingTotals.totalCash, totalAmount, closingTotals.totalBankAmount]);
 
     const CreateCashBank = async () => {
+        if (!isDataReady || closingDataLoading) {
+            alert("Day book figures are still loading. Please try again shortly.");
+            return;
+        }
+        if (selectedCategory?.value !== "all" || selectedSubCategory?.value !== "all") {
+            alert("Select All Categories and All Sub Categories before closing the day book.");
+            return;
+        }
         if (savedData.totalAmount === 0) {
             const confirmed = window.confirm(
                 'Physical cash count is 0. Are you sure you want to close the day with zero cash? Click OK to proceed or Cancel to go back and enter the denomination count.'
@@ -685,7 +705,9 @@ const DayBookInc = () => {
             const data = await response.json();
             localStorage.setItem(`denominations_${currentDate}_${locCode}`, JSON.stringify(quantities));
 
-            alert("Data saved successfully");
+            alert(data?.data?.status === "pending_approval"
+                ? "Late day book submitted for accountant approval."
+                : "Day book closed successfully.");
             setLoading(false);
             window.location.reload();
 
@@ -718,6 +740,9 @@ const DayBookInc = () => {
         } catch (error) {
             console.error("Error fetching opening balance:", error);
             setPreOpen(null);
+            setLocalLoadError("Unable to load the opening balance.");
+        } finally {
+            setClosingDataLoading(false);
         }
     };
 
@@ -735,6 +760,7 @@ const DayBookInc = () => {
             setPreOpen1(json.data);
         } catch (err) {
             console.error("Error fetching closing data:", err);
+            setLocalLoadError("Unable to check today's saved closure.");
         }
     };
 
@@ -1049,6 +1075,45 @@ const DayBookInc = () => {
 
     const physicalCash = preOpen1?.Closecash != null ? preOpen1.Closecash : totalAmount;
     const difference = physicalCash - calculatedTotals.totalCash;
+
+    if (lockLoading) return <div className="p-8 text-center">Verifying daybook status...</div>;
+    if (freezeReason) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
+                <div className="max-w-md rounded-2xl border-t-4 border-red-500 bg-white p-8 text-center shadow-xl">
+                    <h1 className="text-2xl font-bold text-gray-900">Day Book Frozen</h1>
+                    <p className="mt-4 text-gray-600">
+                        {freezeReason === "missing_yesterday"
+                            ? "Yesterday's day book was not closed. Close it now and send it for accountant approval."
+                            : freezeReason === "pending_approval"
+                                ? "Yesterday's late day book closure is awaiting accountant approval."
+                                : "Daybook status could not be checked. Please try again."}
+                    </p>
+                    <button
+                        type="button"
+                        onClick={() => freezeReason === "missing_yesterday"
+                            ? window.location.assign(`/?closeDate=${yesterday}`)
+                            : window.location.reload()}
+                        className="mt-6 rounded-lg bg-purple-600 px-5 py-2.5 font-semibold text-white"
+                    >
+                        {freezeReason === "missing_yesterday" ? "Close Yesterday's Day Book" : "Check Status Again"}
+                    </button>
+                </div>
+            </div>
+        );
+    }
+    if (daybookLoadError || localLoadError) {
+        return (
+            <div className="min-h-screen flex items-center justify-center p-6">
+                <div className="max-w-md rounded-xl border bg-white p-8 text-center shadow-sm">
+                    <h1 className="text-xl font-bold">Day book could not be loaded</h1>
+                    <p className="mt-3 text-gray-600">{localLoadError || daybookLoadError}</p>
+                    <button type="button" onClick={() => window.location.reload()}
+                        className="mt-5 rounded-lg bg-purple-600 px-5 py-2.5 text-white">Try Again</button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <>
@@ -1405,13 +1470,13 @@ const DayBookInc = () => {
                                             Download Report
                                         </button>
 
-                                        {loading ? (
+                                        {loading || !isDataReady || closingDataLoading ? (
                                             <button
                                                 disabled
                                                 className="flex-1 py-2.5 px-4 bg-[#8b5cf6] opacity-70 text-white text-sm font-semibold rounded-none text-center flex items-center justify-center gap-2 cursor-not-allowed"
                                             >
                                                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                                <span>Saving...</span>
+                                                <span>{loading ? "Saving..." : "Loading day book..."}</span>
                                             </button>
                                         ) : preOpen1 == null ? (
                                             <button

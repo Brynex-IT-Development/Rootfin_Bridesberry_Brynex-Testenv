@@ -71,35 +71,8 @@ const buildStoreOptions = () => {
     map.set("858", { value: "858", label: "Warehouse" });
   }
   if (!map.has("155")) {
-    map.set("155", { value: "155", label: "BridesBerry" });
+    map.set("155", { value: "155", label: "Brides Berry" });
   }
-
-  const legacyStores = [
-    { value: "702", label: "G-Edappally" },
-    { value: "759", label: "HEAD OFFICE01" },
-    { value: "700", label: "SG-Trivandrum" },
-    { value: "701", label: "G.Kottayam" },
-    { value: "703", label: "G.Perumbavoor" },
-    { value: "704", label: "G.Thrissur" },
-    { value: "706", label: "G.Chavakkad" },
-    { value: "712", label: "G.Calicut" },
-    { value: "708", label: "G.Vadakara" },
-    { value: "707", label: "G.Edappal" },
-    { value: "709", label: "G.Perinthalmanna" },
-    { value: "711", label: "G.Kottakkal" },
-    { value: "710", label: "G.Manjeri" },
-    { value: "705", label: "G.Palakkad" },
-    { value: "717", label: "G.Kalpetta" },
-    { value: "716", label: "G.Kannur" },
-    { value: "718", label: "G.Mg Road" },
-    { value: "101", label: "Production" },
-    { value: "102", label: "Office" },
-  ];
-  legacyStores.forEach((s) => {
-    if (!map.has(s.value)) {
-      map.set(s.value, s);
-    }
-  });
 
   return Array.from(map.values());
 };

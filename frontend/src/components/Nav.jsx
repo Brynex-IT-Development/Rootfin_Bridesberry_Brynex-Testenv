@@ -422,11 +422,17 @@ const Nav = () => {
                             <Link to="/record-expense" className={singleLinkClasses("/record-expense")}><DollarSign size={16} /><span>Record Expense</span></Link>
                             <Link to="/expenses" className={singleLinkClasses("/expenses")}><DollarSign size={16} /><span>Expenses</span></Link>
 
+                            {(isAdmin || userRole === "financial_head") && (
+                                <Link to="/pending-closures" className={singleLinkClasses("/pending-closures")}><FolderClosed size={16} /><span>Pending Daybook Closures</span></Link>
+                            )}
+
                             {/* Admin only */}
                             {(currentuser.power === 'admin' || currentuser.locCode === '102') && (
                                 <>
                                     {currentuser.power === 'admin' && (
+                                        <>
                                         <Link to="/CloseReport" className={singleLinkClasses("/CloseReport")}><FolderClosed size={16} /><span>Close Report</span></Link>
+                                        </>
                                     )}
                                     <Link to="/AdminClose" className={singleLinkClasses("/AdminClose")}><Notebook size={16} /><span>Admin Close</span></Link>
                                     

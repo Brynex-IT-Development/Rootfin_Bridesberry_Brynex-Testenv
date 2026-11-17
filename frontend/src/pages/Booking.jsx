@@ -70,7 +70,7 @@ const Booking = () => {
     setHasFetched(true);
 
     try {
-      const locCode = currentUser?.locCode || "144";
+      const locCode = currentUser?.locCode || "858";
       const twsBase = "https://rentalapi.rootments.live/api/GetBooking";
       const bookingUrl = `${twsBase}/GetBookingList?LocCode=${locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
 

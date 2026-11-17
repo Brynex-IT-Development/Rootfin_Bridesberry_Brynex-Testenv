@@ -23,36 +23,11 @@ const firstOfMonth = () => {
 };
 
 const STORE_LIST = [
-  { locName: "BridesBerry",       locCode: "155" },
-  { locName: "Dappr Squad",      locCode: "555" },
-  { locName: "G-Edappal",        locCode: "707" },
-  { locName: "G-Edappally",      locCode: "702" },
-  { locName: "G-Kalpetta",       locCode: "717" },
-  { locName: "G-Kannur",         locCode: "716" },
-  { locName: "G-Kottakkal",      locCode: "711" },
-  { locName: "G-Kottayam",       locCode: "701" },
-  { locName: "G-Manjeri",        locCode: "710" },
-  { locName: "G-Mg Road",        locCode: "718" },
-  { locName: "G-Palakkad",       locCode: "705" },
-  { locName: "G-Perinthalmanna", locCode: "709" },
-  { locName: "G-Perumbavoor",    locCode: "703" },
-  { locName: "G-Thrissur",       locCode: "704" },
-  { locName: "G-Vadakara",       locCode: "708" },
-  { locName: "G-Chavakkad",      locCode: "706" },
-  { locName: "G-Calicut",        locCode: "712" },
-  { locName: "HEAD OFFICE01",    locCode: "759" },
-  { locName: "Office",           locCode: "102" },
-  { locName: "Production",       locCode: "101" },
-  { locName: "SG-Trivandrum",    locCode: "700" },
-  { locName: "Warehouse",        locCode: "858" },
-  { locName: "WAREHOUSE",        locCode: "103" },
-  { locName: "Z-Edappal",        locCode: "100" },
-  { locName: "Z-Edapally",       locCode: "144" },
-  { locName: "Z-Kottakkal",      locCode: "122" },
-  { locName: "Z-Perinthalmanna", locCode: "133" },
+  { locName: "Brides Berry", locCode: "155" },
+  { locName: "Warehouse", locCode: "858" },
 ];
 
-const DEPT_LOC_CODES = ["759", "102", "101", "858", "103"];
+const DEPT_LOC_CODES = [];
 
 const EXPENSE_CATEGORIES = new Set([
   "petty expenses","staff reimbursement","maintenance expenses","telephone internet",

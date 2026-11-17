@@ -3,7 +3,7 @@ import Rootments from '../assets/Rootments.jpg';
 import { useState, useEffect } from "react";
 import baseUrl from '../api/api';
 import salesInventoryAccessConfig from '../config/salesInventoryAccess.json';
-import { getActiveStores, fetchActiveStores, FALLBACK_STORES } from "../utils/storeService.js";
+import { getActiveStores, fetchActiveStores } from "../utils/storeService.js";
 
 const API_URL = baseUrl?.baseUrl?.replace(/\/$/, "") || "http://localhost:7000";
 
@@ -157,6 +157,7 @@ const Header = (prop) => {
     const HanndleRemove = () => {
         try {
             localStorage.removeItem("rootfinuser");
+            localStorage.removeItem("rootfin_auth_token");
             window.location.reload();
         } catch (error) {
             console.error("Logout error:", error);

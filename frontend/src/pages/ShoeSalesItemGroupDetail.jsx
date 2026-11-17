@@ -61,23 +61,8 @@ const ShoeSalesItemGroupDetail = () => {
   
   // Fallback locations mapping
   const fallbackLocations = [
-    { "locName": "Warehouse", "locCode": "858" },
-    { "locName": "G.Kottayam", "locCode": "701" },
-    { "locName": "G.Kannur", "locCode": "716" },
-    { "locName": "G.Calicut ", "locCode": "712" },
-    { "locName": "G.Manjeri", "locCode": "710" },
-    { "locName": "G.Thrissur", "locCode": "704" },
-    { "locName": "G.Perumbavoor", "locCode": "703" },
-    { "locName": "G.Palakkad ", "locCode": "705" },
-    { "locName": "G.Edappal", "locCode": "707" },
-    { "locName": "G-Edappally", "locCode": "702" },
-    { "locName": "SG-Trivandrum", "locCode": "700" },
-    { "locName": "G.Kalpetta", "locCode": "717" },
-    { "locName": "G.Chavakkad", "locCode": "706" },
-    { "locName": "G.Perinthalmanna", "locCode": "709" },
-    { "locName": "G.Kottakkal", "locCode": "711" },
     { "locName": "Brides Berry", "locCode": "155" },
-    { "locName": "WAREHOUSE", "locCode": "103" }
+    { "locName": "Warehouse", "locCode": "858" },
   ];
   
   // Get user's warehouse name

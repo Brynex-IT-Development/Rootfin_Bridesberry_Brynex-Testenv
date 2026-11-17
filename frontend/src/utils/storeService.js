@@ -2,82 +2,30 @@ import { useState, useEffect } from "react";
 import baseUrl from "../api/api";
 
 export const FALLBACK_STORES = [
+  { locName: "Brides Berry", locCode: "155", name: "Brides Berry", label: "Brides Berry", value: "155" },
   { locName: "Warehouse", locCode: "858", name: "Warehouse", label: "Warehouse", value: "858" },
-  { locName: "BridesBerry", locCode: "155", name: "BridesBerry", label: "BridesBerry", value: "155" },
 ];
 
-export const DISCARDED_LOC_CODES = new Set([
-  "700", "701", "702", "703", "704", "705", "706", "707", "708", "709",
-  "710", "711", "712", "716", "717", "718", "759", "100", "101", "102", "122",
-  "133", "144", "555", "031", "222", "800", "15623"
-]);
-
-export const DISCARDED_NAME_PATTERNS = [
-  "g-edappally", "g.edappally", "edappally",
-  "g-palakkad", "g.palakkad", "palakkad",
-  "g-calicut", "g.calicut", "calicut",
-  "sg-trivandrum", "trivandrum",
-  "g-kottayam", "g.kottayam", "kottayam",
-  "g-perumbavoor", "g.perumbavoor", "perumbavoor",
-  "g-thrissur", "g.thrissur", "thrissur",
-  "g-chavakkad", "g.chavakkad", "chavakkad",
-  "g-vadakara", "g.vadakara", "vadakara",
-  "g-edappal", "g.edappal", "edappal",
-  "g-perinthalmanna", "g.perinthalmanna", "perinthalmanna",
-  "g-kottakkal", "g.kottakkal", "kottakkal",
-  "g-manjeri", "g.manjeri", "manjeri",
-  "g-kalpetta", "g.kalpetta", "kalpetta",
-  "g-kannur", "g.kannur", "kannur",
-  "production", "office", "head office", "dappr squad",
-  "z-edapally", "z-edappal", "z-perinthalmanna", "z-kottakkal",
-  "suitorguy mg road", "mg road", "mgroad",
-  "test store tranfer"
+export const STORE_OPTIONS = [
+  { value: "all", label: "All Stores" },
+  { value: "155", label: "Brides Berry" },
+  { value: "858", label: "Warehouse" },
 ];
 
-export const isAllowedStoreNameOrCode = (locCode, locName, isCustom = false) => {
+export const isAllowedStoreNameOrCode = (locCode, locName) => {
   const code = (locCode || "").toString().trim();
-  const name = (locName || "").toLowerCase().trim();
-
-  // Explicit user-added store (e.g. from Add New Store): always allow!
-  if (isCustom && code && name) {
-    return true;
-  }
-
-  // Always allow Warehouse and BridesBerry
-  if (
-    code === "858" ||
-    code === "103" ||
-    code === "155" ||
-    name.includes("warehouse") ||
-    name.includes("bridesberry") ||
-    name.includes("brides berry")
-  ) {
-    return true;
-  }
-
-  // Block decommissioned old branches, old MG Road (718), and old test stores
-  if (DISCARDED_LOC_CODES.has(code)) {
-    return false;
-  }
-  if (DISCARDED_NAME_PATTERNS.some(pat => 
-    name === pat || 
-    name === `g.${pat}` || 
-    name === `g-${pat}` || 
-    name === `sg-${pat}`
-  )) {
-    return false;
-  }
-
-  // Any newly added store: ALLOW!
-  return true;
+  const normalizedName = (locName || "").toLowerCase().replace(/[\s\-_.]+/g, "");
+  if (code) return code === "155" || code === "858";
+  return normalizedName === "bridesberry" || normalizedName === "warehouse";
 };
 
 export const saveCustomStore = (store) => {
   if (!store || !store.locCode) return;
   try {
     const code = store.locCode.toString().trim();
-    const name = (store.locName || store.name || code).trim();
-    if (!code || !name) return;
+    const requestedName = (store.locName || store.name || code).trim();
+    if (!code || !requestedName || !isAllowedStoreNameOrCode(code, requestedName)) return;
+    const name = code === "155" ? "Brides Berry" : "Warehouse";
 
     // 1. Read custom stores list
     const rawCustom = localStorage.getItem("rootfin_custom_stores");
@@ -148,8 +96,9 @@ export const getActiveStores = () => {
         const validCustom = [];
         parsedCustom.forEach(s => {
           const code = (s.locCode || "").toString().trim();
-          const name = (s.locName || s.name || code).trim();
-          if (code && isAllowedStoreNameOrCode(code, name, true)) {
+          const requestedName = (s.locName || s.name || code).trim();
+          if (code && isAllowedStoreNameOrCode(code, requestedName)) {
+            const name = code === "155" ? "Brides Berry" : "Warehouse";
             const entry = {
               locName: name,
               locCode: code,
@@ -232,8 +181,9 @@ export const fetchActiveStores = async () => {
       if (Array.isArray(parsedCustom)) {
         parsedCustom.forEach(s => {
           const code = (s.locCode || "").toString().trim();
-          const name = (s.locName || s.name || code).trim();
-          if (code && isAllowedStoreNameOrCode(code, name, true)) {
+          const requestedName = (s.locName || s.name || code).trim();
+          if (code && isAllowedStoreNameOrCode(code, requestedName)) {
+            const name = code === "155" ? "Brides Berry" : "Warehouse";
             storeMap.set(code, {
               locName: name,
               locCode: code,
@@ -276,10 +226,10 @@ export const fetchActiveStores = async () => {
     // Normalizations for BridesBerry
     if (code === "155" || rawName.toLowerCase().replace(/[\s\-_.]+/g, '') === "bridesberry") {
       storeMap.set("155", {
-        locName: "BridesBerry",
+        locName: "Brides Berry",
         locCode: "155",
-        name: "BridesBerry",
-        label: "BridesBerry",
+        name: "Brides Berry",
+        label: "Brides Berry",
         value: "155",
         address: extra.address || "",
         phone: extra.phone || "",
@@ -390,10 +340,7 @@ export const useActiveStores = () => {
     };
   }, []);
 
-  const storeOptions = [
-    { value: "all", label: "All Stores" },
-    ...stores.map(s => ({ value: s.locCode, label: s.locName }))
-  ];
+  const storeOptions = STORE_OPTIONS;
 
   const warehouseOptions = stores.map(s => s.locName);
   const branchOptions = stores.map(s => s.locName);
