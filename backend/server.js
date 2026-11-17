@@ -30,6 +30,7 @@ import ReorderAlertRoutes from "./route/ReorderAlertRoutes.js";
 import ManufacturerRoutes from "./route/ManufacturerRoutes.js";
 import BrandRoutes from "./route/BrandRoutes.js";
 import ExpenseTargetRoutes from "./route/ExpenseTargetRoutes.js";
+import PublicProductRoutes from "./route/PublicProductRoutes.js";
 import setupSwagger   from "./swagger.js";
 
 const env     = process.env.NODE_ENV || "development";
@@ -46,6 +47,10 @@ setupSwagger(app);
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
+
+// Public read-only product feed for external storefronts. Mounted before the
+// strict CORS check below so any website can call it (GET only).
+app.use("/api/public", PublicProductRoutes);
 
 const allowedOrigins = [
   "http://localhost:5173",

@@ -214,7 +214,7 @@ export const createSalesInvoice = async (req, res) => {
 };
 
 // Helper function to create financial transaction
-const createFinancialTransaction = async (invoice) => {
+export const createFinancialTransaction = async (invoice) => {
   try {
     console.log("🔄 Creating financial transaction for invoice:", invoice.invoiceNumber);
     console.log("Invoice data for transaction:", {
