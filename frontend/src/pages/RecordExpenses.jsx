@@ -14,6 +14,7 @@ import {
 import baseUrl from "../api/api";
 import { useSidebar } from "../hooks/useSidebar.js";
 import { useActiveStores } from "../utils/storeService.js";
+import { filterAdminOnlyTransactions } from "../utils/adminTransactionVisibility.js";
 
 const toDateInput = (date = new Date()) =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
@@ -142,7 +143,7 @@ export default function RecordExpenses() {
         }
         const rows = Array.isArray(json) ? json : json?.data || [];
         setTransactions(
-          rows.filter(
+          filterAdminOnlyTransactions(rows, currentUser).filter(
             (transaction) =>
               String(transaction.type || "").toLowerCase() === "expense"
           )

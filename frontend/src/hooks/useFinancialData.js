@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { useOptimizedFetch, useOptimizedDataProcessing } from './useOptimizedFetch';
+import { filterAdminOnlyTransactions } from '../utils/adminTransactionVisibility.js';
 
 export const useFinancialData = (currentUser, baseUrl) => {
   const [data, setData] = useState({
@@ -135,7 +136,7 @@ export const useFinancialData = (currentUser, baseUrl) => {
   }, []);
 
   const processMongoData = useCallback((rawData) => {
-    return (rawData?.data || []).map(tx => {
+    return filterAdminOnlyTransactions(rawData?.data || [], currentUser).map(tx => {
       const cash = Number(tx.cash || 0);
       const rbl = Number(tx.rbl || tx.rblRazorPay || 0);
       const bank = Number(tx.bank || 0);
@@ -158,7 +159,7 @@ export const useFinancialData = (currentUser, baseUrl) => {
         source: "mongo"
       };
     });
-  }, []);
+  }, [currentUser]);
 
   // Main fetch function with optimized processing
   const fetchFinancialData = useCallback(async (fromDate, toDate, locCode = currentUser?.locCode) => {

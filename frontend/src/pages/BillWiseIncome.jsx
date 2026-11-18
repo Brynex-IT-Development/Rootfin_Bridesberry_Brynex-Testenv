@@ -7,6 +7,7 @@ import baseUrl from '../api/api.js';
 import { Minus, Plus } from "lucide-react";
 import { useEnterToSave } from "../hooks/useEnterToSave";
 import { daybookToday, previousDaybookDate } from "../utils/daybookDates.js";
+import { filterAdminOnlyTransactions } from "../utils/adminTransactionVisibility.js";
 
 const headers = [
     { label: "Date", key: "date" },
@@ -266,7 +267,7 @@ const DayBookInc = ({ admin = false }) => {
                 if (!r.ok) throw new Error("Unable to load daybook transactions.");
                 return r.json();
             })
-            .then(json => setDayBookData(json?.data || []))
+            .then(json => setDayBookData(filterAdminOnlyTransactions(json?.data || [], currentusers)))
             .catch(() => setLocalLoadError("Unable to load daybook transactions."))
             .finally(() => setDayBookDataLoading(false));
     }, [apiUrl4_fallback]);

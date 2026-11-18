@@ -7,6 +7,7 @@ import { CSVLink } from 'react-csv';
 import { Helmet } from "react-helmet";
 import { FiDownload } from "react-icons/fi";
 import useSidebar from "../hooks/useSidebar";
+import { filterAdminOnlyTransactions } from "../utils/adminTransactionVisibility.js";
 
 const categories = [
   { value: "all", label: "All" },
@@ -361,7 +362,7 @@ const Datewisedaybook = () => {
         };
       });
 
-      const mongoList = (mongoData?.data || []).map(tx => {
+      const mongoList = filterAdminOnlyTransactions(mongoData?.data || [], currentusers).map(tx => {
         const cash = Number(tx.cash || 0);
         const rbl = Number(tx.rbl || tx.rblRazorPay || 0); // ✅ Added RBL mapping
         const bank = Number(tx.bank || 0);
@@ -627,7 +628,7 @@ const Datewisedaybook = () => {
             };
           });
 
-          const mList = (mongoData?.data || []).map(tx => {
+          const mList = filterAdminOnlyTransactions(mongoData?.data || [], currentusers).map(tx => {
             const cash = Number(tx.cash || 0);
             const rbl = Number(tx.rbl || tx.rblRazorPay || 0);
             const bank = Number(tx.bank || 0);
@@ -852,7 +853,7 @@ const Datewisedaybook = () => {
         };
       });
 
-      const mongoList = (mongoData?.data || []).map(tx => {
+      const mongoList = filterAdminOnlyTransactions(mongoData?.data || [], currentusers).map(tx => {
         const cash = Number(tx.cash || 0);
         const rbl = Number(tx.rbl || tx.rblRazorPay || 0); // ✅ Added RBL mapping
         const bank = Number(tx.bank || 0);

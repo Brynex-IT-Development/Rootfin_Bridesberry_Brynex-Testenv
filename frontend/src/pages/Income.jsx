@@ -41,6 +41,8 @@ const Income = () => {
   const power = String(currentusers.power || "").toLowerCase();
   const role = String(currentusers.role || "").toLowerCase();
   const isAdmin = power === "admin";
+  const isAdminLevelEntry =
+    isAdmin || ["admin", "superadmin", "financial_head"].includes(role);
   const canSelectStore =
     isAdmin ||
     ["admin", "superadmin", "financial_head", "cluster_manager"].includes(role);
@@ -156,6 +158,8 @@ const Income = () => {
       category: selectedCategory.value,
       remark,
       locCode: effectiveStoreCode,
+      isAdminLevel: isAdminLevelEntry,
+      entryType: isAdminLevelEntry ? "accountant_entry" : "branch_entry",
       amount,
       cash: splitPayment
         ? cashAmount || "0"

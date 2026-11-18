@@ -7,6 +7,7 @@ import baseUrl from "../api/api";
 import useSidebar from "../hooks/useSidebar";
 import { baseExpenseCats } from "../config/expenseCategories.js";
 import { useActiveStores } from "../utils/storeService.js";
+import { canViewAdminOnlyTransactions } from "../utils/adminTransactionVisibility.js";
 
 const TWS_BASE = "https://rentalapi.rootments.live/api/GetBooking";
 
@@ -250,7 +251,7 @@ export default function IncomeExpenseReport() {
     [user.allowedLocCodes]
   );
   const canSelectStore = isAdmin || isSuperAdmin || isClusterManager || isFinancialHead;
-  const userCanSeeAdminExpenses = isAdmin || isSuperAdmin || isClusterManager || isFinancialHead;
+  const userCanSeeAdminExpenses = canViewAdminOnlyTransactions(user);
   const reportStores = useMemo(() => {
     const byCode = new Map(STORE_LIST.map((store) => [String(store.locCode), store]));
     activeStores.forEach((store) => {
@@ -507,8 +508,8 @@ export default function IncomeExpenseReport() {
         // Skip non-expense and non-shoe/shirt sales that have INV- or RTN- prefix
         if (!isActualExpense && !isShoeOrShirtSale && !isSalesReturn && !isReturnInvoice && (inv.startsWith("INV-") || inv.startsWith("RTN-") || inv.startsWith("RET-"))) return;
 
-        if (isExpenseCategory && t.isAdminLevel && !userCanSeeAdminExpenses) {
-          return; // Skip admin level expenses for non-admins
+        if (t.isAdminLevel && !userCanSeeAdminExpenses) {
+          return; // Skip every admin-only income or expense for store users
         }
 
         const normalizedCategory = (isShoeOrShirtSale && isActualExpense) 

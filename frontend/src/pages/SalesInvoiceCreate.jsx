@@ -1966,10 +1966,16 @@ const SalesInvoiceCreate = () => {
       return `₹${parseFloat(amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     };
 
+    const currentUser = getUserInfo();
+    const storeCandidate = invoiceData.branch || currentUser?.storeName || currentUser?.locName || "";
+    const isBridesBerry = String(invoiceData.locCode || currentUser?.locCode || "") === "155" ||
+      /brides\s*berry/i.test(storeCandidate);
+    const storeName = isBridesBerry ? "BridesBerry" : (storeCandidate || "BridesBerry");
+
     // Create professional invoice message
     const message = 
 `╔══════════════════════════════════╗
-║             SUITOR GUY                  ║
+║             ${storeName.toUpperCase()}                  ║
 ║              INVOICE                    ║
 ╚══════════════════════════════════╝
 
@@ -2011,10 +2017,10 @@ Payment Method: ${Array.isArray(invoiceData.paymentMethod) ? invoiceData.payment
 Status: ${invoiceData.status?.toUpperCase() || 'CONFIRMED'}
 
 ${invoiceData.customerNotes ? `Notes: ${invoiceData.customerNotes}\n\n` : ''}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Thank you for choosing Suitor Guy!
+Thank you for choosing ${storeName}!
 For any queries, please contact us.
 
-${invoiceData.branch || 'Suitor Guy'}
+${storeName}
 Customer Service Available`;
   
     // Detect if device is mobile or desktop
