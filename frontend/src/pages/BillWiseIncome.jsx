@@ -625,6 +625,36 @@ const DayBookInc = ({ admin = false }) => {
         totalBankAmount: closingTotals.totalBankAmount
     }), [date, locCode, email, closingTotals.totalCash, totalAmount, closingTotals.totalBankAmount]);
 
+    const downloadDaybookPdf = async () => {
+        if (!printRef.current) {
+            throw new Error("Day book report is not available for download.");
+        }
+
+        const html2pdfModule = await import("html2pdf.js");
+        const html2pdf = html2pdfModule.default || html2pdfModule;
+
+        await html2pdf().set({
+            margin: 5,
+            filename: `${currentDate} DayBook report.pdf`,
+            image: { type: "jpeg", quality: 0.98 },
+            html2canvas: {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: "#ffffff",
+                scrollX: 0,
+                scrollY: 0,
+                windowWidth: 1400,
+                ignoreElements: (element) => element.classList?.contains("no-print"),
+                onclone: (clonedDocument) => {
+                    const pdfHeader = clonedDocument.querySelector("[data-pdf-header]");
+                    if (pdfHeader) pdfHeader.style.display = "flex";
+                },
+            },
+            jsPDF: { unit: "mm", format: "tabloid", orientation: "landscape" },
+            pagebreak: { mode: ["css", "legacy"] },
+        }).from(printRef.current).save();
+    };
+
     const CreateCashBank = async () => {
         if (!isDataReady || closingDataLoading) {
             alert("Day book figures are still loading. Please try again shortly.");
@@ -661,9 +691,20 @@ const DayBookInc = ({ admin = false }) => {
             const data = await response.json();
             localStorage.setItem(`denominations_${currentDate}_${locCode}`, JSON.stringify(quantities));
 
-            alert(data?.data?.status === "pending_approval"
+            let pdfDownloaded = false;
+            try {
+                await downloadDaybookPdf();
+                pdfDownloaded = true;
+            } catch (pdfError) {
+                console.error("Error generating day book PDF:", pdfError);
+            }
+
+            const closureMessage = data?.data?.status === "pending_approval"
                 ? "Late day book submitted for accountant approval."
-                : "Day book closed successfully.");
+                : "Day book closed successfully.";
+            alert(pdfDownloaded
+                ? `${closureMessage} The PDF report was downloaded automatically.`
+                : `${closureMessage} The PDF could not be downloaded automatically; use Print Summary to save it manually.`);
             setLoading(false);
             window.location.reload();
 
@@ -1148,7 +1189,20 @@ const DayBookInc = ({ admin = false }) => {
                             </div>
                         </div>
 
-                        <div ref={printRef}>
+                        <div ref={printRef} id="daybook-print-report">
+                            <div
+                                data-pdf-header
+                                className="hidden items-end justify-between border-b border-gray-300 mb-5 pb-3"
+                            >
+                                <div>
+                                    <h1 className="text-xl font-bold text-gray-900">Day Book Report</h1>
+                                    <p className="mt-1 text-xs text-gray-500">Location: {locCode || "-"}</p>
+                                </div>
+                                <div className="text-right">
+                                    <span className="block text-xs font-semibold text-gray-500">Date</span>
+                                    <span className="text-sm font-bold text-gray-900">{displayFormattedDate}</span>
+                                </div>
+                            </div>
                             {/* Main Transactions Table */}
                             <div className="bg-white border border-gray-200 overflow-hidden shadow-xs mb-8">
                                 <div className="overflow-x-auto">
@@ -1249,16 +1303,48 @@ const DayBookInc = ({ admin = false }) => {
                                                                 {displayBillValue}
                                                             </td>
                                                             <td className="py-3.5 px-3 text-right font-medium text-xs whitespace-nowrap">
-                                                                {displayCash}
+                                                                {isEditing ? (
+                                                                    <input
+                                                                        type="number"
+                                                                        value={editedTransaction.cash}
+                                                                        onChange={(e) => handleInputChange("cash", e.target.value)}
+                                                                        className="w-16 p-1 border border-gray-300 rounded-none text-xs text-right"
+                                                                        aria-label="Cash amount"
+                                                                    />
+                                                                ) : displayCash}
                                                             </td>
                                                             <td className="py-3.5 px-3 text-right font-medium text-xs whitespace-nowrap">
-                                                                {displayRazorpay}
+                                                                {isEditing ? (
+                                                                    <input
+                                                                        type="number"
+                                                                        value={editedTransaction.rbl}
+                                                                        onChange={(e) => handleInputChange("rbl", e.target.value)}
+                                                                        className="w-16 p-1 border border-gray-300 rounded-none text-xs text-right"
+                                                                        aria-label="Razorpay amount"
+                                                                    />
+                                                                ) : displayRazorpay}
                                                             </td>
                                                             <td className="py-3.5 px-3 text-right font-medium text-xs whitespace-nowrap">
-                                                                {displayBank}
+                                                                {isEditing ? (
+                                                                    <input
+                                                                        type="number"
+                                                                        value={editedTransaction.bank}
+                                                                        onChange={(e) => handleInputChange("bank", e.target.value)}
+                                                                        className="w-16 p-1 border border-gray-300 rounded-none text-xs text-right"
+                                                                        aria-label="Card or bank amount"
+                                                                    />
+                                                                ) : displayBank}
                                                             </td>
                                                             <td className="py-3.5 pl-3 pr-6 text-right font-medium text-xs whitespace-nowrap">
-                                                                {displayUpi}
+                                                                {isEditing ? (
+                                                                    <input
+                                                                        type="number"
+                                                                        value={editedTransaction.upi}
+                                                                        onChange={(e) => handleInputChange("upi", e.target.value)}
+                                                                        className="w-16 p-1 border border-gray-300 rounded-none text-xs text-right"
+                                                                        aria-label="UPI amount"
+                                                                    />
+                                                                ) : displayUpi}
                                                             </td>
                                                             {showAction && (
                                                                 <td className="py-3.5 px-3 text-center whitespace-nowrap">
