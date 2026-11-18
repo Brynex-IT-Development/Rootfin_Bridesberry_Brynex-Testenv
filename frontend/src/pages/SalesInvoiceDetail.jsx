@@ -23,6 +23,7 @@ import baseUrl from "../api/api";
 import useSidebar from "../hooks/useSidebar";
 import Header from "../components/Header";
 import { mapLocNameToWarehouse as mapWarehouse } from "../utils/warehouseMapping";
+import { daybookToday } from "../utils/daybookDates";
 
 const SalesInvoiceDetail = () => {
   const isSidebarOpen = useSidebar();
@@ -475,9 +476,11 @@ const SalesInvoiceDetail = () => {
       const returnInvoicePayload = {
         customer: invoice.customer,
         customerPhone: invoice.customerPhone,
-        invoiceDate: new Date().toISOString().split("T")[0],
+        invoiceDate: daybookToday(),
         terms: "Due on Receipt",
         branch: invoice.branch,
+        warehouse: invoice.warehouse,
+        locCode: invoice.locCode || user?.locCode || getLocCodeForBranch(invoice.branch) || "",
         salesperson: invoice.salesperson,
         category: "Return",
         originalInvoiceId: invoice._id,

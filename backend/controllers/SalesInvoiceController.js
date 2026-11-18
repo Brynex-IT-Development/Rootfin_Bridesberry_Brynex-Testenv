@@ -123,12 +123,27 @@ export const createSalesInvoice = async (req, res) => {
       userConditions.push({ _id: trimmedUserId });
     }
 
-    // Run user lookup and invoice number generation in parallel
-    let [user, existingInvoice] = await Promise.all([
+    const originalInvoiceConditions = [];
+    if (categoryLower === "return") {
+      if (mongoose.Types.ObjectId.isValid(invoiceData.originalInvoiceId)) {
+        originalInvoiceConditions.push({ _id: invoiceData.originalInvoiceId });
+      }
+      if (invoiceData.originalInvoiceNumber) {
+        originalInvoiceConditions.push({ invoiceNumber: invoiceData.originalInvoiceNumber });
+      }
+    }
+
+    // Run user, duplicate, and original-invoice lookups in parallel.
+    let [user, existingInvoice, originalInvoice] = await Promise.all([
       User.findOne({ $or: userConditions }).lean(),
       invoiceData.invoiceNumber
         ? SalesInvoice.findOne({ invoiceNumber: invoiceData.invoiceNumber }).lean()
-        : Promise.resolve(null)
+        : Promise.resolve(null),
+      originalInvoiceConditions.length > 0
+        ? SalesInvoice.findOne({ $or: originalInvoiceConditions })
+            .select("locCode branch warehouse")
+            .lean()
+        : Promise.resolve(null),
     ]);
 
     if (!user) {
@@ -144,6 +159,22 @@ export const createSalesInvoice = async (req, res) => {
         role: "admin",
         storeId: null,
       };
+    }
+
+    const requestedLocCode = String(invoiceData.locCode || "").trim();
+    const originalLocCode = String(originalInvoice?.locCode || "").trim();
+    const userLocCode = String(user.locCode || "").trim();
+
+    // Returns belong to the store of the original invoice. This prevents their
+    // financial transaction from falling back to location 001 and disappearing
+    // from the store-scoped day books.
+    invoiceData.locCode = categoryLower === "return"
+      ? originalLocCode || requestedLocCode || userLocCode
+      : requestedLocCode || userLocCode;
+
+    if (categoryLower === "return" && originalInvoice) {
+      invoiceData.branch = invoiceData.branch || originalInvoice.branch;
+      invoiceData.warehouse = invoiceData.warehouse || originalInvoice.warehouse;
     }
 
     // Store-level access control
