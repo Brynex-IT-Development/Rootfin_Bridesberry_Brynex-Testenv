@@ -33,10 +33,15 @@ const Expenses = () => {
     []
   );
   const { stores, loading: storesLoading } = useActiveStores();
-  const cats = baseExpenseCats;
   const role = String(currentusers.role || "").toLowerCase();
   const power = String(currentusers.power || "").toLowerCase();
   const canSelectStore = power === "admin" || ["admin", "superadmin", "financial_head", "cluster_manager"].includes(role);
+  // Store logins: no Refund category, cash-only payment
+  const isStoreLogin = !canSelectStore;
+  const cats = useMemo(
+    () => (isStoreLogin ? baseExpenseCats.filter((c) => c.value !== "other expenses") : baseExpenseCats),
+    [isStoreLogin]
+  );
   const canSetLimits = power === "admin" || ["admin", "superadmin", "financial_head"].includes(role);
   const allowedStores = useMemo(() => {
     if (role !== "cluster_manager") return stores;
@@ -299,6 +304,35 @@ const Expenses = () => {
                     </div>
                   </div>
 
+                  {selectedCategory.subs?.length > 0 && (
+                    <div>
+                      <label
+                        htmlFor="expense-subcategory"
+                        className="mb-2 block text-sm font-semibold uppercase text-[#667085]"
+                      >
+                        Sub Category
+                      </label>
+                      <div className="relative">
+                        <select
+                          id="expense-subcategory"
+                          value={subCategory}
+                          onChange={(e) => setSubCategory(e.target.value)}
+                          className="h-[54px] w-full appearance-none rounded-xl border border-[#d7deef] bg-white px-5 pr-12 text-base text-[#17213b] outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-100 sm:text-lg"
+                        >
+                          {selectedCategory.subs.map((sub) => (
+                            <option key={sub} value={sub}>
+                              {sub}
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronDown
+                          size={20}
+                          className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-[#98a2b3]"
+                        />
+                      </div>
+                    </div>
+                  )}
+
                   <div>
                     <label
                       htmlFor="expense-amount"
@@ -334,7 +368,7 @@ const Expenses = () => {
                   <div className="flex flex-wrap items-center gap-4">
                     {[
                       { id: "cash", label: "Cash", icon: <MdCurrencyRupee size={20} /> },
-                      ...(selectedCategory.value !== "bulk amount transfer"
+                      ...(selectedCategory.value !== "bulk amount transfer" && !isStoreLogin
                         ? [
                             { id: "bank", label: "Bank", icon: <BsBank2 size={18} /> },
                             {
@@ -373,7 +407,7 @@ const Expenses = () => {
                       );
                     })}
 
-                    {selectedCategory.value !== "bulk amount transfer" && (
+                    {selectedCategory.value !== "bulk amount transfer" && !isStoreLogin && (
                       <label
                         className={`flex h-12 cursor-pointer select-none items-center gap-2 rounded-xl border px-4 text-base transition ${
                           splitPayment
