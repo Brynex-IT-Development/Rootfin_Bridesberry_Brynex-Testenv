@@ -345,7 +345,9 @@ export const getSalesSummary = async (req, res) => {
 
     let query = {
       invoiceDate: { $gte: fromDate, $lte: toDate },
-      category: { $ne: "Return" } // Exclude returns from sales
+      category: { $not: /^return$/i }, // Exclude return (RTN) invoices from sales
+      invoiceNumber: { $not: /^(RTN|RET)-/i },
+      returnStatus: { $nin: ["full", "Full"] } // Fully returned invoices are no longer sales
     };
 
     // For store users (non-admin), filter by their locCode

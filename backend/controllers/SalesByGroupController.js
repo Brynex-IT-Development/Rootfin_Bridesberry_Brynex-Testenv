@@ -15,6 +15,11 @@ export const getSalesByGroup = async (req, res) => {
         $lte: new Date(dateTo + "T23:59:59.999Z"),
       },
       status: { $ne: "draft" },
+      // Return (RTN) invoices are not sales — don't count them
+      category: { $not: /^return$/i },
+      invoiceNumber: { $not: /^(RTN|RET)-/i },
+      // Fully returned invoices no longer count as sales
+      returnStatus: { $nin: ["full", "Full"] },
     };
 
     if (locCode && locCode !== "all") query.locCode = locCode;
