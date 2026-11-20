@@ -74,6 +74,8 @@ export const CloseController = async (req, res) => {
             existingClose.cash = cash;
             existingClose.Closecash = Closecash;
             existingClose.email = email;
+            // Status is derived on the server only; any client-sent status is ignored.
+            existingClose.status = closureStatusFor(closingDate, today);
 
             await existingClose.save();
 
@@ -176,9 +178,10 @@ export const GetCloseController = async (req, res) => {
 
 export const GetPendingClosures = async (_req, res) => {
     try {
+        // All stores' late closures must be listed here; a store's frozen day
+        // can only be unlocked once its closure appears for approval.
         const data = await CloseTransaction.find({
-            status: "pending_approval",
-            locCode: { $in: ["155", "858"] }
+            status: "pending_approval"
         }).sort({ date: -1 }).lean();
         return res.status(200).json({ data });
     } catch (error) {

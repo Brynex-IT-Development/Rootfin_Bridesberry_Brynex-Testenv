@@ -77,11 +77,16 @@ const PendingDaybookClosures = () => {
 
   return (
     <div className="min-h-screen bg-[#f5f7fb]">
-      <Header title="Pending Daybook Closures" />
+      <Header title="Late Closures" />
       <main className={`p-6 transition-all ${isSidebarOpen ? "ml-[240px]" : "ml-0"}`}>
         <div className="mx-auto max-w-6xl">
           <div className="mb-6 flex items-center justify-between gap-4">
-            <h1 className="text-2xl font-bold text-gray-800">Pending Daybook Closures</h1>
+            <h1 className="flex items-center gap-3 text-2xl font-bold text-gray-800">
+              Late Closures
+              <span aria-label={`${closures.length} pending`} className="rounded-full bg-amber-500 px-2.5 py-0.5 text-sm font-semibold text-white">
+                {closures.length}
+              </span>
+            </h1>
             <button type="button" onClick={fetchClosures} className="rounded-lg border bg-white px-4 py-2 text-sm">Refresh</button>
           </div>
           {error && <div role="alert" className="mb-5 rounded-lg bg-red-50 p-4 text-red-700">
@@ -101,8 +106,8 @@ const PendingDaybookClosures = () => {
                       <span className="rounded-full bg-amber-100 px-2 py-1 text-xs text-amber-800">Pending Approval</span>
                     </div>
                     <p className="text-sm text-gray-600">Date: {new Date(closure.date).toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata" })}</p>
-                    <p className="text-sm text-gray-600">Calculated cash: {currency(closure.cash)}</p>
-                    <p className="text-sm text-gray-600">Physical cash: {currency(closure.Closecash)}</p>
+                    <p className="text-sm text-gray-600">System Cash: {currency(closure.cash)}</p>
+                    <p className="text-sm text-gray-600">Physical Cash: {currency(closure.Closecash)}</p>
                     <p className="text-sm text-gray-600">Bank: {currency(closure.bank)}</p>
                     <p className={`mt-2 font-semibold ${difference === 0 ? "text-emerald-700" : "text-red-700"}`}>
                       Difference: {currency(difference)}

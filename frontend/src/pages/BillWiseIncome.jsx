@@ -178,7 +178,16 @@ const DayBookInc = ({ admin = false }) => {
     const [dayBookDataLoading, setDayBookDataLoading] = useState(true);
     const [closingDataLoading, setClosingDataLoading] = useState(true);
     const [localLoadError, setLocalLoadError] = useState("");
-    
+    // Save is locked for a short settling period after figures load, so a half-loaded
+    // total can never be saved.
+    const [stabilized, setStabilized] = useState(false);
+    // Set once this page's save succeeded; the page stays here and shows the result.
+    const [savedFinished, setSavedFinished] = useState(false);
+    const [savedMessage, setSavedMessage] = useState("");
+    // { message, retry } for a failed PDF; retry re-runs the same export.
+    const [pdfToast, setPdfToast] = useState(null);
+    const isLateClose = currentDate !== today;
+
     // Edit functionality states
     const [editingIndex, setEditingIndex] = useState(null);
     const [editedTransaction, setEditedTransaction] = useState({});
@@ -275,6 +284,17 @@ const DayBookInc = ({ admin = false }) => {
     const daybookLoadError = bookingError || rentoutError || returnError || cancelError;
     const isDataReady = !bookingLoading && !rentoutLoading && !returnLoading && !cancelLoading &&
         !dayBookDataLoading && !daybookLoadError;
+
+    // Re-arm the settling timer whenever figures are (re)loading, and unlock save ~2.5s after they settle.
+    const figuresSettled = isDataReady && !closingDataLoading;
+    useEffect(() => {
+        if (!figuresSettled) {
+            setStabilized(false);
+            return undefined;
+        }
+        const timer = window.setTimeout(() => setStabilized(true), 2500);
+        return () => window.clearTimeout(timer);
+    }, [figuresSettled, currentDate]);
 
     const processedTransactions = useMemo(() => {
         if (!isDataReady) return { booking: [], rentOut: [], return: [], cancel: [], mongo: [] };
@@ -626,34 +646,64 @@ const DayBookInc = ({ admin = false }) => {
         totalBankAmount: closingTotals.totalBankAmount
     }), [date, locCode, email, closingTotals.totalCash, totalAmount, closingTotals.totalBankAmount]);
 
+    // Renders the day book print container to a single landscape A4 page and downloads it.
+    // Used both for the automatic download after a late save and the manual "Download Report".
     const downloadDaybookPdf = async () => {
         if (!printRef.current) {
             throw new Error("Day book report is not available for download.");
         }
 
-        const html2pdfModule = await import("html2pdf.js");
-        const html2pdf = html2pdfModule.default || html2pdfModule;
+        const [{ default: html2canvas }, jspdfModule] = await Promise.all([
+            // html2canvas-pro understands the oklch() colors Tailwind v4 emits; plain html2canvas throws on them.
+            import("html2canvas-pro"),
+            import("jspdf"),
+        ]);
+        const JsPDF = jspdfModule.jsPDF || jspdfModule.default;
 
-        await html2pdf().set({
-            margin: 5,
-            filename: `${currentDate} DayBook report.pdf`,
-            image: { type: "jpeg", quality: 0.98 },
-            html2canvas: {
-                scale: 2,
-                useCORS: true,
-                backgroundColor: "#ffffff",
-                scrollX: 0,
-                scrollY: 0,
-                windowWidth: 1400,
-                ignoreElements: (element) => element.classList?.contains("no-print"),
-                onclone: (clonedDocument) => {
-                    const pdfHeader = clonedDocument.querySelector("[data-pdf-header]");
-                    if (pdfHeader) pdfHeader.style.display = "flex";
-                },
+        const canvas = await html2canvas(printRef.current, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: "#ffffff",
+            scrollX: 0,
+            scrollY: 0,
+            windowWidth: 1400,
+            ignoreElements: (element) => element.classList?.contains("no-print"),
+            onclone: (clonedDocument) => {
+                const pdfHeader = clonedDocument.querySelector("[data-pdf-header]");
+                if (pdfHeader) pdfHeader.style.display = "flex";
             },
-            jsPDF: { unit: "mm", format: "tabloid", orientation: "landscape" },
-            pagebreak: { mode: ["css", "legacy"] },
-        }).from(printRef.current).save();
+        });
+
+        const pdf = new JsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const margin = 5;
+
+        // Scale the whole report down (never up) so it fits on one page, keeping its aspect ratio.
+        const availableWidth = pageWidth - margin * 2;
+        const availableHeight = pageHeight - margin * 2;
+        const ratio = Math.min(availableWidth / canvas.width, availableHeight / canvas.height);
+        const imgWidth = canvas.width * ratio;
+        const imgHeight = canvas.height * ratio;
+        const x = (pageWidth - imgWidth) / 2;
+        const y = (pageHeight - imgHeight) / 2;
+
+        pdf.addImage(canvas.toDataURL("image/png"), "PNG", x, y, imgWidth, imgHeight);
+        pdf.save(`DayBook_Close_${currentDate}_${locCode}.pdf`);
+    };
+
+    // Runs the PDF export and reports failure through a toast with a retry action.
+    // Never throws: callers have already completed their save and must not be failed by a PDF error.
+    const runPdfExport = async () => {
+        try {
+            await downloadDaybookPdf();
+            setPdfToast(null);
+            return true;
+        } catch (pdfError) {
+            console.error("Error generating day book PDF:", pdfError);
+            setPdfToast({ message: "The PDF could not be generated.", retry: true });
+            return false;
+        }
     };
 
     const CreateCashBank = async () => {
@@ -673,41 +723,39 @@ const DayBookInc = ({ admin = false }) => {
         }
         setLoading(true);
         try {
+            // `status` is sent for clarity only; the server derives it from the date and ignores this value.
             const response = await fetch(apiUrl5, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(savedData),
+                body: JSON.stringify({ ...savedData, status: isLateClose ? "pending_approval" : "closed" }),
             });
 
             if (response.status === 401) {
                 setLoading(false);
-                return alert("Error: Data already saved for today.");
+                return alert("Error: Data already saved for this day.");
             } else if (!response.ok) {
                 setLoading(false);
-                return alert(JSON.stringify(response), null, 2);
+                return alert("Error: The day book could not be saved. Please try again.");
             }
 
             const data = await response.json();
             localStorage.setItem(`denominations_${currentDate}_${locCode}`, JSON.stringify(quantities));
 
-            let pdfDownloaded = false;
-            try {
-                await downloadDaybookPdf();
-                pdfDownloaded = true;
-            } catch (pdfError) {
-                console.error("Error generating day book PDF:", pdfError);
-            }
-
-            const closureMessage = data?.data?.status === "pending_approval"
-                ? "Late day book submitted for accountant approval."
-                : "Day book closed successfully.";
-            alert(pdfDownloaded
-                ? `${closureMessage} The PDF report was downloaded automatically.`
-                : `${closureMessage} The PDF could not be downloaded automatically; use Print Summary to save it manually.`);
+            // Stay on this page: mark it saved, show the outcome, and update the closing figures in place.
+            const serverStatus = data?.data?.status;
+            setPreOpen1(data?.data ?? { Closecash: totalAmount });
+            setSavedFinished(true);
+            setSavedMessage(serverStatus === "pending_approval"
+                ? "Data saved successfully. This late day book is pending accountant approval."
+                : "Data saved successfully.");
             setLoading(false);
-            window.location.reload();
+
+            // The PDF is downloaded automatically only after a late save. A failed PDF never fails the save.
+            if (isLateClose) {
+                await runPdfExport();
+            }
 
         } catch (error) {
             console.error("Error saving data:", error);
@@ -1068,9 +1116,7 @@ const DayBookInc = ({ admin = false }) => {
     const isDaybookClosed = preOpen1 != null;
 
     const handleDownloadReport = () => {
-        if (isDaybookClosed && csvLinkRef.current) {
-            csvLinkRef.current.link.click();
-        }
+        if (isDaybookClosed) runPdfExport();
     };
 
     const physicalCash = preOpen1?.Closecash != null ? preOpen1.Closecash : totalAmount;
@@ -1081,12 +1127,18 @@ const DayBookInc = ({ admin = false }) => {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
                 <div className="max-w-md rounded-2xl border-t-4 border-red-500 bg-white p-8 text-center shadow-xl">
-                    <h1 className="text-2xl font-bold text-gray-900">Day Book Frozen</h1>
+                    <h1 className="text-2xl font-bold text-gray-900">
+                        {freezeReason === "missing_yesterday"
+                            ? "Day Book Frozen — yesterday's day book is not closed"
+                            : freezeReason === "pending_approval"
+                                ? "Day Book Frozen — late closure pending approval"
+                                : "Day Book Frozen"}
+                    </h1>
                     <p className="mt-4 text-gray-600">
                         {freezeReason === "missing_yesterday"
-                            ? "Yesterday's day book was not closed. Close it now and send it for accountant approval."
+                            ? "Close yesterday's day book now. It will be sent for accountant approval."
                             : freezeReason === "pending_approval"
-                                ? "Yesterday's late day book closure is awaiting accountant approval."
+                                ? "Yesterday's late day book closure is awaiting accountant approval. This page unfreezes once it is approved."
                                 : "Daybook status could not be checked. Please try again."}
                     </p>
                     <button
@@ -1156,6 +1208,27 @@ const DayBookInc = ({ admin = false }) => {
 
                 <div className={`transition-all duration-300 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
                     <div className="p-6 md:p-8 bg-white min-h-screen">
+
+                        {isLateClose && (
+                            <div className="no-print mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                                <span className="font-semibold">Closing yesterday</span> — {displayFormattedDate}. This late closure will be sent for accountant approval.
+                            </div>
+                        )}
+
+                        {(savedFinished || isDaybookClosed) && (
+                            <div className="no-print mb-4 flex items-center gap-3 rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+                                <span className="rounded bg-emerald-600 px-2 py-0.5 text-xs font-bold uppercase text-white">Saved &amp; Finished</span>
+                                <span>{savedMessage || "Data saved successfully."}</span>
+                            </div>
+                        )}
+
+                        {pdfToast && (
+                            <div role="alert" className="no-print fixed bottom-6 right-6 z-50 flex items-center gap-4 rounded-lg bg-gray-900 px-4 py-3 text-sm text-white shadow-lg">
+                                <span>{pdfToast.message}</span>
+                                <button type="button" onClick={runPdfExport} className="rounded bg-purple-500 px-3 py-1 font-semibold hover:bg-purple-400">Retry</button>
+                                <button type="button" onClick={() => setPdfToast(null)} className="text-gray-300 hover:text-white">Dismiss</button>
+                            </div>
+                        )}
 
                         {/* Top Section: Page Header, Category Filters & Date */}
                         <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4 no-print">
@@ -1525,13 +1598,20 @@ const DayBookInc = ({ admin = false }) => {
                                                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                                                 <span>{loading ? "Saving..." : "Loading day book..."}</span>
                                             </button>
+                                        ) : preOpen1 == null && !stabilized ? (
+                                            <button
+                                                disabled
+                                                className="flex-1 py-2.5 px-4 bg-[#8b5cf6] opacity-70 text-white text-sm font-semibold rounded-none text-center cursor-not-allowed"
+                                            >
+                                                Stabilizing…
+                                            </button>
                                         ) : preOpen1 == null ? (
                                             <button
                                                 type="button"
                                                 onClick={CreateCashBank}
                                                 className="flex-1 py-2.5 px-4 bg-[#8b5cf6] hover:bg-[#7c3aed] text-white text-sm font-semibold rounded-none shadow-sm transition-all hover:shadow text-center cursor-pointer"
                                             >
-                                                Save & Finish Day
+                                                {isLateClose ? "Save & Finish Day (Late)" : "Save & Finish Day"}
                                             </button>
                                         ) : (
                                             <button

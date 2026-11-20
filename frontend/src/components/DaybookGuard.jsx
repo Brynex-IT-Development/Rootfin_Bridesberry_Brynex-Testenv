@@ -53,17 +53,20 @@ const DaybookGuard = ({ user, admin = false, children }) => {
   return (
     <div className="min-h-[80vh] flex items-center justify-center p-6">
       <div className="max-w-md rounded-2xl border border-red-200 bg-white p-8 text-center shadow-sm">
-        <h1 className="text-2xl font-bold text-gray-900">Day Book Locked</h1>
+        <h1 className="text-2xl font-bold text-gray-900">
+          {state.reason === "missing_yesterday" ? "Day Book Frozen" : state.reason === "pending_approval" ? "Late Closure Pending" : "Day Book Unavailable"}
+        </h1>
         <p className="mt-4 text-gray-600">
           {state.reason === "missing_yesterday"
-            ? "Yesterday's day book needs to be closed before you can continue. The late closure will require accountant approval."
+            ? "Yesterday's day book is not closed. Close it now and it will be sent for accountant approval."
             : state.reason === "pending_approval"
-              ? "Yesterday's late day book closure is waiting for accountant approval."
+              ? "Yesterday's day book was closed late and is awaiting accountant approval — the late closure pending approval."
               : "Daybook status could not be checked. Please try again."}
         </p>
         <div className="mt-6 flex justify-center gap-3">
           {state.reason === "missing_yesterday" && (
-            <Link to="/" className="rounded-lg bg-purple-600 px-4 py-2 text-white">Close Day Book</Link>
+            // Opens the page in late-close mode for yesterday (see BillWiseIncome `closeDate`).
+            <Link to={`/?closeDate=${date}`} className="rounded-lg bg-purple-600 px-4 py-2 text-white">Close Yesterday's Day Book</Link>
           )}
           <button type="button" onClick={checkClosure} className="rounded-lg border px-4 py-2 text-gray-800">
             Check Status Again

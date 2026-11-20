@@ -425,7 +425,7 @@ const Nav = () => {
                             <Link to="/expenses" className={singleLinkClasses("/expenses")}><DollarSign size={16} /><span>Expenses</span></Link>
 
                             {(isAdmin || userRole === "financial_head") && (
-                                <Link to="/pending-closures" className={singleLinkClasses("/pending-closures")}><FolderClosed size={16} /><span>Pending Daybook Closures</span></Link>
+                                <Link to="/pending-closures" className={singleLinkClasses("/pending-closures")}><FolderClosed size={16} /><span>Late Closures</span></Link>
                             )}
 
                             {/* Admin only */}
