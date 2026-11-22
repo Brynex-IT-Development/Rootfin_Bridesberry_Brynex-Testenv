@@ -1,14 +1,23 @@
-import { useRef, useState, useMemo } from 'react';
+import { useRef, useState, useMemo, useEffect } from 'react';
 import Headers from '../components/Header';
 import baseUrl from '../api/api';
 import { useSidebar } from '../hooks/useSidebar.js';
+import { getActiveStores, fetchActiveStores } from '../utils/storeService.js';
 
 const CloseReport = () => {
   const isSidebarOpen = useSidebar();
-  const AllLoation = [
-    { "locName": "Brides Berry", "locCode": "155" },
-    { "locName": "Warehouse", "locCode": "858" }
-  ];
+  const [allLocations, setAllLocations] = useState(() => getActiveStores());
+
+  useEffect(() => {
+    fetchActiveStores().then(s => {
+      if (s && s.length > 0) setAllLocations(s);
+    });
+    const handleUpdate = (e) => {
+      if (e.detail && Array.isArray(e.detail)) setAllLocations(e.detail);
+    };
+    window.addEventListener("rootfin-stores-updated", handleUpdate);
+    return () => window.removeEventListener("rootfin-stores-updated", handleUpdate);
+  }, []);
 
   const [fromDate, setFromDate] = useState("");
   const [data, setData] = useState([]);
@@ -57,8 +66,8 @@ const CloseReport = () => {
       
       for (const chunk of dataChunks) {
         const processedChunk = chunk.map((transaction) => {
-          const foundLoc = AllLoation.find(item => item.locCode === transaction.locCode);
-          const storeName = foundLoc ? foundLoc.locName : "Unknown";
+          const foundLoc = allLocations.find(item => item.locCode === transaction.locCode);
+          const storeName = foundLoc ? foundLoc.locName : (transaction.storeName || "Unknown");
 
           const calculatedClosingCash = Number(transaction.cash || 0);
           const physicalCash = Number(transaction.Closecash || 0);
@@ -97,9 +106,9 @@ const CloseReport = () => {
     const transactions = data?.data || [];
     const matchCount = transactions.filter(t => t.match === 'Match').length;
     const mismatchCount = transactions.filter(t => t.match === 'Mismatch').length;
-    const notClosedCount = AllLoation.filter(loc => !transactions.some(t => t.storeName === loc.locName)).length;
+    const notClosedCount = allLocations.filter(loc => !transactions.some(t => t.storeName === loc.locName)).length;
     return { matchCount, mismatchCount, notClosedCount };
-  }, [data?.data]);
+  }, [data?.data, allLocations]);
 
   const combinedData = useMemo(() => {
     let combined = (data?.data || []).map(txn => ({
@@ -107,7 +116,7 @@ const CloseReport = () => {
       displayStatus: txn.match
     }));
 
-    const notClosed = AllLoation.filter(loc => 
+    const notClosed = allLocations.filter(loc => 
       !combined.some(txn => txn.storeName === loc.locName)
     ).map(loc => ({
       storeName: loc.locName,

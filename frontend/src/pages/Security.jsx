@@ -7,13 +7,12 @@ import Headers from "../components/Header.jsx";
 import useFetch from "../hooks/useFetch.jsx";
 import openingBalanceMap from "../data/openingBalance.json";
 import { useSidebar } from "../hooks/useSidebar.js";
-import { FALLBACK_STORES } from "../utils/storeService.js";
+import { FALLBACK_STORES, fetchActiveStores, getActiveStores } from "../utils/storeService.js";
 import { Download, Printer, Loader2 } from "lucide-react";
 
 /* ---------- Store master list ---------- */
-const AllLoation = FALLBACK_STORES;
 const getStoreName = (c) =>
-  [...FALLBACK_STORES, ...AllLoation].find(
+  getActiveStores().find(
     (location) => String(location.locCode) === String(c)
   )?.locName || "Unknown";
 
@@ -54,6 +53,19 @@ const formatNum = (num) => {
 
 const Security = () => {
   const isSidebarOpen = useSidebar();
+  const [allLocations, setAllLocations] = useState(() => getActiveStores());
+
+  useEffect(() => {
+    fetchActiveStores().then(s => {
+      if (s && s.length > 0) setAllLocations(s);
+    });
+    const handleUpdate = (e) => {
+      if (e.detail && Array.isArray(e.detail)) setAllLocations(e.detail);
+    };
+    window.addEventListener("rootfin-stores-updated", handleUpdate);
+    return () => window.removeEventListener("rootfin-stores-updated", handleUpdate);
+  }, []);
+
   const _now = new Date();
   const today = `${_now.getFullYear()}-${String(_now.getMonth() + 1).padStart(2, "0")}-${String(_now.getDate()).padStart(2, "0")}`;
   const firstOfMonth = `${_now.getFullYear()}-${String(_now.getMonth() + 1).padStart(2, "0")}-01`;
@@ -66,9 +78,10 @@ const Security = () => {
   const [allStoreOpenings, setAllStoreOpenings] = useState({}); // locCode -> opening balance
 
   const user = JSON.parse(localStorage.getItem("rootfinuser") || "{}");
-  const isClusterManager = (user?.role || "").toLowerCase() === "cluster_manager";
+  const userRole = (user?.role || "").toLowerCase();
+  const isClusterManager = userRole === "cluster_manager" || userRole === "cluster_admin";
   const clusterStores = isClusterManager
-    ? AllLoation.filter((s) => (user.allowedLocCodes || []).includes(s.locCode))
+    ? allLocations.filter((s) => (user.allowedLocCodes || []).includes(s.locCode))
     : [];
   const baseAPI = "https://rentalapi.rootments.live/api/GetBooking";
 
@@ -140,7 +153,7 @@ const Security = () => {
     }
 
     setLoading(true);
-    const storesToFetch = selectedStore === "cluster" ? clusterStores : AllLoation;
+    const storesToFetch = selectedStore === "cluster" ? clusterStores : allLocations;
     const tmpRent = [],
       tmpRet = [];
     const openingMap = {};

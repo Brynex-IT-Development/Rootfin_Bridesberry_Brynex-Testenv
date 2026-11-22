@@ -28,6 +28,11 @@ const StoreSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
+    gst: {
+      type: String,
+      trim: true,
+      default: "",
+    },
     isActive: {
       type: Boolean,
       default: true,

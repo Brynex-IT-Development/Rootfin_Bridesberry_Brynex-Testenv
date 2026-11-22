@@ -118,10 +118,7 @@ const CATEGORY_LABEL_MAP = {
 };
 const getCatLabel = (val) => CATEGORY_LABEL_MAP[(val || "").toLowerCase().trim()] || val;
 
-const AllLoation = [
-  { locName: "Brides Berry", locCode: "155" },
-  { locName: "Warehouse", locCode: "858" },
-];
+import { fetchActiveStores, getActiveStores } from "../utils/storeService.js";
 
 const allStoresCsvHeaders = [
   { label: "Store", key: "store" },
@@ -163,16 +160,32 @@ const Datewisedaybook = () => {
   const [apiUrl5, setApiUrl5] = useState("");
   const [preOpen, setPreOpen] = useState([])
 
-  const currentusers = JSON.parse(localStorage.getItem("rootfinuser"));
+  const currentusers = JSON.parse(localStorage.getItem("rootfinuser")) || {};
+  const [allLocations, setAllLocations] = useState(() => getActiveStores());
 
-  const showAction = (currentusers.power || "").toLowerCase() === "admin";
-  const isClusterManager = (currentusers.role || "").toLowerCase() === "cluster_manager";
+  useEffect(() => {
+    fetchActiveStores().then(stores => {
+      if (stores && stores.length > 0) setAllLocations(stores);
+    });
+
+    const handleStoresUpdated = (e) => {
+      if (e.detail && Array.isArray(e.detail)) {
+        setAllLocations(e.detail);
+      }
+    };
+    window.addEventListener("rootfin-stores-updated", handleStoresUpdated);
+    return () => window.removeEventListener("rootfin-stores-updated", handleStoresUpdated);
+  }, []);
+
+  const userRole = (currentusers.role || "").toLowerCase();
+  const showAction = userRole === "super_admin" || userRole === "admin" || (currentusers.power || "").toLowerCase() === "admin";
+  const isClusterManager = userRole === "cluster_manager" || userRole === "cluster_admin";
   const clusterAllowedLocCodes = currentusers.allowedLocCodes || [];
 
-  // For cluster managers, filter AllLoation to only their allowed stores
+  // For cluster managers, filter allLocations to only their allowed stores
   const visibleLocations = isClusterManager
-    ? AllLoation.filter(s => clusterAllowedLocCodes.includes(s.locCode))
-    : AllLoation;
+    ? allLocations.filter(s => clusterAllowedLocCodes.includes(s.locCode))
+    : allLocations;
 
   const [selectedStore, setSelectedStore] = useState("current");
   const [allStoresSummary, setAllStoresSummary] = useState([]);

@@ -6,6 +6,7 @@ import baseUrl from "../api/api";
 import { Helmet } from "react-helmet";
 import { Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useSidebar } from "../hooks/useSidebar.js";
+import { fetchActiveStores, getActiveStores } from "../utils/storeService.js";
 
 // Function to format location names with proper spacing
 const formatLocationName = (name) => {
@@ -83,13 +84,30 @@ const AdminClose = () => {
   const officeAllowedLocCodes = ["858"];
 
   useEffect(() => {
-    const locs = fallbackLocations
-      .filter((loc) => !isOfficeUser || officeAllowedLocCodes.includes(loc.locCode))
-      .map((loc) => ({
-        ...loc,
-        label: formatLocationName(loc.value),
+    const loadStores = async () => {
+      const active = await fetchActiveStores();
+      const list = (active && active.length > 0) ? active : getActiveStores();
+      const locs = list.map((loc) => ({
+        value: loc.locName || loc.name,
+        locCode: loc.locCode,
+        label: formatLocationName(loc.locName || loc.name),
       }));
-    setAllLocations(locs);
+      setAllLocations(locs);
+    };
+    loadStores();
+
+    const handleStoresUpdated = (e) => {
+      if (e.detail && Array.isArray(e.detail)) {
+        const locs = e.detail.map((loc) => ({
+          value: loc.locName || loc.name,
+          locCode: loc.locCode,
+          label: formatLocationName(loc.locName || loc.name),
+        }));
+        setAllLocations(locs);
+      }
+    };
+    window.addEventListener("rootfin-stores-updated", handleStoresUpdated);
+    return () => window.removeEventListener("rootfin-stores-updated", handleStoresUpdated);
   }, []);
 
   // Load existing closing data when location and date are selected

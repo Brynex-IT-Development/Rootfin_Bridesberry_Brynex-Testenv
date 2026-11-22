@@ -88,7 +88,7 @@ const Login = () => {
     const trimmedEmpId = EmpId.trim();
 
     if (!trimmedEmail) {
-      setErrorMessage('Please enter your email or username');
+      setErrorMessage('Please enter your email address');
       return;
     }
     if (!trimmedEmpId) {
@@ -104,7 +104,11 @@ const Login = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email: trimmedEmail, EmpId: trimmedEmpId }),
+        body: JSON.stringify({ 
+          email: trimmedEmail, 
+          password: trimmedEmpId, 
+          EmpId: trimmedEmpId 
+        }),
       });
 
       const data = await response.json();
@@ -121,13 +125,6 @@ const Login = () => {
         }
 
         let userObj = { ...data.user };
-        if (userObj.power === 'admin') {
-          if (!['858', '155', '718'].includes(String(userObj.locCode))) {
-            userObj.locCode = '858';
-            userObj.username = 'Warehouse';
-            userObj.storeName = 'Warehouse';
-          }
-        }
 
         localStorage.setItem("rootfinuser", JSON.stringify(userObj));
         if (data.closureAuthToken) localStorage.setItem("rootfin_auth_token", data.closureAuthToken);
@@ -394,10 +391,10 @@ const Login = () => {
             {!isResetMode && (
               <form onSubmit={handleLoginSubmit} className="space-y-4">
                 
-                {/* Email / Username */}
+                {/* Email Address */}
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                    Email Address or Username
+                    Email Address
                   </label>
                   <div className={`relative flex items-center rounded-xl bg-slate-50 border transition-all duration-200 ${
                     isFocused.email 
@@ -408,10 +405,10 @@ const Login = () => {
                       <Mail className="w-4 h-4" />
                     </div>
                     <input
-                      type="text"
-                      autoComplete="username"
+                      type="email"
+                      autoComplete="email"
                       className="w-full py-2.5 px-3 bg-transparent text-sm text-slate-800 placeholder:text-slate-400 outline-none font-medium"
-                      placeholder="e.g. Emp411 or email@rootments.com"
+                      placeholder="e.g. yourname@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       onFocus={() => setIsFocused(prev => ({ ...prev, email: true }))}
@@ -450,7 +447,7 @@ const Login = () => {
                       type={showPassword ? "text" : "password"}
                       autoComplete="current-password"
                       className="w-full py-2.5 px-3 bg-transparent text-sm text-slate-800 placeholder:text-slate-400 outline-none font-medium pr-10"
-                      placeholder="••••••••••••"
+                      placeholder="Enter your password"
                       value={EmpId}
                       onChange={(e) => setEmpId(e.target.value)}
                       onFocus={() => setIsFocused(prev => ({ ...prev, pass: true }))}

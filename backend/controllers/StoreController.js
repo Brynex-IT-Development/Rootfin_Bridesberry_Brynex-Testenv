@@ -39,30 +39,9 @@ export const DISCARDED_NAME_PATTERNS = [
 
 export const isAllowedStore = (store) => {
   if (!store) return false;
+  if (store.isActive === false) return false;
   const code = (store.locCode || "").toString().trim();
-  const name = (store.name || store.locName || "").toLowerCase().trim();
-
-  // 1. Always keep Warehouse and BridesBerry
-  if (code === "858" || code === "103" || code === "155" || name.includes("warehouse") || name.includes("bridesberry") || name.includes("brides berry")) {
-    return true;
-  }
-
-  // 2. Block decommissioned old branches, MG Road, and non-warehouse stores
-  if (DISCARDED_LOC_CODES.has(code)) {
-    return false;
-  }
-  if (DISCARDED_NAME_PATTERNS.some(pat => 
-    name === pat || 
-    name === `g.${pat}` || 
-    name === `g-${pat}` || 
-    name === `sg-${pat}` ||
-    name === `z-${pat}`
-  )) {
-    return false;
-  }
-
-  // 3. Any newly created store added by user: ALLOW!
-  return true;
+  return Boolean(code);
 };
 
 // Create a new store
@@ -133,8 +112,8 @@ export const getStores = async (req, res) => {
     try {
       storeUsers = await User.find({
         locCode: { $exists: true, $ne: "" },
-        power: { $nin: ["admin", "superadmin"] }
-      }).select("username locCode email address phone").lean();
+        role: { $nin: ["super_admin", "admin", "financial_admin", "normal_user"] }
+      }).select("username storeName locCode email address phone").lean();
     } catch (e) {
       console.warn("Could not query User collection:", e.message);
     }

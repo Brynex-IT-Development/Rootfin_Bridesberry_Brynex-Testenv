@@ -14,18 +14,16 @@ export const STORE_OPTIONS = [
 
 export const isAllowedStoreNameOrCode = (locCode, locName) => {
   const code = (locCode || "").toString().trim();
-  const normalizedName = (locName || "").toLowerCase().replace(/[\s\-_.]+/g, "");
-  if (code) return code === "155" || code === "858";
-  return normalizedName === "bridesberry" || normalizedName === "warehouse";
+  const name = (locName || "").trim();
+  return Boolean(code || name);
 };
 
 export const saveCustomStore = (store) => {
   if (!store || !store.locCode) return;
   try {
     const code = store.locCode.toString().trim();
-    const requestedName = (store.locName || store.name || code).trim();
-    if (!code || !requestedName || !isAllowedStoreNameOrCode(code, requestedName)) return;
-    const name = code === "155" ? "Brides Berry" : "Warehouse";
+    const name = (store.locName || store.name || code).trim();
+    if (!code || !name) return;
 
     // 1. Read custom stores list
     const rawCustom = localStorage.getItem("rootfin_custom_stores");
@@ -98,7 +96,7 @@ export const getActiveStores = () => {
           const code = (s.locCode || "").toString().trim();
           const requestedName = (s.locName || s.name || code).trim();
           if (code && isAllowedStoreNameOrCode(code, requestedName)) {
-            const name = code === "155" ? "Brides Berry" : "Warehouse";
+            const name = requestedName;
             const entry = {
               locName: name,
               locCode: code,
@@ -183,7 +181,7 @@ export const fetchActiveStores = async () => {
           const code = (s.locCode || "").toString().trim();
           const requestedName = (s.locName || s.name || code).trim();
           if (code && isAllowedStoreNameOrCode(code, requestedName)) {
-            const name = code === "155" ? "Brides Berry" : "Warehouse";
+            const name = requestedName;
             storeMap.set(code, {
               locName: name,
               locCode: code,
@@ -251,7 +249,8 @@ export const fetchActiveStores = async () => {
         value: code,
         address: extra.address || "",
         phone: extra.phone || "",
-        email: extra.email || ""
+        email: extra.email || "",
+        gst: extra.gst || ""
       });
     } else {
       if (existing.locName === existing.locName.toUpperCase() && rawName !== rawName.toUpperCase()) {
@@ -259,6 +258,10 @@ export const fetchActiveStores = async () => {
         existing.name = rawName;
         existing.label = rawName;
       }
+      if (extra.address) existing.address = extra.address;
+      if (extra.phone) existing.phone = extra.phone;
+      if (extra.email) existing.email = extra.email;
+      if (extra.gst) existing.gst = extra.gst;
     }
   };
 

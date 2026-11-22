@@ -1,42 +1,69 @@
 import bcrypt from 'bcrypt';
 import User from '../model/UserModel.js';
+import Store from '../model/Store.js';
 import { createClosureAuthToken } from '../utils/closureAuth.js';
 
 export const SignUp = async (req, res) => {
     try {
-        const { username, email, password, locCode, address, phone, gst, power, role, allowedLocCodes } = req.body;
-        console.log(username, email, password, locCode, address, phone, gst, power);
+        const { username, email, password, locCode, address, phone, gst, role, allowedLocCodes, storeName } = req.body;
 
         if (!password) {
             return res.status(400).json({ message: "Password is required." });
         }
 
-        const existingUser = await User.findOne({ $or: [{ username }, { email }] });
+        if (!email) {
+            return res.status(400).json({ message: "Email is required." });
+        }
+
+        const normalizedEmail = email.trim().toLowerCase();
+        const isStoreAdmin = (role === 'store_admin' || role === 'store_manager');
+        const isCluster = (role === 'cluster_manager' || role === 'cluster_admin');
+
+        const finalUsername = (storeName && storeName.trim()) || (username && username.trim()) || normalizedEmail.split('@')[0];
+
+        const existingUser = await User.findOne({ $or: [{ username: finalUsername }, { email: normalizedEmail }] });
         if (existingUser) {
             return res.status(400).json({ message: 'Username or email already exists.' });
         }
-        const passWord = 'test';
 
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
         const newUser = new User({
-            username,
-            email,
-            power,
+            username: finalUsername,
+            email: normalizedEmail,
             password: hashedPassword,
-            locCode: locCode || '',
-            address: address || '',
+            locCode: isStoreAdmin && locCode ? locCode.trim() : '',
+            address: isStoreAdmin ? (address || '') : '',
             phone: phone || '',
-            gst: gst || '',
-            role: role || null,
-            allowedLocCodes: role === 'cluster_manager' ? (allowedLocCodes || []) : [],
+            gst: isStoreAdmin ? (gst || '') : '',
+            role: role || 'normal_user',
+            storeName: isStoreAdmin ? (storeName || finalUsername) : null,
+            allowedLocCodes: isCluster ? (allowedLocCodes || []) : [],
         });
 
         await newUser.save();
 
+        if (isStoreAdmin && locCode && locCode.trim()) {
+            await Store.findOneAndUpdate(
+                { locCode: locCode.trim() },
+                { 
+                    name: finalUsername, 
+                    locCode: locCode.trim(), 
+                    address: address || '', 
+                    phone: phone || '', 
+                    email: normalizedEmail,
+                    gst: gst || '',
+                    isActive: true,
+                    storeType: 'branch',
+                    manager: finalUsername
+                },
+                { upsert: true, new: true, setDefaultsOnInsert: true }
+            ).catch(err => console.warn("Could not upsert Store on SignUp:", err.message));
+        }
+
         res.status(201).json({
-            message: 'User created successfully, and mandatory training assigned.',
+            message: 'User created successfully.',
             user: newUser,
         });
     } catch (error) {
@@ -56,22 +83,33 @@ export const SignUp = async (req, res) => {
 
 export const Login = async (req, res) => {
     try {
-        const { email, EmpId: password } = req.body;
+        const { email, password, EmpId } = req.body;
+        const userPassword = password || EmpId;
 
-        // Check if user exists
-        const user = await User.findOne({ email });
+        if (!email || !userPassword) {
+            return res.status(400).json({ message: 'Email and password are required.' });
+        }
+
+        const cleanEmail = email.trim().toLowerCase();
+
+        // Check if user exists (case-insensitive email search or username)
+        const user = await User.findOne({
+            $or: [
+                { email: cleanEmail },
+                { email: { $regex: new RegExp(`^${cleanEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } },
+                { username: cleanEmail }
+            ]
+        });
+
         if (!user) {
             return res.status(400).json({ message: 'Invalid email or password.' });
         }
 
         // Verify password
-        const isMatch = await bcrypt.compare(password, user.password);
+        const isMatch = await bcrypt.compare(userPassword, user.password);
         if (!isMatch) {
             return res.status(400).json({ message: 'Invalid email or password.' });
         }
-
-        // Generate JWT token
-
 
         res.status(200).json({
             message: 'Login successful',
@@ -80,9 +118,8 @@ export const Login = async (req, res) => {
             user: {
                 email: user.email,
                 username: user.username,
-                power: user.power,
-                locCode: user.locCode,
-                role: user.role || null,
+                role: user.role || 'normal_user',
+                locCode: user.locCode || '',
                 storeName: user.storeName || user.username,
                 storeId: user.storeId,
                 allowedLocCodes: user.allowedLocCodes || [],
@@ -99,15 +136,43 @@ export const Login = async (req, res) => {
 
 export const GetAllStores = async (req, res) => {
     try {
-        const users = await User.find({}, { password: 0 }); // Exclude password from response
-        const stores = users.map(user => ({
-            locName: user.username,
-            locCode: user.locCode,
-        }));
-        
+        const stores = await Store.find({ isActive: { $ne: false } }).lean();
+        const storeUsers = await User.find({
+            $or: [
+                { role: { $in: ['store_admin', 'store_manager'] } },
+                { locCode: { $exists: true, $ne: '' }, role: { $nin: ['super_admin', 'admin', 'financial_admin', 'normal_user'] } }
+            ]
+        }, { password: 0 }).lean();
+
+        const combined = new Map();
+        stores.forEach(s => {
+            const code = (s.locCode || "").toString().trim();
+            if (code) {
+                combined.set(code, {
+                    locName: s.name || s.locName || code,
+                    locCode: code,
+                });
+            }
+        });
+        storeUsers.forEach(u => {
+            const code = (u.locCode || "").toString().trim();
+            if (code && !combined.has(code)) {
+                combined.set(code, {
+                    locName: u.storeName || u.username || code,
+                    locCode: code,
+                });
+            }
+        });
+
+        // Ensure defaults if not present
+        if (!combined.has("155")) combined.set("155", { locName: "Brides Berry", locCode: "155" });
+        if (!combined.has("858")) combined.set("858", { locName: "Warehouse", locCode: "858" });
+
+        const storeList = Array.from(combined.values()).sort((a, b) => a.locName.localeCompare(b.locName));
+
         res.status(200).json({
             message: 'Stores retrieved successfully',
-            stores: stores,
+            stores: storeList,
         });
     } catch (error) {
         console.error('GetAllStores Error:', error);
@@ -138,11 +203,11 @@ export const GetAllUsers = async (req, res) => {
 export const UpdateUser = async (req, res) => {
     try {
         const { id } = req.params;
-        const { username, email, locCode, address, phone, gst, power, password, role, allowedLocCodes } = req.body;
+        const { username, email, locCode, address, phone, gst, password, role, allowedLocCodes, storeName } = req.body;
 
         // Validate input
-        if (!username || !email) {
-            return res.status(400).json({ message: 'Username and email are required.' });
+        if (!email) {
+            return res.status(400).json({ message: 'Email is required.' });
         }
 
         // Find user
@@ -151,24 +216,46 @@ export const UpdateUser = async (req, res) => {
             return res.status(404).json({ message: 'User not found.' });
         }
 
+        const lowerEmail = email.trim().toLowerCase();
         // Check if email is being changed and if it's already taken by another user
-        if (email !== user.email) {
-            const existingUser = await User.findOne({ email, _id: { $ne: id } });
+        if (lowerEmail !== user.email) {
+            const existingUser = await User.findOne({ email: lowerEmail, _id: { $ne: id } });
             if (existingUser) {
                 return res.status(400).json({ message: 'Email already exists.' });
             }
         }
 
+        const effectiveRole = role || user.role || 'normal_user';
+        const isStoreAdmin = (effectiveRole === 'store_admin' || effectiveRole === 'store_manager');
+        const isCluster = (effectiveRole === 'cluster_manager' || effectiveRole === 'cluster_admin');
+        const finalUsername = (storeName && storeName.trim()) || (username && username.trim()) || lowerEmail.split('@')[0];
+
         // Update fields
-        user.username = username;
-        user.email = email;
-        user.locCode = locCode || '';
-        user.address = address || '';
+        user.username = finalUsername;
+        user.email = lowerEmail;
         user.phone = phone || '';
-        user.gst = gst || '';
-        user.power = power;
-        user.role = role || null;
-        user.allowedLocCodes = role === 'cluster_manager' ? (allowedLocCodes || []) : [];
+        user.role = effectiveRole;
+
+        if (isStoreAdmin) {
+            user.storeName = storeName || finalUsername;
+            user.locCode = locCode ? locCode.trim() : '';
+            user.address = address || '';
+            user.gst = gst || '';
+            user.allowedLocCodes = [];
+        } else if (isCluster) {
+            user.storeName = null;
+            user.locCode = '';
+            user.address = '';
+            user.gst = '';
+            user.allowedLocCodes = allowedLocCodes || [];
+        } else {
+            // super_admin, admin, financial_admin, normal_user
+            user.storeName = null;
+            user.locCode = '';
+            user.address = '';
+            user.gst = '';
+            user.allowedLocCodes = [];
+        }
 
         // Only update password if provided
         if (password && password.trim() !== '') {
@@ -178,17 +265,37 @@ export const UpdateUser = async (req, res) => {
 
         await user.save();
 
+        if (isStoreAdmin && locCode && locCode.trim()) {
+            await Store.findOneAndUpdate(
+                { locCode: locCode.trim() },
+                { 
+                    name: finalUsername, 
+                    locCode: locCode.trim(), 
+                    address: address || '', 
+                    phone: phone || '', 
+                    email: lowerEmail,
+                    gst: gst || '',
+                    isActive: true,
+                    storeType: 'branch',
+                    manager: finalUsername
+                },
+                { upsert: true, new: true, setDefaultsOnInsert: true }
+            ).catch(err => console.warn("Could not upsert Store on UpdateUser:", err.message));
+        }
+
         res.status(200).json({
             message: 'User updated successfully.',
             user: {
                 _id: user._id,
                 username: user.username,
                 email: user.email,
+                role: user.role,
+                storeName: user.storeName,
                 locCode: user.locCode,
                 address: user.address,
                 phone: user.phone,
                 gst: user.gst,
-                power: user.power,
+                allowedLocCodes: user.allowedLocCodes,
             },
         });
     } catch (error) {
@@ -207,6 +314,12 @@ export const DeleteUser = async (req, res) => {
         const user = await User.findById(id);
         if (!user) {
             return res.status(404).json({ message: 'User not found.' });
+        }
+        if (user.role === 'store_admin' && user.locCode) {
+            await Store.findOneAndUpdate(
+                { locCode: user.locCode },
+                { isActive: false }
+            ).catch(() => {});
         }
         await User.findByIdAndDelete(id);
         res.status(200).json({ message: 'User deleted successfully.' });
