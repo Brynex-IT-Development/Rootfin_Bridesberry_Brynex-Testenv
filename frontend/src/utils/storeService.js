@@ -206,46 +206,23 @@ export const fetchActiveStores = async () => {
     rawName = (rawName || "").trim();
     if (!code || !rawName) return;
 
-    // Normalizations for Warehouse
-    if (code === "858" || rawName.toLowerCase().includes("warehouse")) {
-      storeMap.set("858", {
-        locName: "Warehouse",
-        locCode: "858",
-        name: "Warehouse",
-        label: "Warehouse",
-        value: "858",
-        address: extra.address || "",
-        phone: extra.phone || "",
-        email: extra.email || ""
-      });
-      return;
-    }
-
-    // Normalizations for BridesBerry
-    if (code === "155" || rawName.toLowerCase().replace(/[\s\-_.]+/g, '') === "bridesberry") {
-      storeMap.set("155", {
-        locName: "Brides Berry",
-        locCode: "155",
-        name: "Brides Berry",
-        label: "Brides Berry",
-        value: "155",
-        address: extra.address || "",
-        phone: extra.phone || "",
-        email: extra.email || ""
-      });
-      return;
-    }
-
     if (!isAllowedStoreNameOrCode(code, rawName)) return;
+
+    let displayName = rawName;
+    if (code === "155" && rawName.toLowerCase().replace(/[\s\-_.]+/g, '') === "bridesberry") {
+      displayName = "Brides Berry";
+    } else if (code === "858" && rawName.toLowerCase().includes("warehouse")) {
+      displayName = "Warehouse";
+    }
 
     // If already exists, prefer cleaner casing (e.g. "Brides Berry" over "BRIDES BERRY")
     const existing = storeMap.get(code);
     if (!existing) {
       storeMap.set(code, {
-        locName: rawName,
+        locName: displayName,
         locCode: code,
-        name: rawName,
-        label: rawName,
+        name: displayName,
+        label: displayName,
         value: code,
         address: extra.address || "",
         phone: extra.phone || "",
@@ -253,10 +230,10 @@ export const fetchActiveStores = async () => {
         gst: extra.gst || ""
       });
     } else {
-      if (existing.locName === existing.locName.toUpperCase() && rawName !== rawName.toUpperCase()) {
-        existing.locName = rawName;
-        existing.name = rawName;
-        existing.label = rawName;
+      if (existing.locName === existing.locName.toUpperCase() && displayName !== displayName.toUpperCase()) {
+        existing.locName = displayName;
+        existing.name = displayName;
+        existing.label = displayName;
       }
       if (extra.address) existing.address = extra.address;
       if (extra.phone) existing.phone = extra.phone;
