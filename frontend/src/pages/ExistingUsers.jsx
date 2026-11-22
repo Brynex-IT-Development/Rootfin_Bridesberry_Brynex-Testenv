@@ -4,11 +4,12 @@ import { Users, Plus, ChevronRight, ChevronDown, ChevronLeft, Pencil, Trash2, Ma
 import baseUrl from "../api/api";
 import { useSidebar } from "../hooks/useSidebar.js";
 import { SYSTEM_ROLES, normalizeRole, getRoleLabel } from "../utils/roleUtils";
-import { fetchActiveStores, saveCustomStore } from "../utils/storeService";
+import { fetchActiveStores, saveCustomStore, removeCustomStore } from "../utils/storeService";
 
 const ROLE_GROUPS = [
     { key: "super_admin",     label: "SUPER ADMIN" },
     { key: "admin",           label: "ADMIN" },
+    { key: "warehouse_admin", label: "WAREHOUSE ADMIN" },
     { key: "financial_admin", label: "FINANCIAL ADMIN" },
     { key: "cluster_admin",   label: "CLUSTER ADMIN" },
     { key: "store_admin",     label: "STORE ADMIN" },
@@ -94,6 +95,7 @@ const ExistingUsers = () => {
             const role = normalizeRole(u.role);
             if (roleKey === "super_admin")     return role === "super_admin";
             if (roleKey === "admin")           return role === "admin";
+            if (roleKey === "warehouse_admin") return role === "warehouse_admin";
             if (roleKey === "financial_admin") return role === "financial_admin";
             if (roleKey === "cluster_admin")   return role === "cluster_admin";
             if (roleKey === "store_admin")     return role === "store_admin";
@@ -171,6 +173,12 @@ const ExistingUsers = () => {
             });
             const data = await response.json();
             if (response.ok) {
+                const oldLocCode = (selectedUser?.locCode || "").toString().trim();
+                const newLocCode = isStore ? editLocCode.trim() : "";
+                if (oldLocCode && oldLocCode !== newLocCode) {
+                    removeCustomStore(oldLocCode);
+                }
+
                 if (isStore && editLocCode.trim()) {
                     saveCustomStore({
                         locCode: editLocCode.trim(),
@@ -200,20 +208,28 @@ const ExistingUsers = () => {
     const handleDelete = async () => {
         try {
             setDeleteLoading(true);
-            const response = await fetch(`${baseUrl.baseUrl}user/deleteUser/${selectedUser._id}`, {
+            const userToDelete = selectedUser;
+            const response = await fetch(`${baseUrl.baseUrl}user/deleteUser/${userToDelete._id}`, {
                 method: "DELETE",
             });
             if (response.ok) {
+                const data = await response.json().catch(() => ({}));
+                const locCodeToRemove = data.deletedLocCode || userToDelete?.locCode;
+                if (locCodeToRemove) {
+                    removeCustomStore(locCodeToRemove);
+                }
                 alert("User deleted successfully!");
                 setShowDeleteModal(false);
                 setSelectedUser(null);
                 fetchStores();
+                await fetchActiveStores().catch(() => {});
             } else {
-                const data = await response.json();
+                const data = await response.json().catch(() => ({}));
                 alert(data.message || "Failed to delete user.");
             }
         } catch (err) {
-            alert("An error occurred.");
+            console.error("Delete user error:", err);
+            alert("An error occurred while deleting the user.");
         } finally {
             setDeleteLoading(false);
         }
@@ -495,6 +511,7 @@ const ExistingUsers = () => {
                                                 <option value="">Select Role</option>
                                                 <option value="super_admin">Super Admin</option>
                                                 <option value="admin">Admin</option>
+                                                <option value="warehouse_admin">Warehouse Admin</option>
                                                 <option value="financial_admin">Financial Admin</option>
                                                 <option value="cluster_admin">Cluster Admin</option>
                                                 <option value="store_admin">Store Admin</option>
@@ -585,6 +602,7 @@ const ExistingUsers = () => {
                                                 <option value="">Select Role</option>
                                                 <option value="super_admin">Super Admin</option>
                                                 <option value="admin">Admin</option>
+                                                <option value="warehouse_admin">Warehouse Admin</option>
                                                 <option value="financial_admin">Financial Admin</option>
                                                 <option value="cluster_admin">Cluster Admin</option>
                                                 <option value="store_admin">Store Admin</option>
@@ -699,6 +717,7 @@ const ExistingUsers = () => {
                                                 <option value="">Select Role</option>
                                                 <option value="super_admin">Super Admin</option>
                                                 <option value="admin">Admin</option>
+                                                <option value="warehouse_admin">Warehouse Admin</option>
                                                 <option value="financial_admin">Financial Admin</option>
                                                 <option value="cluster_admin">Cluster Admin</option>
                                                 <option value="store_admin">Store Admin</option>

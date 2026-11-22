@@ -174,6 +174,7 @@ export const getDefaultPermissionsForRole = (role) => {
                 manageUsers: fullModule("manage_users")
             };
 
+        case "warehouse_admin":
         case "admin":
             return {
                 daybook: standaloneEnabled("/"),
@@ -304,7 +305,7 @@ export const getDefaultPermissionsForRole = (role) => {
     }
 };
 
-const STANDARD_ROLES = ["super_admin", "admin", "financial_admin", "cluster_admin", "store_admin", "normal_user"];
+const STANDARD_ROLES = ["super_admin", "admin", "warehouse_admin", "financial_admin", "cluster_admin", "store_admin", "normal_user"];
 
 // GET /api/permissions
 export const GetAllRolePermissions = async (req, res) => {

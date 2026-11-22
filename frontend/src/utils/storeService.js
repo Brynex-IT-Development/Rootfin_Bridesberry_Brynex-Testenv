@@ -73,6 +73,46 @@ export const saveCustomStore = (store) => {
   }
 };
 
+export const removeCustomStore = (locCode) => {
+  if (!locCode) return;
+  const code = locCode.toString().trim();
+  if (code === "858" || code === "155") return; // Never remove default system stores
+
+  try {
+    // 1. Remove from rootfin_custom_stores
+    const rawCustom = localStorage.getItem("rootfin_custom_stores");
+    if (rawCustom) {
+      try {
+        const customList = JSON.parse(rawCustom) || [];
+        const filteredCustom = customList.filter(s => (s.locCode || "").toString().trim() !== code);
+        localStorage.setItem("rootfin_custom_stores", JSON.stringify(filteredCustom));
+      } catch (e) {
+        localStorage.removeItem("rootfin_custom_stores");
+      }
+    }
+
+    // 2. Remove from rootfin_active_stores
+    const rawActive = localStorage.getItem("rootfin_active_stores");
+    if (rawActive) {
+      try {
+        const activeList = JSON.parse(rawActive) || [];
+        const filteredActive = activeList.filter(s => (s.locCode || "").toString().trim() !== code);
+        localStorage.setItem("rootfin_active_stores", JSON.stringify(filteredActive));
+      } catch (e) {
+        localStorage.removeItem("rootfin_active_stores");
+      }
+    }
+
+    // 3. Rebuild active stores and dispatch update event
+    const updated = getActiveStores().filter(s => (s.locCode || "").toString().trim() !== code);
+    localStorage.setItem("rootfin_active_stores", JSON.stringify(updated));
+    window.dispatchEvent(new CustomEvent("rootfin-stores-updated", { detail: updated }));
+    return updated;
+  } catch (err) {
+    console.error("Error removing custom store:", err);
+  }
+};
+
 export const getActiveStores = () => {
   const storeMap = new Map();
 
@@ -271,6 +311,53 @@ export const fetchActiveStores = async () => {
           processStore(u.locCode, u.username, u);
         }
       });
+    }
+
+    // Prune deleted stores: If backend responded with valid store data, prune any cached custom store
+    // that no longer exists on backend (except default system stores 155 and 858)
+    const backendSucceeded = (storesRes.status === "fulfilled" && storesRes.value) || 
+                             (userStoresRes.status === "fulfilled" && userStoresRes.value) ||
+                             (allUsersRes.status === "fulfilled" && allUsersRes.value);
+
+    if (backendSucceeded) {
+      const liveLocCodes = new Set(["155", "858"]);
+      if (storesRes.status === "fulfilled" && Array.isArray(storesRes.value?.stores)) {
+        storesRes.value.stores.forEach(s => {
+          if (s.locCode) liveLocCodes.add(s.locCode.toString().trim());
+        });
+      }
+      if (userStoresRes.status === "fulfilled" && Array.isArray(userStoresRes.value?.stores)) {
+        userStoresRes.value.stores.forEach(s => {
+          if (s.locCode) liveLocCodes.add(s.locCode.toString().trim());
+        });
+      }
+      if (allUsersRes.status === "fulfilled" && Array.isArray(allUsersRes.value?.users)) {
+        allUsersRes.value.users.forEach(u => {
+          if (u.locCode) liveLocCodes.add(u.locCode.toString().trim());
+        });
+      }
+
+      // Remove any store from storeMap that was deleted from backend
+      for (const [code] of storeMap.entries()) {
+        if (!liveLocCodes.has(code)) {
+          storeMap.delete(code);
+        }
+      }
+
+      // Synchronize rootfin_custom_stores in localStorage
+      try {
+        const rawCustom = localStorage.getItem("rootfin_custom_stores");
+        if (rawCustom) {
+          const parsed = JSON.parse(rawCustom);
+          if (Array.isArray(parsed)) {
+            const pruned = parsed.filter(s => {
+              const c = (s.locCode || "").toString().trim();
+              return liveLocCodes.has(c);
+            });
+            localStorage.setItem("rootfin_custom_stores", JSON.stringify(pruned));
+          }
+        }
+      } catch (e) {}
     }
 
     const sorted = Array.from(storeMap.values()).sort((a, b) => 

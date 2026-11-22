@@ -68,7 +68,7 @@ const Header = (prop) => {
             const storedUser = JSON.parse(localStorage.getItem("rootfinuser"));
             if (storedUser) {
                 const role = (storedUser.role || '').toLowerCase();
-                const isGlobal = role === 'super_admin' || role === 'admin' || role === 'financial_admin';
+                const isGlobal = role === 'super_admin' || role === 'admin' || role === 'warehouse_admin' || role === 'financial_admin';
                 const isCluster = role.includes('cluster');
 
                 // For regular store users: keep their assigned store
@@ -82,11 +82,15 @@ const Header = (prop) => {
                 const foundLoc = locations.find(loc => loc.locCode === storedUser.locCode);
                 const activeLoc = foundLoc || locations.find(loc => loc.locCode === "858") || locations[0];
                 if (activeLoc) {
+                    const actualUsername = (storedUser.username && storedUser.username !== "Warehouse" && storedUser.username !== "SuitorGuy MG Road" && storedUser.username !== "Brides Berry") 
+                        ? storedUser.username 
+                        : (storedUser.name || "Brynex Admin");
+
                     const updatedUser = {
                         ...storedUser,
                         locCode: activeLoc.locCode,
                         storeName: activeLoc.locName,
-                        username: activeLoc.locName
+                        username: actualUsername
                     };
                     if (!foundLoc && locations.length > 0 && storedUser.locCode !== activeLoc.locCode) {
                         try {

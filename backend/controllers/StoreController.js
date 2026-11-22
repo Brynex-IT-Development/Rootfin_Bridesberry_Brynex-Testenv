@@ -41,6 +41,9 @@ export const isAllowedStore = (store) => {
   if (!store) return false;
   if (store.isActive === false) return false;
   const code = (store.locCode || "").toString().trim();
+  const name = (store.name || store.locName || "").toLowerCase().trim();
+  if (DISCARDED_LOC_CODES.has(code)) return false;
+  if (DISCARDED_NAME_PATTERNS.some(p => name.includes(p))) return false;
   return Boolean(code);
 };
 
@@ -98,6 +101,8 @@ export const getStores = async (req, res) => {
     const filter = {};
     if (isActive !== undefined) {
       filter.isActive = isActive === 'true';
+    } else {
+      filter.isActive = { $ne: false };
     }
     
     let dbStores = [];
@@ -112,7 +117,7 @@ export const getStores = async (req, res) => {
     try {
       storeUsers = await User.find({
         locCode: { $exists: true, $ne: "" },
-        role: { $nin: ["super_admin", "admin", "financial_admin", "normal_user"] }
+        role: { $nin: ["super_admin", "admin", "warehouse_admin", "financial_admin", "normal_user"] }
       }).select("username storeName locCode email address phone").lean();
     } catch (e) {
       console.warn("Could not query User collection:", e.message);
@@ -127,6 +132,7 @@ export const getStores = async (req, res) => {
 
     // 2. Add stores from Store collection
     for (const s of dbStores) {
+      if (s.isActive === false) continue;
       const code = (s.locCode || "").toString().trim();
       if (code) {
         combinedMap.set(code, {
@@ -266,7 +272,7 @@ export const updateStore = async (req, res) => {
   }
 };
 
-// Delete store (soft delete by setting isActive to false)
+// Delete store
 export const deleteStore = async (req, res) => {
   try {
     const { id } = req.params;
@@ -275,14 +281,21 @@ export const deleteStore = async (req, res) => {
       return res.status(400).json({ message: "Invalid store ID" });
     }
     
-    const store = await Store.findByIdAndUpdate(id, { isActive: false }, { new: true });
-    
+    const store = await Store.findById(id);
     if (!store) {
       return res.status(404).json({ message: "Store not found" });
     }
+
+    const code = (store.locCode || "").toString().trim();
+    if (code === "858" || code === "155") {
+      return res.status(400).json({ message: "Default system stores cannot be deleted." });
+    }
+
+    await Store.findByIdAndDelete(id);
     
     res.status(200).json({
       message: "Store deleted successfully",
+      deletedLocCode: code
     });
   } catch (error) {
     console.error("Delete store error:", error);

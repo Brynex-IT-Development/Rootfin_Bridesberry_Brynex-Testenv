@@ -248,6 +248,7 @@ const AddNewUser = () => {
                                                 <option value="">Select Role</option>
                                                 <option value="super_admin">Super Admin</option>
                                                 <option value="admin">Admin</option>
+                                                <option value="warehouse_admin">Warehouse Admin</option>
                                                 <option value="financial_admin">Financial Admin</option>
                                                 <option value="cluster_admin">Cluster Admin</option>
                                                 <option value="store_admin">Store Admin</option>
@@ -372,6 +373,7 @@ const AddNewUser = () => {
                                             <option value="">Select Role</option>
                                             <option value="super_admin">Super Admin</option>
                                             <option value="admin">Admin</option>
+                                            <option value="warehouse_admin">Warehouse Admin</option>
                                             <option value="financial_admin">Financial Admin</option>
                                             <option value="cluster_admin">Cluster Admin</option>
                                             <option value="store_admin">Store Admin</option>

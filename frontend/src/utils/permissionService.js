@@ -175,6 +175,7 @@ export const getDefaultPermissionsForRole = (role) => {
                 manageUsers: fullModule("manage_users")
             };
 
+        case "warehouse_admin":
         case "admin":
             return {
                 daybook: standaloneEnabled("/"),

@@ -56,6 +56,7 @@ const Nav = () => {
     // Main system administrator - ALWAYS full admin access
     const isAdmin = 
         userRole === 'admin' || 
+        userRole === 'warehouse_admin' ||
         userRole === 'super_admin' || 
         userRole === 'superadmin' ||
         adminEmails.includes(userEmail);
@@ -133,7 +134,8 @@ const Nav = () => {
         }
     };
 
-    const userDisplayName = currentuser?.name || currentuser?.username || (isAdmin ? "Admin" : "User");
+    const isLocationName = currentuser?.username === "Warehouse" || currentuser?.username === "SuitorGuy MG Road" || currentuser?.username === "Brides Berry";
+    const userDisplayName = (!isLocationName && currentuser?.username) || currentuser?.name || (isAdmin ? "Brynex Admin" : "User");
     const userEmailDisplay = currentuser?.email || "admin@gmail.com";
     const getUserRoleTitle = () => {
         if (isSuperAdmin(currentuser)) return "Super Administrator";

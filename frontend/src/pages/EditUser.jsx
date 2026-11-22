@@ -5,7 +5,7 @@ import Header from "../components/Header";
 import baseUrl from "../api/api";
 import useSidebar from "../hooks/useSidebar";
 import { normalizeRole } from "../utils/roleUtils";
-import { fetchActiveStores, saveCustomStore } from "../utils/storeService";
+import { fetchActiveStores, saveCustomStore, removeCustomStore } from "../utils/storeService";
 
 const EditUser = () => {
     const isSidebarOpen = useSidebar();
@@ -120,6 +120,12 @@ const EditUser = () => {
             const data = await response.json();
 
             if (response.ok) {
+                const oldLocCode = (storeFromState?.locCode || "").toString().trim();
+                const newLocCode = isStore ? locCode.trim() : "";
+                if (oldLocCode && oldLocCode !== newLocCode) {
+                    removeCustomStore(oldLocCode);
+                }
+
                 if (isStore && locCode.trim()) {
                     saveCustomStore({
                         locCode: locCode.trim(),
@@ -181,6 +187,7 @@ const EditUser = () => {
                                 <option value="">Select Role</option>
                                 <option value="super_admin">Super Admin</option>
                                 <option value="admin">Admin</option>
+                                <option value="warehouse_admin">Warehouse Admin</option>
                                 <option value="financial_admin">Financial Admin</option>
                                 <option value="cluster_admin">Cluster Admin</option>
                                 <option value="store_admin">Store Admin</option>

@@ -1,6 +1,7 @@
 export const SYSTEM_ROLES = [
     { key: "super_admin",     label: "Super Admin",      legacyKeys: ["superadmin", "super_admin", "super admin"] },
     { key: "admin",           label: "Admin",            legacyKeys: ["admin"] },
+    { key: "warehouse_admin", label: "Warehouse Admin",  legacyKeys: ["warehouse_admin", "warehouse admin", "warehouseadmin"] },
     { key: "financial_admin", label: "Financial Admin",  legacyKeys: ["financial_head", "financial_admin", "financial admin"] },
     { key: "cluster_admin",   label: "Cluster Admin",    legacyKeys: ["cluster_manager", "cluster_admin", "cluster admin"] },
     { key: "store_admin",     label: "Store Admin",      legacyKeys: ["store_manager", "store_admin", "store admin"] },
@@ -13,6 +14,7 @@ export const normalizeRole = (role) => {
 
     if (cleaned === "superadmin" || cleaned === "super_admin") return "super_admin";
     if (cleaned === "admin") return "admin";
+    if (cleaned === "warehouseadmin" || cleaned === "warehouse_admin") return "warehouse_admin";
     if (cleaned === "financial_head" || cleaned === "financial_admin") return "financial_admin";
     if (cleaned === "cluster_manager" || cleaned === "cluster_admin") return "cluster_admin";
     if (cleaned === "store_manager" || cleaned === "store_admin") return "store_admin";
@@ -37,7 +39,12 @@ export const isSuperAdmin = (user) => {
 export const isAdmin = (user) => {
     if (!user) return false;
     const role = normalizeRole(user.role);
-    return role === "super_admin" || role === "admin";
+    return role === "super_admin" || role === "admin" || role === "warehouse_admin";
+};
+
+export const isWarehouseAdmin = (user) => {
+    if (!user) return false;
+    return normalizeRole(user.role) === "warehouse_admin";
 };
 
 export const isClusterAdmin = (user) => {
