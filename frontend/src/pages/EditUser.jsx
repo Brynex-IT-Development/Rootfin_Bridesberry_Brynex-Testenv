@@ -4,7 +4,6 @@ import { useParams, useLocation, useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import baseUrl from "../api/api";
 import useSidebar from "../hooks/useSidebar";
-import { normalizeRole } from "../utils/roleUtils";
 
 const EditUser = () => {
   const isSidebarOpen = useSidebar();
@@ -20,6 +19,7 @@ const EditUser = () => {
     const [address, setAddress] = useState("");
     const [phone, setPhone] = useState("");
     const [gst, setGst] = useState("");
+    const [power, setPower] = useState("normal");
     const [role, setRole] = useState("");
     const [allowedLocCodes, setAllowedLocCodes] = useState([]);
     const [showPassword, setShowPassword] = useState(false);
@@ -33,7 +33,8 @@ const EditUser = () => {
             setAddress(storeFromState.address || "");
             setPhone(storeFromState.phone || "");
             setGst(storeFromState.gst || "");
-            setRole(normalizeRole(storeFromState.role) || "");
+            setPower(storeFromState.power);
+            setRole(storeFromState.role || "");
             setAllowedLocCodes(storeFromState.allowedLocCodes || []);
         }
     }, [storeFromState]);
@@ -59,8 +60,9 @@ const EditUser = () => {
             address,
             phone,
             gst,
+            power,
             role: role || undefined,
-            allowedLocCodes: (role === "cluster_manager" || role === "cluster_admin") ? allowedLocCodes : [],
+            allowedLocCodes: role === "cluster_manager" ? allowedLocCodes : [],
         };
 
         if (password) {
@@ -213,6 +215,21 @@ const EditUser = () => {
 
                         <div>
                             <label className="block mb-2 font-semibold text-gray-700">
+                                User Type *
+                            </label>
+                            <select
+                                value={power}
+                                onChange={(e) => setPower(e.target.value)}
+                                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#016E5B] focus:border-none outline-none"
+                                required
+                            >
+                                <option value="normal">Normal</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block mb-2 font-semibold text-gray-700">
                                 Role
                             </label>
                             <select
@@ -220,17 +237,17 @@ const EditUser = () => {
                                 onChange={(e) => { setRole(e.target.value); setAllowedLocCodes([]); }}
                                 className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#016E5B] focus:border-none outline-none"
                             >
-                                <option value="">— Select Role —</option>
-                                <option value="super_admin">Super Admin</option>
+                                <option value="">— None —</option>
+                                <option value="store_user">Store User</option>
+                                <option value="store_manager">Store Manager</option>
+                                <option value="cluster_manager">Cluster Manager</option>
+                                <option value="financial_head">Financial Head</option>
                                 <option value="admin">Admin</option>
-                                <option value="financial_admin">Financial Admin</option>
-                                <option value="cluster_admin">Cluster Admin</option>
-                                <option value="store_admin">Store Admin</option>
-                                <option value="normal_user">Normal User</option>
+                                <option value="superadmin">Super Admin</option>
                             </select>
                         </div>
 
-                        {(role === "cluster_admin" || role === "cluster_manager") && (
+                        {role === "cluster_manager" && (
                             <div>
                                 <label className="block mb-2 font-semibold text-gray-700">
                                     Allowed Stores (Loc Codes)

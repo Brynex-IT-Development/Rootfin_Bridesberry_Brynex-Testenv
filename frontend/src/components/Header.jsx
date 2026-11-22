@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from "react";
-import { Bell, MapPin, ChevronDown, Check } from "lucide-react";
+import { IoPersonCircleOutline } from "react-icons/io5";
 import Rootments from '../assets/Rootments.jpg';
+import { useState, useEffect } from "react";
 import baseUrl from '../api/api';
 import { getActiveStores, fetchActiveStores } from "../utils/storeService.js";
 
@@ -32,24 +32,8 @@ const Header = (prop) => {
 
     const [Value, setValue] = useState({ locCode: '', locName: '' });
 
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const dropdownRef = useRef(null);
+    const [logOut, setlogOut] = useState(false);
     const [selectedValue, setSelectedValue] = useState("");
-
-    // Close dropdown on outside click
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-                setIsDropdownOpen(false);
-            }
-        };
-        if (isDropdownOpen) {
-            document.addEventListener("mousedown", handleClickOutside);
-        }
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, [isDropdownOpen]);
     
     // Initialize currentUser from localStorage immediately to prevent blank display
     const getInitialUser = () => {
@@ -147,23 +131,36 @@ const Header = (prop) => {
         };
     }, [AllLoation]);
 
-    const handleSelectLocation = (selectedCode, selectedName) => {
-        setSelectedValue(selectedCode);
-        setValue({
-            locCode: selectedCode,
-            locName: selectedName,
-        });
+    const handleChange = (e) => {
+        const selectedCode = e.target.value;
+        const selectedItem = AllLoation.find(item => item.locCode === selectedCode);
+        if (selectedItem) {
+            setSelectedValue(selectedItem.locCode);
+            setValue({
+                locCode: selectedItem.locCode,
+                locName: selectedItem.locName,
+            });
 
-        const updatedUser = {
-            ...currentUser,
-            locCode: selectedCode,
-            username: selectedName,
-        };
+            const updatedUser = {
+                ...currentUser,
+                locCode: selectedItem.locCode,
+                username: selectedItem.locName,
+            };
 
-        localStorage.setItem("rootfinuser", JSON.stringify(updatedUser));
-        setCurrentUser(updatedUser);
-        setIsDropdownOpen(false);
-        window.location.reload();
+            localStorage.setItem("rootfinuser", JSON.stringify(updatedUser));
+            setCurrentUser(updatedUser);
+            window.location.reload()
+        }
+    };
+
+    const HanndleRemove = () => {
+        try {
+            localStorage.removeItem("rootfinuser");
+            localStorage.removeItem("rootfin_auth_token");
+            window.location.reload();
+        } catch (error) {
+            console.error("Logout error:", error);
+        }
     };
 
     // Get display name with fallback to localStorage
@@ -185,84 +182,65 @@ const Header = (prop) => {
 
     const displayName = getDisplayName();
 
-    const canSwitchLocation = 
-        currentUser?.power === 'admin' || 
-        currentUser?.power === 'superadmin' || 
-        currentUser?.power === 'super_admin' || 
-        (currentUser?.role || '').toLowerCase().includes('admin') || 
-        (currentUser?.role || '').toLowerCase().includes('cluster') ||
-        (currentUser?.allowedLocCodes && currentUser.allowedLocCodes.length > 1);
-
-    const selectableLocations = (currentUser?.power === 'admin' || (currentUser?.role || '').toLowerCase().includes('admin'))
-        ? AllLoation
-        : AllLoation.filter(item => (currentUser?.allowedLocCodes || []).includes(item.locCode));
-
     return (
-        <nav className="bg-white border-b border-gray-200 shadow-xs relative z-40">
-            <div className="max-w-full pl-14 md:pl-16 pr-6 py-3 flex items-center justify-between mx-auto">
+        <nav className="bg-white border-b border-gray-200 shadow-sm">
+            <div className="max-w-full pl-14 md:pl-16 pr-6 py-3.5 flex flex-wrap items-center justify-between mx-auto">
                 <div className="flex items-center gap-3">
                     {prop.title && (
                         <h1 className="text-xl font-bold text-gray-800">{prop.title}</h1>
                     )}
                 </div>
 
-                {/* Right corner: Notification Bell + Store Selection Dropdown Pill */}
-                <div className="flex items-center gap-4 relative" ref={dropdownRef}>
-                    {/* Notification Bell */}
-                    <div className="relative text-gray-500 hover:text-gray-700 cursor-pointer p-1 transition-colors" title="Notifications">
-                        <Bell size={20} className="text-gray-600" />
-                        <span className="absolute -top-1 -right-1 bg-[#ef4444] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center leading-none">
-                            3
-                        </span>
-                    </div>
-
-                    {/* Store Selection Pill */}
-                    <div className="relative">
-                        <button
-                            type="button"
-                            onClick={() => canSwitchLocation && setIsDropdownOpen(prev => !prev)}
-                            className={`flex items-center gap-2 px-3.5 py-1.5 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 shadow-xs transition-all ${
-                                canSwitchLocation ? 'cursor-pointer hover:border-gray-300 hover:bg-gray-50' : 'cursor-default'
-                            }`}
-                        >
-                            <MapPin size={16} className="text-gray-500 shrink-0" />
-                            <span className="whitespace-nowrap font-medium text-gray-800">
-                                {formatLocationName(displayName) || "Warehouse"}
-                            </span>
-                            {canSwitchLocation && (
-                                <ChevronDown size={15} className={`text-gray-400 shrink-0 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
-                            )}
-                        </button>
-
-                        {/* Dropdown Menu */}
-                        {isDropdownOpen && canSwitchLocation && (
-                            <div className="absolute right-0 top-full mt-2 w-64 bg-white border border-gray-100 rounded-xl shadow-xl py-1.5 z-50 max-h-80 overflow-y-auto">
-                                <div className="px-3 py-1.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wider border-b border-gray-100 mb-1">
-                                    Switch Location
-                                </div>
-                                {selectableLocations.map((item) => {
-                                    const isSelected = selectedValue === item.locCode;
-                                    return (
-                                        <button
-                                            key={item.locCode}
-                                            type="button"
-                                            onClick={() => handleSelectLocation(item.locCode, item.locName)}
-                                            className={`w-full flex items-center justify-between px-3.5 py-2 text-sm text-left transition-colors cursor-pointer ${
-                                                isSelected 
-                                                    ? "bg-purple-50 text-purple-700 font-semibold" 
-                                                    : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-                                            }`}
-                                        >
-                                            <span className="truncate">{formatLocationName(item.locName)}</span>
-                                            {isSelected && <Check size={16} className="text-purple-600 shrink-0 ml-2" />}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        )}
+                <div
+                    onClick={() => setlogOut((prev) => !prev)}
+                    className="hidden cursor-pointer w-full md:block md:w-auto"
+                    id="navbar-multi-level"
+                >
+                    <div className="flex items-center gap-4">
+                        <div className="text-right">
+                            <p className="text-xs text-gray-500">Location: {formatLocationName(displayName)}</p>
+                        </div>
+                        <IoPersonCircleOutline className="text-4xl text-green-600" />
                     </div>
                 </div>
             </div>
+
+            {logOut && (
+                <div className="flex flex-col items-stretch w-64 rounded-lg shadow-lg bg-white absolute right-5 top-16 p-4 space-y-3 border border-gray-100 z-50">
+                    <div className="pb-3 border-b border-gray-200">
+                        <p className="text-xs text-gray-500 mb-1">Current Location</p>
+                        <p className="text-sm font-semibold text-gray-800">{formatLocationName(displayName)}</p>
+                    </div>
+                    
+                    {(currentUser.power === 'admin' || (currentUser.role || '').toLowerCase() === 'cluster_manager') && (
+                        <div className="space-y-2">
+                            <label className="block text-xs font-semibold text-gray-600">Switch Location</label>
+                            <select
+                                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-gray-700 bg-white hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm transition-colors"
+                                value={selectedValue}
+                                onChange={handleChange}
+                            >
+                                <option value="">-- Select a location --</option>
+                                {(currentUser.power === 'admin'
+                                    ? AllLoation
+                                    : AllLoation.filter(item => (currentUser.allowedLocCodes || []).includes(item.locCode))
+                                ).map((item) => (
+                                    <option key={item.locCode} value={item.locCode}>
+                                        {formatLocationName(item.locName)}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
+                    
+                    <button
+                        className="w-full px-3 py-2.5 bg-red-500 text-white rounded-lg hover:bg-red-600 cursor-pointer font-medium text-sm transition-colors"
+                        onClick={HanndleRemove}
+                    >
+                        Logout
+                    </button>
+                </div>
+            )}
         </nav>
     );
 };

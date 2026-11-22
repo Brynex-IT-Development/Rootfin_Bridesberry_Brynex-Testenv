@@ -3,15 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { Users, Plus, ChevronRight, ChevronDown, ChevronLeft, Pencil, Trash2, Mail, Phone, MapPin, ShieldCheck, Eye } from "lucide-react";
 import baseUrl from "../api/api";
 import { useSidebar } from "../hooks/useSidebar.js";
-import { SYSTEM_ROLES, normalizeRole, getRoleLabel } from "../utils/roleUtils";
 
 const ROLE_GROUPS = [
-    { key: "super_admin",     label: "SUPER ADMIN" },
     { key: "admin",           label: "ADMIN" },
-    { key: "financial_admin", label: "FINANCIAL ADMIN" },
-    { key: "cluster_admin",   label: "CLUSTER ADMIN" },
-    { key: "store_admin",     label: "STORE ADMIN" },
-    { key: "normal_user",     label: "NORMAL USER" },
+    { key: "store_manager",   label: "STORE MANAGER" },
+    { key: "cluster_manager", label: "CLUSTER MANAGER" },
+    { key: "financial_head", label: "FINANCIAL HEAD" },
+    { key: "store_user",      label: "STORE USER" },
+    { key: "superadmin",      label: "SUPER ADMIN" },
 ];
 
 const availableStores = [
@@ -42,6 +41,7 @@ const ExistingUsers = () => {
     const [editGst, setEditGst] = useState("");
     const [editLocCode, setEditLocCode] = useState("");
     const [editAddress, setEditAddress] = useState("");
+    const [editPower, setEditPower] = useState("normal");
     const [editRole, setEditRole] = useState("");
     const [editAllowedLocCodes, setEditAllowedLocCodes] = useState([]);
     const [editLoading, setEditLoading] = useState(false);
@@ -76,13 +76,16 @@ const ExistingUsers = () => {
 
     const getUsersForRole = (roleKey) => {
         return stores.filter(u => {
-            const role = normalizeRole(u.role);
-            if (roleKey === "super_admin")     return role === "super_admin";
-            if (roleKey === "admin")           return role === "admin";
-            if (roleKey === "financial_admin") return role === "financial_admin";
-            if (roleKey === "cluster_admin")   return role === "cluster_admin";
-            if (roleKey === "store_admin")     return role === "store_admin";
-            if (roleKey === "normal_user")     return role === "normal_user" || !u.role;
+            const role = (u.role || "").toLowerCase().trim();
+            const power = (u.power || "").toLowerCase().trim();
+
+            if (roleKey === "admin")           return (power === "admin" || role === "admin") && role !== "superadmin" && role !== "cluster_manager" && role !== "store_manager";
+            if (roleKey === "superadmin")      return role === "superadmin";
+            if (roleKey === "cluster_manager") return role === "cluster_manager";
+            if (roleKey === "financial_head") return role === "financial_head";
+            if (roleKey === "store_manager")   return role === "store_manager";
+            // store_user: everything else (null role, normal power)
+            if (roleKey === "store_user")      return !role && power === "normal";
             return false;
         });
     };
@@ -95,12 +98,12 @@ const ExistingUsers = () => {
         setEditGst(user.gst || "");
         setEditLocCode(user.locCode || "");
         setEditAddress(user.address || "");
-        setEditRole(normalizeRole(user.role) || "");
+        setEditPower(user.power);
+        setEditRole(user.role || "");
         setEditAllowedLocCodes(user.allowedLocCodes || []);
         const taken = new Set();
         stores.forEach(u => {
-            const r = normalizeRole(u.role);
-            if (u._id !== user._id && r === "cluster_admin") {
+            if (u._id !== user._id && (u.role || "").toLowerCase() === "cluster_manager") {
                 (u.allowedLocCodes || []).forEach(c => taken.add(c));
             }
         });
@@ -123,8 +126,9 @@ const ExistingUsers = () => {
                 gst: editGst,
                 locCode: editLocCode,
                 address: editAddress,
+                power: editPower,
                 role: editRole || undefined,
-                allowedLocCodes: (editRole === "cluster_manager" || editRole === "cluster_admin") ? editAllowedLocCodes : [],
+                allowedLocCodes: editRole === "cluster_manager" ? editAllowedLocCodes : [],
             };
             const response = await fetch(`${baseUrl.baseUrl}user/updateUser/${selectedUser._id}`, {
                 method: "PUT",
@@ -198,8 +202,8 @@ const ExistingUsers = () => {
             <div className="p-6">
                 <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                     {/* Table Header */}
-                    <div className="grid grid-cols-[2.5fr_2fr_3fr_2fr_1fr] bg-[#f1f5fb] border-b border-gray-200 px-6 py-3">
-                        {["ROLE", "USER", "EMAIL", "PHONE", "ACTION"].map(h => (
+                    <div className="grid grid-cols-[2fr_2fr_3fr_2fr_1.5fr_1.5fr] bg-[#f1f5fb] border-b border-gray-200 px-6 py-3">
+                        {["ROLE", "USER", "EMAIL", "PHONE", "USER TYPE", "ACTION"].map(h => (
                             <div key={h} className="text-xs font-bold text-gray-500 uppercase tracking-widest">{h}</div>
                         ))}
                     </div>
@@ -216,9 +220,9 @@ const ExistingUsers = () => {
                                     {/* Group Header Row */}
                                     <div
                                         onClick={() => toggleGroup(key)}
-                                        className="grid grid-cols-[2.5fr_2fr_3fr_2fr_1fr] px-6 py-4 cursor-pointer hover:bg-gray-50 transition-colors items-center"
+                                        className="grid grid-cols-[2fr_2fr_3fr_2fr_1.5fr_1.5fr] px-6 py-4 cursor-pointer hover:bg-gray-50 transition-colors items-center"
                                     >
-                                        <div className="flex items-center gap-2 col-span-4">
+                                        <div className="flex items-center gap-2 col-span-5">
                                             <span className="text-sm font-bold text-gray-800 uppercase tracking-wide">{label}</span>
                                             {users.length > 0 && (
                                                 <span className="text-xs text-gray-400 font-normal">({users.length})</span>
@@ -240,16 +244,22 @@ const ExistingUsers = () => {
                                             users.map((user) => (
                                                 <div
                                                     key={user._id}
-                                                    className="grid grid-cols-[2.5fr_2fr_3fr_2fr_1fr] px-6 py-3 bg-[#f8faff] border-t border-gray-100 hover:bg-blue-50 transition-colors items-center"
+                                                    className="grid grid-cols-[2fr_2fr_3fr_2fr_1.5fr_1.5fr] px-6 py-3 bg-[#f8faff] border-t border-gray-100 hover:bg-blue-50 transition-colors items-center"
                                                 >
                                                     {/* Role column — show role label */}
-                                                    <div className="text-sm text-gray-700 font-medium">{getRoleLabel(user.role || 'normal_user')}</div>
+                                                    <div className="text-sm text-gray-500 capitalize">{(user.role || "—").replace(/_/g, " ")}</div>
                                                     {/* User */}
                                                     <div className="text-sm font-medium text-gray-700">{user.username}</div>
                                                     {/* Email */}
                                                     <div className="text-sm text-gray-500 truncate pr-2">{user.email}</div>
                                                     {/* Phone */}
                                                     <div className="text-sm text-gray-500">{user.phone || "—"}</div>
+                                                    {/* User Type */}
+                                                    <div>
+                                                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-600">
+                                                            {user.power === "admin" ? "Admin" : "Normal"}
+                                                        </span>
+                                                    </div>
                                                     {/* Action */}
                                                     <div className="flex items-center">
                                                         <button
@@ -297,8 +307,10 @@ const ExistingUsers = () => {
                                         </p>
                                     </div>
                                 </div>
-                                <span className="px-4 py-1.5 rounded-full text-sm font-semibold bg-blue-100 text-blue-700">
-                                    {getRoleLabel(viewUser.role)}
+                                <span className={`px-4 py-1.5 rounded-full text-sm font-semibold ${
+                                    viewUser.power === "admin" ? "bg-pink-100 text-pink-600" : "bg-blue-100 text-blue-600"
+                                }`}>
+                                    {viewUser.power === "admin" ? "Admin" : "Normal User"}
                                 </span>
                             </div>
                         </div>
@@ -389,18 +401,18 @@ const ExistingUsers = () => {
                     <div className="bg-white rounded-2xl shadow-2xl w-[680px] p-8 max-h-[90vh] overflow-y-auto">
                         <h2 className="text-xl font-bold text-gray-900 mb-6">EDIT USER</h2>
                         <div className="space-y-5">
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-3 gap-4">
                                 <div>
                                     <label className="block text-xs font-semibold text-gray-600 uppercase mb-1.5">User Role</label>
-                                    <select value={editRole} onChange={(e) => { setEditRole(e.target.value); setEditAllowedLocCodes([]); }}
+                                    <select value={editRole} onChange={(e) => setEditRole(e.target.value)}
                                         className="w-full px-3 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-700">
                                         <option value="">Select Role</option>
-                                        <option value="super_admin">Super Admin</option>
+                                        <option value="store_user">Store User</option>
+                                        <option value="store_manager">Store Manager</option>
+                                        <option value="cluster_manager">Cluster Manager</option>
+                                        <option value="financial_head">Financial Head</option>
                                         <option value="admin">Admin</option>
-                                        <option value="financial_admin">Financial Admin</option>
-                                        <option value="cluster_admin">Cluster Admin</option>
-                                        <option value="store_admin">Store Admin</option>
-                                        <option value="normal_user">Normal User</option>
+                                        <option value="superadmin">Super Admin</option>
                                     </select>
                                 </div>
                                 <div>
@@ -408,6 +420,14 @@ const ExistingUsers = () => {
                                     <input value={editUsername} onChange={(e) => setEditUsername(e.target.value)}
                                         placeholder="G.MG Road"
                                         className="w-full px-3 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-600 uppercase mb-1.5">User Type</label>
+                                    <select value={editPower} onChange={(e) => setEditPower(e.target.value)}
+                                        className="w-full px-3 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-700">
+                                        <option value="normal">Normal</option>
+                                        <option value="admin">Admin</option>
+                                    </select>
                                 </div>
                             </div>
                             <div className="grid grid-cols-3 gap-4">
@@ -446,7 +466,7 @@ const ExistingUsers = () => {
                                 </div>
                             </div>
 
-                            {(editRole === "cluster_admin" || editRole === "cluster_manager") && (
+                            {editRole === "cluster_manager" && (
                                 <div>
                                     <label className="block text-xs font-semibold text-gray-600 uppercase mb-2">Assign Stores</label>
                                     <div className="relative mb-2">

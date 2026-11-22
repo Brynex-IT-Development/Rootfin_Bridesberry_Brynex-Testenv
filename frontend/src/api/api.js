@@ -13,11 +13,12 @@
 
 
 
-const baseUrl = {
-    baseUrl: import.meta.env.VITE_API_URL || 'https://rootfin-bridesberry-brynex-testenv-iexj.onrender.com/',
-};
+const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
-export default baseUrl;
+const baseUrl = {
+     baseUrl: isLocalhost ? 'http://localhost:7000/' : 'https://rootfin-bridesberry-brynex-testenv-iexj.onrender.com/',
+}
+export default baseUrl
 
 
 // http://localhost:7000/   

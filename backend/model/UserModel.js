@@ -1,26 +1,18 @@
 import mongoose from 'mongoose';
 
+
+
 const userSchema = new mongoose.Schema({
-    username: { type: String, required: true },
+    username: { type: String, required: true, },
     email: { type: String, required: true, unique: true },
     locCode: { type: String, required: false, default: '' },
-    power: { type: String, default: null }, // Legacy field deprecated; all access is role and permission based
+    power: { type: String, enum: ["admin", "normal"], required: true, default: 'normal' },
     password: { type: String, required: true },
     address: { type: String, default: '' },
     phone: { type: String, default: '' },
     gst: { type: String, default: '' },
-    role: { 
-        type: String, 
-        enum: [
-            "super_admin", "superadmin", "super admin",
-            "admin", 
-            "financial_admin", "financial_head", "financial admin",
-            "cluster_admin", "cluster_manager", "cluster admin",
-            "store_admin", "store_manager", "store admin",
-            "normal_user", "store_user", "normal user"
-        ], 
-        default: "normal_user" 
-    },
+    // Store-level access control fields (new, non-breaking)
+    role: { type: String, enum: ["admin", "superadmin", "store_manager", "store_user", "cluster_manager", "financial_head"], default: null },
     storeName: { type: String, default: null },
     storeId: { type: String, default: null },
     allowedLocCodes: { type: [String], default: [] },
@@ -35,3 +27,6 @@ userSchema.pre('save', function (next) {
 
 const User = mongoose.model('User', userSchema);
 export default User;
+
+
+// //user designation

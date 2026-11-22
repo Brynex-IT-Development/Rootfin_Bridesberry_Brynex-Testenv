@@ -21,8 +21,6 @@ import AddNewUser from "./pages/AddNewUser.jsx";
 import ExistingUsers from "./pages/ExistingUsers.jsx";
 import EditUser from "./pages/EditUser.jsx";
 import ResetUserPassword from "./pages/ResetUserPassword.jsx";
-import Permissions from "./pages/Permissions.jsx";
-import { isSuperAdmin } from "./utils/roleUtils.js";
 import ShoeSalesItems from "./pages/ShoeSalesItems.jsx";
 import ShoeSalesItemGroups from "./pages/ShoeSalesItemGroups.jsx";
 import ShoeSalesItemGroupCreate from "./pages/ShoeSalesItemGroupCreate.jsx";
@@ -107,13 +105,15 @@ const App = () => {
 
   // Main system administrator - ALWAYS full admin access
   const isAdmin = 
+    userPower === 'admin' || 
+    userPower === 'super_admin' || 
     userRole === 'admin' || 
-    userRole === 'super_admin' || 
     userRole === 'superadmin' ||
     adminEmails.includes(userEmail);
 
   // Warehouse staff (central operations)
   const isWarehouse = 
+    userPower === 'warehouse' || 
     userLocCode === '858' || 
     userLocCode === '103';
 
@@ -255,22 +255,21 @@ const App = () => {
           <Route path="/indirect-expenses" element={currentuser && canAccessRecordExpense ? <ClusterGuard><DirectIndirectExpenses initialType="indirect" /></ClusterGuard> : <Navigate to={currentuser ? "/" : "/login"} />} />
           <Route path="/CashBankLedger" element={currentuser ? <ClusterGuard><SecurityPending /></ClusterGuard> : <Navigate to="/login" />} />
           <Route path="/securityReport" element={currentuser ? <Security /> : <Navigate to='/login' />} />
-          <Route path="/CloseReport" element={isAdmin || isSuperAdmin(currentuser) ? <CloseReport /> : <Navigate to='/' />} />
-          <Route path="/AdminClose" element={isAdmin || isSuperAdmin(currentuser) || currentuser?.locCode === '102' ? <AdminClose /> : <Navigate to='/' />} />
-          <Route path="/pending-closures" element={isAdmin || userRole === "financial_head" || userRole === "financial_admin" ? <PendingDaybookClosures /> : <Navigate to="/" />} />
-          <Route path="/ManageStores" element={isAdmin || isSuperAdmin(currentuser) ? <ManageStores /> : <Navigate to='/' />} />
+          <Route path="/CloseReport" element={currentuser?.power === 'admin' ? <CloseReport /> : <Navigate to='/' />} />
+          <Route path="/AdminClose" element={currentuser?.power === 'admin' || currentuser?.locCode === '102' ? <AdminClose /> : <Navigate to='/' />} />
+          <Route path="/pending-closures" element={isAdmin || userRole === "financial_head" ? <PendingDaybookClosures /> : <Navigate to="/" />} />
+          <Route path="/ManageStores" element={currentuser?.power === 'admin' ? <ManageStores /> : <Navigate to='/' />} />
           
           {/* Manage Users Routes */}
-          <Route path="/manage-users/add-store" element={<Navigate to='/manage-users/add-user' replace />} />
-          <Route path="/manage-users/add-user" element={isAdmin || isSuperAdmin(currentuser) ? <AddNewUser /> : <Navigate to='/' />} />
-          <Route path="/manage-users/permissions" element={isSuperAdmin(currentuser) ? <Permissions /> : <Navigate to='/' />} />
-          <Route path="/manage-users/existing-users" element={isAdmin || isSuperAdmin(currentuser) ? <ExistingUsers /> : <Navigate to='/' />} />
-          <Route path="/manage-users/edit-user/:id" element={isAdmin || isSuperAdmin(currentuser) ? <EditUser /> : <Navigate to='/' />} />
-          <Route path="/manage-users/reset-password" element={isAdmin || isSuperAdmin(currentuser) ? <ResetUserPassword /> : <Navigate to='/' />} />
+          <Route path="/manage-users/add-store" element={currentuser?.power === 'admin' ? <AddNewStore /> : <Navigate to='/' />} />
+          <Route path="/manage-users/add-user" element={currentuser?.power === 'admin' ? <AddNewUser /> : <Navigate to='/' />} />
+          <Route path="/manage-users/existing-users" element={currentuser?.power === 'admin' ? <ExistingUsers /> : <Navigate to='/' />} />
+          <Route path="/manage-users/edit-user/:id" element={currentuser?.power === 'admin' ? <EditUser /> : <Navigate to='/' />} />
+          <Route path="/manage-users/reset-password" element={currentuser?.power === 'admin' ? <ResetUserPassword /> : <Navigate to='/' />} />
           
           <Route path="/shoe-sales/items" element={currentuser ? <ShoeSalesItems /> : <Navigate to="/login" />} />
           <Route path="/shoe-sales/inactive-items" element={<AdminRestrictedGuard><InactiveItems /></AdminRestrictedGuard>} />
-          <Route path="/shoe-sales/items/:itemId/stocks" element={(isAdmin || isWarehouse) ? <StandaloneItemStockManagement /> : <Navigate to="/" />} />
+          <Route path="/shoe-sales/items/:itemId/stocks" element={(currentuser?.power === 'admin' || currentuser?.power === 'warehouse') ? <StandaloneItemStockManagement /> : <Navigate to="/" />} />
           <Route path="/shoe-sales/items/:itemId/edit" element={currentuser ? <ShoeSalesItemCreate /> : <Navigate to="/login" />} />
           <Route path="/shoe-sales/items/:itemId" element={currentuser ? <ShoeSalesItemDetail /> : <Navigate to="/login" />} />
           <Route path="/shoe-sales/items/new" element={currentuser ? <ShoeSalesItemCreate /> : <Navigate to="/login" />} />
@@ -278,7 +277,7 @@ const App = () => {
           <Route path="/shoe-sales/item-groups/new" element={isAdmin ? <ShoeSalesItemGroupCreate /> : <Navigate to="/shoe-sales/item-groups" />} />
           <Route path="/shoe-sales/item-groups/:id/items/new" element={currentuser ? <ShoeSalesItemCreate /> : <Navigate to="/login" />} />
           <Route path="/shoe-sales/item-groups/:id/items/:itemId/edit" element={currentuser ? <ShoeSalesItemCreate /> : <Navigate to="/login" />} />
-          <Route path="/shoe-sales/item-groups/:id/items/:itemId/stocks" element={(isAdmin || isWarehouse) ? <ItemStockManagement /> : <Navigate to="/" />} />
+          <Route path="/shoe-sales/item-groups/:id/items/:itemId/stocks" element={(currentuser?.power === 'admin' || currentuser?.power === 'warehouse') ? <ItemStockManagement /> : <Navigate to="/" />} />
           <Route path="/shoe-sales/item-groups/:id/items/:itemId" element={currentuser ? <ShoeSalesItemDetailFromGroup /> : <Navigate to="/login" />} />
           <Route path="/shoe-sales/item-groups/:id/edit" element={currentuser ? <ShoeSalesItemGroupCreate /> : <Navigate to="/login" />} />
           <Route path="/shoe-sales/item-groups/:id" element={currentuser ? <ShoeSalesItemGroupDetail /> : <Navigate to="/login" />} />
