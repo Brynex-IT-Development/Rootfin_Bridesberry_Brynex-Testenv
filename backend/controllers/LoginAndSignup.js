@@ -1,5 +1,6 @@
 import bcrypt from 'bcrypt';
 import User from '../model/UserModel.js';
+import Store from '../model/Store.js';
 import { createClosureAuthToken } from '../utils/closureAuth.js';
 
 export const SignUp = async (req, res) => {
@@ -11,29 +12,46 @@ export const SignUp = async (req, res) => {
             return res.status(400).json({ message: "Password is required." });
         }
 
-        const existingUser = await User.findOne({ $or: [{ username }, { email }] });
+        const finalUsername = (username && username.trim()) || (email ? email.split('@')[0] : 'User');
+
+        const existingUser = await User.findOne({ $or: [{ username: finalUsername }, { email }] });
         if (existingUser) {
             return res.status(400).json({ message: 'Username or email already exists.' });
         }
-        const passWord = 'test';
 
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
+        const isCluster = (role === 'cluster_manager' || role === 'cluster_admin');
+
         const newUser = new User({
-            username,
+            username: finalUsername,
             email,
-            power,
             password: hashedPassword,
-            locCode: locCode || '',
+            locCode: locCode ? locCode.trim() : '',
             address: address || '',
             phone: phone || '',
             gst: gst || '',
-            role: role || null,
-            allowedLocCodes: role === 'cluster_manager' ? (allowedLocCodes || []) : [],
+            role: role || 'normal_user',
+            allowedLocCodes: isCluster ? (allowedLocCodes || []) : [],
         });
 
         await newUser.save();
+
+        if (locCode && locCode.trim()) {
+            await Store.findOneAndUpdate(
+                { locCode: locCode.trim() },
+                { 
+                    name: finalUsername, 
+                    locCode: locCode.trim(), 
+                    address: address || '', 
+                    phone: phone || '', 
+                    email: email || '', 
+                    isActive: true 
+                },
+                { upsert: true, new: true, setDefaultsOnInsert: true }
+            ).catch(err => console.warn("Could not upsert Store on SignUp:", err.message));
+        }
 
         res.status(201).json({
             message: 'User created successfully, and mandatory training assigned.',
@@ -159,16 +177,18 @@ export const UpdateUser = async (req, res) => {
             }
         }
 
+        const finalUsername = (username && username.trim()) || (email ? email.split('@')[0] : user.username);
+        const isCluster = (role === 'cluster_manager' || role === 'cluster_admin');
+
         // Update fields
-        user.username = username;
+        user.username = finalUsername;
         user.email = email;
-        user.locCode = locCode || '';
+        user.locCode = locCode ? locCode.trim() : '';
         user.address = address || '';
         user.phone = phone || '';
         user.gst = gst || '';
-        user.power = power;
-        user.role = role || null;
-        user.allowedLocCodes = role === 'cluster_manager' ? (allowedLocCodes || []) : [];
+        user.role = role || user.role || 'normal_user';
+        user.allowedLocCodes = isCluster ? (allowedLocCodes || []) : [];
 
         // Only update password if provided
         if (password && password.trim() !== '') {
