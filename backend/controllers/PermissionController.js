@@ -441,3 +441,10 @@ export const ResetRolePermissions = async (req, res) => {
         });
     }
 };
+
+// Aliases for compatibility
+export const getAllPermissions = GetAllRolePermissions;
+export const getRolePermissions = GetRolePermissions;
+export const updateRolePermissions = UpdateRolePermissions;
+export const resetRolePermissions = ResetRolePermissions;
+
