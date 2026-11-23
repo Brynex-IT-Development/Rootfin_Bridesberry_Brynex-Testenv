@@ -130,7 +130,6 @@ const InventoryAgingReport = () => {
   const currentUser = JSON.parse(localStorage.getItem("rootfinuser") || "{}");
   const adminEmails = [
     "officerootments@gmail.com",
-    "brynex@gmail.com",
     "operationsrootments@gmail.com",
     "headoffice01@gmail.com",
   ];

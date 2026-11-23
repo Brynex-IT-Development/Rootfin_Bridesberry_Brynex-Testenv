@@ -274,11 +274,7 @@ const INDIRECT_EXPENSE_CATS = [
   { value: "Food expense", label: "Food expense" },
 ];
 
-const fallbackLocations = [
-  { locName: "Brides Berry", locCode: "155" },
-  { locName: "Warehouse", locCode: "858" },
-
-];
+const fallbackLocations = [];
 
 const BANK_ACCOUNTS = [
   { value: "IDFC First Bank", label: "IDFC First Bank" },
@@ -330,7 +326,7 @@ const DirectIndirectExpenses = ({ initialType = "direct" }) => {
         }])
     );
     const assignedCode = String(currentusers.locCode || "").trim();
-    if (["155", "858"].includes(assignedCode) && !byCode.has(assignedCode)) {
+    if (assignedCode && !byCode.has(assignedCode)) {
       byCode.set(assignedCode, {
         locCode: assignedCode,
         locName:
@@ -349,7 +345,7 @@ const DirectIndirectExpenses = ({ initialType = "direct" }) => {
     currentusers.username,
   ]);
 
-  const defaultStore = canSelectStore ? "" : (currentusers.locCode || "858");
+  const defaultStore = canSelectStore ? "" : (currentusers.locCode || "");
 
   const [category, setCategory] = useState("");
   const [branch, setBranch] = useState(defaultStore);
@@ -455,7 +451,7 @@ const DirectIndirectExpenses = ({ initialType = "direct" }) => {
       return;
     }
 
-    const targetBranch = canSelectStore ? branch : (currentusers.locCode || "858");
+    const targetBranch = canSelectStore ? branch : (currentusers.locCode || "");
     if (!targetBranch) {
       setStatusMessage({ type: "error", text: "Please select a Branch." });
       return;
@@ -667,7 +663,7 @@ const DirectIndirectExpenses = ({ initialType = "direct" }) => {
                 Branch <span className="text-red-500">*</span>
               </label>
               <SearchableSelect
-                value={branch || (canSelectStore ? "" : (currentusers.locCode || "858"))}
+                value={branch || (canSelectStore ? "" : (currentusers.locCode || ""))}
                 onChange={(val) => setBranch(val)}
                 options={selectableStores.map((loc) => ({
                   value: loc.locCode,

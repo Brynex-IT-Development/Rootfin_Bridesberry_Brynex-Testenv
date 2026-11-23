@@ -168,10 +168,7 @@ const SalesInvoiceDetail = () => {
   };
 
   // Store locations for mapping user store
-  const fallbackLocations = [
-    { locName: "Brides Berry", locCode: "155" },
-    { locName: "Warehouse", locCode: "858" },
-  ];
+  const fallbackLocations = [];
 
   const getUserStoreDetails = (user) => {
     if (!user) return { userLocName: "", userWarehouse: "", locCode: "" };

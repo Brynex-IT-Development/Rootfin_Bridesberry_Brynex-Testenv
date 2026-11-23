@@ -482,10 +482,7 @@ const InventoryAdjustmentCreate = () => {
   const userId = user?.email || user?._id || user?.id || "";
   const isAdmin = user?.power === "admin";
   
-  const fallbackLocations = [
-    { "locName": "Brides Berry", "locCode": "155" },
-    { "locName": "Warehouse", "locCode": "858" },
-  ];
+  const fallbackLocations = [];
   
   let userLocName = "";
   if (user?.locCode) {

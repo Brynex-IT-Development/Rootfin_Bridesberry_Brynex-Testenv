@@ -48,16 +48,16 @@ const ShoeSalesItems = () => {
   const userStr = localStorage.getItem("rootfinuser");
   const user = userStr ? JSON.parse(userStr) : null;
   const userEmail = user?.email || user?.username || "";
-  const adminEmails = ['officerootments@gmail.com', 'brynex@gmail.com'];
+  const adminEmails = ['officerootments@gmail.com'];
+  const userRole = (user?.role || "").toLowerCase();
   const isAdminEmail = userEmail && adminEmails.some(email => userEmail.toLowerCase() === email.toLowerCase());
   const isAdmin = isAdminEmail ||
+                  userRole === "super_admin" ||
+                  userRole === "admin" ||
                   user?.power === "admin" || 
                   (user?.locCode && (user.locCode === '858' || user.locCode === '103'));
   
-  const fallbackLocations = [
-    { "locName": "Brides Berry", "locCode": "155" },
-    { "locName": "Warehouse", "locCode": "858" },
-  ];
+  const fallbackLocations = [];
   
   let userLocName = "";
   if (user?.locCode) {

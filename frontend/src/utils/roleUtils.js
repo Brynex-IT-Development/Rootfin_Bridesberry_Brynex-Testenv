@@ -31,33 +31,32 @@ export const getRoleLabel = (role) => {
 
 export const isSuperAdmin = (user) => {
     if (!user) return false;
-    const role = normalizeRole(user.role);
-    const email = (user.email || "").toLowerCase().trim();
-    return role === "super_admin" || email === "brynex@gmail.com";
+    const role = normalizeRole(user.role || user.power);
+    return role === "super_admin";
 };
 
 export const isAdmin = (user) => {
     if (!user) return false;
-    const role = normalizeRole(user.role);
+    const role = normalizeRole(user.role || user.power);
     return role === "super_admin" || role === "admin" || role === "warehouse_admin";
 };
 
 export const isWarehouseAdmin = (user) => {
     if (!user) return false;
-    return normalizeRole(user.role) === "warehouse_admin";
+    return normalizeRole(user.role || user.power) === "warehouse_admin";
 };
 
 export const isClusterAdmin = (user) => {
     if (!user) return false;
-    return normalizeRole(user.role) === "cluster_admin";
+    return normalizeRole(user.role || user.power) === "cluster_admin";
 };
 
 export const isStoreAdmin = (user) => {
     if (!user) return false;
-    return normalizeRole(user.role) === "store_admin";
+    return normalizeRole(user.role || user.power) === "store_admin";
 };
 
 export const isFinancialAdmin = (user) => {
     if (!user) return false;
-    return normalizeRole(user.role) === "financial_admin";
+    return normalizeRole(user.role || user.power) === "financial_admin";
 };

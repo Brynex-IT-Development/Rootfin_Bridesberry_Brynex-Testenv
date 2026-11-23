@@ -71,7 +71,7 @@ export default function RecordExpenses() {
         }])
     );
     const assignedCode = String(currentUser.locCode || "").trim();
-    if (["155", "858"].includes(assignedCode) && !byCode.has(assignedCode)) {
+    if (assignedCode && !byCode.has(assignedCode)) {
       byCode.set(assignedCode, {
         locCode: assignedCode,
         locName:

@@ -42,10 +42,7 @@ const PurchaseReceives = () => {
         if (user?.locCode) params.append("locCode", user.locCode);
 
         if (!isAdmin) {
-          const fallbackLocations = [
-            { locName: "Brides Berry", locCode: "155" },
-            { locName: "Warehouse", locCode: "858" },
-          ];
+          const fallbackLocations = [];
           const loc = fallbackLocations.find(l => l.locCode === String(user?.locCode));
           const userWarehouse = mapWarehouse(loc?.locName || user?.locName || "");
           if (userWarehouse) params.append("warehouse", userWarehouse);

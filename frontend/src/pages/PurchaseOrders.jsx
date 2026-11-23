@@ -9,10 +9,7 @@ import useSidebar from "../hooks/useSidebar";
 const currency = (value) =>
   new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 }).format(value || 0);
 
-const fallbackLocations = [
-  { locName: "Brides Berry", locCode: "155" },
-  { locName: "Warehouse", locCode: "858" },
-];
+const fallbackLocations = [];
 
 const PurchaseOrders = () => {
   const isSidebarOpen = useSidebar();

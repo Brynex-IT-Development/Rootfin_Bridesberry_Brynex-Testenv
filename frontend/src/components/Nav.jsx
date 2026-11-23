@@ -30,7 +30,9 @@ import {
     KeyRound,
     Menu,
     ChevronLeft,
-    ShieldCheck
+    ShieldCheck,
+    BookOpen,
+    ArrowLeft
 } from "lucide-react";
 import salesInventoryAccessConfig from "../config/salesInventoryAccess.json";
 import { usePermissions } from "../utils/permissionService";
@@ -48,7 +50,6 @@ const Nav = () => {
 
     const adminEmails = [
         "officerootments@gmail.com",
-        "brynex@gmail.com",
         "operationsrootments@gmail.com",
         "headoffice01@gmail.com"
     ];
@@ -59,6 +60,8 @@ const Nav = () => {
         userRole === 'warehouse_admin' ||
         userRole === 'super_admin' || 
         userRole === 'superadmin' ||
+        userPower === 'admin' ||
+        userPower === 'super_admin' ||
         adminEmails.includes(userEmail);
 
     // Warehouse staff (central operations)
@@ -134,8 +137,9 @@ const Nav = () => {
         }
     };
 
+    const isSuper = isSuperAdmin(currentuser);
     const isLocationName = currentuser?.username === "Warehouse" || currentuser?.username === "SuitorGuy MG Road" || currentuser?.username === "Brides Berry";
-    const userDisplayName = (!isLocationName && currentuser?.username) || currentuser?.name || (isAdmin ? "Brynex Admin" : "User");
+    const userDisplayName = isSuper ? "Brynex Admin" : ((!isLocationName && currentuser?.username) || currentuser?.name || (isAdmin ? "Brynex Admin" : "User"));
     const userEmailDisplay = currentuser?.email || "admin@gmail.com";
     const getUserRoleTitle = () => {
         if (isSuperAdmin(currentuser)) return "Super Administrator";
@@ -161,6 +165,19 @@ const Nav = () => {
         window.addEventListener("toggle-sidebar", handleToggle);
         return () => window.removeEventListener("toggle-sidebar", handleToggle);
     }, []);
+
+    // Auto-open sidebar whenever the pointer reaches the left side of the screen
+    useEffect(() => {
+        if (isOpen) return;
+        const handleMouseMove = (e) => {
+            if (e.clientX <= 20) {
+                setIsOpen(true);
+            }
+        };
+        window.addEventListener("mousemove", handleMouseMove);
+        return () => window.removeEventListener("mousemove", handleMouseMove);
+    }, [isOpen]);
+
     const [isHovered, setIsHovered] = useState(false);
     const [isPinned, setIsPinned] = useState(() => localStorage.getItem("rootfin_sidebar_pinned") !== "false");
 
@@ -195,6 +212,9 @@ const Nav = () => {
     }, [getInitialSection]);
 
     const isReportsOpen = openSection === "reports";
+    const allowAllSubpages = isAdmin || isSuper;
+    const checkSubpage = (path) => allowAllSubpages || hasSubpage(path);
+
     const isInventoryOpen = openSection === "inventory";
     const isSalesOpen = openSection === "sales";
     const isPurchaseOpen = openSection === "purchase";
@@ -214,12 +234,12 @@ const Nav = () => {
             { to: "/inventory/reorder-alerts", label: "Reorder Alerts", Icon: AlertTriangle },
             { to: "/shoe-sales/inactive", label: "Inactive", Icon: FolderClosed }
         ] : [])
-    ].filter(link => hasSubpage(link.to));
+    ].filter(link => checkSubpage(link.to));
 
     const salesLinks = [
         { to: "/sales/invoices", label: "Invoices", Icon: FileTextIcon },
         { to: "/sales/returns", label: "Invoice Return", Icon: RotateCcw }
-    ].filter(link => hasSubpage(link.to));
+    ].filter(link => checkSubpage(link.to));
 
     const isInventoryActive = inventoryLinks.some((link) => link.to === activePath) ||
                                activePath.startsWith("/shoe-sales/items") ||
@@ -234,7 +254,7 @@ const Nav = () => {
         { to: "/purchase/bills", label: "Bills", Icon: ReceiptText },
         { to: "/purchase/vendor-credits", label: "Purchase Return", Icon: ReceiptText },
         { to: "/purchase/vendors", label: "Vendors", Icon: Users },
-    ].filter(link => hasSubpage(link.to));
+    ].filter(link => checkSubpage(link.to));
     const isPurchaseActive = purchaseLinks.some((link) => link.to === activePath);
     
     const manageUsersLinks = [
@@ -242,7 +262,7 @@ const Nav = () => {
         { to: "/manage-users/add-user", label: "Add New User", Icon: UserPlus },
         { to: "/manage-users/existing-users", label: "Existing Users", Icon: UserCog },
         { to: "/manage-users/reset-password", label: "Reset Password", Icon: KeyRound },
-    ].filter(link => hasSubpage(link.to));
+    ].filter(link => checkSubpage(link.to));
     const isManageUsersActive = manageUsersLinks.some((link) => link.to === activePath);
 
     const reportsLinks = [
@@ -258,266 +278,225 @@ const Nav = () => {
             { to: "/reports/aging", label: "Aging Report" },
         ] : []),
         { to: "/reports/income-expense", label: "Income & Expense" }
-    ].filter(link => hasSubpage(link.to));
+    ].filter(link => checkSubpage(link.to));
     const isReportsActive = reportsLinks.some((link) => link.to === activePath);
 
-    const groupButtonClasses = (isActive) =>
-        `sidebar-button flex items-center justify-between w-full px-4 py-2.5 text-[12px] font-normal transition-all text-[#a1a1aa] hover:text-white`;
+    const isLinkActive = (path) => {
+        if (path === "/") return activePath === "/" || activePath === "";
+        if (path === "/record-expense") {
+            return ["/record-expense", "/record-expenses", "/record-expense/new", "/direct-expenses", "/indirect-expenses"].includes(activePath);
+        }
+        return activePath === path;
+    };
 
-    const subLinkClasses = (path) =>
-        `block w-full pl-[24px] pr-4 py-2.5 text-[11px] whitespace-nowrap truncate transition-colors ${
-            activePath === path
-                ? "bg-[#a855f7] text-white font-medium"
-                : "text-[#a1a1aa] font-normal hover:text-white"
-        }`;
+    const renderSingleItem = (to, label, IconComponent) => {
+        const isActive = isLinkActive(to);
+        return (
+            <Link
+                key={to}
+                to={to}
+                style={{
+                    backgroundColor: isActive ? '#9D43D6' : 'transparent',
+                    color: isActive ? '#ffffff' : '#A1A1AA'
+                }}
+                className={`rf-sidebar-item ${isActive ? 'active' : ''} h-[40px] px-[14px] rounded-[10px] flex items-center gap-3 transition-colors hover:text-white hover:bg-white/[0.04] group`}
+            >
+                <IconComponent size={16} className={`shrink-0 transition-colors ${isActive ? "text-white" : "text-zinc-400 group-hover:text-white"}`} />
+                <span className={`text-[13px] truncate ${isActive ? "text-white font-medium" : "text-zinc-300 group-hover:text-white font-normal"}`}>
+                    {label}
+                </span>
+            </Link>
+        );
+    };
 
-    const singleLinkClasses = (path) =>
-        `flex items-center gap-3 px-4 py-2.5 text-[12px] whitespace-nowrap truncate transition-colors ${
-            (path === "/record-expense"
-                ? ["/record-expense", "/record-expenses", "/record-expense/new", "/direct-expenses", "/indirect-expenses"].includes(activePath)
-                : activePath === path)
-                ? "text-white font-medium"
-                : "text-[#a1a1aa] font-normal hover:text-white"
-        }`;
+    const renderDropdownItem = (label, IconComponent, links, isActiveGroup, isOpenGroup, onToggle) => {
+        return (
+            <div>
+                <button
+                    type="button"
+                    onClick={onToggle}
+                    style={{
+                        backgroundColor: isActiveGroup ? '#9D43D6' : 'transparent',
+                        color: isActiveGroup ? '#ffffff' : '#A1A1AA'
+                    }}
+                    className={`rf-sidebar-item ${isActiveGroup ? 'active' : ''} sidebar-button w-full h-[40px] px-[14px] rounded-[10px] flex items-center justify-between transition-colors cursor-pointer group hover:text-white hover:bg-white/[0.04]`}
+                >
+                    <div className="flex items-center gap-3 min-w-0">
+                        <IconComponent size={16} className={`shrink-0 transition-colors ${isActiveGroup ? "text-white" : "text-zinc-400 group-hover:text-white"}`} />
+                        <span className={`text-[13px] truncate ${isActiveGroup ? "text-white font-medium" : "text-zinc-300 group-hover:text-white font-normal"}`}>
+                            {label}
+                        </span>
+                    </div>
+                    <ChevronDown
+                        size={14}
+                        className={`shrink-0 transition-transform duration-200 ${
+                            isActiveGroup ? "text-white" : "text-zinc-400 group-hover:text-white"
+                        } ${isOpenGroup ? "rotate-180" : "rotate-0"}`}
+                    />
+                </button>
+                {isOpenGroup && (
+                    <div 
+                        className="rf-sidebar-subgroup mt-1 mb-1 pl-3 space-y-1"
+                        style={{ borderColor: '#3F3F46', borderLeft: '2px solid #3F3F46', marginLeft: '16px' }}
+                    >
+                        {links.map(({ to, label: itemLabel }) => {
+                            const isSubActive = activePath === to;
+                            return (
+                                <Link
+                                    key={to}
+                                    to={to}
+                                    style={{
+                                        color: isSubActive ? '#ffffff' : '#E4E4E7',
+                                        backgroundColor: isSubActive ? '#9D43D6' : 'transparent',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        visibility: 'visible',
+                                        opacity: 1
+                                    }}
+                                    className={`rf-sidebar-subitem ${isSubActive ? 'active' : ''} h-[34px] px-3 flex items-center text-[12px] font-medium truncate rounded-[8px] transition-colors hover:text-white hover:bg-white/[0.08]`}
+                                >
+                                    <span style={{ color: isSubActive ? '#ffffff' : '#E4E4E7', visibility: 'visible', opacity: 1 }}>{itemLabel}</span>
+                                </Link>
+                            );
+                        })}
+                    </div>
+                )}
+            </div>
+        );
+    };
 
-    // alert(location.pathname)
     const isInvoiceCreatePage = activePath === "/sales/invoices/new" || activePath.startsWith("/sales/invoices/edit");
-    const sidebarWidth = isInvoiceCreatePage ? "w-56" : "w-64";
-    const sidebarTranslate = isInvoiceCreatePage ? "-translate-x-56" : "-translate-x-64";
+    const sidebarWidth = "w-[240px]";
+    const sidebarTranslate = "-translate-x-[240px]";
 
     return (
         <div className={`flex ${location.pathname === "/login" ? "hidden" : "block"}`}>
-            {/* Floating button to open sidebar when closed */}
+            {/* Invisible hover strip to auto-open sidebar when mouse reaches the left edge */}
             {!isOpen && (
-                <button
-                    onClick={() => {
-                        setIsOpen(true);
-                        window.dispatchEvent(new CustomEvent("sidebar-changed", { detail: { isOpen: true } }));
-                    }}
-                    title="Open Sidebar Menu"
-                    className="fixed top-3 left-3 z-[99999] p-2 rounded-xl bg-white text-[#1e293b] border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-md flex items-center justify-center cursor-pointer active:scale-95 no-print"
-                >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-[#1e293b]">
-                        <line x1="5" y1="4" x2="5" y2="20"/>
-                        <line x1="10" y1="4" x2="10" y2="20"/>
-                        <path d="M15 8l4 4-4 4"/>
-                    </svg>
-                </button>
+                <div
+                    onMouseEnter={() => setIsOpen(true)}
+                    className="fixed top-0 left-0 w-3 h-full z-[99998] bg-transparent cursor-pointer"
+                    title="Move pointer here to open sidebar"
+                />
             )}
-
 
             {/* Sidebar */}
             <div
-                className={`fixed top-0 left-0 h-full ${sidebarWidth} z-[99999] transform flex flex-col justify-between bg-[#18181b] text-white transition-transform duration-300 shadow-2xl ${
+                className={`fixed top-0 left-0 h-full ${sidebarWidth} z-[99999] transform flex flex-col justify-between bg-[#1B1B1B] text-white transition-transform duration-300 shadow-2xl ${
                     isOpen ? "translate-x-0" : sidebarTranslate
                 }`}
             >
                 <div className="flex flex-col flex-1 overflow-hidden">
-                    <div className="px-6 pt-6 pb-8 flex items-center justify-between">
-                        <span className="text-white font-bold text-[22px] tracking-wide flex items-center">
-                            ROOT<span className="text-[#a855f7] flex items-center"><LineChart size={20} className="mx-0.5" strokeWidth={3} />FIN</span>
-                        </span>
+                    {/* Sidebar Header with Logo and Collapse Arrow (Height: 56px) */}
+                    <div className="h-[56px] px-4 flex items-center justify-between border-b border-[#242424]/60 shrink-0">
+                        <Link to="/" className="text-white font-bold text-[20px] tracking-wide flex items-center select-none">
+                            ROOT<span className="text-[#9D43D6] flex items-center"><LineChart size={18} className="mx-0.5" strokeWidth={3} />FIN</span>
+                        </Link>
                         <button
                             onClick={() => setIsOpen(false)}
-                            title="Close Sidebar"
-                            className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
+                            title="Collapse Sidebar"
+                            className="w-7 h-7 rounded-lg bg-[#27272a] hover:bg-[#323236] text-gray-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
                         >
-                            <ChevronLeft size={18} />
+                            <ArrowLeft size={14} />
                         </button>
                     </div>
-                    <nav className="space-y-5 px-3 overflow-y-auto pb-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+
+                    {/* Navigation Items */}
+                    <nav className="space-y-1 p-2.5 overflow-y-auto pb-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
 
                     {/* ── CLUSTER MANAGER: only Financial Summary + Reports ── */}
                     {isClusterManager ? (
                         <>
-                            {hasModule("financial_summary") && (
-                                <Link to="/datewisedaybook" className={singleLinkClasses("/datewisedaybook")}>
-                                    <FileTextIcon size={18} />
-                                    <span>Financial Summary</span>
-                                </Link>
-                            )}
+                            {hasModule("financial_summary") && renderSingleItem("/datewisedaybook", "Financial Summary", LineChart)}
 
-                            {hasModule("reports") && reportsLinks.length > 0 && (
-                                <div>
-                                    <button
-                                        onClick={() => setOpenSection(isReportsOpen ? null : "reports")}
-                                        className={groupButtonClasses(isReportsActive || isReportsOpen)}
-                                    >
-                                        <div className="flex w-full items-center gap-4">
-                                            <LineChart size={18} className="shrink-0" />
-                                            <span className="flex-1 text-left">Reports</span>
-                                            <ChevronDown size={16} className={`shrink-0 transition-transform ${isReportsOpen ? "rotate-180" : "rotate-0"}`} />
-                                        </div>
-                                    </button>
-                                    {isReportsOpen && (
-                                        <div className="mt-1 space-y-0.5 border-l border-[#27272a] ml-[25px]">
-                                            {reportsLinks.map(({ to, label }) => (
-                                                <Link key={to} to={to} className={subLinkClasses(to)}><span>{label}</span></Link>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
+                            {hasModule("reports") && reportsLinks.length > 0 && renderDropdownItem(
+                                "Reports",
+                                LineChart,
+                                reportsLinks,
+                                isReportsActive,
+                                isReportsOpen,
+                                () => setOpenSection(isReportsOpen ? null : "reports")
                             )}
                         </>
                     ) : (
                         <>
                             {/* Day Book - Standalone */}
-                            {hasModule("daybook") && (
-                                <Link to="/" className={singleLinkClasses("/")}>
-                                    <FileText size={16} />
-                                    <span>Day Book</span>
-                                </Link>
-                            )}
+                            {hasModule("daybook") && renderSingleItem("/", "Day Book", BookOpen)}
 
                             {/* Financial Summary - Standalone */}
-                            {hasModule("financial_summary") && (
-                                <Link to="/datewisedaybook" className={singleLinkClasses("/datewisedaybook")}>
-                                    <FileTextIcon size={16} />
-                                    <span>Financial Summary</span>
-                                </Link>
-                            )}
+                            {hasModule("financial_summary") && renderSingleItem("/datewisedaybook", "Financial Summary", LineChart)}
 
                             {/* Sales */}
-                            {hasSalesInventoryAccess && hasModule("sales") && salesLinks.length > 0 && (
-                                <div>
-                                    <button onClick={() => setOpenSection(isSalesOpen ? null : "sales")} className={groupButtonClasses(isSalesActive || isSalesOpen)}>
-                                        <div className="flex w-full items-center gap-3">
-                                            <ShoppingCart size={16} className="shrink-0" />
-                                            <span className="flex-1 text-left whitespace-nowrap truncate">Sales</span>
-                                            <ChevronDown size={14} className={`shrink-0 transition-transform ${isSalesOpen ? "rotate-180" : "rotate-0"}`} />
-                                        </div>
-                                    </button>
-                                    {isSalesOpen && (
-                                        <div className="mt-1 space-y-0.5 border-l border-[#27272a] ml-[25px]">
-                                            {salesLinks.map(({ to, label }) => (
-                                                <Link key={to} to={to} className={subLinkClasses(to)}><span>{label}</span></Link>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
+                            {hasSalesInventoryAccess && hasModule("sales") && salesLinks.length > 0 && renderDropdownItem(
+                                "Sales",
+                                ShoppingCart,
+                                salesLinks,
+                                isSalesActive,
+                                isSalesOpen,
+                                () => setOpenSection(isSalesOpen ? null : "sales")
                             )}
 
                             {/* Inventory */}
-                            {hasSalesInventoryAccess && hasModule("inventory") && inventoryLinks.length > 0 && (
-                                <div>
-                                    <button onClick={() => setOpenSection(isInventoryOpen ? null : "inventory")} className={groupButtonClasses(isInventoryActive || isInventoryOpen)}>
-                                        <div className="flex w-full items-center gap-3">
-                                            <Box size={16} className="shrink-0" />
-                                            <span className="flex-1 text-left whitespace-nowrap truncate">Inventory</span>
-                                            <ChevronDown size={14} className={`shrink-0 transition-transform ${isInventoryOpen ? "rotate-180" : "rotate-0"}`} />
-                                        </div>
-                                    </button>
-                                    {isInventoryOpen && (
-                                        <div className="mt-1 space-y-0.5 border-l border-[#27272a] ml-[25px]">
-                                            {inventoryLinks.map(({ to, label }) => (
-                                                <Link key={to} to={to} className={subLinkClasses(to)}><span>{label}</span></Link>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
+                            {hasSalesInventoryAccess && hasModule("inventory") && inventoryLinks.length > 0 && renderDropdownItem(
+                                "Inventory",
+                                Box,
+                                inventoryLinks,
+                                isInventoryActive,
+                                isInventoryOpen,
+                                () => setOpenSection(isInventoryOpen ? null : "inventory")
                             )}
 
                             {/* Purchase - NEVER visible to Store Admin or Cluster Admin */}
-                            {canAccessAdminRestrictedModules && hasModule("purchase") && purchaseLinks.length > 0 && (
-                                <div>
-                                    <button onClick={() => setOpenSection(isPurchaseOpen ? null : "purchase")} className={groupButtonClasses(isPurchaseActive || isPurchaseOpen)}>
-                                        <div className="flex w-full items-center gap-3">
-                                            <Truck size={16} className="shrink-0" />
-                                            <span className="flex-1 text-left whitespace-nowrap truncate">Purchase</span>
-                                            <ChevronDown size={14} className={`shrink-0 transition-transform ${isPurchaseOpen ? "rotate-180" : "rotate-0"}`} />
-                                        </div>
-                                    </button>
-                                    {isPurchaseOpen && (
-                                        <div className="mt-1 space-y-0.5 border-l border-[#27272a] ml-[25px]">
-                                            {purchaseLinks.map(({ to, label }) => (
-                                                <Link key={to} to={to} className={subLinkClasses(to)}><span>{label}</span></Link>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
+                            {canAccessAdminRestrictedModules && hasModule("purchase") && purchaseLinks.length > 0 && renderDropdownItem(
+                                "Purchase",
+                                Truck,
+                                purchaseLinks,
+                                isPurchaseActive,
+                                isPurchaseOpen,
+                                () => setOpenSection(isPurchaseOpen ? null : "purchase")
                             )}
 
                             {/* Reports */}
-                            {hasModule("reports") && reportsLinks.length > 0 && (
-                                <div>
-                                    <button onClick={() => setOpenSection(isReportsOpen ? null : "reports")} className={groupButtonClasses(isReportsActive || isReportsOpen)}>
-                                        <div className="flex w-full items-center gap-3">
-                                            <LineChart size={16} className="shrink-0" />
-                                            <span className="flex-1 text-left whitespace-nowrap truncate">Reports</span>
-                                            <ChevronDown size={14} className={`shrink-0 transition-transform ${isReportsOpen ? "rotate-180" : "rotate-0"}`} />
-                                        </div>
-                                    </button>
-                                    {isReportsOpen && (
-                                        <div className="mt-1 space-y-0.5 border-l border-[#27272a] ml-[25px]">
-                                            {reportsLinks.map(({ to, label }) => (
-                                                <Link key={to} to={to} className={subLinkClasses(to)}><span>{label}</span></Link>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
+                            {hasModule("reports") && reportsLinks.length > 0 && renderDropdownItem(
+                                "Reports",
+                                LineChart,
+                                reportsLinks,
+                                isReportsActive,
+                                isReportsOpen,
+                                () => setOpenSection(isReportsOpen ? null : "reports")
                             )}
 
-                            {/* Standalone Modules: Income, Expenses, Late Closures, Close Report, Admin Close */}
-                            {hasModule("income") && (
-                                <Link to="/income" className={singleLinkClasses("/income")}>
-                                    <DollarSign size={16} />
-                                    <span>Income</span>
-                                </Link>
+                            {/* Standalone Modules: Income, Expenses, Late Closures */}
+                            {hasModule("income") && renderSingleItem("/income", "Income", DollarSign)}
+
+                            {hasModule("record_expense") && !isStoreAdmin && renderSingleItem("/record-expense", "Record Expense", DollarSign)}
+
+                            {hasModule("expenses") && renderSingleItem("/expenses", "Expenses", DollarSign)}
+
+                            {hasModule("late_closures") && (isAdmin || userRole === "financial_head" || userRole === "financial_admin" || isSuperAdminUser) && renderSingleItem(
+                                "/pending-closures",
+                                "Late Closures",
+                                FolderClosed
                             )}
 
-                            {hasModule("record_expense") && !isStoreAdmin && (
-                                <Link to="/record-expense" className={singleLinkClasses("/record-expense")}>
-                                    <DollarSign size={16} />
-                                    <span>Record Expense</span>
-                                </Link>
-                            )}
+                            {/* Close Report */}
+                            {hasModule("close_report") && (isAdmin || isSuperAdminUser) && renderSingleItem("/CloseReport", "Close Report", FolderClosed)}
 
-                            {hasModule("expenses") && (
-                                <Link to="/expenses" className={singleLinkClasses("/expenses")}>
-                                    <DollarSign size={16} />
-                                    <span>Expenses</span>
-                                </Link>
-                            )}
-
-                            {hasModule("late_closures") && (isAdmin || userRole === "financial_head" || userRole === "financial_admin" || isSuperAdminUser) && (
-                                <Link to="/pending-closures" className={singleLinkClasses("/pending-closures")}>
-                                    <FolderClosed size={16} />
-                                    <span>Late Closures</span>
-                                </Link>
-                            )}
-
-                            {hasModule("close_report") && (isAdmin || isSuperAdminUser) && (
-                                <Link to="/CloseReport" className={singleLinkClasses("/CloseReport")}>
-                                    <FolderClosed size={16} />
-                                    <span>Close Report</span>
-                                </Link>
-                            )}
-
-                            {hasModule("admin_close") && (isAdmin || isSuperAdminUser || currentuser.locCode === '102') && (
-                                <Link to="/AdminClose" className={singleLinkClasses("/AdminClose")}>
-                                    <Notebook size={16} />
-                                    <span>Admin Close</span>
-                                </Link>
+                            {/* Admin Close */}
+                            {hasModule("admin_close") && (isAdmin || isSuperAdminUser || currentuser?.locCode === '102') && renderSingleItem(
+                                "/AdminClose",
+                                "Admin Close",
+                                ShieldCheck
                             )}
 
                             {/* Manage Users — admin only */}
-                            {(isAdmin || isSuperAdminUser) && (hasModule("manage_users") || hasModule("manageUsers")) && manageUsersLinks.length > 0 && (
-                                <div>
-                                    <button onClick={() => setOpenSection(isManageUsersOpen ? null : "manageUsers")} className={groupButtonClasses(isManageUsersActive || isManageUsersOpen)}>
-                                        <div className="flex w-full items-center gap-3">
-                                            <Users size={16} className="shrink-0" />
-                                            <span className="flex-1 text-left whitespace-nowrap truncate">Manage Users</span>
-                                            <ChevronDown size={14} className={`shrink-0 transition-transform ${isManageUsersOpen ? "rotate-180" : "rotate-0"}`} />
-                                        </div>
-                                    </button>
-                                    {isManageUsersOpen && (
-                                        <div className="mt-1 space-y-0.5 border-l border-[#27272a] ml-[25px]">
-                                            {manageUsersLinks.map(({ to, label }) => (
-                                                <Link key={to} to={to} className={subLinkClasses(to)}><span>{label}</span></Link>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
+                            {(isAdmin || isSuperAdminUser) && (hasModule("manage_users") || hasModule("manageUsers")) && manageUsersLinks.length > 0 && renderDropdownItem(
+                                "Manage Users",
+                                Users,
+                                manageUsersLinks,
+                                isManageUsersActive,
+                                isManageUsersOpen,
+                                () => setOpenSection(isManageUsersOpen ? null : "manageUsers")
                             )}
                         </>
                     )}
@@ -525,55 +504,55 @@ const Nav = () => {
                 </div>
                 
                 {/* Fixed User Profile at bottom */}
-                <div className="p-4 relative" ref={userMenuRef}>
+                <div className="p-3 relative" ref={userMenuRef}>
                     {/* Floating Logout Popup Card */}
                     {showUserMenu && (
-                        <div className="absolute bottom-full left-4 right-4 mb-2 p-4 bg-[#1f1f23] border border-[#2e2e34] rounded-2xl shadow-2xl z-50 text-white animate-in fade-in zoom-in-95 duration-150">
+                        <div className="absolute bottom-full left-3 right-3 mb-2 p-4 bg-[#1B1B1B] border border-[#2e2e34] rounded-2xl shadow-2xl z-50 text-white animate-in fade-in zoom-in-95 duration-150">
                             <div className="flex items-center gap-3">
-                                <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-[#9d4edd] to-[#c77dff] flex items-center justify-center shrink-0 shadow-inner">
-                                    <span className="text-white font-bold text-lg">
+                                <div className="w-10 h-10 rounded-full bg-[#27272a] border border-[#323236] flex items-center justify-center shrink-0 shadow-inner">
+                                    <span className="text-white font-bold text-base">
                                         {(userDisplayName || "A").charAt(0).toUpperCase()}
                                     </span>
                                 </div>
-                                <div className="flex flex-col overflow-hidden">
-                                    <span className="text-sm font-bold text-white truncate">
+                                <div className="flex flex-col overflow-hidden min-w-0">
+                                    <span className="text-[13px] font-semibold text-white truncate">
                                         {userDisplayName}
                                     </span>
-                                    <span className="text-xs font-semibold text-purple-400">
+                                    <span className="text-[11px] font-medium text-[#9D43D6] truncate">
                                         {getUserRoleTitle()}
                                     </span>
                                 </div>
                             </div>
 
-                            <div className="my-3.5 border-b border-[#2e2e34]" />
+                            <div className="my-3 border-b border-[#2e2e34]" />
 
                             <button
                                 type="button"
                                 onClick={handleLogout}
-                                className="w-full py-2.5 px-4 bg-[#ef4444] hover:bg-[#dc2626] active:bg-[#b91c1c] text-white font-semibold rounded-xl text-sm transition-colors text-center cursor-pointer shadow-md"
+                                className="w-full py-2 px-4 bg-[#DC2626] hover:bg-[#b91c1c] text-white font-medium rounded-xl text-[13px] transition-colors text-center cursor-pointer shadow-sm"
                             >
                                 Logout
                             </button>
                         </div>
                     )}
 
-                    {/* Bottom Profile Pill */}
+                    {/* Bottom Profile Row */}
                     <div 
                         onClick={() => setShowUserMenu(prev => !prev)}
-                        className={`flex items-center gap-3 bg-[#27272a]/50 hover:bg-[#27272a] transition-all p-2.5 rounded-[20px] cursor-pointer ${
-                            showUserMenu ? 'border border-[#9d4edd] bg-[#27272a]/80 shadow-md ring-1 ring-[#9d4edd]/50' : 'border border-transparent'
+                        className={`flex items-center gap-3 p-2 rounded-xl transition-colors cursor-pointer select-none ${
+                            showUserMenu ? 'bg-white/[0.08]' : 'hover:bg-white/[0.04]'
                         }`}
                     >
-                        <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#9d4edd] to-[#c77dff] flex items-center justify-center shrink-0 shadow-inner">
+                        <div className="w-9 h-9 rounded-full bg-[#27272a] border border-[#323236] flex items-center justify-center shrink-0 shadow-inner">
                             <span className="text-white font-bold text-sm">
                                 {(userDisplayName || "A").charAt(0).toUpperCase()}
                             </span>
                         </div>
-                        <div className="flex flex-col overflow-hidden">
-                            <span className="text-[13px] font-semibold text-white truncate">
+                        <div className="flex flex-col overflow-hidden min-w-0">
+                            <span className="text-[13px] font-semibold text-white truncate leading-snug">
                                 {userDisplayName}
                             </span>
-                            <span className="text-[11px] text-[#a1a1aa] truncate">
+                            <span className="text-[11px] font-medium text-[#6A6A6A] truncate leading-tight">
                                 {userEmailDisplay}
                             </span>
                         </div>

@@ -127,10 +127,7 @@ const SalesReturns = () => {
         if (user.power) params.append("userPower", user.power);
         if (user.locCode) params.append("locCode", user.locCode);
         
-        const fallbackLocations = [
-          { "locName": "Brides Berry", "locCode": "155" },
-          { "locName": "Warehouse", "locCode": "858" },
-        ];
+        const fallbackLocations = [];
         
         let userLocName = "";
         if (user?.locCode) {

@@ -350,10 +350,7 @@ const ManageStores = () => {
                                         Allowed Stores (Loc Codes)
                                     </label>
                                     <div className="border border-gray-300 rounded-lg p-3 max-h-48 overflow-y-auto space-y-1">
-                                        {[
-                                            { locName: "Brides Berry", locCode: "155" },
-                                            { locName: "Warehouse", locCode: "858" },
-                                        ].map(s => (
+                                        {stores.filter(s => s.locCode && (s.role === 'store_admin' || s.role === 'store_manager' || s.role === 'store admin')).map(s => (
                                             <label key={s.locCode} className="flex items-center gap-2 cursor-pointer text-sm">
                                                 <input
                                                     type="checkbox"
@@ -366,7 +363,7 @@ const ManageStores = () => {
                                                         );
                                                     }}
                                                 />
-                                                {s.locName} ({s.locCode})
+                                                {s.storeName || s.username || s.locCode} ({s.locCode})
                                             </label>
                                         ))}
                                     </div>

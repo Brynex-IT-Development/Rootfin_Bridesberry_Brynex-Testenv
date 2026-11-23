@@ -2,11 +2,8 @@ import Store from "../model/Store.js";
 import User from "../model/UserModel.js";
 import mongoose from "mongoose";
 
-// Fallback guaranteed active stores
-export const fallbackStores = [
-  { name: "Warehouse", locCode: "858", locName: "Warehouse", isActive: true },
-  { name: "BridesBerry", locCode: "155", locName: "BridesBerry", isActive: true },
-];
+// Fallback stores (empty - only stores with existing store admin are shown)
+export const fallbackStores = [];
 
 // Decommissioned old branch locCodes that must remain excluded
 export const DISCARDED_LOC_CODES = new Set([
@@ -93,18 +90,50 @@ export const createStore = async (req, res) => {
   }
 };
 
-// Get all stores - includes Warehouse, MG Road, and any newly added stores
+// Get all stores - only stores with existing store admin
 export const getStores = async (req, res) => {
   try {
     const { isActive } = req.query;
-    
-    const filter = {};
+
+    // First ensure super admin accounts have no store associations
+    await User.updateMany(
+      { role: { $in: ['super_admin', 'superadmin'] } },
+      { $set: { locCode: '', storeName: null, storeId: null } }
+    ).catch(() => {});
+
+    // Look up only active Store Admin or Warehouse Admin users
+    const storeAdmins = await User.find({
+      role: { $in: ["store_admin", "store_manager", "store admin", "warehouse_admin"] },
+      locCode: { $exists: true, $ne: "" }
+    }).select("username storeName locCode email address phone gst").lean();
+
+    const validLocCodes = storeAdmins.map(u => (u.locCode || "").toString().trim()).filter(Boolean);
+
+    // Prune orphaned stores from Store collection if no store admin exists for them
+    try {
+      if (validLocCodes.length > 0) {
+        await Store.deleteMany({ locCode: { $nin: validLocCodes } });
+      } else {
+        await Store.deleteMany({});
+      }
+    } catch (e) {}
+
+    if (validLocCodes.length === 0) {
+      return res.status(200).json({
+        message: "Stores retrieved successfully",
+        stores: [],
+      });
+    }
+
+    const filter = {
+      locCode: { $in: validLocCodes }
+    };
     if (isActive !== undefined) {
       filter.isActive = isActive === 'true';
     } else {
       filter.isActive = { $ne: false };
     }
-    
+
     let dbStores = [];
     try {
       dbStores = await Store.find(filter).sort({ name: 1 }).lean();
@@ -112,54 +141,21 @@ export const getStores = async (req, res) => {
       console.warn("Could not query Store collection:", e.message);
     }
 
-    // Also look up User records with locCode (stores added via AddNewStore / ManageStores)
-    let storeUsers = [];
-    try {
-      storeUsers = await User.find({
-        locCode: { $exists: true, $ne: "" },
-        role: { $nin: ["super_admin", "admin", "warehouse_admin", "financial_admin", "normal_user"] }
-      }).select("username storeName locCode email address phone").lean();
-    } catch (e) {
-      console.warn("Could not query User collection:", e.message);
-    }
-    
     const combinedMap = new Map();
 
-    // 1. Seed with Warehouse and MG Road
-    fallbackStores.forEach(s => {
-      combinedMap.set(s.locCode, { ...s, id: s.locCode });
-    });
-
-    // 2. Add stores from Store collection
-    for (const s of dbStores) {
-      if (s.isActive === false) continue;
-      const code = (s.locCode || "").toString().trim();
-      if (code) {
-        combinedMap.set(code, {
-          id: (s._id || s.id || code).toString(),
-          name: s.name,
-          locCode: code,
-          locName: s.name,
-          address: s.address || "",
-          phone: s.phone || "",
-          email: s.email || "",
-          isActive: s.isActive !== false
-        });
-      }
-    }
-
-    // 3. Add stores from User collection (e.g. from AddNewStore)
-    for (const u of storeUsers) {
+    for (const u of storeAdmins) {
       const code = (u.locCode || "").toString().trim();
-      if (code && !combinedMap.has(code)) {
+      if (code) {
+        const s = dbStores.find(doc => (doc.locCode || "").toString().trim() === code);
         combinedMap.set(code, {
-          id: (u._id || code).toString(),
-          name: u.username,
+          id: (s?._id || s?.id || u._id || code).toString(),
+          name: s?.name || u.storeName || u.username || code,
           locCode: code,
-          locName: u.username,
-          address: u.address || "",
-          phone: u.phone || "",
-          email: u.email || "",
+          locName: s?.name || u.storeName || u.username || code,
+          address: s?.address || u.address || "",
+          phone: s?.phone || u.phone || "",
+          email: s?.email || u.email || "",
+          gst: s?.gst || u.gst || "",
           isActive: true
         });
       }
@@ -172,13 +168,13 @@ export const getStores = async (req, res) => {
 
     return res.status(200).json({
       message: "Stores retrieved successfully",
-      stores: storesList.length > 0 ? storesList : fallbackStores,
+      stores: storesList,
     });
   } catch (error) {
-    console.error("Get stores error (using fallback):", error.message);
+    console.error("Get stores error:", error.message);
     return res.status(200).json({
-      message: "Stores retrieved from fallback",
-      stores: fallbackStores,
+      message: "Stores retrieved successfully",
+      stores: [],
     });
   }
 };
@@ -287,10 +283,6 @@ export const deleteStore = async (req, res) => {
     }
 
     const code = (store.locCode || "").toString().trim();
-    if (code === "858" || code === "155") {
-      return res.status(400).json({ message: "Default system stores cannot be deleted." });
-    }
-
     await Store.findByIdAndDelete(id);
     
     res.status(200).json({

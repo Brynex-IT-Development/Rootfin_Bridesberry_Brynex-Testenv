@@ -17,11 +17,8 @@ const formatLocationName = (name) => {
   return formatted;
 };
 
-// Fallback locations for backward compatibility
-const fallbackLocations = [
-  { value: "Brides Berry", locCode: "155" },
-  { value: "Warehouse", locCode: "858" },
-];
+// Fallback locations (empty - dynamic active stores only)
+const fallbackLocations = [];
 
 // Custom React-Select styles for clean modern UI
 const customSelectStyles = {

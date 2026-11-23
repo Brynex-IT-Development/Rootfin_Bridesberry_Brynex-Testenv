@@ -506,7 +506,7 @@ export const getShoeItems = async (req, res) => {
     
     // User is admin if: power === 'admin' OR locCode === '858' (Warehouse) OR email in adminEmails
     const userId = req.query.userId || "";
-    const adminEmails = ['officerootments@gmail.com', 'brynex@gmail.com'];
+    const adminEmails = ['officerootments@gmail.com'];
     const isAdminEmail = userId && typeof userId === 'string' && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
     const isAdmin = req.query.isAdmin === "true" || req.query.isAdmin === true || 
                     isAdminEmail ||

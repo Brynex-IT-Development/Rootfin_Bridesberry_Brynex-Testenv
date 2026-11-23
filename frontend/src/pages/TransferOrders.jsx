@@ -32,10 +32,7 @@ const TransferOrders = () => {
   const isAdmin = isAdminEmail || user?.power === "admin";
   const isWarehouseUser = user?.power === "warehouse";
 
-  const fallbackLocations = [
-    { locName: "Brides Berry", locCode: "155" },
-    { locName: "Warehouse", locCode: "858" },
-  ];
+  const fallbackLocations = [];
 
   let userLocName = "";
   if (user?.locCode) {

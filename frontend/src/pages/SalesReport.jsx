@@ -6,6 +6,7 @@ import { CSVLink } from 'react-csv';
 import { Helmet } from "react-helmet";
 import { FiDownload, FiSearch, FiChevronDown, FiChevronUp } from "react-icons/fi";
 import useSidebar from '../hooks/useSidebar.js';
+import { fetchActiveStores } from '../utils/storeService.js';
 
 // Add CSS animations
 const styles = `
@@ -104,11 +105,15 @@ const SalesReport = () => {
     }
   }, []);
 
+  const [activeStores, setActiveStores] = useState([]);
+
+  useEffect(() => {
+    fetchActiveStores().then(s => setActiveStores(s || []));
+  }, []);
+
   const storeOptions = [
     { value: "all", label: "All Stores" },
-    { value: "155", label: "Brides Berry" },
-    { value: "858", label: "Warehouse" },
-   
+    ...activeStores.map(s => ({ value: s.locCode, label: s.locName || s.name }))
   ];
 
   const reportTypeOptions = [

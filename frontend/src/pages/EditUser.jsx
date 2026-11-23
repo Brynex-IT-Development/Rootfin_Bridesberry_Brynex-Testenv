@@ -23,10 +23,7 @@ const EditUser = () => {
     const [gst, setGst] = useState("");
     const [role, setRole] = useState("");
     const [allowedLocCodes, setAllowedLocCodes] = useState([]);
-    const [availableStores, setAvailableStores] = useState([
-        { locName: "Brides Berry", locCode: "155" },
-        { locName: "Warehouse", locCode: "858" },
-    ]);
+    const [availableStores, setAvailableStores] = useState([]);
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
 

@@ -23,10 +23,7 @@ const firstOfMonth = () => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
 };
 
-const STORE_LIST = [
-  { locName: "Brides Berry", locCode: "155" },
-  { locName: "Warehouse", locCode: "858" },
-];
+const STORE_LIST = [];
 
 const DEPT_LOC_CODES = [];
 
@@ -309,11 +306,7 @@ export default function IncomeExpenseReport() {
   const userStoreName = `${user.storeName || ""} ${user.locName || ""} ${user.username || ""}`
     .toLowerCase()
     .replace(/[\s_.-]+/g, "");
-  const assignedLocCode = userStoreName.includes("bridesberry")
-    ? "155"
-    : userStoreName.includes("warehouse")
-      ? "858"
-      : (user.locCode || "");
+  const assignedLocCode = user.locCode || "";
   const locCode = canSelectStore ? selectedStore : assignedLocCode;
 
   const fetchData = useCallback(async () => {

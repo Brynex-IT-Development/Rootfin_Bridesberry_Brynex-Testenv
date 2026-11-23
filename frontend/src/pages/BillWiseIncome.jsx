@@ -240,14 +240,14 @@ const DayBookInc = ({ admin = false }) => {
         checkYesterday();
     }, [currentDate, currentusers?.locCode, exemptFromLock, yesterday]);
 
-    const apiUrl = `https://rentalapi.rootments.live/api/GetBooking/GetBookingList?LocCode=${currentusers?.locCode}&DateFrom=${currentDate}&DateTo=${currentDate}`;
-    const apiurl1 = `https://rentalapi.rootments.live/api/GetBooking/GetRentoutList?LocCode=${currentusers?.locCode}&DateFrom=${currentDate}&DateTo=${currentDate}`;
-    const apiUrl2 = `https://rentalapi.rootments.live/api/GetBooking/GetReturnList?LocCode=${currentusers?.locCode}&DateFrom=${currentDate}&DateTo=${currentDate}`;
-    const apiUrl3 = `https://rentalapi.rootments.live/api/GetBooking/GetDeleteList?LocCode=${currentusers?.locCode}&DateFrom=${currentDate}&DateTo=${currentDate}`;
-    const apiUrl4_fallback = `${baseUrl.baseUrl}user/Getpayment?LocCode=${currentusers?.locCode}&DateFrom=${currentDate}&DateTo=${currentDate}`;
+    const apiUrl = currentusers?.locCode ? `https://rentalapi.rootments.live/api/GetBooking/GetBookingList?LocCode=${currentusers?.locCode}&DateFrom=${currentDate}&DateTo=${currentDate}` : null;
+    const apiurl1 = currentusers?.locCode ? `https://rentalapi.rootments.live/api/GetBooking/GetRentoutList?LocCode=${currentusers?.locCode}&DateFrom=${currentDate}&DateTo=${currentDate}` : null;
+    const apiUrl2 = currentusers?.locCode ? `https://rentalapi.rootments.live/api/GetBooking/GetReturnList?LocCode=${currentusers?.locCode}&DateFrom=${currentDate}&DateTo=${currentDate}` : null;
+    const apiUrl3 = currentusers?.locCode ? `https://rentalapi.rootments.live/api/GetBooking/GetDeleteList?LocCode=${currentusers?.locCode}&DateFrom=${currentDate}&DateTo=${currentDate}` : null;
+    const apiUrl4_fallback = currentusers?.locCode ? `${baseUrl.baseUrl}user/Getpayment?LocCode=${currentusers?.locCode}&DateFrom=${currentDate}&DateTo=${currentDate}` : null;
     const apiUrl5 = `${baseUrl.baseUrl}user/saveCashBank`;
-    const apiUrl6 = `${baseUrl.baseUrl}user/getsaveCashBank?locCode=${currentusers?.locCode}&date=${formattedDate}`;
-    const apiUrl7 = `${baseUrl.baseUrl}user/getsaveCashBank?locCode=${currentusers?.locCode}&date=${currentDate}`;
+    const apiUrl6 = currentusers?.locCode ? `${baseUrl.baseUrl}user/getsaveCashBank?locCode=${currentusers?.locCode}&date=${formattedDate}` : null;
+    const apiUrl7 = currentusers?.locCode ? `${baseUrl.baseUrl}user/getsaveCashBank?locCode=${currentusers?.locCode}&date=${currentDate}` : null;
 
     const locCode = currentusers?.locCode;
     const email = currentusers?.email;
@@ -270,6 +270,11 @@ const DayBookInc = ({ admin = false }) => {
 
     // Fetch mongo transactions once on mount
     useEffect(() => {
+        if (!currentusers?.locCode || !apiUrl4_fallback) {
+            setDayBookData([]);
+            setDayBookDataLoading(false);
+            return;
+        }
         setDayBookDataLoading(true);
         fetch(apiUrl4_fallback)
             .then(r => {
@@ -279,9 +284,9 @@ const DayBookInc = ({ admin = false }) => {
             .then(json => setDayBookData(excludeAdminOnlyTransactions(json?.data || [])))
             .catch(() => setLocalLoadError("Unable to load daybook transactions."))
             .finally(() => setDayBookDataLoading(false));
-    }, [apiUrl4_fallback]);
+    }, [apiUrl4_fallback, currentusers?.locCode]);
 
-    const daybookLoadError = bookingError || rentoutError || returnError || cancelError;
+    const daybookLoadError = currentusers?.locCode ? (bookingError || rentoutError || returnError || cancelError) : null;
     const isDataReady = !bookingLoading && !rentoutLoading && !returnLoading && !cancelLoading &&
         !dayBookDataLoading && !daybookLoadError;
 
@@ -766,6 +771,11 @@ const DayBookInc = ({ admin = false }) => {
 
     const GetCreateCashBank = async () => {
         try {
+            if (!currentusers?.locCode || !apiUrl6) {
+                setPreOpen(null);
+                setClosingDataLoading(false);
+                return;
+            }
             const response = await fetch(apiUrl6, {
                 method: 'GET',
                 headers: {
@@ -774,7 +784,7 @@ const DayBookInc = ({ admin = false }) => {
             });
 
             if (!response.ok) {
-                if (response.status === 404) {
+                if (response.status === 404 || response.status === 400) {
                     setPreOpen(null);
                     return;
                 }
@@ -786,7 +796,6 @@ const DayBookInc = ({ admin = false }) => {
         } catch (error) {
             console.error("Error fetching opening balance:", error);
             setPreOpen(null);
-            setLocalLoadError("Unable to load the opening balance.");
         } finally {
             setClosingDataLoading(false);
         }
@@ -794,8 +803,12 @@ const DayBookInc = ({ admin = false }) => {
 
     const takeCreateCashBank = async () => {
         try {
+            if (!currentusers?.locCode || !apiUrl7) {
+                setPreOpen1(null);
+                return;
+            }
             const response = await fetch(apiUrl7, { method: 'GET' });
-            if (response.status === 404) {
+            if (response.status === 404 || response.status === 400) {
                 return;
             }
             if (!response.ok) {
@@ -806,7 +819,9 @@ const DayBookInc = ({ admin = false }) => {
             setPreOpen1(json.data);
         } catch (err) {
             console.error("Error fetching closing data:", err);
-            setLocalLoadError("Unable to check today's saved closure.");
+            if (currentusers?.locCode) {
+                setLocalLoadError("Unable to check today's saved closure.");
+            }
         }
     };
 
@@ -815,6 +830,7 @@ const DayBookInc = ({ admin = false }) => {
         takeCreateCashBank();
         
         const fetchEditedTransactions = async () => {
+            if (!currentusers?.locCode) return;
             try {
                 const apiUrl = `${baseUrl.baseUrl}api/tws/getEditedTransactions?fromDate=${currentDate}&toDate=${currentDate}&locCode=${currentusers?.locCode}`;
                 const res = await fetch(apiUrl);
@@ -1154,7 +1170,7 @@ const DayBookInc = ({ admin = false }) => {
             </div>
         );
     }
-    if (daybookLoadError || localLoadError) {
+    if ((daybookLoadError || localLoadError) && currentusers?.locCode) {
         return (
             <div className="min-h-screen flex items-center justify-center p-6">
                 <div className="max-w-md rounded-xl border bg-white p-8 text-center shadow-sm">
@@ -1207,7 +1223,7 @@ const DayBookInc = ({ admin = false }) => {
                 <Headers title={"Day Book"} />
 
                 <div className={`transition-all duration-300 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
-                    <div className="p-6 md:p-8 bg-white min-h-screen">
+                    <div className="p-6 md:p-8 bg-[#F7F7F7] min-h-screen">
 
                         {isLateClose && (
                             <div className="no-print mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
@@ -1278,49 +1294,49 @@ const DayBookInc = ({ admin = false }) => {
                                 </div>
                             </div>
                             {/* Main Transactions Table */}
-                            <div className="bg-white border border-gray-200 overflow-hidden shadow-xs mb-8">
+                            <div className="bg-white border border-[#E5E5E5] rounded-xl overflow-hidden shadow-xs mb-6">
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-left border-collapse min-w-[1200px]">
                                         <thead>
-                                            <tr className="bg-[#1c1c1c] text-white">
-                                                <th className="py-3.5 pl-6 pr-3 text-[11px] font-bold uppercase tracking-wider whitespace-nowrap">TIME</th>
-                                                <th className="py-3.5 px-3 text-[11px] font-bold uppercase tracking-wider whitespace-nowrap">INVOICE NO.</th>
-                                                <th className="py-3.5 px-3 text-[11px] font-bold uppercase tracking-wider whitespace-nowrap">CUSTOMER NAME</th>
-                                                <th className="py-3.5 px-3 text-[11px] font-bold uppercase tracking-wider whitespace-nowrap">CATEGORY</th>
-                                                <th className="py-3.5 px-3 text-[11px] font-bold uppercase tracking-wider whitespace-nowrap">SUB CATEGORY</th>
-                                                <th className="py-3.5 px-3 text-[11px] font-bold uppercase tracking-wider whitespace-nowrap">REMARKS</th>
-                                                <th className="py-3.5 px-3 text-[11px] font-bold uppercase tracking-wider text-right whitespace-nowrap">AMOUNT</th>
-                                                <th className="py-3.5 px-3 text-[11px] font-bold uppercase tracking-wider text-right whitespace-nowrap">TOTAL TXN</th>
-                                                <th className="py-3.5 px-3 text-[11px] font-bold uppercase tracking-wider text-right whitespace-nowrap">DISCOUNT</th>
-                                                <th className="py-3.5 px-3 text-[11px] font-bold uppercase tracking-wider text-right whitespace-nowrap">BILL VALUE</th>
-                                                <th className="py-3.5 px-3 text-[11px] font-bold uppercase tracking-wider text-right whitespace-nowrap">CASH</th>
-                                                <th className="py-3.5 px-3 text-[11px] font-bold uppercase tracking-wider text-right whitespace-nowrap">RAZORPAY</th>
-                                                <th className="py-3.5 px-3 text-[11px] font-bold uppercase tracking-wider text-right whitespace-nowrap">CARD/BANK</th>
-                                                <th className="py-3.5 pl-3 pr-6 text-[11px] font-bold uppercase tracking-wider text-right whitespace-nowrap">UPI</th>
-                                                {showAction && <th className="py-3.5 px-3 text-[11px] font-bold uppercase tracking-wider text-center whitespace-nowrap">ACTION</th>}
+                                            <tr className="bg-[#1B1B1B] text-white h-[36px]">
+                                                <th className="h-[36px] px-3 text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap">TIME</th>
+                                                <th className="h-[36px] px-3 text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap">INVOICE NO.</th>
+                                                <th className="h-[36px] px-3 text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap">CUSTOMER NAME</th>
+                                                <th className="h-[36px] px-3 text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap">CATEGORY</th>
+                                                <th className="h-[36px] px-3 text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap">SUB CATEGORY</th>
+                                                <th className="h-[36px] px-3 text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap">REMARKS</th>
+                                                <th className="h-[36px] px-3 text-[11px] font-semibold uppercase tracking-wider text-right whitespace-nowrap">AMOUNT</th>
+                                                <th className="h-[36px] px-3 text-[11px] font-semibold uppercase tracking-wider text-right whitespace-nowrap">TOTAL TXN</th>
+                                                <th className="h-[36px] px-3 text-[11px] font-semibold uppercase tracking-wider text-right whitespace-nowrap">DISCOUNT</th>
+                                                <th className="h-[36px] px-3 text-[11px] font-semibold uppercase tracking-wider text-right whitespace-nowrap">BILL VALUE</th>
+                                                <th className="h-[36px] px-3 text-[11px] font-semibold uppercase tracking-wider text-right whitespace-nowrap">CASH</th>
+                                                <th className="h-[36px] px-3 text-[11px] font-semibold uppercase tracking-wider text-right whitespace-nowrap">RAZORPAY</th>
+                                                <th className="h-[36px] px-3 text-[11px] font-semibold uppercase tracking-wider text-right whitespace-nowrap">CARD/BANK</th>
+                                                <th className="h-[36px] px-3 text-[11px] font-semibold uppercase tracking-wider text-right whitespace-nowrap">UPI</th>
+                                                {showAction && <th className="h-[36px] px-3 text-[11px] font-semibold uppercase tracking-wider text-center whitespace-nowrap">ACTION</th>}
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-gray-100 text-sm">
+                                        <tbody className="divide-y divide-[#E5E5E5] text-[13px]">
                                             {/* Special Row: OPENING BALANCE */}
-                                            <tr className="bg-white font-medium text-gray-900 hover:bg-gray-50/50">
-                                                <td colSpan="6" className="py-3.5 pl-6 pr-3 font-bold text-xs uppercase tracking-wider text-gray-900">
+                                            <tr className="bg-white font-medium text-[#212121] h-[44px] hover:bg-[#FBF5FC] transition-colors border-b border-[#E5E5E5]">
+                                                <td colSpan="6" className="h-[44px] px-3 font-semibold text-[12px] uppercase tracking-wider text-[#212121]">
                                                     OPENING BALANCE
                                                 </td>
-                                                <td className="py-3.5 px-3 text-right font-medium text-gray-800">
+                                                <td className="h-[44px] px-3 text-right font-medium text-[#212121]">
                                                     {preOpen?.cash ?? preOpen?.Closecash ?? 0}
                                                 </td>
-                                                <td className="py-3.5 px-3 text-right font-medium text-gray-800">
+                                                <td className="h-[44px] px-3 text-right font-medium text-[#212121]">
                                                     {preOpen?.cash ?? preOpen?.Closecash ?? 0}
                                                 </td>
-                                                <td className="py-3.5 px-3 text-right text-gray-400">-</td>
-                                                <td className="py-3.5 px-3 text-right text-gray-400">-</td>
-                                                <td className="py-3.5 px-3 text-right font-medium text-gray-800">
+                                                <td className="h-[44px] px-3 text-right text-[#6A6A6A]">-</td>
+                                                <td className="h-[44px] px-3 text-right text-[#6A6A6A]">-</td>
+                                                <td className="h-[44px] px-3 text-right font-medium text-[#212121]">
                                                     {preOpen?.cash ?? preOpen?.Closecash ?? 0}
                                                 </td>
-                                                <td className="py-3.5 px-3 text-right text-gray-400">-</td>
-                                                <td className="py-3.5 px-3 text-right text-gray-400">-</td>
-                                                <td className="py-3.5 pl-3 pr-6 text-right text-gray-400">-</td>
-                                                {showAction && <td className="py-3.5 px-3"></td>}
+                                                <td className="h-[44px] px-3 text-right text-[#6A6A6A]">-</td>
+                                                <td className="h-[44px] px-3 text-right text-[#6A6A6A]">-</td>
+                                                <td className="h-[44px] px-3 text-right text-[#6A6A6A]">-</td>
+                                                {showAction && <td className="h-[44px] px-3"></td>}
                                             </tr>
 
                                             {/* Data Rows */}
@@ -1343,79 +1359,79 @@ const DayBookInc = ({ admin = false }) => {
                                                     const displayUpi = tx.upi != null ? tx.upi : 0;
 
                                                     return (
-                                                        <tr key={tx._id || idx} className="hover:bg-gray-50/70 transition-colors text-gray-800">
-                                                            <td className="py-3.5 pl-6 pr-3 text-xs text-gray-600 whitespace-nowrap">{displayTime}</td>
-                                                            <td className="py-3.5 px-3 font-medium text-xs whitespace-nowrap">{displayInvoice}</td>
-                                                            <td className="py-3.5 px-3 font-medium text-xs whitespace-nowrap">{displayCustomer}</td>
-                                                            <td className="py-3.5 px-3 text-xs whitespace-nowrap">{displayCategory}</td>
-                                                            <td className="py-3.5 px-3 text-xs whitespace-nowrap">{displaySubCategory}</td>
-                                                            <td className="py-3.5 px-3 text-xs text-gray-500 max-w-[160px] truncate">{displayRemarks}</td>
-                                                            <td className="py-3.5 px-3 text-right font-medium text-xs whitespace-nowrap">
+                                                        <tr key={tx._id || idx} className="h-[44px] hover:bg-[#FBF5FC] transition-colors text-[#212121] border-b border-[#E5E5E5]">
+                                                            <td className="h-[44px] px-3 text-[13px] text-[#6A6A6A] whitespace-nowrap">{displayTime}</td>
+                                                            <td className="h-[44px] px-3 text-[13px] font-medium text-[#9D43D6] whitespace-nowrap">{displayInvoice}</td>
+                                                            <td className="h-[44px] px-3 text-[13px] font-medium text-[#212121] whitespace-nowrap">{displayCustomer}</td>
+                                                            <td className="h-[44px] px-3 text-[13px] whitespace-nowrap">{displayCategory}</td>
+                                                            <td className="h-[44px] px-3 text-[13px] whitespace-nowrap">{displaySubCategory}</td>
+                                                            <td className="h-[44px] px-3 text-[13px] text-[#6A6A6A] max-w-[160px] truncate">{displayRemarks}</td>
+                                                            <td className="h-[44px] px-3 text-[13px] text-right font-medium whitespace-nowrap">
                                                                 {isEditing ? (
                                                                     <input
                                                                         type="number"
                                                                         value={editedTransaction.amount}
                                                                         onChange={(e) => handleInputChange("amount", e.target.value)}
-                                                                        className="w-20 p-1 border border-gray-300 rounded-none text-xs text-right"
+                                                                        className="w-20 p-1 border border-[#E5E5E5] rounded-[6px] text-xs text-right outline-none focus:border-[#9B48D7]"
                                                                     />
                                                                 ) : displayAmount}
                                                             </td>
-                                                            <td className="py-3.5 px-3 text-right font-medium text-xs whitespace-nowrap">
+                                                            <td className="h-[44px] px-3 text-[13px] text-right font-medium whitespace-nowrap">
                                                                 {isEditing ? (
                                                                     <input
                                                                         type="number"
                                                                         value={editedTransaction.totalTransaction}
                                                                         onChange={(e) => handleInputChange("totalTransaction", e.target.value)}
-                                                                        className="w-20 p-1 border border-gray-300 rounded-none text-xs text-right"
+                                                                        className="w-20 p-1 border border-[#E5E5E5] rounded-[6px] text-xs text-right outline-none focus:border-[#9B48D7]"
                                                                     />
                                                                 ) : displayTotalTxn}
                                                             </td>
-                                                            <td className="py-3.5 px-3 text-right text-xs text-gray-600 whitespace-nowrap">
+                                                            <td className="h-[44px] px-3 text-right text-[13px] text-[#6A6A6A] whitespace-nowrap">
                                                                 {displayDiscount}
                                                             </td>
-                                                            <td className="py-3.5 px-3 text-right font-medium text-xs whitespace-nowrap">
+                                                            <td className="h-[44px] px-3 text-right font-medium text-[13px] whitespace-nowrap">
                                                                 {displayBillValue}
                                                             </td>
-                                                            <td className="py-3.5 px-3 text-right font-medium text-xs whitespace-nowrap">
+                                                            <td className="h-[44px] px-3 text-right font-medium text-[13px] whitespace-nowrap">
                                                                 {isEditing ? (
                                                                     <input
                                                                         type="number"
                                                                         value={editedTransaction.cash}
                                                                         onChange={(e) => handleInputChange("cash", e.target.value)}
-                                                                        className="w-16 p-1 border border-gray-300 rounded-none text-xs text-right"
+                                                                        className="w-16 p-1 border border-[#E5E5E5] rounded-[6px] text-xs text-right outline-none focus:border-[#9B48D7]"
                                                                         aria-label="Cash amount"
                                                                     />
                                                                 ) : displayCash}
                                                             </td>
-                                                            <td className="py-3.5 px-3 text-right font-medium text-xs whitespace-nowrap">
+                                                            <td className="h-[44px] px-3 text-right font-medium text-[13px] whitespace-nowrap">
                                                                 {isEditing ? (
                                                                     <input
                                                                         type="number"
                                                                         value={editedTransaction.rbl}
                                                                         onChange={(e) => handleInputChange("rbl", e.target.value)}
-                                                                        className="w-16 p-1 border border-gray-300 rounded-none text-xs text-right"
+                                                                        className="w-16 p-1 border border-[#E5E5E5] rounded-[6px] text-xs text-right outline-none focus:border-[#9B48D7]"
                                                                         aria-label="Razorpay amount"
                                                                     />
                                                                 ) : displayRazorpay}
                                                             </td>
-                                                            <td className="py-3.5 px-3 text-right font-medium text-xs whitespace-nowrap">
+                                                            <td className="h-[44px] px-3 text-right font-medium text-[13px] whitespace-nowrap">
                                                                 {isEditing ? (
                                                                     <input
                                                                         type="number"
                                                                         value={editedTransaction.bank}
                                                                         onChange={(e) => handleInputChange("bank", e.target.value)}
-                                                                        className="w-16 p-1 border border-gray-300 rounded-none text-xs text-right"
+                                                                        className="w-16 p-1 border border-[#E5E5E5] rounded-[6px] text-xs text-right outline-none focus:border-[#9B48D7]"
                                                                         aria-label="Card or bank amount"
                                                                     />
                                                                 ) : displayBank}
                                                             </td>
-                                                            <td className="py-3.5 pl-3 pr-6 text-right font-medium text-xs whitespace-nowrap">
+                                                            <td className="h-[44px] pl-3 pr-6 text-right font-medium text-[13px] whitespace-nowrap">
                                                                 {isEditing ? (
                                                                     <input
                                                                         type="number"
                                                                         value={editedTransaction.upi}
                                                                         onChange={(e) => handleInputChange("upi", e.target.value)}
-                                                                        className="w-16 p-1 border border-gray-300 rounded-none text-xs text-right"
+                                                                        className="w-16 p-1 border border-[#E5E5E5] rounded-[6px] text-xs text-right outline-none focus:border-[#9B48D7]"
                                                                         aria-label="UPI amount"
                                                                     />
                                                                 ) : displayUpi}
@@ -1451,35 +1467,35 @@ const DayBookInc = ({ admin = false }) => {
                                             )}
                                         </tbody>
                                         <tfoot>
-                                            <tr className="bg-[#dedede] text-gray-900 font-bold border-t border-gray-300">
-                                                <td colSpan="6" className="py-3.5 pl-6 pr-3 font-bold text-xs uppercase tracking-wider">
+                                            <tr className="bg-[#E5E5E5] text-[#212121] font-semibold h-[44px] border-t border-[#E5E5E5]">
+                                                <td colSpan="6" className="h-[44px] px-3 font-semibold text-[11px] uppercase tracking-wider">
                                                     TOTAL
                                                 </td>
-                                                <td className="py-3.5 px-3 text-right text-xs font-bold">
+                                                <td className="h-[44px] px-3 text-right text-[13px] font-semibold">
                                                     {totalAmountWithOpening}
                                                 </td>
-                                                <td className="py-3.5 px-3 text-right text-xs font-bold">
+                                                <td className="h-[44px] px-3 text-right text-[13px] font-semibold">
                                                     {totalTransactionWithOpening}
                                                 </td>
-                                                <td className="py-3.5 px-3 text-right text-xs font-bold">
+                                                <td className="h-[44px] px-3 text-right text-[#6A6A6A]">
                                                     {totalCalculatedDiscount > 0 ? totalCalculatedDiscount : "-"}
                                                 </td>
-                                                <td className="py-3.5 px-3 text-right text-xs font-bold">
+                                                <td className="h-[44px] px-3 text-right text-[13px] font-semibold">
                                                     {totalCalculatedBillValue > 0 ? totalCalculatedBillValue : "-"}
                                                 </td>
-                                                <td className="py-3.5 px-3 text-right text-xs font-bold">
+                                                <td className="h-[44px] px-3 text-right text-[13px] font-semibold">
                                                     {calculatedTotals.totalCash}
                                                 </td>
-                                                <td className="py-3.5 px-3 text-right text-xs font-bold">
+                                                <td className="h-[44px] px-3 text-right text-[13px] font-semibold">
                                                     {calculatedTotals.totalRblAmount}
                                                 </td>
-                                                <td className="py-3.5 px-3 text-right text-xs font-bold">
+                                                <td className="h-[44px] px-3 text-right text-[13px] font-semibold">
                                                     {calculatedTotals.totalBankAmount1}
                                                 </td>
-                                                <td className="py-3.5 pl-3 pr-6 text-right text-xs font-bold">
+                                                <td className="h-[44px] pl-3 pr-6 text-right text-[13px] font-semibold">
                                                     {calculatedTotals.totalBankAmountupi}
                                                 </td>
-                                                {showAction && <td className="py-3.5 px-3"></td>}
+                                                {showAction && <td className="h-[44px] px-3"></td>}
                                             </tr>
                                         </tfoot>
                                     </table>
@@ -1490,11 +1506,11 @@ const DayBookInc = ({ admin = false }) => {
                             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                                 
                                 {/* Left Box: Denomination Count (Takes 7 cols on desktop ~668px) */}
-                                <div className="lg:col-span-7 bg-white border border-gray-200 overflow-hidden shadow-xs">
-                                    <div className="bg-[#1c1c1c] text-white px-6 py-3.5 flex justify-between items-center">
-                                        <span className="text-[11px] font-bold uppercase tracking-wider w-1/3">DENOMINATION</span>
-                                        <span className="text-[11px] font-bold uppercase tracking-wider w-1/3 text-center">QUANTITY</span>
-                                        <span className="text-[11px] font-bold uppercase tracking-wider w-1/3 text-right">AMOUNT</span>
+                                <div className="lg:col-span-7 bg-white border border-[#E5E5E5] rounded-xl overflow-hidden shadow-xs">
+                                    <div className="bg-[#1B1B1B] text-white px-4 h-[36px] flex justify-between items-center">
+                                        <span className="text-[11px] font-semibold uppercase tracking-wider w-1/3">DENOMINATION</span>
+                                        <span className="text-[11px] font-semibold uppercase tracking-wider w-1/3 text-center">QUANTITY</span>
+                                        <span className="text-[11px] font-semibold uppercase tracking-wider w-1/3 text-right">AMOUNT</span>
                                     </div>
 
                                     <div className="divide-y divide-gray-100">
@@ -1550,9 +1566,9 @@ const DayBookInc = ({ admin = false }) => {
                                 </div>
 
                                 {/* Right Box: Cash Summary Card (Takes 5 cols on desktop) */}
-                                <div className="lg:col-span-5 bg-white border border-gray-300 p-6 md:p-7 flex flex-col justify-between shadow-xs">
+                                <div className="lg:col-span-5 bg-white border border-[#E5E5E5] rounded-xl p-6 flex flex-col justify-between shadow-xs">
                                     <div>
-                                        <h3 className="text-lg font-bold text-gray-900 mb-6">Cash Summary</h3>
+                                        <h3 className="text-[18px] font-semibold text-[#212121] mb-6">Cash Summary</h3>
                                         <div className="space-y-4">
                                             <div className="flex justify-between items-center">
                                                 <span className="text-sm text-gray-500 font-medium">Closing Cash</span>
@@ -1585,7 +1601,7 @@ const DayBookInc = ({ admin = false }) => {
                                             onClick={handleDownloadReport}
                                             disabled={!isDaybookClosed}
                                             title={!isDaybookClosed ? "Close the day book before downloading the report" : "Download day book report"}
-                                            className="flex-1 py-2.5 px-4 bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm font-semibold rounded-none border border-gray-200 transition-colors text-center cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-gray-100"
+                                            className="rf-btn-secondary flex-1 py-2.5 px-4 rounded-xl cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                                         >
                                             Download Report
                                         </button>
@@ -1593,15 +1609,15 @@ const DayBookInc = ({ admin = false }) => {
                                         {loading || !isDataReady || closingDataLoading ? (
                                             <button
                                                 disabled
-                                                className="flex-1 py-2.5 px-4 bg-[#8b5cf6] opacity-70 text-white text-sm font-semibold rounded-none text-center flex items-center justify-center gap-2 cursor-not-allowed"
+                                                className="rf-btn-disabled flex-1 py-2.5 px-4 rounded-xl flex items-center justify-center gap-2"
                                             >
-                                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
                                                 <span>{loading ? "Saving..." : "Loading day book..."}</span>
                                             </button>
                                         ) : preOpen1 == null && !stabilized ? (
                                             <button
                                                 disabled
-                                                className="flex-1 py-2.5 px-4 bg-[#8b5cf6] opacity-70 text-white text-sm font-semibold rounded-none text-center cursor-not-allowed"
+                                                className="rf-btn-disabled flex-1 py-2.5 px-4 rounded-xl text-center"
                                             >
                                                 Stabilizing…
                                             </button>
@@ -1609,7 +1625,7 @@ const DayBookInc = ({ admin = false }) => {
                                             <button
                                                 type="button"
                                                 onClick={CreateCashBank}
-                                                className="flex-1 py-2.5 px-4 bg-[#8b5cf6] hover:bg-[#7c3aed] text-white text-sm font-semibold rounded-none shadow-sm transition-all hover:shadow text-center cursor-pointer"
+                                                className="rf-btn-primary flex-1 py-2.5 px-4 rounded-xl cursor-pointer"
                                             >
                                                 {isLateClose ? "Save & Finish Day (Late)" : "Save & Finish Day"}
                                             </button>
@@ -1617,7 +1633,7 @@ const DayBookInc = ({ admin = false }) => {
                                             <button
                                                 type="button"
                                                 onClick={handlePrint}
-                                                className="flex-1 py-2.5 px-4 bg-[#8b5cf6] hover:bg-[#7c3aed] text-white text-sm font-semibold rounded-none shadow-sm transition-all hover:shadow text-center cursor-pointer"
+                                                className="rf-btn-primary flex-1 py-2.5 px-4 rounded-xl cursor-pointer"
                                             >
                                                 Print Summary
                                             </button>

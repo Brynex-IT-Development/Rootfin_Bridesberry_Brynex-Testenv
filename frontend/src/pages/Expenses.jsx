@@ -16,11 +16,6 @@ const currentDate = () => {
 };
 
 const getPreferredStoreCode = (user, stores = []) => {
-  const name = `${user.storeName || ""} ${user.locName || ""} ${user.username || ""}`
-    .toLowerCase()
-    .replace(/[\s_.-]+/g, "");
-  if (name.includes("bridesberry")) return "155";
-  if (name.includes("warehouse")) return "858";
   const code = String(user.locCode || "").trim();
   if (stores.some((store) => store.locCode === code)) return code;
   return code || stores[0]?.locCode || "";

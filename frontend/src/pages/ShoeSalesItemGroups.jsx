@@ -53,7 +53,6 @@ const ShoeSalesItemGroups = () => {
   const userEmail = (user?.email || user?.username || "").toLowerCase().trim();
   const adminEmails = [
     "officerootments@gmail.com",
-    "brynex@gmail.com",
     "operationsrootments@gmail.com",
     "headoffice01@gmail.com"
   ];
@@ -77,10 +76,7 @@ const ShoeSalesItemGroups = () => {
                       user?.power === "admin" || 
                       (user?.locCode && (user.locCode === '858' || user.locCode === '103'));
       
-      const fallbackLocations = [
-        { "locName": "Brides Berry", "locCode": "155" },
-        { "locName": "Warehouse", "locCode": "858" },
-      ];
+      const fallbackLocations = [];
       
       let userLocName = "";
       if (user?.locCode) {

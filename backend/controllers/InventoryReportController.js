@@ -283,7 +283,6 @@ export const getInventorySummary = async (req, res) => {
     // Check if user is admin
     const adminEmails = [
       'officerootments@gmail.com',
-      'brynex@gmail.com',
       'operationsrootments@gmail.com',
       'headoffice01@gmail.com'
     ];
@@ -586,7 +585,6 @@ export const getStockSummary = async (req, res) => {
     // Check if user is admin
     const adminEmails = [
       'officerootments@gmail.com',
-      'brynex@gmail.com',
       'operationsrootments@gmail.com',
       'headoffice01@gmail.com'
     ];
@@ -865,7 +863,6 @@ export const getInventoryValuation = async (req, res) => {
     // Check if user is admin
     const adminEmails = [
       'officerootments@gmail.com',
-      'brynex@gmail.com',
       'operationsrootments@gmail.com',
       'headoffice01@gmail.com'
     ];
@@ -1205,7 +1202,6 @@ export const getStockOnHandReport = async (req, res) => {
     // Check if user is admin
     const adminEmails = [
       'officerootments@gmail.com',
-      'brynex@gmail.com',
       'operationsrootments@gmail.com',
       'headoffice01@gmail.com'
     ];
@@ -1526,7 +1522,6 @@ export const getInventoryAging = async (req, res) => {
     // Check admin / permissions
     const adminEmails = [
       'officerootments@gmail.com',
-      'brynex@gmail.com',
       'operationsrootments@gmail.com',
       'headoffice01@gmail.com'
     ];

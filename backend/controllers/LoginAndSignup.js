@@ -112,18 +112,20 @@ export const Login = async (req, res) => {
             return res.status(400).json({ message: 'Invalid email or password.' });
         }
 
+        const isSuper = (user.role || '').toLowerCase() === 'super_admin' || (user.role || '').toLowerCase() === 'superadmin';
+
         res.status(200).json({
             message: 'Login successful',
             closureAuthToken: createClosureAuthToken(user),
 
             user: {
                 email: user.email,
-                username: user.username,
+                username: isSuper ? "Brynex Admin" : user.username,
                 role: user.role || 'normal_user',
-                locCode: user.locCode || '',
-                storeName: user.storeName || user.username,
-                storeId: user.storeId,
-                allowedLocCodes: user.allowedLocCodes || [],
+                locCode: isSuper ? '' : (user.locCode || ''),
+                storeName: isSuper ? null : (user.storeName || null),
+                storeId: isSuper ? null : user.storeId,
+                allowedLocCodes: isSuper ? [] : (user.allowedLocCodes || []),
             },
         });
     } catch (error) {
@@ -137,39 +139,58 @@ export const Login = async (req, res) => {
 
 export const GetAllStores = async (req, res) => {
     try {
-        const stores = await Store.find({ isActive: { $ne: false } }).lean();
-        const storeUsers = await User.find({
-            $or: [
-                { role: { $in: ['store_admin', 'store_manager', 'store admin'] } },
-                { locCode: { $exists: true, $ne: '' }, role: { $nin: ['super_admin', 'admin', 'warehouse_admin', 'financial_admin', 'normal_user'] } }
-            ]
+        // Clear super admin store associations
+        await User.updateMany(
+            { role: { $in: ['super_admin', 'superadmin'] } },
+            { $set: { locCode: '', storeName: null, storeId: null } }
+        ).catch(() => {});
+
+        // ONLY fetch stores for existing store admins
+        const storeAdmins = await User.find({
+            role: { $in: ['store_admin', 'store_manager', 'store admin', 'warehouse_admin'] },
+            locCode: { $exists: true, $ne: '' }
         }, { password: 0 }).lean();
 
-        const combined = new Map();
-        stores.forEach(s => {
-            const code = (s.locCode || "").toString().trim();
-            if (code) {
-                combined.set(code, {
-                    locName: s.name || s.locName || code,
-                    locCode: code,
-                });
+        const validLocCodes = storeAdmins.map(u => (u.locCode || "").toString().trim()).filter(Boolean);
+
+        // Clean up orphaned stores from Store collection
+        try {
+            if (validLocCodes.length > 0) {
+                await Store.deleteMany({ locCode: { $nin: validLocCodes } });
+            } else {
+                await Store.deleteMany({});
             }
-        });
-        storeUsers.forEach(u => {
+        } catch (e) {}
+
+        if (validLocCodes.length === 0) {
+            return res.status(200).json({
+                message: 'Stores retrieved successfully',
+                stores: [],
+            });
+        }
+
+        const stores = await Store.find({
+            locCode: { $in: validLocCodes },
+            isActive: { $ne: false }
+        }).lean();
+
+        const storeMap = new Map();
+        for (const u of storeAdmins) {
             const code = (u.locCode || "").toString().trim();
-            if (code && !combined.has(code)) {
-                combined.set(code, {
-                    locName: u.storeName || u.username || code,
+            if (code) {
+                const storeDoc = stores.find(s => (s.locCode || "").toString().trim() === code);
+                storeMap.set(code, {
+                    locName: storeDoc?.name || storeDoc?.locName || u.storeName || u.username || code,
                     locCode: code,
+                    address: storeDoc?.address || u.address || "",
+                    phone: storeDoc?.phone || u.phone || "",
+                    email: storeDoc?.email || u.email || "",
+                    gst: storeDoc?.gst || u.gst || ""
                 });
             }
-        });
+        }
 
-        // Ensure defaults if not present
-        if (!combined.has("155")) combined.set("155", { locName: "Brides Berry", locCode: "155" });
-        if (!combined.has("858")) combined.set("858", { locName: "Warehouse", locCode: "858" });
-
-        const storeList = Array.from(combined.values())
+        const storeList = Array.from(storeMap.values())
             .filter(isAllowedStore)
             .sort((a, b) => a.locName.localeCompare(b.locName));
 
@@ -188,11 +209,31 @@ export const GetAllStores = async (req, res) => {
 
 export const GetAllUsers = async (req, res) => {
     try {
-        const users = await User.find({}, { password: 0 }).sort({ createdAt: -1 }); // Exclude password, sort by newest first
+        // Clear super admin store associations
+        await User.updateMany(
+            { role: { $in: ['super_admin', 'superadmin'] } },
+            { $set: { locCode: '', storeName: null, storeId: null } }
+        ).catch(() => {});
+
+        const users = await User.find({}, { password: 0 }).sort({ createdAt: -1 }).lean();
         
+        const sanitizedUsers = users.map(u => {
+            const role = (u.role || '').toLowerCase();
+            const isSuper = role === 'super_admin' || role === 'superadmin';
+            if (isSuper) {
+                return {
+                    ...u,
+                    locCode: '',
+                    storeName: null,
+                    storeId: null
+                };
+            }
+            return u;
+        });
+
         res.status(200).json({
             message: 'Users retrieved successfully',
-            users: users,
+            users: sanitizedUsers,
         });
     } catch (error) {
         console.error('GetAllUsers Error:', error);
@@ -272,7 +313,7 @@ export const UpdateUser = async (req, res) => {
         await user.save();
 
         // If old locCode changed or removed, clean up old store if no other user has it
-        if (oldLocCode && oldLocCode !== newLocCode && oldLocCode !== "858" && oldLocCode !== "155") {
+        if (oldLocCode && oldLocCode !== newLocCode) {
             const otherUsersWithOldLoc = await User.countDocuments({ locCode: oldLocCode });
             if (otherUsersWithOldLoc === 0) {
                 await Store.deleteMany({ locCode: oldLocCode }).catch(() => {});
@@ -338,8 +379,8 @@ export const DeleteUser = async (req, res) => {
 
         let deletedLocCode = null;
 
-        // If this user had an associated store locCode (excluding permanent seed stores 858 and 155)
-        if (userLocCode && userLocCode !== "858" && userLocCode !== "155") {
+        // If this user had an associated store locCode
+        if (userLocCode) {
             // Check if any other user in the database still uses this locCode
             const remainingUsersWithLoc = await User.countDocuments({ locCode: userLocCode });
             if (remainingUsersWithLoc === 0) {
@@ -355,10 +396,10 @@ export const DeleteUser = async (req, res) => {
         } else if (userEmail) {
             // If the user had a store created matching their email
             const remainingUsersWithEmail = await User.countDocuments({ email: userEmail });
-            if (remainingUsersWithEmail === 0) {
+            const isSuper = user.role === 'super_admin' || user.role === 'superadmin';
+            if (remainingUsersWithEmail === 0 && !isSuper) {
                 await Store.deleteMany({
-                    email: userEmail,
-                    locCode: { $nin: ["858", "155"] }
+                    email: userEmail
                 }).catch(err => console.warn("Could not delete store by email on DeleteUser:", err.message));
             }
         }

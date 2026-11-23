@@ -87,26 +87,26 @@ const ResetUserPassword = () => {
     };
 
     return (
-        <div className={`bg-white min-h-screen transition-all duration-300 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
+        <div className={`bg-[#F7F7F7] min-h-screen transition-all duration-300 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
             {/* Header */}
-            <div className="bg-white px-10 py-7 border-b border-gray-200">
+            <div className="bg-white px-8 py-5 border-b border-[#E5E5E5]">
                 <div className="flex items-center gap-4">
-                    <div className="bg-blue-600 p-4 rounded-xl">
-                        <ShieldCheck className="text-white" size={28} />
+                    <div className="bg-[#9D43D6] p-3 rounded-xl flex items-center justify-center shadow-sm">
+                        <ShieldCheck className="text-white" size={24} />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">RESET USER PASSWORD</h1>
-                        <p className="text-gray-400 text-sm">Only admin can reset password for any user</p>
+                        <h1 className="text-[24px] font-semibold text-[#212121]">RESET USER PASSWORD</h1>
+                        <p className="text-[#6A6A6A] text-[13px] font-normal">Only admin can reset password for any user</p>
                     </div>
                 </div>
             </div>
 
             {/* Form */}
-            <div className="px-10 py-10">
-                <form onSubmit={handleReset} className="max-w-lg space-y-6" autoComplete="off">
+            <div className="p-6 md:p-8">
+                <form onSubmit={handleReset} className="max-w-lg bg-white border border-[#E5E5E5] rounded-xl p-6 shadow-xs space-y-4" autoComplete="off">
                     {/* Select User */}
                     <div ref={dropdownRef}>
-                        <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">
+                        <label className="block text-[12px] font-medium text-[#212121] mb-[6px]">
                             Select User / Store *
                         </label>
                         <div className="relative">
@@ -121,19 +121,19 @@ const ResetUserPassword = () => {
                                 onFocus={() => setShowUserDropdown(true)}
                                 placeholder="Enter mail id or username..."
                                 autoComplete="off"
-                                className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full h-[40px] px-[14px] pr-10 border border-[#E5E5E5] rounded-[10px] text-[13px] font-medium text-[#212121] placeholder-[#A3A3A3] outline-none focus:border-[#9B48D7] focus:ring-1 focus:ring-[#9B48D7]"
                             />
-                            <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                            <ChevronDown size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#6A6A6A] pointer-events-none" />
                             {showUserDropdown && filteredUsers.length > 0 && (
-                                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-xl max-h-60 overflow-y-auto">
+                                <div className="absolute z-50 w-full mt-1 bg-white border border-[#E5E5E5] rounded-[10px] shadow-xl max-h-60 overflow-y-auto">
                                     {filteredUsers.map((u) => (
                                         <div
                                             key={u._id}
                                             onMouseDown={(e) => { e.preventDefault(); handleSelectUser(u); }}
-                                            className="px-4 py-3 hover:bg-blue-50 cursor-pointer text-gray-700 text-sm border-b border-gray-100 last:border-0"
+                                            className="px-3.5 py-2.5 hover:bg-[#FBF5FC] cursor-pointer text-[#212121] text-[13px] border-b border-[#E5E5E5] last:border-0"
                                         >
-                                            <span className="font-semibold text-gray-800">{u.username}</span>
-                                            <span className="text-gray-400 ml-2 text-xs">— {u.email}</span>
+                                            <span className="font-medium text-[#212121]">{u.username}</span>
+                                            <span className="text-[#6A6A6A] ml-2 text-xs">— {u.email}</span>
                                         </div>
                                     ))}
                                 </div>
@@ -143,7 +143,7 @@ const ResetUserPassword = () => {
 
                     {/* New Password */}
                     <div>
-                        <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">
+                        <label className="block text-[12px] font-medium text-[#212121] mb-[6px]">
                             New Password *
                         </label>
                         <div className="relative">
@@ -153,18 +153,18 @@ const ResetUserPassword = () => {
                                 onChange={(e) => setNewPassword(e.target.value)}
                                 placeholder="Enter new password"
                                 autoComplete="new-password"
-                                className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full h-[40px] px-[14px] pr-12 border border-[#E5E5E5] rounded-[10px] text-[13px] font-medium text-[#212121] placeholder-[#A3A3A3] outline-none focus:border-[#9B48D7] focus:ring-1 focus:ring-[#9B48D7]"
                             />
                             <span onClick={() => setShowNewPassword(!showNewPassword)}
-                                className="absolute right-4 top-1/2 -translate-y-1/2 text-blue-600 cursor-pointer">
-                                {showNewPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
+                                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#6A6A6A] hover:text-[#9D43D6] cursor-pointer">
+                                {showNewPassword ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
                             </span>
                         </div>
                     </div>
 
                     {/* Confirm Password */}
                     <div>
-                        <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">
+                        <label className="block text-[12px] font-medium text-[#212121] mb-[6px]">
                             Confirm Password *
                         </label>
                         <div className="relative">
@@ -174,11 +174,11 @@ const ResetUserPassword = () => {
                                 onChange={(e) => setConfirmPassword(e.target.value)}
                                 placeholder="Confirm new password"
                                 autoComplete="new-password"
-                                className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full h-[40px] px-[14px] pr-12 border border-[#E5E5E5] rounded-[10px] text-[13px] font-medium text-[#212121] placeholder-[#A3A3A3] outline-none focus:border-[#9B48D7] focus:ring-1 focus:ring-[#9B48D7]"
                             />
                             <span onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                className="absolute right-4 top-1/2 -translate-y-1/2 text-blue-600 cursor-pointer">
-                                {showConfirmPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
+                                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#6A6A6A] hover:text-[#9D43D6] cursor-pointer">
+                                {showConfirmPassword ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
                             </span>
                         </div>
                     </div>
@@ -187,11 +187,11 @@ const ResetUserPassword = () => {
                     <div className="flex justify-between items-center pt-4">
                         <button type="button"
                             onClick={() => { setSelectedUser(null); setUserSearch(""); setNewPassword(""); setConfirmPassword(""); }}
-                            className="px-8 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-semibold">
+                            className="rf-btn-cancel cursor-pointer">
                             CANCEL
                         </button>
                         <button type="submit" disabled={loading}
-                            className={`px-8 py-3 rounded-xl font-semibold text-white ${loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"}`}>
+                            className={loading ? "rf-btn-disabled" : "rf-btn-primary cursor-pointer"}>
                             {loading ? "RESETTING..." : "RESET PASSWORD"}
                         </button>
                     </div>

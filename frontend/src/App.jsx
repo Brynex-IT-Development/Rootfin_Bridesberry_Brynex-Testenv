@@ -100,7 +100,6 @@ const App = () => {
 
   const adminEmails = [
     "officerootments@gmail.com",
-    "brynex@gmail.com",
     "operationsrootments@gmail.com",
     "headoffice01@gmail.com"
   ];

@@ -58,12 +58,13 @@ export const requireClosureApprover = async (req, res, next) => {
             return res.status(503).json({ message: "Database unavailable. Please try again shortly." });
         }
         const adminEmails = [
-            "officerootments@gmail.com", "brynex@gmail.com",
+            "officerootments@gmail.com",
             "operationsrootments@gmail.com", "headoffice01@gmail.com"
         ];
+        const userRole = (user.role || "").toLowerCase().trim();
         const permitted = user && (
+            ["admin", "super_admin", "superadmin", "financial_head"].includes(userRole) ||
             ["admin", "super_admin"].includes(user.power) ||
-            ["admin", "superadmin", "financial_head"].includes(user.role) ||
             adminEmails.includes((user.email || "").toLowerCase())
         );
         if (!permitted) {

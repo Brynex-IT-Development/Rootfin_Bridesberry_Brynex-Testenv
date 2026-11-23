@@ -25,10 +25,7 @@ const AddNewUser = () => {
     const [allowedLocCodes, setAllowedLocCodes] = useState([]);
     const [showStoreDropdown, setShowStoreDropdown] = useState(false);
     const [storeSearchTerm, setStoreSearchTerm] = useState("");
-    const [availableStores, setAvailableStores] = useState([
-        { locName: "Brides Berry", locCode: "155" },
-        { locName: "Warehouse", locCode: "858" },
-    ]);
+    const [availableStores, setAvailableStores] = useState([]);
     const dropdownRef = useRef(null);
 
     // Password visibility toggles
@@ -209,7 +206,7 @@ const AddNewUser = () => {
     const isClusterAdmin = role === "cluster_admin";
 
     return (
-        <div className={`min-h-screen bg-gray-50/50 transition-all duration-300 ${isSidebarOpen ? "md:ml-64" : "ml-0"}`}>
+        <div className={`min-h-screen bg-[#F7F7F7] transition-all duration-300 ${isSidebarOpen ? "md:ml-64" : "ml-0"}`}>
             <div className="p-8 max-w-[1400px] mx-auto">
                 
                 {/* Header Row with Back Button */}
@@ -217,16 +214,16 @@ const AddNewUser = () => {
                     <button
                         type="button"
                         onClick={() => navigate(-1)}
-                        className="w-10 h-10 bg-[#18181b] hover:bg-black text-white rounded-lg flex items-center justify-center transition-colors shadow-sm cursor-pointer"
+                        className="w-9 h-9 bg-[#1B1B1B] hover:bg-black text-white rounded-lg flex items-center justify-center transition-colors cursor-pointer"
                         title="Back"
                     >
-                        <ArrowLeft size={18} />
+                        <ArrowLeft size={16} />
                     </button>
-                    <h1 className="text-xl font-bold text-gray-900">Add New User</h1>
+                    <h1 className="text-[24px] font-semibold text-[#212121]">Add New User</h1>
                 </div>
 
                 {/* Form Card */}
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+                <div className="bg-white rounded-2xl border border-[#E9E9E9] p-8 shadow-xs">
                     <form onSubmit={handleSubmit} className="space-y-8">
 
                         {/* Store Admin layout: Role & Store Name in first row, then Email & Phone */}
@@ -579,14 +576,14 @@ const AddNewUser = () => {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="px-8 py-3 bg-[#a855f7] hover:bg-[#9333ea] text-white font-medium rounded-xl transition-colors shadow-sm cursor-pointer disabled:opacity-50 text-sm"
+                                className={loading ? "rf-btn-disabled" : "rf-btn-primary cursor-pointer"}
                             >
                                 {loading ? "Saving..." : "Save User"}
                             </button>
                             <button
                                 type="button"
                                 onClick={() => navigate(-1)}
-                                className="px-8 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors cursor-pointer text-sm"
+                                className="rf-btn-cancel cursor-pointer"
                             >
                                 Cancel
                             </button>

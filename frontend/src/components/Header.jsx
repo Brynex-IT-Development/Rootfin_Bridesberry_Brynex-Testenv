@@ -8,7 +8,7 @@ const API_URL = baseUrl?.baseUrl?.replace(/\/$/, "") || "http://localhost:7000";
 
 // Function to format location names with proper spacing
 const formatLocationName = (name) => {
-    if (!name) return name;
+    if (!name || name === "No Stores" || name === "No stores available") return name || "No Stores";
     
     let formatted = name.trim();
     
@@ -68,8 +68,28 @@ const Header = (prop) => {
             const storedUser = JSON.parse(localStorage.getItem("rootfinuser"));
             if (storedUser) {
                 const role = (storedUser.role || '').toLowerCase();
-                const isGlobal = role === 'super_admin' || role === 'admin' || role === 'warehouse_admin' || role === 'financial_admin';
+                const isSuperAdmin = role === 'super_admin' || role === 'superadmin';
+                const isGlobal = isSuperAdmin || role === 'admin' || role === 'warehouse_admin' || role === 'financial_admin';
                 const isCluster = role.includes('cluster');
+
+                // Super Admin has NO particular store
+                if (isSuperAdmin) {
+                    const cleanUser = {
+                        ...storedUser,
+                        locCode: "",
+                        storeName: null,
+                        storeId: null,
+                        username: "Brynex Admin"
+                    };
+                    if (storedUser.locCode || storedUser.storeName || storedUser.username === "Warehouse" || storedUser.username === "SuitorGuy MG Road" || storedUser.username === "Brides Berry") {
+                        try {
+                            localStorage.setItem("rootfinuser", JSON.stringify(cleanUser));
+                        } catch (e) {}
+                    }
+                    setCurrentUser(cleanUser);
+                    setSelectedValue("");
+                    return;
+                }
 
                 // For regular store users: keep their assigned store
                 if (!isGlobal && !isCluster) {
@@ -80,7 +100,7 @@ const Header = (prop) => {
 
                 // For admin or cluster manager: match their active location or default to first available
                 const foundLoc = locations.find(loc => loc.locCode === storedUser.locCode);
-                const activeLoc = foundLoc || locations.find(loc => loc.locCode === "858") || locations[0];
+                const activeLoc = foundLoc || locations[0];
                 if (activeLoc) {
                     const actualUsername = (storedUser.username && storedUser.username !== "Warehouse" && storedUser.username !== "SuitorGuy MG Road" && storedUser.username !== "Brides Berry") 
                         ? storedUser.username 
@@ -101,7 +121,7 @@ const Header = (prop) => {
                     setSelectedValue(activeLoc.locCode);
                 } else {
                     setCurrentUser(storedUser);
-                    setSelectedValue(storedUser.locCode || "");
+                    setSelectedValue("");
                 }
             }
         } catch (error) {
@@ -112,18 +132,15 @@ const Header = (prop) => {
     useEffect(() => {
         const load = async () => {
             const locations = await fetchActiveStores();
-            if (locations && locations.length > 0) {
-                setAllLoation(locations);
-                syncUserFromStorage(locations);
-            }
+            setAllLoation(locations || []);
+            syncUserFromStorage(locations || []);
         };
         load();
 
         const handleStoresUpdated = (e) => {
-            if (e.detail && Array.isArray(e.detail)) {
-                setAllLoation(e.detail);
-                syncUserFromStorage(e.detail);
-            }
+            const locs = (e.detail && Array.isArray(e.detail)) ? e.detail : [];
+            setAllLoation(locs);
+            syncUserFromStorage(locs);
         };
 
         window.addEventListener("rootfin-stores-updated", handleStoresUpdated);
@@ -160,11 +177,15 @@ const Header = (prop) => {
             locName: selectedName,
         });
 
+        const stored = JSON.parse(localStorage.getItem("rootfinuser") || "{}");
+        const role = (stored.role || '').toLowerCase();
+        const isSuperAdmin = role === 'super_admin' || role === 'superadmin';
+
         const updatedUser = {
-            ...currentUser,
+            ...stored,
             locCode: selectedCode,
-            storeName: selectedName,
-            username: selectedName,
+            storeName: isSuperAdmin ? null : selectedName,
+            username: isSuperAdmin ? "Brynex Admin" : (stored.username || selectedName),
         };
 
         localStorage.setItem("rootfinuser", JSON.stringify(updatedUser));
@@ -175,20 +196,15 @@ const Header = (prop) => {
 
     // Get display name with fallback to localStorage
     const getDisplayName = () => {
+        if (!AllLoation || AllLoation.length === 0) {
+            return "No Stores";
+        }
         const matched = AllLoation.find(loc => loc.locCode === currentUser?.locCode);
         if (matched) return matched.locName;
-        if (currentUser?.storeName) return currentUser.storeName;
-        if (currentUser?.username) return currentUser.username;
-        try {
-            const storedUser = JSON.parse(localStorage.getItem("rootfinuser"));
-            if (storedUser?.locCode) {
-                const sMatched = AllLoation.find(loc => loc.locCode === storedUser.locCode);
-                if (sMatched) return sMatched.locName;
-            }
-            if (storedUser?.storeName) return storedUser.storeName;
-            if (storedUser?.username) return storedUser.username;
-        } catch (error) {}
-        return AllLoation[0]?.locName || "Warehouse";
+        const role = (currentUser?.role || '').toLowerCase();
+        const isSuperAdmin = role === 'super_admin' || role === 'superadmin';
+        if (!isSuperAdmin && currentUser?.storeName) return currentUser.storeName;
+        return AllLoation[0]?.locName || "Select Store";
     };
 
     const displayName = getDisplayName();
@@ -207,20 +223,20 @@ const Header = (prop) => {
         : AllLoation.filter(item => (currentUser?.allowedLocCodes || []).includes(item.locCode));
 
     return (
-        <nav className="bg-white border-b border-gray-200 shadow-xs relative z-40">
-            <div className="max-w-full pl-14 md:pl-16 pr-6 py-3 flex items-center justify-between mx-auto">
+        <header className="bg-white border-b border-[#E5E5E5] h-[56px] flex items-center relative z-40">
+            <div className="w-full pl-14 md:pl-6 pr-6 flex items-center justify-between mx-auto">
                 <div className="flex items-center gap-3">
                     {prop.title && (
-                        <h1 className="text-xl font-bold text-gray-800">{prop.title}</h1>
+                        <h1 className="text-[20px] md:text-[24px] font-semibold text-[#212121] tracking-tight">{prop.title}</h1>
                     )}
                 </div>
 
                 {/* Right corner: Notification Bell + Store Selection Dropdown Pill */}
                 <div className="flex items-center gap-4 relative" ref={dropdownRef}>
                     {/* Notification Bell */}
-                    <div className="relative text-gray-500 hover:text-gray-700 cursor-pointer p-1 transition-colors" title="Notifications">
-                        <Bell size={20} className="text-gray-600" />
-                        <span className="absolute -top-1 -right-1 bg-[#ef4444] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center leading-none">
+                    <div className="relative text-[#6A6A6A] hover:text-[#212121] cursor-pointer p-1.5 transition-colors" title="Notifications">
+                        <Bell size={19} className="text-[#6A6A6A]" />
+                        <span className="absolute 0 top-0.5 right-0.5 bg-[#DC2626] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center leading-none">
                             3
                         </span>
                     </div>
@@ -230,49 +246,55 @@ const Header = (prop) => {
                         <button
                             type="button"
                             onClick={() => canSwitchLocation && setIsDropdownOpen(prev => !prev)}
-                            className={`flex items-center gap-2 px-3.5 py-1.5 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 shadow-xs transition-all ${
-                                canSwitchLocation ? 'cursor-pointer hover:border-gray-300 hover:bg-gray-50' : 'cursor-default'
+                            className={`flex items-center gap-2 h-[38px] px-3.5 bg-white border border-[#E5E5E5] rounded-[10px] text-[13px] font-medium text-[#212121] shadow-xs transition-colors ${
+                                canSwitchLocation ? 'cursor-pointer hover:bg-[#F7F7F7]' : 'cursor-default'
                             }`}
                         >
-                            <MapPin size={16} className="text-gray-500 shrink-0" />
-                            <span className="whitespace-nowrap font-medium text-gray-800">
-                                {formatLocationName(displayName) || "Warehouse"}
+                            <MapPin size={15} className="text-[#6A6A6A] shrink-0" />
+                            <span className="whitespace-nowrap font-medium text-[#212121]">
+                                {formatLocationName(displayName) || "No Stores"}
                             </span>
                             {canSwitchLocation && (
-                                <ChevronDown size={15} className={`text-gray-400 shrink-0 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                                <ChevronDown size={14} className={`text-[#6A6A6A] shrink-0 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
                             )}
                         </button>
 
                         {/* Dropdown Menu */}
                         {isDropdownOpen && canSwitchLocation && (
-                            <div className="absolute right-0 top-full mt-2 w-64 bg-white border border-gray-100 rounded-xl shadow-xl py-1.5 z-50 max-h-80 overflow-y-auto">
-                                <div className="px-3 py-1.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wider border-b border-gray-100 mb-1">
+                            <div className="absolute right-0 top-full mt-2 w-64 bg-white border border-[#E5E5E5] rounded-[10px] shadow-xl py-1.5 z-50 max-h-80 overflow-y-auto">
+                                <div className="px-3.5 py-1.5 text-[11px] font-medium text-[#6A6A6A] uppercase tracking-wider border-b border-[#E5E5E5] mb-1">
                                     Switch Location
                                 </div>
-                                {selectableLocations.map((item) => {
-                                    const isSelected = selectedValue === item.locCode;
-                                    return (
-                                        <button
-                                            key={item.locCode}
-                                            type="button"
-                                            onClick={() => handleSelectLocation(item.locCode, item.locName)}
-                                            className={`w-full flex items-center justify-between px-3.5 py-2 text-sm text-left transition-colors cursor-pointer ${
-                                                isSelected 
-                                                    ? "bg-purple-50 text-purple-700 font-semibold" 
-                                                    : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-                                            }`}
-                                        >
-                                            <span className="truncate">{formatLocationName(item.locName)}</span>
-                                            {isSelected && <Check size={16} className="text-purple-600 shrink-0 ml-2" />}
-                                        </button>
-                                    );
-                                })}
+                                {selectableLocations.length === 0 ? (
+                                    <div className="px-4 py-3 text-[13px] text-[#6A6A6A] text-center">
+                                        No stores available
+                                    </div>
+                                ) : (
+                                    selectableLocations.map((item) => {
+                                        const isSelected = selectedValue === item.locCode;
+                                        return (
+                                            <button
+                                                key={item.locCode}
+                                                type="button"
+                                                onClick={() => handleSelectLocation(item.locCode, item.locName)}
+                                                className={`w-full flex items-center justify-between px-3.5 py-2 text-[13px] text-left transition-colors cursor-pointer ${
+                                                    isSelected 
+                                                        ? "bg-[#9D43D6]/10 text-[#9D43D6] font-medium" 
+                                                        : "text-[#212121] hover:bg-[#F7F7F7]"
+                                                }`}
+                                            >
+                                                <span className="truncate">{formatLocationName(item.locName)}</span>
+                                                {isSelected && <Check size={16} className="text-[#9D43D6] shrink-0 ml-2" />}
+                                            </button>
+                                        );
+                                    })
+                                )}
                             </div>
                         )}
                     </div>
                 </div>
             </div>
-        </nav>
+        </header>
     );
 };
 

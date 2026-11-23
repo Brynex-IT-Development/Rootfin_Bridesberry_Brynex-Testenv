@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import baseUrl from "../api/api";
-import { normalizeRole, isSuperAdmin } from "./roleUtils";
+import { normalizeRole, isSuperAdmin, isAdmin } from "./roleUtils";
 
 export const ALL_MODULE_DEFINITIONS = [
     {
@@ -363,7 +363,7 @@ export const saveRolePermissions = async (role, permissions, updatedBy = "super_
 
 export const hasModuleAccess = (user, moduleKey) => {
     if (!user) return false;
-    if (isSuperAdmin(user)) return true;
+    if (isSuperAdmin(user) || isAdmin(user)) return true;
 
     const role = normalizeRole(user.role);
     const cached = getCachedPermissions();
@@ -411,12 +411,13 @@ export const hasModuleAccess = (user, moduleKey) => {
 
 export const hasSubpageAccess = (user, path) => {
     if (!user) return false;
-    if (isSuperAdmin(user)) return true;
-
+    
     // Special rule: Permissions page can ONLY be accessed by super admin
     if (path === "/manage-users/permissions") {
         return isSuperAdmin(user);
     }
+
+    if (isSuperAdmin(user) || isAdmin(user)) return true;
 
     const role = normalizeRole(user.role);
     const cached = getCachedPermissions();

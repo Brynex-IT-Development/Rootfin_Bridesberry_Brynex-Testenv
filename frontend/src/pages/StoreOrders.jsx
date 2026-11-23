@@ -25,10 +25,7 @@ const StoreOrders = () => {
   const isStoreUser = !isAdmin && !isWarehouseUser;
   
   // Fallback locations mapping
-  const fallbackLocations = [
-    { "locName": "Brides Berry", "locCode": "155" },
-    { "locName": "Warehouse", "locCode": "858" },
-  ];
+  const fallbackLocations = [];
   
   // Get location name
   let userLocName = "";

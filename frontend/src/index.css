@@ -2,9 +2,40 @@
 
 /* CACHE BUST v2.0 - Invoice page NO BLUE buttons - Updated 2026-04-25 */
 
-/* Global Font - Instrument Sans */
+/* RootFin UI Kit - Design System Tokens */
 @theme {
+  --font-sans: 'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   --font-family-sans: 'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+
+  /* Color System */
+  --color-rootfin-primary: #9D43D6;
+  --color-rootfin-primary-hover: #8B3CBD;
+  --color-rootfin-sidebar: #1B1B1B;
+  --color-rootfin-heading: #212121;
+  --color-rootfin-secondary: #6A6A6A;
+  --color-rootfin-border: #E9E9E9;
+  --color-rootfin-bg: #F7F7F7;
+  --color-rootfin-success: #16A34A;
+  --color-rootfin-danger: #DC2626;
+  --color-rootfin-warning: #EA580C;
+}
+
+:root {
+  --rf-primary: #9D43D6;
+  --rf-primary-hover: #8B3CBD;
+  --rf-sidebar: #1B1B1B;
+  --rf-heading: #212121;
+  --rf-secondary: #6A6A6A;
+  --rf-border: #E9E9E9;
+  --rf-bg: #F7F7F7;
+  --rf-success: #16A34A;
+  --rf-danger: #DC2626;
+  --rf-warning: #EA580C;
+}
+
+body {
+  background-color: #F7F7F7;
+  color: #212121;
 }
 
 * {
@@ -13,8 +44,652 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-html, body, input, button, select, textarea, optgroup, option, table, th, td, div, span, p, h1, h2, h3, h4, h5, h6, label {
+html,
+body,
+input,
+button,
+select,
+textarea,
+optgroup,
+option,
+table,
+th,
+td,
+div,
+span,
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+label {
   font-family: 'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   RootFin UI Kit: Buttons (Section 3)
+   ───────────────────────────────────────────────────────────── */
+.rf-btn-primary {
+  background-color: #9D43D6 !important;
+  color: #ffffff !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  border-radius: 0.75rem !important;
+  /* rounded-xl (12px) */
+  padding: 0.5rem 1rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+  transition: background-color 0.15s ease-in-out !important;
+  border: 1px solid transparent !important;
+  cursor: pointer !important;
+}
+
+.rf-btn-primary:hover {
+  background-color: #8B3CBD !important;
+}
+
+.rf-btn-secondary {
+  background-color: #ffffff !important;
+  color: #212121 !important;
+  border: 1px solid #E9E9E9 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  border-radius: 0.75rem !important;
+  padding: 0.5rem 1rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+  transition: all 0.15s ease-in-out !important;
+  cursor: pointer !important;
+}
+
+.rf-btn-secondary:hover {
+  background-color: #F7F7F7 !important;
+}
+
+.rf-btn-cancel {
+  background-color: #E9E9E9 !important;
+  color: #212121 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  border-radius: 0.75rem !important;
+  padding: 0.5rem 1rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+  transition: all 0.15s ease-in-out !important;
+  border: 1px solid transparent !important;
+  cursor: pointer !important;
+}
+
+.rf-btn-cancel:hover {
+  background-color: #dedede !important;
+}
+
+.rf-btn-danger {
+  background-color: #ffffff !important;
+  color: #DC2626 !important;
+  border: 1px solid #DC2626 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  border-radius: 0.75rem !important;
+  padding: 0.5rem 1rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+  transition: all 0.15s ease-in-out !important;
+  cursor: pointer !important;
+}
+
+.rf-btn-danger:hover {
+  background-color: #FEF2F2 !important;
+}
+
+.rf-btn-disabled {
+  background-color: #E9E9E9 !important;
+  color: #9CA3AF !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  border-radius: 0.75rem !important;
+  padding: 0.5rem 1rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: not-allowed !important;
+  border: 1px solid transparent !important;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   RootFin UI Kit: Status Pills / Badges (Section 3)
+   ───────────────────────────────────────────────────────────── */
+.rf-badge-success {
+  background-color: #DCFCE7 !important;
+  color: #16A34A !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  padding: 0.25rem 0.625rem !important;
+  border-radius: 0.375rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1.25 !important;
+}
+
+.rf-badge-danger {
+  background-color: #FEE2E2 !important;
+  color: #DC2626 !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  padding: 0.25rem 0.625rem !important;
+  border-radius: 0.375rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1.25 !important;
+}
+
+.rf-badge-warning {
+  background-color: #FFEDD5 !important;
+  color: #EA580C !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  padding: 0.25rem 0.625rem !important;
+  border-radius: 0.375rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1.25 !important;
+}
+
+.rf-badge-active {
+  background-color: #DBEAFE !important;
+  color: #2563EB !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  padding: 0.25rem 0.625rem !important;
+  border-radius: 0.375rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1.25 !important;
+}
+
+.rf-badge-draft {
+  background-color: #F3F4F6 !important;
+  color: #6B7280 !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  padding: 0.25rem 0.625rem !important;
+  border-radius: 0.375rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1.25 !important;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   RootFin UI Kit: Global Standardization Across All Pages
+   ───────────────────────────────────────────────────────────── */
+/* Standardize legacy blue buttons to RootFin Primary #9D43D6 */
+button.bg-blue-600,
+button.bg-blue-700,
+button.bg-blue-800,
+button.bg-purple-600,
+button.bg-purple-700,
+a.bg-blue-600,
+a.bg-blue-700,
+a.bg-purple-600 {
+  background-color: #9D43D6 !important;
+  color: #ffffff !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  border-radius: 12px !important;
+}
+
+button.bg-blue-600:hover,
+button.bg-blue-700:hover,
+button.bg-blue-800:hover,
+button.bg-purple-600:hover,
+button.bg-purple-700:hover,
+a.bg-blue-600:hover,
+a.bg-blue-700:hover,
+a.bg-purple-600:hover {
+  background-color: #8B3CBD !important;
+}
+
+/* Standardize table headers globally to #1B1B1B with white text */
+table thead tr {
+  background-color: #1B1B1B !important;
+}
+
+table thead th {
+  background-color: #1B1B1B !important;
+  color: #ffffff !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+}
+
+table tbody tr:hover {
+  background-color: #FBF5FC !important;
+}
+
+/* Standardize form inputs focus state globally */
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="button"]):not([type="submit"]):not([type="hidden"]):focus,
+select:focus,
+textarea:focus {
+  border-color: #9B48D7 !important;
+  box-shadow: 0 0 0 1px #9B48D7 !important;
+}
+
+/* Standardize input placeholders globally */
+input::placeholder,
+textarea::placeholder {
+  color: #A3A3A3 !important;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   RootFin UI Kit: Typography (Section 2)
+   ───────────────────────────────────────────────────────────── */
+.rf-page-title {
+  font-size: 24px !important;
+  font-weight: 600 !important;
+  color: #212121 !important;
+  line-height: 1.3 !important;
+}
+
+.rf-section-heading {
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  color: #212121 !important;
+  line-height: 1.35 !important;
+}
+
+.rf-card-title {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: #212121 !important;
+  line-height: 1.4 !important;
+}
+
+.rf-body-text {
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  color: #212121 !important;
+  line-height: 1.5 !important;
+}
+
+.rf-input-text {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: #212121 !important;
+}
+
+.rf-field-label {
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  color: #6A6A6A !important;
+  line-height: 1.4 !important;
+}
+
+.rf-helper-caption {
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  color: #6A6A6A !important;
+  line-height: 1.4 !important;
+}
+
+.rf-financial-metric {
+  font-size: 28px !important;
+  font-weight: 600 !important;
+  color: #212121 !important;
+  line-height: 1.2 !important;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   RootFin UI Kit: Section 4 - Sidebar Navigation
+   ───────────────────────────────────────────────────────────── */
+.rf-sidebar {
+  width: 240px !important;
+  background-color: #1B1B1B !important;
+}
+
+.rf-sidebar-item {
+  height: 40px !important;
+  border-radius: 10px !important;
+  padding: 0 14px !important;
+  font-size: 13px !important;
+  color: #A1A1AA !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  transition: all 0.15s ease-in-out !important;
+}
+
+.rf-sidebar-item:hover {
+  color: #ffffff !important;
+  background-color: rgba(255, 255, 255, 0.04) !important;
+}
+
+.rf-sidebar-item.active {
+  background-color: #9D43D6 !important;
+  color: #ffffff !important;
+  font-weight: 500 !important;
+}
+
+.rf-sidebar-item .rf-icon {
+  width: 16px !important;
+  height: 16px !important;
+}
+
+.rf-sidebar-subitem {
+  height: 34px !important;
+  border-radius: 8px !important;
+  padding: 0 12px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  color: #E4E4E7 !important;
+  display: flex !important;
+  align-items: center !important;
+  text-decoration: none !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  transition: all 0.15s ease-in-out !important;
+}
+
+.rf-sidebar-subgroup {
+  margin-top: 4px !important;
+  margin-bottom: 4px !important;
+  margin-left: 16px !important;
+  padding-left: 12px !important;
+  border-left: 2px solid #3F3F46 !important;
+}
+
+.rf-sidebar-subitem span {
+  color: #E4E4E7 !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.rf-sidebar-subitem:hover {
+  color: #ffffff !important;
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.rf-sidebar-subitem:hover span {
+  color: #ffffff !important;
+}
+
+.rf-sidebar-subitem.active {
+  background-color: #9D43D6 !important;
+  color: #ffffff !important;
+  font-weight: 500 !important;
+}
+
+.rf-sidebar-subitem.active span {
+  color: #ffffff !important;
+  font-weight: 500 !important;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   RootFin UI Kit: Section 5 - Form Fields
+   ───────────────────────────────────────────────────────────── */
+.rf-form-field {
+  margin-bottom: 16px !important;
+  /* Field-to-field gap: 16px */
+}
+
+.rf-field-label,
+label.rf-label {
+  display: block !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  color: #212121 !important;
+  margin-bottom: 6px !important;
+  /* Label-to-field gap: 6px */
+  line-height: 1.4 !important;
+}
+
+.rf-field-label .required,
+label.rf-label .required {
+  color: #DC2626 !important;
+  margin-left: 2px !important;
+}
+
+.rf-input,
+input.rf-input,
+select.rf-input {
+  height: 40px !important;
+  /* Input Height: 40px */
+  border: 1px solid #E5E5E5 !important;
+  /* Border: 1px */
+  border-radius: 10px !important;
+  /* Border radius: 10px */
+  padding: 0 14px !important;
+  /* Horizontal padding: 14px */
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: #212121 !important;
+  background-color: #ffffff !important;
+  outline: none !important;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+}
+
+.rf-input:focus,
+input.rf-input:focus,
+select.rf-input:focus,
+textarea.rf-textarea:focus {
+  border-color: #9B48D7 !important;
+  /* Focus border: #9B48D7 */
+  box-shadow: 0 0 0 1px #9B48D7 !important;
+}
+
+.rf-input::placeholder,
+input.rf-input::placeholder,
+textarea.rf-textarea::placeholder {
+  color: #A3A3A3 !important;
+  /* Placeholder: #A3A3A3 */
+  font-weight: 400 !important;
+}
+
+.rf-textarea,
+textarea.rf-textarea {
+  border: 1px solid #E5E5E5 !important;
+  border-radius: 10px !important;
+  padding: 10px 14px !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  color: #212121 !important;
+  background-color: #ffffff !important;
+  outline: none !important;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   RootFin UI Kit: Section 6 - Table
+   ───────────────────────────────────────────────────────────── */
+.rf-table-container {
+  background-color: #ffffff !important;
+  border: 1px solid #E5E5E5 !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+}
+
+.rf-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  text-align: left !important;
+}
+
+.rf-table-header,
+.rf-table thead tr {
+  height: 36px !important;
+  /* Header Height: 36px */
+  background-color: #1B1B1B !important;
+  /* Header Background: #1B1B1B */
+  color: #ffffff !important;
+}
+
+.rf-table-header th,
+.rf-table thead th {
+  height: 36px !important;
+  background-color: #1B1B1B !important;
+  color: #ffffff !important;
+  font-size: 11px !important;
+  /* Header Text: 11px, Capital */
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  padding: 0 12px !important;
+  /* Cell Padding: 12px */
+  vertical-align: middle !important;
+}
+
+.rf-table-row,
+.rf-table tbody tr {
+  height: 44px !important;
+  /* Row Height: 44px */
+  border-bottom: 1px solid #E5E5E5 !important;
+  /* Row Divider: #E5E5E5 */
+  transition: background-color 0.15s ease-in-out !important;
+}
+
+.rf-table-row:hover,
+.rf-table tbody tr:hover {
+  background-color: #FBF5FC !important;
+  /* Row Hover: #FBF5FC */
+}
+
+.rf-table-cell,
+.rf-table tbody td {
+  height: 44px !important;
+  font-size: 13px !important;
+  /* Body Text: 13px, Regular */
+  font-weight: 400 !important;
+  color: #212121 !important;
+  padding: 0 12px !important;
+  /* Cell Padding: 12px */
+  vertical-align: middle !important;
+}
+
+.rf-table-numeric,
+.rf-numeric-cell {
+  text-align: right !important;
+  /* Numeric Alignment: Right */
+  font-variant-numeric: tabular-nums !important;
+}
+
+.rf-link-cell {
+  color: #9D43D6 !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+}
+
+.rf-link-cell:hover {
+  text-decoration: underline !important;
+}
+
+/* Status badge with colored dot */
+.rf-status-pill {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 3px 10px !important;
+  border-radius: 9999px !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  line-height: 1.25 !important;
+}
+
+.rf-status-pill .rf-dot {
+  width: 6px !important;
+  height: 6px !important;
+  border-radius: 50% !important;
+  display: inline-block !important;
+}
+
+.rf-status-pill.pending {
+  background-color: #FEE2E2 !important;
+  color: #DC2626 !important;
+}
+
+.rf-status-pill.pending .rf-dot {
+  background-color: #DC2626 !important;
+}
+
+.rf-status-pill.completed,
+.rf-status-pill.closed {
+  background-color: #DCFCE7 !important;
+  color: #16A34A !important;
+}
+
+.rf-status-pill.completed .rf-dot,
+.rf-status-pill.closed .rf-dot {
+  background-color: #16A34A !important;
+}
+
+.rf-status-pill.active {
+  background-color: #DBEAFE !important;
+  color: #2563EB !important;
+}
+
+.rf-status-pill.active .rf-dot {
+  background-color: #2563EB !important;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   RootFin UI Kit: Section 7 - Spacing & Layout
+   ───────────────────────────────────────────────────────────── */
+.rf-page-container {
+  padding: 24px !important;
+  /* Page Padding: 24px */
+  background-color: #F7F7F7 !important;
+  min-height: 100vh !important;
+}
+
+.rf-topbar {
+  height: 56px !important;
+  /* Top bar Height: 56px */
+  border-bottom: 1px solid #E5E5E5 !important;
+  background-color: #ffffff !important;
+}
+
+.rf-card {
+  background-color: #ffffff !important;
+  border: 1px solid #E5E5E5 !important;
+  /* Card Border: 1px #E5E5E5 */
+  border-radius: 12px !important;
+  /* Card Radius: 12px */
+  padding: 16px !important;
+  /* Card Padding: 16px */
+}
+
+.rf-filter-toolbar {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  /* Filter toolbar Gap: 12px */
+  margin-bottom: 16px !important;
+}
+
+.rf-modal-content {
+  padding: 24px !important;
+  /* Modal Padding: 24px */
+  border-radius: 12px !important;
 }
 
 /* Hide scrollbar for sidebar navigation */
@@ -22,6 +697,7 @@ nav::-webkit-scrollbar {
   display: none !important;
   width: 0 !important;
 }
+
 nav {
   -ms-overflow-style: none !important;
   scrollbar-width: none !important;
@@ -67,38 +743,40 @@ button:not([type="submit"]):not(.tax-dropdown-button):not(.invoice-page-wrapper 
   /* Ensure buttons are visible on older Windows versions */
   border: 1px solid transparent;
   outline: none;
-  
+
   /* Ensure proper display */
   display: inline-flex;
   align-items: center;
   justify-content: center;
   vertical-align: middle;
-  
+
   /* Font rendering for better visibility */
   font-family: inherit;
   font-size: inherit;
   line-height: inherit;
-  
+
   /* Cursor and interaction */
   cursor: pointer;
   user-select: none;
-  
+
   /* Prevent text selection */
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
-  
+
   /* Ensure proper rendering */
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-button.flex, a.flex {
+button.flex,
+a.flex {
   display: flex !important;
 }
 
-button.inline-flex, a.inline-flex {
+button.inline-flex,
+a.inline-flex {
   display: inline-flex !important;
 }
 
@@ -147,16 +825,17 @@ a.no-blue-button {
 }
 
 .sidebar-button {
-  background-color: transparent !important;
+  background-color: transparent;
   color: inherit !important;
   border-color: transparent !important;
   box-shadow: none !important;
   min-width: unset !important;
   min-height: unset !important;
-  padding: 0.5rem 0.75rem !important; /* match px-3 py-2 */
-  border-radius: 0.5rem !important;
-  font-size: 0.875rem !important;
-  font-weight: 500 !important;
+}
+
+.sidebar-button.active {
+  background-color: #9D43D6 !important;
+  color: #ffffff !important;
 }
 
 .table-link-button {
@@ -193,35 +872,36 @@ input[type="submit"] {
   appearance: button;
   -webkit-appearance: button;
   -moz-appearance: button;
-  
+
   /* Basic button styling for compatibility */
   border: 1px solid rgba(0, 0, 0, 0.1);
   outline: none;
-  
+
   /* Ensure proper display */
   display: inline-block;
   vertical-align: middle;
-  
+
   /* Font rendering for better visibility */
   font-family: inherit;
   font-size: inherit;
   line-height: inherit;
-  
+
   /* Cursor and interaction */
   cursor: pointer;
   user-select: none;
-  
+
   /* Prevent text selection */
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
-  
+
   /* Ensure proper rendering */
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  
-  background-color: rgb(37, 99, 235) !important; /* Blue color for submit inputs */
+
+  background-color: rgb(37, 99, 235) !important;
+  /* Blue color for submit inputs */
   color: white !important;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -263,6 +943,7 @@ button.no-hover-anim:active,
 button:focus:not(:focus-visible) {
   outline: none !important;
 }
+
 button:focus-visible {
   outline: 2px solid #8b5cf6;
   outline-offset: 2px;
@@ -355,9 +1036,11 @@ button.action-delete-btn:hover {
   transform: none !important;
   box-shadow: none !important;
 }
+
 @media print {
+
   /* Hide everything except printable content */
-  body > *:not(#root),
+  body>*:not(#root),
   nav,
   aside,
   header:not(#printable-invoice header),
@@ -373,7 +1056,8 @@ button.action-delete-btn:hover {
   }
 
   /* Reset body for print */
-  html, body {
+  html,
+  body {
     margin: 0 !important;
     padding: 0 !important;
     background: white !important;
@@ -416,6 +1100,7 @@ button.action-delete-btn:hover {
     opacity: 0;
     transform: translateY(-6px) scale(0.98);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -427,6 +1112,7 @@ button.action-delete-btn:hover {
     opacity: 0;
     transform: translateY(6px) scale(0.98);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -518,34 +1204,26 @@ button.action-delete-btn:hover {
 
 .invoice-page-wrapper .payment-card:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
 }
 
 /* High-specificity Global Sidebar responsive margin rules for Header and all Page Containers */
 html body.sidebar-closed nav.bg-white,
-html body.sidebar-closed div[class*="ml-"],
-html body.sidebar-closed .ml-64,
-html body.sidebar-closed [class*="ml-[240px]"],
-html body.sidebar-closed [class*="ml-[290px]"] {
+html body.sidebar-closed header.bg-white,
+html body.sidebar-closed div[class*="ml-"]:not(nav *):not(.rf-sidebar *),
+html body.sidebar-closed .ml-64:not(nav *):not(.rf-sidebar *),
+html body.sidebar-closed [class*="ml-[240px]"]:not(nav *):not(.rf-sidebar *),
+html body.sidebar-closed [class*="ml-[290px]"]:not(nav *):not(.rf-sidebar *) {
   margin-left: 0 !important;
   transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 html body.sidebar-open nav.bg-white,
-html body.sidebar-open div[class*="ml-64"],
-html body.sidebar-open .ml-64 {
-  margin-left: 16rem !important;
-  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-}
-
-
-html body.sidebar-open [class*="ml-[240px]"] {
+html body.sidebar-open header.bg-white,
+html body.sidebar-open div[class*="ml-"]:not(nav *):not(.rf-sidebar *),
+html body.sidebar-open .ml-64:not(nav *):not(.rf-sidebar *),
+html body.sidebar-open [class*="ml-[240px]"]:not(nav *):not(.rf-sidebar *),
+html body.sidebar-open [class*="ml-[290px]"]:not(nav *):not(.rf-sidebar *) {
   margin-left: 240px !important;
   transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
-
-html body.sidebar-open [class*="ml-[290px]"] {
-  margin-left: 290px !important;
-  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-}
-

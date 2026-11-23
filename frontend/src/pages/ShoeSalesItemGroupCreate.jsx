@@ -57,7 +57,6 @@ const ShoeSalesItemGroupCreate = () => {
   const userEmail = (user?.email || user?.username || "").toLowerCase().trim();
   const adminEmails = [
     "officerootments@gmail.com",
-    "brynex@gmail.com",
     "operationsrootments@gmail.com",
     "headoffice01@gmail.com"
   ];

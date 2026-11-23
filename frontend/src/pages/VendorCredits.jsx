@@ -2346,10 +2346,7 @@ const VendorCredits = () => {
         if (user?.locCode) params.append("locCode", user.locCode);
         
         // Add warehouse parameter for filtering
-        const fallbackLocations = [
-          { "locName": "Brides Berry", "locCode": "155" },
-          { "locName": "Warehouse", "locCode": "858" },
-        ];
+        const fallbackLocations = [];
         
         let userLocName = "";
         if (user?.locCode) {

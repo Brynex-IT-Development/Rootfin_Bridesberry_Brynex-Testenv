@@ -67,13 +67,6 @@ const buildStoreOptions = () => {
     }
   });
 
-  if (!map.has("858")) {
-    map.set("858", { value: "858", label: "Warehouse" });
-  }
-  if (!map.has("155")) {
-    map.set("155", { value: "155", label: "Brides Berry" });
-  }
-
   return Array.from(map.values());
 };
 
@@ -149,7 +142,6 @@ const InventoryReport = () => {
   const currentUser = JSON.parse(localStorage.getItem("rootfinuser") || "{}");
   const adminEmails = [
     "officerootments@gmail.com",
-    "brynex@gmail.com",
     "operationsrootments@gmail.com",
     "headoffice01@gmail.com",
   ];

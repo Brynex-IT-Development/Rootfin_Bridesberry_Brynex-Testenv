@@ -5,6 +5,7 @@ import { CSVLink } from 'react-csv';
 import { Helmet } from "react-helmet";
 import { SlidersHorizontal, Download, Calendar, ChevronDown, X } from "lucide-react";
 import useSidebar from '../hooks/useSidebar.js';
+import { fetchActiveStores } from '../utils/storeService.js';
 
 /* ── tiny native select wrapper ── */
 const NativeSelect = ({ value, onChange, options, placeholder }) => (
@@ -42,7 +43,9 @@ const SalesByInvoiceReport = () => {
 
   const currentUser = JSON.parse(localStorage.getItem("rootfinuser"));
   const isAdmin = (currentUser?.power || "").toLowerCase() === "admin";
-  const isMainAdmin = currentUser?.locCode === '858' || currentUser?.locCode === '103' || (currentUser?.email && ['officebrynex@gmail.com'].includes(currentUser.email.toLowerCase()));
+  const userRole = (currentUser?.role || "").toLowerCase();
+  const isSuperOrAdmin = userRole === 'super_admin' || userRole === 'superadmin' || userRole === 'admin';
+  const isMainAdmin = isSuperOrAdmin || currentUser?.locCode === '858' || currentUser?.locCode === '103';
   const isWarehouse = (currentUser?.power || "").toLowerCase() === "warehouse";
   const canSeeCost = isAdmin || isWarehouse || isMainAdmin;
   const isClusterManager = (currentUser?.role || "").toLowerCase() === "cluster_manager";
@@ -54,11 +57,15 @@ const SalesByInvoiceReport = () => {
     if (isClusterManager && clusterAllowedLocCodes.length > 0 && selectedStore === "all") setSelectedStore(clusterAllowedLocCodes[0]);
   }, []);
 
+  const [activeStores, setActiveStores] = useState([]);
+
+  useEffect(() => {
+    fetchActiveStores().then(s => setActiveStores(s || []));
+  }, []);
+
   const storeOptions = [
     { value: "all", label: "All Stores" },
-    { value: "155", label: "Brides Berry" },
-    { value: "858", label: "Warehouse" },
-   
+    ...activeStores.map(s => ({ value: s.locCode, label: s.locName || s.name }))
   ];
 
   const categoryOptions = [

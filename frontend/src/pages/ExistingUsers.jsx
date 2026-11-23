@@ -23,10 +23,7 @@ const ExistingUsers = () => {
     const [openGroups, setOpenGroups] = useState({});
 
     // Dynamic available stores for cluster admin selection
-    const [availableStores, setAvailableStores] = useState([
-        { locName: "Brides Berry", locCode: "155" },
-        { locName: "Warehouse", locCode: "858" },
-    ]);
+    const [availableStores, setAvailableStores] = useState([]);
 
     // View panel state
     const [viewUser, setViewUser] = useState(null);
@@ -242,90 +239,90 @@ const ExistingUsers = () => {
     );
 
     return (
-        <div className={`bg-[#EEF2F7] min-h-screen transition-all duration-300 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
+        <div className={`bg-[#F7F7F7] min-h-screen transition-all duration-300 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
             {/* Header */}
-            <div className="bg-white px-10 py-7 border-b border-gray-200 flex items-center justify-between">
+            <div className="bg-white px-8 py-6 border-b border-[#E9E9E9] flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                    <div className="bg-blue-600 p-4 rounded-xl">
-                        <Users className="text-white" size={28} />
+                    <div className="bg-[#9D43D6] p-3.5 rounded-xl flex items-center justify-center shadow-sm">
+                        <Users className="text-white" size={24} />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">MANAGE EXISTING USERS</h1>
-                        <p className="text-gray-400 text-sm">Detailed overview of Income &amp; Expense Report</p>
+                        <h1 className="text-[24px] font-semibold text-[#212121]">MANAGE EXISTING USERS</h1>
+                        <p className="text-[#6A6A6A] text-[13px] font-normal">Detailed overview of Income &amp; Expense Report</p>
                     </div>
                 </div>
                 <button
                     onClick={() => navigate("/manage-users/add-user")}
-                    className="flex items-center gap-2 px-6 py-3 bg-blue-700 text-white rounded-xl hover:bg-blue-800 font-semibold transition-all"
+                    className="rf-btn-primary cursor-pointer"
                 >
-                    ADD NEW USER <Plus size={18} />
+                    ADD NEW USER <Plus size={16} />
                 </button>
             </div>
 
             {/* Table */}
             <div className="p-6">
-                <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-                    {/* Table Header */}
-                    <div className="grid grid-cols-[2.5fr_2fr_3fr_2fr_1fr] bg-[#f1f5fb] border-b border-gray-200 px-6 py-3">
+                <div className="bg-white rounded-xl border border-[#E5E5E5] overflow-hidden shadow-xs">
+                    {/* Table Header (Height: 36px, Background: #1B1B1B, Text: 11px Capital) */}
+                    <div className="grid grid-cols-[2.5fr_2fr_3fr_2fr_1fr] bg-[#1B1B1B] text-white px-4 h-[36px] items-center">
                         {["ROLE", "USER", "EMAIL", "PHONE", "ACTION"].map(h => (
-                            <div key={h} className="text-xs font-bold text-gray-500 uppercase tracking-widest">{h}</div>
+                            <div key={h} className="text-[11px] font-semibold text-white uppercase tracking-wider">{h}</div>
                         ))}
                     </div>
 
                     {loadingStores ? (
-                        <div className="p-10 text-center text-gray-400">Loading...</div>
+                        <div className="p-10 text-center text-[#6A6A6A] text-[13px]">Loading...</div>
                     ) : (
                         ROLE_GROUPS.map(({ key, label }) => {
                             const users = getUsersForRole(key);
                             const isOpen = !!openGroups[key];
 
                             return (
-                                <div key={key} className="border-b border-gray-100 last:border-b-0">
-                                    {/* Group Header Row */}
+                                <div key={key} className="border-b border-[#E5E5E5] last:border-b-0">
+                                    {/* Group Header Row (Height: 44px, Hover: #FBF5FC) */}
                                     <div
                                         onClick={() => toggleGroup(key)}
-                                        className="grid grid-cols-[2.5fr_2fr_3fr_2fr_1fr] px-6 py-4 cursor-pointer hover:bg-gray-50 transition-colors items-center"
+                                        className="grid grid-cols-[2.5fr_2fr_3fr_2fr_1fr] px-4 h-[44px] cursor-pointer hover:bg-[#FBF5FC] transition-colors items-center"
                                     >
                                         <div className="flex items-center gap-2 col-span-4">
-                                            <span className="text-sm font-bold text-gray-800 uppercase tracking-wide">{label}</span>
+                                            <span className="text-[14px] font-semibold text-[#212121] uppercase tracking-wide">{label}</span>
                                             {users.length > 0 && (
-                                                <span className="text-xs text-gray-400 font-normal">({users.length})</span>
+                                                <span className="text-[12px] text-[#6A6A6A] font-medium">({users.length})</span>
                                             )}
                                         </div>
                                         <div className="flex justify-end items-center">
                                             {isOpen
-                                                ? <ChevronDown size={18} className="text-gray-500" />
-                                                : <ChevronRight size={18} className="text-gray-500" />
+                                                ? <ChevronDown size={17} className="text-[#6A6A6A]" />
+                                                : <ChevronRight size={17} className="text-[#6A6A6A]" />
                                             }
                                         </div>
                                     </div>
 
-                                    {/* User Rows */}
+                                    {/* User Rows (Height: 44px, Divider: #E5E5E5, Hover: #FBF5FC, Text: 13px) */}
                                     {isOpen && (
                                         users.length === 0 ? (
-                                            <div className="px-6 py-3 text-sm text-gray-400 bg-gray-50">No users in this role.</div>
+                                            <div className="px-4 py-3 text-[13px] text-[#6A6A6A] bg-[#F7F7F7]">No users in this role.</div>
                                         ) : (
                                             users.map((user) => (
                                                 <div
                                                     key={user._id}
-                                                    className="grid grid-cols-[2.5fr_2fr_3fr_2fr_1fr] px-6 py-3 bg-[#f8faff] border-t border-gray-100 hover:bg-blue-50 transition-colors items-center"
+                                                    className="grid grid-cols-[2.5fr_2fr_3fr_2fr_1fr] px-4 h-[44px] bg-white border-t border-[#E5E5E5] hover:bg-[#FBF5FC] transition-colors items-center text-[13px]"
                                                 >
                                                     {/* Role column */}
-                                                    <div className="text-sm text-gray-700 font-medium">{getRoleLabel(user.role || 'normal_user')}</div>
+                                                    <div className="text-[13px] text-[#212121] font-normal">{getRoleLabel(user.role || 'normal_user')}</div>
                                                     {/* User */}
-                                                    <div className="text-sm font-medium text-gray-700">{user.storeName || user.username}</div>
+                                                    <div className="text-[13px] font-medium text-[#212121]">{user.storeName || user.username}</div>
                                                     {/* Email */}
-                                                    <div className="text-sm text-gray-500 truncate pr-2">{user.email}</div>
+                                                    <div className="text-[13px] text-[#6A6A6A] truncate pr-2">{user.email}</div>
                                                     {/* Phone */}
-                                                    <div className="text-sm text-gray-500">{user.phone || "—"}</div>
+                                                    <div className="text-[13px] text-[#6A6A6A]">{user.phone || "—"}</div>
                                                     {/* Action */}
                                                     <div className="flex items-center">
                                                         <button
                                                             onClick={() => setViewUser(user)}
-                                                            className="no-blue-button text-blue-600 hover:text-blue-800 transition-colors"
+                                                            className="no-blue-button text-[#6A6A6A] hover:text-[#9D43D6] transition-colors cursor-pointer"
                                                             title="View details"
                                                         >
-                                                            <Eye size={18} />
+                                                            <Eye size={17} />
                                                         </button>
                                                     </div>
                                                 </div>
@@ -365,7 +362,7 @@ const ExistingUsers = () => {
                                         </p>
                                     </div>
                                 </div>
-                                <span className="px-4 py-1.5 rounded-full text-sm font-semibold bg-blue-100 text-blue-700">
+                                <span className="px-3.5 py-1 rounded-full text-xs font-semibold bg-[#9D43D6]/10 text-[#9D43D6]">
                                     {getRoleLabel(viewUser.role)}
                                 </span>
                             </div>
@@ -375,23 +372,23 @@ const ExistingUsers = () => {
                         <div className="flex-1 px-6 py-6 space-y-5">
                             {/* Email */}
                             <div className="flex items-start gap-4">
-                                <div className="bg-blue-600 p-2.5 rounded-lg flex-shrink-0">
+                                <div className="bg-[#9D43D6] p-2.5 rounded-lg flex-shrink-0">
                                     <Mail size={16} className="text-white" />
                                 </div>
                                 <div>
-                                    <p className="text-xs text-gray-400 uppercase tracking-wider">Email :</p>
-                                    <p className="text-gray-800 font-medium mt-0.5">{viewUser.email}</p>
+                                    <p className="text-xs text-[#6A6A6A] uppercase tracking-wider">Email :</p>
+                                    <p className="text-[#212121] font-medium mt-0.5">{viewUser.email}</p>
                                 </div>
                             </div>
 
                             {/* Phone */}
                             <div className="flex items-start gap-4">
-                                <div className="bg-blue-600 p-2.5 rounded-lg flex-shrink-0">
+                                <div className="bg-[#9D43D6] p-2.5 rounded-lg flex-shrink-0">
                                     <Phone size={16} className="text-white" />
                                 </div>
                                 <div>
-                                    <p className="text-xs text-gray-400 uppercase tracking-wider">Phone Number</p>
-                                    <p className="text-gray-800 font-medium mt-0.5">{viewUser.phone || "—"}</p>
+                                    <p className="text-xs text-[#6A6A6A] uppercase tracking-wider">Phone Number</p>
+                                    <p className="text-[#212121] font-medium mt-0.5">{viewUser.phone || "—"}</p>
                                 </div>
                             </div>
 
@@ -400,36 +397,36 @@ const ExistingUsers = () => {
                                 <>
                                     {viewUser.locCode && (
                                         <div className="flex items-start gap-4">
-                                            <div className="bg-blue-600 p-2.5 rounded-lg flex-shrink-0">
+                                            <div className="bg-[#9D43D6] p-2.5 rounded-lg flex-shrink-0">
                                                 <MapPin size={16} className="text-white" />
                                             </div>
                                             <div>
-                                                <p className="text-xs text-gray-400 uppercase tracking-wider">Location Code</p>
-                                                <p className="text-gray-800 font-medium mt-0.5">{viewUser.locCode}</p>
+                                                <p className="text-xs text-[#6A6A6A] uppercase tracking-wider">Location Code</p>
+                                                <p className="text-[#212121] font-medium mt-0.5">{viewUser.locCode}</p>
                                             </div>
                                         </div>
                                     )}
 
                                     {viewUser.address && (
                                         <div className="flex items-start gap-4">
-                                            <div className="bg-blue-600 p-2.5 rounded-lg flex-shrink-0">
+                                            <div className="bg-[#9D43D6] p-2.5 rounded-lg flex-shrink-0">
                                                 <MapPin size={16} className="text-white" />
                                             </div>
                                             <div>
-                                                <p className="text-xs text-gray-400 uppercase tracking-wider">Address :</p>
-                                                <p className="text-gray-800 font-medium mt-0.5">{viewUser.address}</p>
+                                                <p className="text-xs text-[#6A6A6A] uppercase tracking-wider">Address :</p>
+                                                <p className="text-[#212121] font-medium mt-0.5">{viewUser.address}</p>
                                             </div>
                                         </div>
                                     )}
 
                                     {viewUser.gst && (
                                         <div className="flex items-start gap-4">
-                                            <div className="bg-blue-600 p-2.5 rounded-lg flex-shrink-0">
+                                            <div className="bg-[#9D43D6] p-2.5 rounded-lg flex-shrink-0">
                                                 <ShieldCheck size={16} className="text-white" />
                                             </div>
                                             <div>
-                                                <p className="text-xs text-gray-400 uppercase tracking-wider">Tax Registration (GST)</p>
-                                                <p className="text-gray-800 font-medium mt-0.5">{viewUser.gst}</p>
+                                                <p className="text-xs text-[#6A6A6A] uppercase tracking-wider">Tax Registration (GST)</p>
+                                                <p className="text-[#212121] font-medium mt-0.5">{viewUser.gst}</p>
                                             </div>
                                         </div>
                                     )}
@@ -677,10 +674,10 @@ const ExistingUsers = () => {
                                                                 setEditStoreSearch("");
                                                                 setShowEditStoreDropdown(false);
                                                             }}
-                                                            className="px-3 py-2 text-sm flex items-center justify-between hover:bg-blue-50 cursor-pointer text-gray-700"
+                                                            className="px-3 py-2 text-sm flex items-center justify-between hover:bg-[#FBF5FC] cursor-pointer text-[#212121]"
                                                         >
                                                             <span>{store.locName || store.name}</span>
-                                                            <span className="text-xs text-gray-400">Loc: {store.locCode}</span>
+                                                            <span className="text-xs text-[#6A6A6A]">Loc: {store.locCode}</span>
                                                         </div>
                                                     ))}
                                                 </div>
@@ -690,11 +687,11 @@ const ExistingUsers = () => {
                                         {editAllowedLocCodes.length > 0 && (
                                             <div className="flex flex-wrap gap-2 mt-2">
                                                 {editAllowedLocCodes.map((code) => (
-                                                    <span key={code} className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+                                                    <span key={code} className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#9D43D6]/10 text-[#9D43D6] rounded-full text-xs font-medium">
                                                         {getStoreName(code)} ({code})
                                                         <button
                                                             type="button"
-                                                            className="no-blue-button text-blue-500 hover:text-blue-800 font-bold ml-0.5 cursor-pointer"
+                                                            className="no-blue-button text-[#9D43D6] hover:text-[#8B3CBD] font-bold ml-0.5 cursor-pointer"
                                                             onClick={() => setEditAllowedLocCodes(editAllowedLocCodes.filter(c => c !== code))}
                                                         >×</button>
                                                     </span>
@@ -751,16 +748,16 @@ const ExistingUsers = () => {
 
                         <div className="flex justify-between mt-8">
                             <button onClick={() => setShowDeleteModal(true)}
-                                className="flex items-center gap-2 px-5 py-3 border border-red-300 text-red-500 rounded-xl hover:bg-red-50 font-semibold text-sm">
+                                className="rf-btn-danger cursor-pointer">
                                 <Trash2 size={16} /> DELETE
                             </button>
                             <div className="flex gap-3">
                                 <button onClick={() => setShowEditModal(false)}
-                                    className="px-8 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-semibold text-sm">
+                                    className="rf-btn-cancel cursor-pointer">
                                     CANCEL
                                 </button>
                                 <button onClick={handleEditSave} disabled={editLoading}
-                                    className={`px-8 py-3 rounded-xl font-semibold text-white text-sm ${editLoading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"}`}>
+                                    className={editLoading ? "rf-btn-disabled" : "rf-btn-primary cursor-pointer"}>
                                     {editLoading ? "SAVING..." : "SAVE CHANGES"}
                                 </button>
                             </div>
@@ -772,19 +769,19 @@ const ExistingUsers = () => {
             {/* Delete Modal */}
             {showDeleteModal && selectedUser && (
                 <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[420px] p-8 text-center">
-                        <h2 className="text-xl font-bold text-gray-900 mb-3">DELETE USER</h2>
-                        <p className="text-gray-500 mb-8">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[420px] p-8 text-center border border-[#E9E9E9]">
+                        <h2 className="text-xl font-bold text-[#212121] mb-3">DELETE USER</h2>
+                        <p className="text-[#6A6A6A] text-[13px] mb-8">
                             Are you sure you want to delete <strong>{selectedUser.storeName || selectedUser.username}</strong>?<br />
                             This action cannot be undone.
                         </p>
                         <div className="flex gap-4 justify-center">
                             <button onClick={() => setShowDeleteModal(false)}
-                                className="px-8 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-semibold text-sm">
+                                className="rf-btn-cancel cursor-pointer">
                                 CANCEL
                             </button>
                             <button onClick={handleDelete} disabled={deleteLoading}
-                                className={`px-8 py-3 rounded-xl font-semibold text-white text-sm ${deleteLoading ? "bg-gray-400" : "bg-red-500 hover:bg-red-600"}`}>
+                                className={deleteLoading ? "rf-btn-disabled" : "rf-btn-danger !bg-[#DC2626] !text-white hover:!bg-[#b91c1c] cursor-pointer"}>
                                 {deleteLoading ? "DELETING..." : "DELETE"}
                             </button>
                         </div>

@@ -125,9 +125,15 @@ export const CloseController = async (req, res) => {
 export const GetCloseController = async (req, res) => {
     try {
         const { date, locCode } = req.query;
-        if (!date || !locCode) {
+        if (!locCode) {
+            return res.status(200).json({
+                message: "No locCode provided",
+                data: null
+            });
+        }
+        if (!date) {
             return res.status(400).json({
-                message: "date and locCode are required"
+                message: "date is required"
             });
         }
 

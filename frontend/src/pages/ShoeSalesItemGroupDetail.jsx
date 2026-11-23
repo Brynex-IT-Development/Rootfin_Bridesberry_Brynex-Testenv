@@ -60,10 +60,7 @@ const ShoeSalesItemGroupDetail = () => {
                   (user?.locCode && (user.locCode === '858' || user.locCode === '103'));
   
   // Fallback locations mapping
-  const fallbackLocations = [
-    { "locName": "Brides Berry", "locCode": "155" },
-    { "locName": "Warehouse", "locCode": "858" },
-  ];
+  const fallbackLocations = [];
   
   // Get user's warehouse name
   const getUserWarehouse = () => {

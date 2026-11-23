@@ -1,15 +1,10 @@
 import { useState, useEffect } from "react";
 import baseUrl from "../api/api";
 
-export const FALLBACK_STORES = [
-  { locName: "Brides Berry", locCode: "155", name: "Brides Berry", label: "Brides Berry", value: "155" },
-  { locName: "Warehouse", locCode: "858", name: "Warehouse", label: "Warehouse", value: "858" },
-];
+export const FALLBACK_STORES = [];
 
 export const STORE_OPTIONS = [
   { value: "all", label: "All Stores" },
-  { value: "155", label: "Brides Berry" },
-  { value: "858", label: "Warehouse" },
 ];
 
 export const isAllowedStoreNameOrCode = (locCode, locName) => {
@@ -76,7 +71,6 @@ export const saveCustomStore = (store) => {
 export const removeCustomStore = (locCode) => {
   if (!locCode) return;
   const code = locCode.toString().trim();
-  if (code === "858" || code === "155") return; // Never remove default system stores
 
   try {
     // 1. Remove from rootfin_custom_stores
@@ -114,131 +108,40 @@ export const removeCustomStore = (locCode) => {
 };
 
 export const getActiveStores = () => {
-  const storeMap = new Map();
-
-  // 1. Always start with Warehouse
-  FALLBACK_STORES.forEach(s => {
-    storeMap.set(s.locCode, {
-      ...s,
-      label: s.locName,
-      value: s.locCode
-    });
-  });
-
-  // 2. Add custom stores saved by the user (only if allowed)
+  // Sanitize super admin in rootfinuser immediately
   try {
-    const rawCustom = localStorage.getItem("rootfin_custom_stores");
-    if (rawCustom) {
-      const parsedCustom = JSON.parse(rawCustom);
-      if (Array.isArray(parsedCustom)) {
-        const validCustom = [];
-        parsedCustom.forEach(s => {
-          const code = (s.locCode || "").toString().trim();
-          const requestedName = (s.locName || s.name || code).trim();
-          if (code && isAllowedStoreNameOrCode(code, requestedName)) {
-            const name = requestedName;
-            const entry = {
-              locName: name,
-              locCode: code,
-              name: name,
-              label: name,
-              value: code,
-              address: s.address || "",
-              phone: s.phone || "",
-              email: s.email || ""
-            };
-            storeMap.set(code, entry);
-            validCustom.push(entry);
-          }
-        });
-        localStorage.setItem("rootfin_custom_stores", JSON.stringify(validCustom));
+    const rawUser = localStorage.getItem("rootfinuser");
+    if (rawUser) {
+      const u = JSON.parse(rawUser);
+      const role = (u?.role || '').toLowerCase();
+      const isSuper = role === 'super_admin' || role === 'superadmin';
+      if (isSuper && (u.locCode || u.storeName)) {
+        u.locCode = "";
+        u.storeName = null;
+        u.storeId = null;
+        u.username = "Brynex Admin";
+        localStorage.setItem("rootfinuser", JSON.stringify(u));
       }
     }
-  } catch (e) {
-    console.warn("Could not read custom stores:", e);
-  }
+  } catch (e) {}
 
-  // 3. Add cached active stores (only if allowed)
   try {
     const cached = localStorage.getItem("rootfin_active_stores");
     if (cached) {
       const parsed = JSON.parse(cached);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        parsed.forEach(s => {
-          const code = (s.locCode || "").toString().trim();
-          const name = (s.locName || s.name || code).trim();
-          if (code && isAllowedStoreNameOrCode(code, name)) {
-            if (!storeMap.has(code)) {
-              storeMap.set(code, {
-                locName: name,
-                locCode: code,
-                name: name,
-                label: name,
-                value: code,
-                address: s.address || "",
-                phone: s.phone || "",
-                email: s.email || ""
-              });
-            }
-          }
-        });
+        return parsed.filter(s => s && s.locCode && isAllowedStoreNameOrCode(s.locCode, s.locName || s.name));
       }
     }
-  } catch (e) {
-    console.warn("Could not read cached active stores:", e);
-  }
+  } catch (e) {}
 
-  const result = Array.from(storeMap.values()).sort((a, b) => a.locName.localeCompare(b.locName));
-  try {
-    localStorage.setItem("rootfin_active_stores", JSON.stringify(result));
-  } catch (e) {
-    // Ignore storage quota errors
-  }
-  return result;
+  return [];
 };
 
 export const fetchActiveStores = async () => {
   const API_URL = baseUrl?.baseUrl?.replace(/\/$/, "") || "http://localhost:7000";
 
   const storeMap = new Map();
-
-  // 1. Guaranteed fallback stores
-  FALLBACK_STORES.forEach(s => {
-    storeMap.set(s.locCode, {
-      ...s,
-      label: s.locName,
-      value: s.locCode
-    });
-  });
-
-  // 2. Incorporate any user-created custom stores from localStorage
-  try {
-    const rawCustom = localStorage.getItem("rootfin_custom_stores");
-    if (rawCustom) {
-      const parsedCustom = JSON.parse(rawCustom);
-      if (Array.isArray(parsedCustom)) {
-        parsedCustom.forEach(s => {
-          const code = (s.locCode || "").toString().trim();
-          const requestedName = (s.locName || s.name || code).trim();
-          if (code && isAllowedStoreNameOrCode(code, requestedName)) {
-            const name = requestedName;
-            storeMap.set(code, {
-              locName: name,
-              locCode: code,
-              name: name,
-              label: name,
-              value: code,
-              address: s.address || "",
-              phone: s.phone || "",
-              email: s.email || ""
-            });
-          }
-        });
-      }
-    }
-  } catch (e) {
-    console.warn("Could not read custom stores:", e);
-  }
 
   // Helper to add raw store object
   const processStore = (code, rawName, extra = {}) => {
@@ -290,74 +193,66 @@ export const fetchActiveStores = async () => {
       fetch(`${API_URL}/user/getAllUsers`).then(r => r.ok ? r.json() : null)
     ]);
 
-    // 1. Process /api/stores
-    if (storesRes.status === "fulfilled" && storesRes.value?.stores && Array.isArray(storesRes.value.stores)) {
-      storesRes.value.stores.forEach(s => {
-        processStore(s.locCode, s.name || s.locName, s);
-      });
-    }
-
-    // 2. Process /user/getAllStores
-    if (userStoresRes.status === "fulfilled" && userStoresRes.value?.stores && Array.isArray(userStoresRes.value.stores)) {
-      userStoresRes.value.stores.forEach(s => {
-        processStore(s.locCode, s.locName || s.name, s);
-      });
-    }
-
-    // 3. Process /user/getAllUsers (any user with a locCode is a store user!)
+    // 1. Identify active admin users who manage a store or warehouse
+    // A store only exists if an active Store Admin or Warehouse Admin user exists!
+    const activeAdminLocCodes = new Set();
     if (allUsersRes.status === "fulfilled" && allUsersRes.value?.users && Array.isArray(allUsersRes.value.users)) {
       allUsersRes.value.users.forEach(u => {
-        if (u.locCode && u.username) {
-          processStore(u.locCode, u.username, u);
+        const role = (u.role || '').toLowerCase().trim();
+        const isSuper = role === 'super_admin' || role === 'superadmin';
+        const isStoreOrWarehouseAdmin = role === 'store_admin' || role === 'store_manager' || role === 'store admin' || role === 'warehouse_admin';
+        const code = (u.locCode || "").toString().trim();
+        if (!isSuper && isStoreOrWarehouseAdmin && code) {
+          activeAdminLocCodes.add(code);
         }
       });
     }
 
-    // Prune deleted stores: If backend responded with valid store data, prune any cached custom store
-    // that no longer exists on backend (except default system stores 155 and 858)
-    const backendSucceeded = (storesRes.status === "fulfilled" && storesRes.value) || 
-                             (userStoresRes.status === "fulfilled" && userStoresRes.value) ||
-                             (allUsersRes.status === "fulfilled" && allUsersRes.value);
-
-    if (backendSucceeded) {
-      const liveLocCodes = new Set(["155", "858"]);
-      if (storesRes.status === "fulfilled" && Array.isArray(storesRes.value?.stores)) {
-        storesRes.value.stores.forEach(s => {
-          if (s.locCode) liveLocCodes.add(s.locCode.toString().trim());
-        });
-      }
-      if (userStoresRes.status === "fulfilled" && Array.isArray(userStoresRes.value?.stores)) {
-        userStoresRes.value.stores.forEach(s => {
-          if (s.locCode) liveLocCodes.add(s.locCode.toString().trim());
-        });
-      }
-      if (allUsersRes.status === "fulfilled" && Array.isArray(allUsersRes.value?.users)) {
-        allUsersRes.value.users.forEach(u => {
-          if (u.locCode) liveLocCodes.add(u.locCode.toString().trim());
-        });
-      }
-
-      // Remove any store from storeMap that was deleted from backend
-      for (const [code] of storeMap.entries()) {
-        if (!liveLocCodes.has(code)) {
-          storeMap.delete(code);
-        }
-      }
-
-      // Synchronize rootfin_custom_stores in localStorage
+    // If NO store admins and NO warehouse admins exist, then NO STORES can exist!
+    if (activeAdminLocCodes.size === 0) {
       try {
-        const rawCustom = localStorage.getItem("rootfin_custom_stores");
-        if (rawCustom) {
-          const parsed = JSON.parse(rawCustom);
-          if (Array.isArray(parsed)) {
-            const pruned = parsed.filter(s => {
-              const c = (s.locCode || "").toString().trim();
-              return liveLocCodes.has(c);
-            });
-            localStorage.setItem("rootfin_custom_stores", JSON.stringify(pruned));
-          }
-        }
+        localStorage.removeItem("rootfin_custom_stores");
+        localStorage.setItem("rootfin_active_stores", JSON.stringify([]));
       } catch (e) {}
+      window.dispatchEvent(new CustomEvent("rootfin-stores-updated", { detail: [] }));
+      return [];
+    }
+
+    // 2. Process /api/stores (only if locCode has an active store/warehouse admin)
+    if (storesRes.status === "fulfilled" && storesRes.value?.stores && Array.isArray(storesRes.value.stores)) {
+      storesRes.value.stores.forEach(s => {
+        const code = (s.locCode || "").toString().trim();
+        if (activeAdminLocCodes.has(code)) {
+          processStore(code, s.name || s.locName, s);
+        }
+      });
+    }
+
+    // 3. Process /user/getAllStores (only if locCode has an active store/warehouse admin)
+    if (userStoresRes.status === "fulfilled" && userStoresRes.value?.stores && Array.isArray(userStoresRes.value.stores)) {
+      userStoresRes.value.stores.forEach(s => {
+        const code = (s.locCode || "").toString().trim();
+        if (activeAdminLocCodes.has(code)) {
+          processStore(code, s.locName || s.name, s);
+        }
+      });
+    }
+
+    // 4. Process from active admin users list directly
+    if (allUsersRes.status === "fulfilled" && allUsersRes.value?.users && Array.isArray(allUsersRes.value.users)) {
+      allUsersRes.value.users.forEach(u => {
+        const code = (u.locCode || "").toString().trim();
+        if (activeAdminLocCodes.has(code)) {
+          processStore(code, u.storeName || u.username, u);
+        }
+      });
+    }
+
+    // Filter storeMap to only activeAdminLocCodes
+    for (const [code] of storeMap.entries()) {
+      if (!activeAdminLocCodes.has(code)) {
+        storeMap.delete(code);
+      }
     }
 
     const sorted = Array.from(storeMap.values()).sort((a, b) => 
@@ -372,7 +267,7 @@ export const fetchActiveStores = async () => {
   }
 
   const current = getActiveStores();
-  return current.length > 0 ? current : FALLBACK_STORES;
+  return current;
 };
 
 export const useActiveStores = () => {

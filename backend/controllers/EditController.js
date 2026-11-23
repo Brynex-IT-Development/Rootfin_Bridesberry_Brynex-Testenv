@@ -330,8 +330,11 @@ export const getsaveCashBank = async (req, res) => {
   try {
     const { locCode, date } = req.query;
 
-    if (!locCode || !date) {
-      return res.status(400).json({ message: "locCode and date are required" });
+    if (!locCode) {
+      return res.status(200).json({ message: "No locCode provided", data: null });
+    }
+    if (!date) {
+      return res.status(400).json({ message: "date is required" });
     }
 
     const calc = await calculateTotalCashForDate(locCode, date);

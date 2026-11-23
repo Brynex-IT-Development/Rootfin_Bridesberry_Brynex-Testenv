@@ -1,14 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { CSVLink } from "react-csv";
 import Headers from "../components/Header.jsx";
 import baseUrl from "../api/api.js";
 import useSidebar from "../hooks/useSidebar";
+import { fetchActiveStores } from "../utils/storeService.js";
 
 const STORES = [
   { value: "all", label: "All Stores" },
-  { value: "155", label: "Brides Berry" },
-  { value: "858", label: "Warehouse" },
 ];
 
 const SalesByGroupReport = () => {
