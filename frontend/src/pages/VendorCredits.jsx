@@ -1829,28 +1829,30 @@ const NewVendorCreditForm = ({ creditId, isEditMode = false }) => {
   };
 
   return (
-    <>
-      <Header title={isEditMode ? "Edit Vendor Credit" : "New Vendor Credit"} />
-      <div className={`transition-all duration-300 min-h-screen bg-[#f8fafc] p-6 md:p-8 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-        {/* Top Header Card */}
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-[#111827] tracking-tight">
-            {isEditMode ? "Edit Vendor Credit" : "New Vendor Credit"}
+    <div className="invoice-page-wrapper min-h-screen bg-[#FAFAFA] text-[#212121]">
+      <Header title={isEditMode ? "Edit Purchase Return" : "Add Purchase Return"} />
+      <div className={`transition-all duration-300 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
+        {/* Clean Page Title Header */}
+        <div className="bg-white px-6 md:px-8 py-4 border-b border-[#E5E5E5] flex flex-wrap items-center justify-between gap-4">
+          <h1 className="text-[18px] font-semibold text-[#1B1B1B]">
+            {isEditMode ? "Edit Purchase Return" : "New Purchase Return"}
           </h1>
           <Link
             to="/purchase/vendor-credits"
-            className="p-2 hover:bg-gray-200 rounded-none transition-colors"
+            className="inline-flex items-center gap-1.5 h-[38px] px-4 rounded-[10px] border border-[#E5E5E5] bg-white hover:bg-[#FAFAFA] text-[13px] font-medium text-[#9D43D6] transition-colors"
           >
-            <X size={20} className="text-[#64748b]" />
+            <X size={14} className="text-[#9D43D6]" />
+            <span>Close</span>
           </Link>
         </div>
 
+        <div className="p-5 md:p-6 space-y-5">
         {/* Main Form Card */}
-        <div className="bg-white border border-gray-200 rounded-none shadow-sm p-6 md:p-8 space-y-6">
+        <div className="bg-white border border-[#E5E5E5] rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.03)] p-6 space-y-6">
           {/* Vendor and Credit Details */}
           <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-4">
-              <div className="space-y-1.5">
+              <div>
                 <Label required>Vendor Name</Label>
                 <VendorDropdown
                   value={selectedVendor}
@@ -1859,7 +1861,7 @@ const NewVendorCreditForm = ({ creditId, isEditMode = false }) => {
                 />
               </div>
 
-              <div className="space-y-1.5">
+              <div>
                 <Label>Branch</Label>
                 <Select value={branch} onChange={(e) => setBranch(e.target.value)}>
                   <option value="Brides Berry">Brides Berry</option>
@@ -1867,7 +1869,7 @@ const NewVendorCreditForm = ({ creditId, isEditMode = false }) => {
                 </Select>
               </div>
 
-              <div className="space-y-1.5">
+              <div>
                 <Label required>Credit Note#</Label>
                 <div className="flex items-center gap-2">
                   <Input
@@ -1875,12 +1877,12 @@ const NewVendorCreditForm = ({ creditId, isEditMode = false }) => {
                     onChange={(e) => setCreditNoteNumber(e.target.value)}
                     placeholder={numberPreferences.autoGenerate ? "" : "Enter credit note number"}
                     readOnly={!isEditMode && numberPreferences.autoGenerate}
-                    className={!isEditMode && numberPreferences.autoGenerate ? "bg-[#f8fafc] cursor-not-allowed" : ""}
+                    className={!isEditMode && numberPreferences.autoGenerate ? "bg-[#FAFAFA] cursor-not-allowed" : ""}
                   />
                   <button
                     type="button"
                     onClick={() => setShowNumberPreferencesModal(true)}
-                    className="h-[42px] w-[42px] rounded-none bg-[#8B5CF6] hover:bg-[#7C3AED] text-white transition-colors flex items-center justify-center shrink-0 cursor-pointer shadow-sm"
+                    className="h-[42px] w-[42px] rounded-[10px] bg-[#9D43D6] hover:bg-[#8732BE] text-white transition-colors flex items-center justify-center shrink-0 cursor-pointer shadow-xs"
                     title="Configure Credit Note Number Preferences"
                   >
                     <Info size={16} />
@@ -1888,16 +1890,16 @@ const NewVendorCreditForm = ({ creditId, isEditMode = false }) => {
                 </div>
               </div>
 
-              <div className="space-y-1.5">
+              <div>
                 <Label>Order Number</Label>
                 <Input
                   value={orderNumber}
                   onChange={(e) => setOrderNumber(e.target.value)}
-                  placeholder=""
+                  placeholder="Enter order number"
                 />
               </div>
 
-              <div className="space-y-1.5">
+              <div>
                 <Label>Vendor Credit Date</Label>
                 <Input
                   type="text"
@@ -1909,7 +1911,7 @@ const NewVendorCreditForm = ({ creditId, isEditMode = false }) => {
             </div>
 
             <div className="space-y-4">
-              <div className="space-y-1.5">
+              <div>
                 <Label>Subject</Label>
                 <div className="relative">
                   <textarea
@@ -1917,19 +1919,19 @@ const NewVendorCreditForm = ({ creditId, isEditMode = false }) => {
                     onChange={(e) => setSubject(e.target.value)}
                     placeholder="Enter a subject within 250 characters"
                     maxLength={250}
-                    className="w-full rounded-none border border-gray-200 bg-white text-sm text-[#111827] placeholder:text-[#9ca3af] focus:border-[#8B5CF6] focus:outline-none focus:ring-1 focus:ring-[#8B5CF6] transition-colors px-3.5 py-2.5 min-h-[90px] resize-none"
+                    className="w-full rounded-[10px] border border-[#E5E5E5] bg-white text-[13px] text-[#212121] placeholder:text-[#A1A1AA] focus:border-[#9D43D6] focus:outline-none focus:ring-2 focus:ring-[#9D43D6]/15 transition-colors px-3.5 py-2.5 min-h-[96px] resize-none"
                   />
-                  <div className="absolute top-2 right-2 flex items-center gap-1.5">
+                  <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5">
                     <button
                       type="button"
-                      className="p-1 text-[#64748b] hover:text-[#111827] transition-colors"
+                      className="p-1 text-[#7A7A7A] hover:text-[#1B1B1B] transition-colors cursor-pointer"
                       title="Edit"
                     >
                       <Pencil size={14} />
                     </button>
                     <button
                       type="button"
-                      className="h-5 w-5 rounded-none bg-[#8B5CF6] text-white hover:bg-[#7C3AED] transition-colors flex items-center justify-center cursor-pointer shadow-sm"
+                      className="h-5 w-5 rounded-[6px] bg-[#9D43D6] text-white hover:bg-[#8732BE] transition-colors flex items-center justify-center cursor-pointer"
                       title="Information"
                     >
                       <Info size={11} />
@@ -1944,14 +1946,14 @@ const NewVendorCreditForm = ({ creditId, isEditMode = false }) => {
                   id="reverseCharge"
                   checked={reverseCharge}
                   onChange={(e) => setReverseCharge(e.target.checked)}
-                  className="h-4 w-4 rounded-none border-gray-300 text-[#8B5CF6] focus:ring-[#8B5CF6] cursor-pointer"
+                  className="h-4 w-4 rounded-[4px] border-gray-300 accent-[#9D43D6] cursor-pointer"
                 />
-                <label htmlFor="reverseCharge" className="text-xs font-semibold uppercase tracking-wider text-[#374151] cursor-pointer">
+                <label htmlFor="reverseCharge" className="text-[13px] font-medium text-[#212121] cursor-pointer">
                   This transaction is applicable for reverse charge
                 </label>
               </div>
 
-              <div className="space-y-1.5">
+              <div>
                 <Label>Warehouse</Label>
                 <Select value={warehouse} onChange={(e) => setWarehouse(e.target.value)}>
                   <option value="">Select a warehouse</option>
@@ -1960,7 +1962,7 @@ const NewVendorCreditForm = ({ creditId, isEditMode = false }) => {
                 </Select>
               </div>
 
-              <div className="space-y-1.5">
+              <div>
                 <Label>At Transaction Level</Label>
                 <Select value={atTransactionLevel} onChange={(e) => setAtTransactionLevel(e.target.value)}>
                   <option>At Transaction Level</option>
@@ -1970,29 +1972,29 @@ const NewVendorCreditForm = ({ creditId, isEditMode = false }) => {
           </div>
 
           {/* Items Table */}
-          <div className="border-t border-gray-200 pt-6">
-            <div className="rounded-none border border-gray-200 bg-white shadow-sm overflow-visible mb-4">
+          <div className="border-t border-[#F0F0F0] pt-6">
+            <div className="rounded-[12px] border border-[#E5E5E5] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.02)] overflow-visible mb-4">
               <div className="overflow-x-auto">
-                <table className="w-full border-collapse min-w-full text-left text-xs">
-                  <thead className="bg-[#1e1e1e]">
-                    <tr className="text-white text-xs font-bold uppercase tracking-wider">
-                      <th className="py-3 px-4 text-left border-r border-[#333333]">ITEM DETAILS</th>
-                      <th className="py-3 px-4 text-left border-r border-[#333333]">ACCOUNT</th>
-                      <th className="py-3 px-4 text-center border-r border-[#333333]">SIZE</th>
-                      <th className="py-3 px-4 text-center border-r border-[#333333]">QUANTITY</th>
-                      <th className="py-3 px-4 text-center border-r border-[#333333]">RATE</th>
-                      <th className="py-3 px-4 text-left border-r border-[#333333]">TAX</th>
-                      <th className="py-3 px-4 text-right border-r border-[#333333]">AMOUNT</th>
+                <table className="w-full border-collapse min-w-full text-left">
+                  <thead className="bg-[#1B1B1B]">
+                    <tr className="text-white text-[11px] font-semibold uppercase tracking-wider">
+                      <th className="py-3.5 px-4 text-left">ITEM DETAILS</th>
+                      <th className="py-3.5 px-4 text-left">ACCOUNT</th>
+                      <th className="py-3.5 px-4 text-center">SIZE</th>
+                      <th className="py-3.5 px-4 text-center">QUANTITY</th>
+                      <th className="py-3.5 px-4 text-center">RATE</th>
+                      <th className="py-3.5 px-4 text-left">TAX</th>
+                      <th className="py-3.5 px-4 text-right">AMOUNT</th>
                       <th className="w-12 text-center"></th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100 bg-white">
+                  <tbody className="divide-y divide-[#F0F0F0] bg-white">
                     {tableRows.map((row) => (
-                      <tr key={row.id} className="hover:bg-gray-50/60 transition-colors">
-                        <td className="px-3 py-2.5 border-r border-gray-100">
-                          <div className="flex items-center gap-2">
-                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-none bg-gray-100 border border-gray-200">
-                              <ImageIcon size={16} className="text-gray-400" />
+                      <tr key={row.id} className="hover:bg-[#FAFAFA] transition-colors">
+                        <td className="px-3 py-3">
+                          <div className="flex items-center gap-2.5">
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[8px] bg-[#F4F4F5] border border-[#E5E5E5]">
+                              <ImageIcon size={16} className="text-[#9CA3AF]" />
                             </div>
                             <ItemDropdown
                               rowId={row.id}
@@ -2003,7 +2005,7 @@ const NewVendorCreditForm = ({ creditId, isEditMode = false }) => {
                             />
                           </div>
                         </td>
-                        <td className="px-3 py-2.5 border-r border-gray-100">
+                        <td className="px-3 py-3">
                           <Select
                             value={row.account}
                             onChange={(e) => handleUpdateRow(row.id, "account", e.target.value)}
@@ -2012,15 +2014,15 @@ const NewVendorCreditForm = ({ creditId, isEditMode = false }) => {
                             <option value="">Select an account</option>
                           </Select>
                         </td>
-                        <td className="px-3 py-2.5 border-r border-gray-100 text-center">
+                        <td className="px-3 py-3 text-center">
                           <Input
                             value={row.size}
                             onChange={(e) => handleUpdateRow(row.id, "size", e.target.value)}
                             className="table-input text-center"
-                            placeholder=""
+                            placeholder="Size"
                           />
                         </td>
-                        <td className="px-3 py-2.5 border-r border-gray-100 text-center">
+                        <td className="px-3 py-3 text-center">
                           <Input
                             type="number"
                             value={row.quantity}
@@ -2029,7 +2031,7 @@ const NewVendorCreditForm = ({ creditId, isEditMode = false }) => {
                             step="0.01"
                           />
                         </td>
-                        <td className="px-3 py-2.5 border-r border-gray-100 text-center">
+                        <td className="px-3 py-3 text-center">
                           <div className="space-y-1">
                             <Input
                               type="number"
@@ -2038,13 +2040,9 @@ const NewVendorCreditForm = ({ creditId, isEditMode = false }) => {
                               className="table-input text-center"
                               step="0.01"
                             />
-                            <div className="flex items-center justify-center gap-1">
-                              <Label className="text-[10px]">RATE</Label>
-                              <Info size={10} className="text-[#64748b]" />
-                            </div>
                           </div>
                         </td>
-                        <td className="px-3 py-2.5 border-r border-gray-100">
+                        <td className="px-3 py-3">
                           <TaxDropdown
                             rowId={row.id}
                             value={row.tax}
@@ -2054,21 +2052,21 @@ const NewVendorCreditForm = ({ creditId, isEditMode = false }) => {
                             onNewTax={() => {}}
                           />
                         </td>
-                        <td className="px-3 py-2.5 border-r border-gray-100 text-right">
+                        <td className="px-3 py-3 text-right">
                           <Input
                             value={row.amount}
                             readOnly
-                            className="table-input text-right font-bold text-gray-900 bg-gray-50/50"
+                            className="table-input text-right font-semibold text-[#1B1B1B] bg-[#FAFAFA]"
                           />
                         </td>
-                        <td className="px-2 py-2.5 text-center">
+                        <td className="px-2 py-3 text-center">
                           <button
                             type="button"
                             onClick={() => handleDeleteRow(row.id)}
-                            className="p-1.5 text-gray-400 hover:text-[#dc2626] transition-colors cursor-pointer"
+                            className="w-8 h-8 rounded-[8px] bg-[#FEE2E2]/70 hover:bg-[#FEE2E2] text-[#EF4444] inline-flex items-center justify-center transition-colors cursor-pointer"
                             title="Delete row"
                           >
-                            <X size={16} />
+                            <X size={15} />
                           </button>
                         </td>
                       </tr>
@@ -2082,41 +2080,41 @@ const NewVendorCreditForm = ({ creditId, isEditMode = false }) => {
               <button
                 type="button"
                 onClick={handleAddRow}
-                className="inline-flex h-9 items-center gap-1.5 px-4 text-xs font-bold uppercase tracking-wider text-white bg-[#8B5CF6] hover:bg-[#7C3AED] rounded-none transition-colors shadow-sm cursor-pointer"
+                className="inline-flex h-[38px] items-center gap-1.5 px-4 text-[13px] font-medium text-[#212121] bg-[#F4F4F5] hover:bg-[#E5E5E5] rounded-[10px] transition-colors cursor-pointer"
               >
-                <Plus size={16} />
-                <span>+ Add Row</span>
+                <Plus size={14} />
+                <span>Add Row</span>
               </button>
             </div>
           </div>
 
           {/* Notes, Attachments, and Summary Section */}
-          <div className="grid gap-6 md:grid-cols-2 border-t border-gray-200 pt-6">
+          <div className="grid gap-6 md:grid-cols-2 border-t border-[#F0F0F0] pt-6">
             {/* Left: Notes and Attachments */}
-            <div className="space-y-6">
+            <div className="space-y-5">
               {/* Notes */}
-              <div className="space-y-1.5">
+              <div>
                 <Label>Notes</Label>
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Notes or terms..."
-                  className="w-full rounded-none border border-gray-200 bg-white text-sm text-[#111827] placeholder:text-[#9ca3af] focus:border-[#8B5CF6] focus:outline-none focus:ring-1 focus:ring-[#8B5CF6] transition-colors px-3.5 py-2.5 min-h-[140px] resize-none"
+                  className="w-full rounded-[10px] border border-[#E5E5E5] bg-white text-[13px] text-[#212121] placeholder:text-[#A1A1AA] focus:border-[#9D43D6] focus:outline-none focus:ring-2 focus:ring-[#9D43D6]/15 transition-colors px-3.5 py-2.5 min-h-[130px] resize-none"
                 />
               </div>
 
               {/* Attachments */}
-              <div className="space-y-1.5">
-                <Label>Attach File(s) to Vendor Credits</Label>
-                <div className="border-2 border-dashed border-gray-200 rounded-none p-6 text-center bg-gray-50/40">
+              <div>
+                <Label>Attach File(s) to Purchase Return</Label>
+                <div className="border-2 border-dashed border-[#E5E5E5] rounded-[14px] p-6 text-center bg-[#FAFAFA]">
                   <button
                     type="button"
-                    className="inline-flex items-center gap-2 rounded-none border border-gray-300 bg-white px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#111827] hover:bg-gray-50 transition-colors shadow-sm cursor-pointer"
+                    className="rf-btn-primary inline-flex items-center gap-2 !h-[38px] !px-5 !text-[13px]"
                   >
                     <Upload size={14} />
-                    Upload File
+                    <span>Upload File</span>
                   </button>
-                  <p className="mt-2 text-xs text-[#64748b]">
+                  <p className="mt-2.5 text-[12px] text-[#8A8A8A]">
                     You can upload a maximum of 5 files, 10MB each
                   </p>
                 </div>
@@ -2124,27 +2122,31 @@ const NewVendorCreditForm = ({ creditId, isEditMode = false }) => {
             </div>
 
             {/* Right: Summary */}
-            <div className="space-y-4 bg-[#fafbff] rounded-none border border-gray-200 p-5">
+            <div className="space-y-4 bg-[#FAFAFA] rounded-[16px] border border-[#E5E5E5] p-6">
+              <div className="text-[#9D43D6] font-bold text-[11px] tracking-wider uppercase">
+                RETURN SUMMARY
+              </div>
+
               {/* Sub Total */}
-              <div className="flex items-center justify-between text-sm font-bold uppercase tracking-wider text-[#111827] pb-3 border-b border-gray-200">
+              <div className="flex items-center justify-between text-[14px] font-semibold text-[#1B1B1B] pb-3 border-b border-[#E5E5E5]">
                 <span>Sub Total</span>
-                <span>{totals.subTotal}</span>
+                <span className="tabular-nums">{totals.subTotal}</span>
               </div>
 
               {/* Discount Section */}
               <div className="space-y-2 py-1">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#374151]">Discount</span>
+                  <span className="text-[13px] font-medium text-[#212121]">Discount</span>
                   <div className="flex items-center gap-2">
                     <Input 
-                      className="w-20 text-sm text-right table-input" 
+                      className="w-20 text-[13px] text-right table-input" 
                       value={discount.value}
                       onChange={(e) => setDiscount({ ...discount, value: e.target.value })}
                       type="number"
                       step="0.01"
                     />
                     <Select 
-                      className="w-16 text-sm table-input"
+                      className="w-16 text-[13px] table-input"
                       value={discount.type}
                       onChange={(e) => setDiscount({ ...discount, type: e.target.value })}
                     >
@@ -2152,22 +2154,22 @@ const NewVendorCreditForm = ({ creditId, isEditMode = false }) => {
                       <option value="₹">₹</option>
                     </Select>
                   </div>
-                  <span className="text-xs font-bold text-[#64748b] w-20 text-right">{totals.discountAmount}</span>
+                  <span className="text-[13px] font-medium text-[#7A7A7A] w-20 text-right tabular-nums">{totals.discountAmount}</span>
                 </div>
                 <div className="flex items-center justify-end">
                   <button
                     type="button"
                     onClick={() => setApplyDiscountAfterTax(!applyDiscountAfterTax)}
-                    className={`text-xs font-medium cursor-pointer ${applyDiscountAfterTax ? 'text-[#8B5CF6] font-bold' : 'text-[#64748b]'} hover:text-[#8B5CF6] transition-colors`}
+                    className={`text-[12px] font-medium cursor-pointer ${applyDiscountAfterTax ? 'text-[#9D43D6]' : 'text-[#7A7A7A]'} hover:text-[#9D43D6] transition-colors`}
                   >
                     Apply after tax
                   </button>
                 </div>
               </div>
 
-              {/* Tax Details - CGST & SGST (Separated) */}
+              {/* Tax Details */}
               {totals.taxBreakdown && totals.taxBreakdown.length > 0 && (
-                <div className="space-y-1.5 py-2 border-t border-gray-200">
+                <div className="space-y-1.5 py-2 border-t border-[#E5E5E5]">
                   {totals.taxBreakdown.map((tax, idx) => {
                     const taxType = tax.type;
                     const taxRate = tax.rate;
@@ -2175,10 +2177,10 @@ const NewVendorCreditForm = ({ creditId, isEditMode = false }) => {
                     const rateDisplay = taxRate % 1 === 0 ? taxRate.toFixed(0) : taxRate.toFixed(1);
                     return (
                       <div key={idx} className="flex items-center justify-between">
-                        <span className="text-xs text-[#64748b] uppercase font-medium">
+                        <span className="text-[13px] text-[#7A7A7A]">
                           {taxType}{rateDisplay} [{rateDisplay}%]
                         </span>
-                        <span className="text-xs font-bold text-[#111827]">{taxAmount.toFixed(2)}</span>
+                        <span className="text-[13px] font-medium text-[#1B1B1B] tabular-nums">{taxAmount.toFixed(2)}</span>
                       </div>
                     );
                   })}
@@ -2187,17 +2189,17 @@ const NewVendorCreditForm = ({ creditId, isEditMode = false }) => {
 
               {/* Total Tax Amount */}
               {totals.taxBreakdown && totals.taxBreakdown.length > 0 && (
-                <div className="flex items-center justify-between py-1 border-t border-gray-200">
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#111827]">Total Tax Amount</span>
-                  <span className="text-xs font-bold text-[#111827]">{totals.totalTax}</span>
+                <div className="flex items-center justify-between py-1 border-t border-[#E5E5E5]">
+                  <span className="text-[13px] font-medium text-[#1B1B1B]">Total Tax Amount</span>
+                  <span className="text-[13px] font-semibold text-[#1B1B1B] tabular-nums">{totals.totalTax}</span>
                 </div>
               )}
 
               {/* TDS/TCS Section */}
-              <div className="space-y-2 py-2 border-t border-gray-200">
+              <div className="space-y-2 py-2 border-t border-[#E5E5E5]">
                 <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold uppercase tracking-wider">
+                  <div className="flex items-center gap-4">
+                    <label className="flex items-center gap-1.5 cursor-pointer text-[13px] font-medium text-[#212121]">
                       <input
                         type="radio"
                         name="tdsTcsType"
@@ -2207,11 +2209,11 @@ const NewVendorCreditForm = ({ creditId, isEditMode = false }) => {
                           setTdsTcsType(e.target.value);
                           setTdsTcsTax("");
                         }}
-                        className="text-[#8B5CF6] focus:ring-[#8B5CF6]"
+                        className="accent-[#9D43D6] h-4 w-4"
                       />
                       <span>TDS</span>
                     </label>
-                    <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold uppercase tracking-wider">
+                    <label className="flex items-center gap-1.5 cursor-pointer text-[13px] font-medium text-[#212121]">
                       <input
                         type="radio"
                         name="tdsTcsType"
@@ -2221,7 +2223,7 @@ const NewVendorCreditForm = ({ creditId, isEditMode = false }) => {
                           setTdsTcsType(e.target.value);
                           setTdsTcsTax("");
                         }}
-                        className="text-[#8B5CF6] focus:ring-[#8B5CF6]"
+                        className="accent-[#9D43D6] h-4 w-4"
                       />
                       <span>TCS</span>
                     </label>
@@ -2238,40 +2240,40 @@ const NewVendorCreditForm = ({ creditId, isEditMode = false }) => {
                       ))}
                     </Select>
                   </div>
-                  <span className="text-xs font-bold text-[#64748b] w-20 text-right">- {totals.tdsTcsAmount}</span>
+                  <span className="text-[13px] font-medium text-[#7A7A7A] w-20 text-right tabular-nums">- {totals.tdsTcsAmount}</span>
                 </div>
               </div>
 
               {/* Adjustment */}
-              <div className="flex items-center justify-between gap-2 py-2 border-t border-gray-200">
-                <span className="text-xs font-bold uppercase tracking-wider text-[#111827]">Adjustment</span>
+              <div className="flex items-center justify-between gap-2 py-2 border-t border-[#E5E5E5]">
+                <span className="text-[13px] font-medium text-[#212121]">Adjustment</span>
                 <div className="flex items-center gap-2">
                   <Input 
-                    className="w-24 text-xs text-right table-input" 
+                    className="w-24 text-[13px] text-right table-input" 
                     value={adjustment}
                     onChange={(e) => setAdjustment(e.target.value)}
                     placeholder="0.00"
                     type="number"
                     step="0.01"
                   />
-                  <span className="text-xs font-bold text-[#64748b] w-20 text-right">{totals.adjustment}</span>
+                  <span className="text-[13px] font-medium text-[#7A7A7A] w-20 text-right tabular-nums">{totals.adjustment}</span>
                 </div>
               </div>
 
               {/* Total */}
-              <div className="flex items-center justify-between text-base font-bold uppercase tracking-wider text-[#111827] pt-3 border-t-2 border-gray-300">
+              <div className="flex items-center justify-between text-[15px] font-semibold text-[#1B1B1B] pt-3 border-t border-[#E5E5E5]">
                 <span>Total (₹)</span>
-                <span className="text-lg font-bold text-[#8B5CF6]">{totals.total}</span>
+                <span className="text-[18px] font-bold text-[#1B1B1B] tabular-nums">{totals.total}</span>
               </div>
             </div>
           </div>
 
           {/* Footer Actions */}
-          <div className="flex items-center justify-end gap-3 border-t border-gray-200 pt-6">
+          <div className="flex flex-wrap items-center justify-end gap-3 border-t border-[#F0F0F0] pt-5">
             <button
               type="button"
               onClick={() => navigate("/purchase/vendor-credits")}
-              className="h-9 px-5 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 text-xs font-bold uppercase tracking-wider rounded-none transition-colors cursor-pointer"
+              className="rf-btn-cancel !h-[40px] !px-5 !text-[13px]"
             >
               Cancel
             </button>
@@ -2279,7 +2281,7 @@ const NewVendorCreditForm = ({ creditId, isEditMode = false }) => {
               type="button"
               onClick={() => handleSaveCredit("draft")}
               disabled={saving}
-              className="h-9 px-5 bg-[#EEEEEE] hover:bg-[#E2E2E2] text-[#111827] border border-gray-200 text-xs font-bold uppercase tracking-wider rounded-none transition-colors shadow-sm cursor-pointer"
+              className="h-[40px] px-5 bg-white hover:bg-[#FAFAFA] text-[#212121] border border-[#E5E5E5] text-[13px] font-medium rounded-[10px] transition-colors cursor-pointer disabled:opacity-50"
             >
               Save as Draft
             </button>
@@ -2287,11 +2289,12 @@ const NewVendorCreditForm = ({ creditId, isEditMode = false }) => {
               type="button"
               onClick={() => handleSaveCredit("open")}
               disabled={saving}
-              className="h-9 px-5 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white text-xs font-bold uppercase tracking-wider rounded-none shadow-sm transition-colors cursor-pointer"
+              className="rf-btn-primary !h-[40px] !px-6 !text-[13px] disabled:opacity-50"
             >
               Save as Open
             </button>
           </div>
+        </div>
         </div>
       </div>
 
@@ -2305,7 +2308,7 @@ const NewVendorCreditForm = ({ creditId, isEditMode = false }) => {
         autoGenerate={numberPreferences.autoGenerate}
         restartYearly={numberPreferences.restartYearly}
       />
-    </>
+    </div>
   );
 };
 
@@ -2428,177 +2431,195 @@ const VendorCredits = () => {
   };
 
   return (
-    <>
-      <Header title="Vendor Credits" />
-      <div className={`transition-all duration-300 min-h-screen bg-[#f8fafc] p-6 md:p-8 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-        {/* Header Title & Action button */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-bold text-[#111827] tracking-tight">
-              All Vendor Credits
-            </h1>
-            {!loading && (
-              <span className="px-3 py-1 rounded-full bg-[#e2e8f0] text-xs font-semibold text-[#475569]">
-                {filteredCredits.length} {filteredCredits.length === 1 ? 'credit' : 'credits'}
-              </span>
-            )}
-          </div>
+    <div className="min-h-screen bg-[#FAFAFA] text-[#212121]">
+      <Header title="Purchase Return" />
+      <div className={`transition-all duration-300 flex flex-col ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
+        {/* Clean Page Title Header */}
+        <div className="bg-white px-6 md:px-8 py-4 border-b border-[#E5E5E5] flex flex-wrap items-center justify-between gap-4">
+          <h1 className="text-[18px] font-semibold text-[#1B1B1B]">All Purchase Returns</h1>
           <Link
             to="/purchase/vendor-credits/new"
-            className="inline-flex items-center gap-2 rounded-none bg-[#8B5CF6] hover:bg-[#7C3AED] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors cursor-pointer"
+            className="rf-btn-primary inline-flex items-center gap-1.5 !h-[38px] !px-5 !text-[13px]"
           >
-            <Plus size={18} />
-            <span>New Vendor Credit</span>
+            <Plus size={15} />
+            <span>New Purchase Return</span>
           </Link>
         </div>
 
-        {/* Search */}
-        <div className="mb-6">
-          <div className="relative max-w-md">
-            <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-[#9ca3af]" size={18} />
-            <input
-              type="text"
-              placeholder="Search by credit note number, vendor name, or order number..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-10 py-2.5 rounded-none border border-[#e2e8f0] bg-white text-sm text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:border-[#8B5CF6] shadow-sm transition-colors"
-            />
-            {searchTerm && (
-              <button
-                onClick={() => setSearchTerm("")}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#9ca3af] hover:text-[#4b5563]"
-              >
-                <X size={16} />
-              </button>
+        <div className="p-5 md:p-6 flex-1 space-y-4">
+          {/* Toolbar Row: Search (left) & Count Pill (right) */}
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="relative w-full sm:w-[360px]">
+              <div className="pointer-events-none absolute inset-y-0 left-0 pl-3.5 flex items-center">
+                <Search size={15} className="text-[#212121]" />
+                <span className="h-4 w-[1px] bg-[#E5E5E5] ml-2.5" />
+              </div>
+              <input
+                type="text"
+                placeholder="Search by credit note number, vendor or order..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="rf-input !pl-12 !pr-9 !h-[42px] bg-white"
+              />
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={() => setSearchTerm("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#525252] cursor-pointer"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+
+            {!loading && (
+              <span className="inline-flex items-center px-3.5 py-1.5 rounded-full bg-[#F3E8FF] text-[#9D43D6] text-[12px] font-medium">
+                {filteredCredits.length} {filteredCredits.length === 1 ? 'Return' : 'Returns'}
+              </span>
             )}
           </div>
-        </div>
 
-        {/* Credits Table */}
-        <div className="rounded-none border border-gray-200 bg-white shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse min-w-full text-left text-xs">
-              <thead style={{ position: "sticky", top: 0, zIndex: 2 }}>
-                <tr className="bg-[#1e1e1e] text-white text-xs uppercase tracking-wide font-bold">
-                  <th scope="col" className="px-3 py-3 text-center border-r border-[#333333] text-xs font-bold uppercase tracking-wider text-white w-14">
-                    #
-                  </th>
-                  <th scope="col" className="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-white border-r border-[#333333]">
-                    CREDIT NOTE #
-                  </th>
-                  <th scope="col" className="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-white border-r border-[#333333]">
-                    DATE
-                  </th>
-                  <th scope="col" className="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-white border-r border-[#333333]">
-                    VENDOR
-                  </th>
-                  <th scope="col" className="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-white border-r border-[#333333]">
-                    ORDER #
-                  </th>
-                  <th scope="col" className="px-3 py-3 text-right text-xs font-bold uppercase tracking-wider text-white border-r border-[#333333]">
-                    AMOUNT
-                  </th>
-                  <th scope="col" className="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-white border-r border-[#333333]">
-                    STATUS
-                  </th>
-                  <th scope="col" className="px-3 py-3 text-center text-xs font-bold uppercase tracking-wider text-white w-20">
-                    ACTIONS
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white">
-                {loading ? (
-                  <tr>
-                    <td colSpan={8} className="px-6 py-16 text-center">
-                      <div className="flex flex-col items-center justify-center gap-3">
-                        <div className="h-7 w-7 animate-spin rounded-none border-2 border-[#1e1e1e] border-t-transparent"></div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-gray-500">Loading vendor credits...</p>
-                      </div>
-                    </td>
-                  </tr>
-                ) : filteredCredits.length === 0 ? (
-                  <tr>
-                    <td colSpan={8} className="px-6 py-16 text-center">
-                      <div className="flex flex-col items-center justify-center">
-                        <div className="w-14 h-14 rounded-none bg-[#f1f5f9] flex items-center justify-center mb-4">
-                          <Search className="text-[#94a3b8]" size={24} />
-                        </div>
-                        <p className="text-sm font-bold text-[#111827] uppercase tracking-wide mb-1">
-                          {searchTerm ? "No vendor credits found" : "No vendor credits yet"}
-                        </p>
-                        <p className="text-xs text-[#6b7280]">
-                          {searchTerm ? "Try adjusting your search query" : "Create your first vendor credit to get started"}
-                        </p>
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                  filteredCredits.map((credit, index) => (
-                    <tr 
-                      key={credit._id || credit.id} 
-                      className="border-b border-gray-100 hover:bg-gray-50/80 transition-colors cursor-pointer group"
-                      onClick={() => {
-                        if (credit._id || credit.id) {
-                          navigate(`/purchase/vendor-credits/${credit._id || credit.id}`);
-                        } else {
-                          console.error("Credit ID is missing:", credit);
-                        }
-                      }}
-                    >
-                      <td className="px-3 py-2.5 whitespace-nowrap border-r border-gray-100 text-center text-xs text-gray-500 font-medium">
-                        {index + 1}
-                      </td>
-                      <td className="px-3 py-2.5 whitespace-nowrap text-xs border-r border-gray-100">
-                        <span className="font-bold text-[#8B5CF6] group-hover:text-[#7C3AED] group-hover:underline">
-                          {credit.creditNoteNumber}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2.5 whitespace-nowrap text-xs text-gray-700 border-r border-gray-100">
-                        {formatDate(credit.creditDate)}
-                      </td>
-                      <td className="px-3 py-2.5 whitespace-nowrap text-xs text-gray-800 font-medium border-r border-gray-100">
-                        {credit.vendorName || "-"}
-                      </td>
-                      <td className="px-3 py-2.5 whitespace-nowrap text-xs text-gray-600 border-r border-gray-100">
-                        {credit.orderNumber || "-"}
-                      </td>
-                      <td className="px-3 py-2.5 whitespace-nowrap text-xs font-bold text-gray-900 text-right border-r border-gray-100">
-                        {formatCurrency(credit.finalTotal || 0)}
-                      </td>
-                      <td className="px-3 py-2.5 whitespace-nowrap text-xs border-r border-gray-100">
-                        <span
-                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                            credit.status === "open"
-                              ? "bg-[#dcfce7] text-[#15803d]"
-                              : credit.status === "draft"
-                              ? "bg-[#f1f5f9] text-[#475569]"
-                              : "bg-[#fee2e2] text-[#dc2626]"
-                          }`}
-                        >
-                          {credit.status || "draft"}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2.5 whitespace-nowrap text-center text-xs">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/purchase/vendor-credits/${credit._id || credit.id}/edit`);
-                          }}
-                          className="p-1 text-gray-500 hover:text-[#8B5CF6] hover:bg-purple-50 transition-colors inline-flex items-center justify-center rounded-none"
-                          title="Edit"
-                        >
-                          <Pencil size={15} />
-                        </button>
-                      </td>
+          {/* Loading / Empty / Table */}
+          {loading ? (
+            <div className="bg-white rounded-[16px] border border-[#E5E5E5] py-24 flex flex-col items-center justify-center gap-3">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#9D43D6] border-t-transparent" />
+              <p className="text-[13px] font-medium text-[#7A7A7A]">Loading purchase returns...</p>
+            </div>
+          ) : filteredCredits.length === 0 ? (
+            <div className="bg-white rounded-[16px] border border-[#E5E5E5] shadow-[0_1px_2px_rgba(0,0,0,0.02)] py-20 px-6 flex flex-col items-center justify-center text-center min-h-[340px]">
+              {/* Purple Clipboard & Magnifier Illustration */}
+              <svg
+                width="170"
+                height="120"
+                viewBox="0 0 170 120"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="mb-5"
+                aria-hidden="true"
+              >
+                <ellipse cx="85" cy="108" rx="62" ry="6" fill="#F3E8FF" />
+                <path d="M132 104C132 90 140 80 148 76C146 88 140 97 132 104Z" fill="#C4B5FD" />
+                <path d="M130 104C128 92 132 82 137 74C138 85 135 95 130 104Z" fill="#A78BFA" />
+                <path d="M124 104C121 96 121 89 124 83C127 89 127 97 124 104Z" fill="#DDD6FE" />
+                <rect x="68" y="20" width="54" height="84" rx="8" fill="#EDE9FE" stroke="#C4B5FD" strokeWidth="2" />
+                <rect x="74" y="27" width="42" height="70" rx="5" fill="#FFFFFF" />
+                <rect x="85" y="14" width="20" height="10" rx="4" fill="#9D43D6" />
+                <circle cx="95" cy="19" r="2" fill="#FFFFFF" />
+                <rect x="83" y="42" width="24" height="32" rx="3" fill="#F5F3FF" stroke="#A78BFA" strokeWidth="1.5" />
+                <circle cx="91" cy="54" r="1.5" fill="#9D43D6" />
+                <circle cx="99" cy="54" r="1.5" fill="#9D43D6" />
+                <path d="M90 62C92.5 59.5 97.5 59.5 100 62" stroke="#9D43D6" strokeWidth="1.5" strokeLinecap="round" />
+                <circle cx="107" cy="70" r="7" fill="#9D43D6" />
+                <path d="M104.5 67.5L109.5 72.5M109.5 67.5L104.5 72.5" stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round" />
+                <circle cx="66" cy="48" r="13" fill="#F3E8FF" fillOpacity="0.65" stroke="#7C3AED" strokeWidth="2.5" />
+                <line x1="56.5" y1="57.5" x2="47" y2="67" stroke="#7C3AED" strokeWidth="3.5" strokeLinecap="round" />
+                <circle cx="44" cy="42" r="8" fill="#2E1065" />
+                <path d="M30 78C30 62 36 54 46 54C54 54 58 60 60 72L52 80H30V78Z" fill="#A78BFA" />
+                <path d="M32 78L52 78L62 96H34L32 78Z" fill="#4C1D95" />
+                <rect x="34" y="96" width="28" height="8" rx="4" fill="#DDD6FE" />
+              </svg>
+
+              <h2 className="text-[16px] font-semibold text-[#1B1B1B] tracking-tight">
+                {searchTerm ? "No purchase returns found" : "No purchase returns yet"}
+              </h2>
+              <p className="text-[13px] text-[#8A8A8A] mt-1.5">
+                {searchTerm ? "Try adjusting your search query" : "Create your first purchase return to get started"}
+              </p>
+            </div>
+          ) : (
+            <div className="rounded-[12px] border border-[#E5E5E5] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.02)] overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse min-w-full text-left">
+                  <thead style={{ position: "sticky", top: 0, zIndex: 2 }}>
+                    <tr className="bg-[#1B1B1B] text-white text-[11px] uppercase tracking-wider font-semibold">
+                      <th scope="col" className="px-4 py-3.5 text-center w-12">#</th>
+                      <th scope="col" className="px-4 py-3.5 text-left">CREDIT NOTE #</th>
+                      <th scope="col" className="px-4 py-3.5 text-left">DATE</th>
+                      <th scope="col" className="px-4 py-3.5 text-left">VENDOR</th>
+                      <th scope="col" className="px-4 py-3.5 text-left">ORDER #</th>
+                      <th scope="col" className="px-4 py-3.5 text-right">AMOUNT</th>
+                      <th scope="col" className="px-4 py-3.5 text-left">STATUS</th>
+                      <th scope="col" className="px-4 py-3.5 text-center w-20">ACTIONS</th>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-[#F0F0F0] text-[13px]">
+                    {filteredCredits.map((credit, index) => (
+                      <tr 
+                        key={credit._id || credit.id} 
+                        className="hover:bg-[#FAFAFA] transition-colors cursor-pointer group"
+                        onClick={() => {
+                          if (credit._id || credit.id) {
+                            navigate(`/purchase/vendor-credits/${credit._id || credit.id}`);
+                          } else {
+                            console.error("Credit ID is missing:", credit);
+                          }
+                        }}
+                      >
+                        <td className="px-4 py-3.5 whitespace-nowrap text-center text-[#8A8A8A] font-medium">
+                          {index + 1}
+                        </td>
+                        <td className="px-4 py-3.5 whitespace-nowrap">
+                          <span className="font-semibold text-[#9D43D6] group-hover:text-[#7E22CE] group-hover:underline">
+                            {credit.creditNoteNumber}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3.5 whitespace-nowrap text-[#525252]">
+                          {formatDate(credit.creditDate)}
+                        </td>
+                        <td className="px-4 py-3.5 whitespace-nowrap text-[#212121] font-medium">
+                          {credit.vendorName || "-"}
+                        </td>
+                        <td className="px-4 py-3.5 whitespace-nowrap text-[#525252]">
+                          {credit.orderNumber || "-"}
+                        </td>
+                        <td className="px-4 py-3.5 whitespace-nowrap font-semibold text-[#1B1B1B] text-right tabular-nums">
+                          {formatCurrency(credit.finalTotal || 0)}
+                        </td>
+                        <td className="px-4 py-3.5 whitespace-nowrap">
+                          <span
+                            className={`inline-flex items-center gap-1.5 rounded-[8px] px-2.5 py-1 text-[12px] font-medium capitalize ${
+                              credit.status === "open"
+                                ? "bg-[#DCFCE7] text-[#15803D]"
+                                : credit.status === "draft"
+                                ? "bg-[#F4F4F5] text-[#525252]"
+                                : "bg-[#FEE2E2] text-[#DC2626]"
+                            }`}
+                          >
+                            <span
+                              className={`w-1.5 h-1.5 rounded-full ${
+                                credit.status === "open"
+                                  ? "bg-[#16A34A]"
+                                  : credit.status === "draft"
+                                  ? "bg-[#9CA3AF]"
+                                  : "bg-[#EF4444]"
+                              }`}
+                            />
+                            {credit.status || "draft"}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3.5 whitespace-nowrap text-center">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/purchase/vendor-credits/${credit._id || credit.id}/edit`);
+                            }}
+                            className="w-8 h-8 rounded-[8px] bg-[#F3E8FF] text-[#9D43D6] hover:bg-[#E9D5FF] transition-colors inline-flex items-center justify-center cursor-pointer"
+                            title="Edit"
+                          >
+                            <Pencil size={14} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

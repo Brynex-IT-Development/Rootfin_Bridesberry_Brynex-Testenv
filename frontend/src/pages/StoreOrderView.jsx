@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import Header from "../components/Header";
 import Head from "../components/Head";
 import baseUrl from "../api/api";
 import { mapLocNameToWarehouse } from "../utils/warehouseMapping";
@@ -193,171 +194,150 @@ const StoreOrderView = () => {
   
   if (loading) {
     return (
-      <div className={`transition-all duration-300 p-6 bg-[#f5f7fb] min-h-screen flex items-center justify-center ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-        <div className="text-[#64748b]">Loading store order...</div>
+      <div className={`transition-all duration-300 p-6 bg-[#FAFAFA] min-h-screen flex items-center justify-center ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
+        <div className="text-[13px] text-[#7A7A7A]">Loading store order...</div>
       </div>
     );
   }
   
   if (error || !storeOrder) {
     return (
-      <div className={`transition-all duration-300 p-6 bg-[#f5f7fb] min-h-screen flex items-center justify-center ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-        <div className="text-[#64748b]">{error || "Store order not found"}</div>
+      <div className={`transition-all duration-300 p-6 bg-[#FAFAFA] min-h-screen flex items-center justify-center ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
+        <div className="text-[13px] text-[#7A7A7A]">{error || "Store order not found"}</div>
       </div>
     );
   }
   
   return (
-    <div className="min-h-screen bg-[#f7f9ff]">
-      <Head
-        title="Store Order Details"
-        description="View store order details and manage status."
-        actions={
-          <div className="flex items-center gap-3">
+    <div className="min-h-screen bg-[#FAFAFA] text-[#212121]">
+      <Header title="Store Order Details" />
+      <div className={`transition-all duration-300 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
+        {/* Clean Page Title Header */}
+        <div className="bg-white px-6 md:px-8 py-4 border-b border-[#E5E5E5] flex flex-wrap items-center justify-between gap-4">
+          <h1 className="text-[18px] font-semibold text-[#212121]">Store Order Details</h1>
+          <div className="flex items-center gap-2.5">
             <Link
               to="/inventory/store-orders"
-              className="inline-flex h-9 items-center gap-2 rounded-md border border-[#cbd5f5] px-4 text-sm font-medium text-[#1f2937] transition hover:bg-white"
+              className="rf-btn-cancel inline-flex items-center gap-2 !h-[38px] !px-4 !text-[13px]"
             >
               Back to Store Orders
             </Link>
             <button
               onClick={handleCreateTransferOrder}
-              className="inline-flex h-9 items-center gap-2 rounded-md bg-[#9B48D7] px-4 text-sm font-semibold text-white transition hover:bg-[#8637c3]"
+              className="rf-btn-primary inline-flex items-center gap-2 !h-[38px] !px-4 !text-[13px]"
             >
               Create Transfer Order
             </button>
           </div>
-        }
-      />
-      
-      <div className={`transition-all duration-300 px-10 pb-16 pt-8 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-        <div className="rounded-3xl border border-[#e6ebfa] bg-white">
-          <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#edf1ff] px-10 py-6">
-            <div className="space-y-1">
-              <h1 className="text-[20px] font-semibold text-[#101828]">
+        </div>
+        <div className="p-5 md:p-6">
+        <div className="rounded-[16px] border border-[#E5E5E5] bg-white shadow-[0_2px_10px_rgba(0,0,0,0.03)] overflow-hidden">
+          <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#F0F0F0] px-6 py-5">
+            <div className="space-y-0.5">
+              <h1 className="text-[18px] font-bold text-[#1B1B1B]">
                 Store Order: {storeOrder.orderNumber || "N/A"}
               </h1>
-              <p className="text-sm text-[#6c728a]">
+              <p className="text-[13px] text-[#7A7A7A]">
                 View and manage store order details
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-[#64748b] uppercase tracking-wider">Status:</span>
-              <AppSelect
-                value={storeOrder.status || 'pending'}
-                onChange={(e) => handleManualStatusChange(e.target.value)}
-                disabled={processing}
-                className={`text-xs font-semibold rounded-lg px-3 py-1.5 border transition cursor-pointer outline-none ${
-                  storeOrder.status === 'draft' ? 'bg-gray-100 text-gray-800 border-gray-300' :
-                  storeOrder.status === 'pending' ? 'bg-yellow-50 text-yellow-800 border-yellow-300' :
-                  storeOrder.status === 'approved' ? 'bg-green-50 text-green-800 border-green-300' :
-                  storeOrder.status === 'rejected' ? 'bg-red-50 text-red-800 border-red-300' :
-                  'bg-blue-50 text-blue-800 border-blue-300'
-                }`}
-              >
-                <option value="draft">DRAFT</option>
-                <option value="pending">PENDING</option>
-                <option value="approved">APPROVED</option>
-                <option value="rejected">REJECTED</option>
-                <option value="transferred">TRANSFERRED</option>
-              </AppSelect>
+            <div className="flex items-center gap-2.5">
+              <span className="text-[12px] font-semibold text-[#7A7A7A] uppercase tracking-wider">Status:</span>
+              <div className="min-w-[140px]">
+                <AppSelect
+                  value={storeOrder.status || 'pending'}
+                  onChange={(e) => handleManualStatusChange(e.target.value)}
+                  disabled={processing}
+                >
+                  <option value="draft">DRAFT</option>
+                  <option value="pending">PENDING</option>
+                  <option value="approved">APPROVED</option>
+                  <option value="rejected">REJECTED</option>
+                  <option value="transferred">TRANSFERRED</option>
+                </AppSelect>
+              </div>
             </div>
           </div>
           
-          <div className="px-10 py-12">
-            <div className="space-y-6">
-              <div className="grid gap-6 lg:grid-cols-2">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#64748b] mb-2">Order Number</p>
-                  <p className="text-sm text-[#101828]">{storeOrder.orderNumber || "N/A"}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#64748b] mb-2">Date</p>
-                  <p className="text-sm text-[#101828]">{storeOrder.date ? new Date(storeOrder.date).toLocaleDateString() : "N/A"}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#64748b] mb-2">Store Warehouse</p>
-                  <p className="text-sm text-[#101828]">{storeOrder.storeWarehouse || "N/A"}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#64748b] mb-2">Status</p>
-                  <AppSelect
-                    value={storeOrder.status || 'pending'}
-                    onChange={(e) => handleManualStatusChange(e.target.value)}
-                    disabled={processing}
-                    className={`text-xs font-semibold rounded-lg px-3 py-1.5 border transition cursor-pointer outline-none ${
-                      storeOrder.status === 'draft' ? 'bg-gray-100 text-gray-800 border-gray-300' :
-                      storeOrder.status === 'pending' ? 'bg-yellow-50 text-yellow-800 border-yellow-300' :
-                      storeOrder.status === 'approved' ? 'bg-green-50 text-green-800 border-green-300' :
-                      storeOrder.status === 'rejected' ? 'bg-red-50 text-red-800 border-red-300' :
-                      'bg-blue-50 text-blue-800 border-blue-300'
-                    }`}
-                  >
-                    <option value="draft">DRAFT</option>
-                    <option value="pending">PENDING</option>
-                    <option value="approved">APPROVED</option>
-                    <option value="rejected">REJECTED</option>
-                    <option value="transferred">TRANSFERRED</option>
-                  </AppSelect>
+          <div className="p-6 space-y-6">
+            <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+              <div className="rounded-[10px] border border-[#EBEBEB] bg-[#FAFAFA] p-3.5">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-[#7A7A7A] mb-1">Order Number</p>
+                <p className="text-[14px] font-semibold text-[#1B1B1B]">{storeOrder.orderNumber || "N/A"}</p>
+              </div>
+              <div className="rounded-[10px] border border-[#EBEBEB] bg-[#FAFAFA] p-3.5">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-[#7A7A7A] mb-1">Date</p>
+                <p className="text-[14px] font-semibold text-[#1B1B1B]">{storeOrder.date ? new Date(storeOrder.date).toLocaleDateString() : "N/A"}</p>
+              </div>
+              <div className="rounded-[10px] border border-[#EBEBEB] bg-[#FAFAFA] p-3.5">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-[#7A7A7A] mb-1">Store Warehouse</p>
+                <p className="text-[14px] font-semibold text-[#1B1B1B]">{storeOrder.storeWarehouse || "N/A"}</p>
+              </div>
+              <div className="rounded-[10px] border border-[#EBEBEB] bg-[#FAFAFA] p-3.5">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-[#7A7A7A] mb-1">Current Status</p>
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-[6px] text-[12px] font-semibold uppercase ${
+                  storeOrder.status === 'draft' ? 'bg-[#F4F4F5] text-[#525252]' :
+                  storeOrder.status === 'pending' ? 'bg-[#FEF3C7] text-[#B45309]' :
+                  storeOrder.status === 'approved' ? 'bg-[#DCFCE7] text-[#16A34A]' :
+                  storeOrder.status === 'rejected' ? 'bg-[#FEE2E2] text-[#DC2626]' :
+                  'bg-[#F3E8FF] text-[#9D43D6]'
+                }`}>
+                  {storeOrder.status || 'pending'}
+                </span>
+              </div>
+            </div>
+            
+            {storeOrder.reason && (
+              <div className="rounded-[10px] border border-[#EBEBEB] bg-[#FAFAFA] p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-[#7A7A7A] mb-1">Reason</p>
+                <p className="text-[13px] text-[#212121]">{storeOrder.reason}</p>
+              </div>
+            )}
+            
+            {storeOrder.items && storeOrder.items.length > 0 && (
+              <div className="rounded-[12px] border border-[#E5E5E5] bg-white overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full border-collapse text-[13px] text-[#212121]">
+                    <thead className="bg-[#1B1B1B] text-white">
+                      <tr>
+                        <th className="px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider">Item Name</th>
+                        <th className="px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider">SKU</th>
+                        <th className="px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider">Current Stock</th>
+                        <th className="px-5 py-3.5 text-right text-[11px] font-semibold uppercase tracking-wider">Quantity Requested</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#F0F0F0]">
+                      {storeOrder.items.map((item, index) => {
+                        const itemKey = item.itemId || `${item.itemGroupId}-${item.itemName}`;
+                        const currentStock = itemStocks[itemKey] ?? 0;
+                        
+                        return (
+                          <tr key={index} className="hover:bg-[#FAFAFA] transition-colors">
+                            <td className="px-5 py-3.5 font-medium text-[#1B1B1B]">{item.itemName || "N/A"}</td>
+                            <td className="px-5 py-3.5 text-[#525252] font-mono">{item.itemSku || "N/A"}</td>
+                            <td className="px-5 py-3.5">
+                              <span className={`font-semibold tabular-nums ${currentStock > 0 ? 'text-[#16A34A]' : 'text-[#DC2626]'}`}>
+                                {Math.round(currentStock)} units
+                              </span>
+                            </td>
+                            <td className="px-5 py-3.5 text-right font-semibold text-[#1B1B1B] tabular-nums">{item.quantity || 0}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               </div>
-              
-              {storeOrder.reason && (
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#64748b] mb-2">Reason</p>
-                  <p className="text-sm text-[#101828]">{storeOrder.reason}</p>
-                </div>
-              )}
-              
-              {storeOrder.items && storeOrder.items.length > 0 && (
-                <div className="rounded-2xl border border-[#edf1ff] bg-[#fcfdff]">
-                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#edf1ff] px-8 py-4">
-                    <span className="text-xs font-semibold uppercase tracking-[0.3em] text-[#8a94b0]">Items</span>
-                  </div>
-                  
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full table-fixed border-collapse text-sm text-[#111827]">
-                      <thead className="bg-white text-[11px] uppercase tracking-[0.28em] text-[#9aa2bd]">
-                        <tr>
-                          <th className="px-6 py-3 text-left font-semibold text-[#6b7280]">Item Name</th>
-                          <th className="px-6 py-3 text-left font-semibold text-[#6b7280]">SKU</th>
-                          <th className="px-6 py-3 text-left font-semibold text-[#6b7280]">Current Stock</th>
-                          <th className="px-6 py-3 text-left font-semibold text-[#6b7280]">Quantity Requested</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {storeOrder.items.map((item, index) => {
-                          const itemKey = item.itemId || `${item.itemGroupId}-${item.itemName}`;
-                          const currentStock = itemStocks[itemKey] ?? 0;
-                          
-                          return (
-                            <tr key={index} className="border-t border-[#f0f3ff]">
-                              <td className="px-6 py-4">{item.itemName || "N/A"}</td>
-                              <td className="px-6 py-4">{item.itemSku || "N/A"}</td>
-                              <td className="px-6 py-4">
-                                <span className={`font-medium ${currentStock > 0 ? 'text-[#10b981]' : 'text-[#ef4444]'}`}>
-                                  {Math.round(currentStock)} units
-                                </span>
-                              </td>
-                              <td className="px-6 py-4">{item.quantity || 0}</td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-            </div>
+            )}
           </div>
           
           {/* Action Buttons */}
-          <div className="flex items-center justify-end gap-3 border-t border-[#edf1ff] bg-[#fbfcff] px-10 py-6">
+          <div className="flex items-center justify-end gap-2.5 border-t border-[#F0F0F0] bg-[#FAFAFA] px-6 py-4">
             {storeOrder.status !== 'rejected' && (
               <button
                 onClick={handleReject}
                 disabled={processing}
-                className="rounded-lg border border-[#ef4444] bg-white px-6 py-2.5 text-sm font-semibold text-[#ef4444] transition hover:bg-[#fef2f2] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="h-[40px] rounded-[10px] border border-[#FECACA] bg-[#FEF2F2] hover:bg-[#FEE2E2] px-5 text-[13px] font-semibold text-[#DC2626] transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 Reject
               </button>
@@ -365,14 +345,15 @@ const StoreOrderView = () => {
             <button
               onClick={handleCreateTransferOrder}
               disabled={processing}
-              className="rounded-lg bg-[#9B48D7] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#8637c3] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rf-btn-primary !h-[40px] !px-5 !text-[13px] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Create Transfer Order
             </button>
           </div>
         </div>
       </div>
-    </div>
+        </div>
+      </div>
   );
 };
 

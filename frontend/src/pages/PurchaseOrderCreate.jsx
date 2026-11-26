@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useEnterToSave } from "../hooks/useEnterToSave";
 import { createPortal } from "react-dom";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import Header from "../components/Header";
 import Head from "../components/Head";
 import ImageUpload from "../components/ImageUpload";
 import { X, Pencil, Trash2, Plus, Settings, Search, Check, ChevronDown, Image as ImageIcon } from "lucide-react";
@@ -11,14 +12,14 @@ import Breadcrumbs from "../components/Breadcrumbs.jsx";
 
 import AppSelect from "../components/AppSelect.jsx";
 const Label = ({ children, required = false }) => (
-  <span className="block text-xs font-semibold text-gray-700 mb-1.5">
+  <span className="rf-field-label">
     {children}
-    {required && <span className="text-red-500 ml-0.5">*</span>}
+    {required && <span className="text-[#EF4444] ml-0.5">*</span>}
   </span>
 );
 
 const Input = ({ placeholder = "", className = "", ...props }) => {
-  const baseClasses = "w-full rounded-xl border border-gray-200 bg-white text-sm text-gray-700 placeholder:text-gray-400 hover:border-gray-300 focus:border-[#9333ea] focus:outline-none transition-colors";
+  const baseClasses = "w-full rounded-[10px] border border-[#E5E5E5] bg-white text-[13px] text-[#212121] placeholder:text-[#A1A1AA] hover:border-[#D4D4D8] focus:border-[#9D43D6] focus:outline-none transition-colors";
   const tableInputClasses = "h-[42px] px-3";
   const defaultClasses = "h-[42px] px-3.5";
   
@@ -35,7 +36,7 @@ const Input = ({ placeholder = "", className = "", ...props }) => {
 };
 
 const Select = ({ className = "", ...props }) => {
-  const baseClasses = "w-full rounded-xl border border-gray-200 bg-white text-sm text-gray-700 hover:border-gray-300 focus:border-[#9333ea] focus:outline-none transition-colors cursor-pointer";
+  const baseClasses = "w-full rounded-[10px] border border-[#E5E5E5] bg-white text-[13px] text-[#212121] hover:border-[#D4D4D8] focus:border-[#9D43D6] focus:outline-none transition-colors cursor-pointer";
   const tableInputClasses = "h-[42px] px-3";
   const defaultClasses = "h-[42px] px-3.5";
   
@@ -2583,34 +2584,34 @@ const PurchaseOrderCreate = () => {
   useEnterToSave(() => handleSavePurchaseOrder("sent"), saving);
 
   return (
-    <div className={`transition-all duration-300 min-h-screen bg-[#f8f9fa] p-6 overflow-visible relative ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+    <div className="invoice-page-wrapper min-h-screen bg-[#FAFAFA] text-[#212121]">
+      <Header title={isEditMode ? "Edit Purchase Order" : "New Purchase Order"} />
 
-      {/* ── Page header ── */}
-      <div className="flex items-center justify-between mb-5">
-        <div>
-          <Breadcrumbs currentTitle={isEditMode ? "Edit Purchase Order" : "New Purchase Order"} className="mb-1" />
-          <h1 className="text-lg font-bold text-gray-900 tracking-tight">
+      <div className={`transition-all duration-300 overflow-visible relative ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
+        {/* Clean Page Title Header */}
+        <div className="bg-white px-6 md:px-8 py-4 border-b border-[#E5E5E5] flex flex-wrap items-center justify-between gap-4">
+          <h1 className="text-[18px] font-semibold text-[#1B1B1B]">
             {isEditMode ? "Edit Purchase Order" : "New Purchase Order"}
           </h1>
+          <Link
+            to={isEditMode ? `/purchase/orders/${id}` : "/purchase/orders"}
+            className="inline-flex items-center gap-1.5 h-[38px] px-4 rounded-[10px] border border-[#E5E5E5] bg-white hover:bg-[#FAFAFA] text-[13px] font-medium text-[#9D43D6] transition-colors"
+          >
+            <X size={14} className="text-[#9D43D6]" />
+            <span>Close</span>
+          </Link>
         </div>
-        <Link
-          to={isEditMode ? `/purchase/orders/${id}` : "/purchase/orders"}
-          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-[#9333ea] bg-white border border-[#e9d5ff] rounded-lg hover:bg-[#faf5ff] transition-colors shadow-sm"
-        >
-          <X size={14} className="text-[#9333ea]" />
-          Close
-        </Link>
-      </div>
 
+        <div className="p-5 md:p-6 overflow-visible">
       {/* ── Main white card ── */}
-      <div className="bg-white border border-gray-100 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] p-7 space-y-6 overflow-visible mb-6">
+      <div className="bg-white border border-[#E5E5E5] rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.03)] p-6 space-y-5 overflow-visible mb-5">
         {/* ── Two-column form ── */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
 
           {/* LEFT COLUMN */}
           <div className="space-y-4">
             {/* Vendor Name + Branch */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label required>Vendor Name</Label>
                 <VendorDropdown
@@ -2630,18 +2631,18 @@ const PurchaseOrderCreate = () => {
               </div>
             </div>
 
-            {/* Bill Summary */}
+            {/* Delivery Address */}
             <div className="pt-2">
-              <div className="text-xs font-bold text-[#a855f7] tracking-wider uppercase mb-2.5">
-                BILL SUMMARY
+              <div className="text-[11px] font-bold text-[#9D43D6] tracking-wider uppercase mb-2.5">
+                DELIVERY ADDRESS
               </div>
               <div className="flex items-center gap-6 mb-3">
-                <label className="inline-flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-                  <input type="radio" name="deliveryTo" defaultChecked className="accent-[#9333ea] h-4 w-4" />
+                <label className="inline-flex items-center gap-2 text-[13px] text-[#212121] cursor-pointer">
+                  <input type="radio" name="deliveryTo" defaultChecked className="accent-[#9D43D6] h-4 w-4 cursor-pointer" />
                   Warehouse
                 </label>
-                <label className="inline-flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-                  <input type="radio" name="deliveryTo" className="accent-[#9333ea] h-4 w-4" />
+                <label className="inline-flex items-center gap-2 text-[13px] text-[#212121] cursor-pointer">
+                  <input type="radio" name="deliveryTo" className="accent-[#9D43D6] h-4 w-4 cursor-pointer" />
                   Customer
                 </label>
               </div>
@@ -2656,8 +2657,8 @@ const PurchaseOrderCreate = () => {
               </div>
 
               {/* Address display + Change button */}
-              <div className="flex items-center gap-3">
-                <div className="flex-1 h-[42px] border border-gray-200 rounded-xl px-3.5 flex items-center text-sm text-gray-700 bg-white truncate">
+              <div className="flex flex-wrap sm:flex-nowrap items-center gap-3">
+                <div className="flex-1 min-w-0 h-[42px] border border-[#E5E5E5] rounded-[10px] px-3.5 flex items-center text-[13px] text-[#212121] bg-white truncate">
                   {loading ? "Loading..." : selectedAddress && formatAddress(selectedAddress).length > 0
                     ? formatAddress(selectedAddress)[0]
                     : "Kerala, India, 7593838720"}
@@ -2665,7 +2666,7 @@ const PurchaseOrderCreate = () => {
                 <button
                   type="button"
                   onClick={() => setShowAddressModal(true)}
-                  className="h-[42px] px-5 text-xs font-semibold text-white bg-[#9333ea] hover:bg-[#7e22ce] rounded-xl cursor-pointer whitespace-nowrap shadow-sm transition-colors"
+                  className="rf-btn-primary !h-[42px] !px-5 !text-[13px] whitespace-nowrap shrink-0"
                 >
                   Change Designation to Deliver
                 </button>
@@ -2674,11 +2675,11 @@ const PurchaseOrderCreate = () => {
 
             {/* GST details (if vendor selected) */}
             {selectedVendor && (selectedVendor.gstTreatment || selectedVendor.gstin) && (
-              <div className="grid grid-cols-2 gap-4 pt-2 border-t border-gray-100">
+              <div className="grid grid-cols-2 gap-4 pt-3 border-t border-[#F0F0F0]">
                 {selectedVendor.gstTreatment && (
                   <div>
                     <Label>GST Treatment</Label>
-                    <div className="h-[42px] border border-gray-200 rounded-xl px-3.5 flex items-center text-sm text-gray-700 bg-gray-50">
+                    <div className="h-[42px] border border-[#E5E5E5] rounded-[10px] px-3.5 flex items-center text-[13px] text-[#212121] bg-[#FAFAFA]">
                       {selectedVendor.gstTreatment}
                     </div>
                   </div>
@@ -2686,7 +2687,7 @@ const PurchaseOrderCreate = () => {
                 {selectedVendor.gstin && (
                   <div>
                     <Label>GSTIN</Label>
-                    <div className="h-[42px] border border-gray-200 rounded-xl px-3.5 flex items-center text-sm text-gray-700 bg-gray-50">
+                    <div className="h-[42px] border border-[#E5E5E5] rounded-[10px] px-3.5 flex items-center text-[13px] text-[#212121] bg-[#FAFAFA]">
                       {selectedVendor.gstin}
                     </div>
                   </div>
@@ -2700,24 +2701,24 @@ const PurchaseOrderCreate = () => {
             {/* Purchase Order # */}
             <div>
               <Label required>Purchase Order</Label>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center h-[42px] border border-[#E5E5E5] rounded-[10px] pl-3.5 pr-1.5 bg-white focus-within:ring-2 focus-within:ring-[#9D43D6]/15 focus-within:border-[#9D43D6] transition-colors">
                 <input
                   type="text"
                   value={orderNumberLoading ? "Generating..." : orderNumber}
                   onChange={(e) => { if (!isEditMode) return; setOrderNumber(e.target.value); }}
                   readOnly={!isEditMode}
                   disabled={orderNumberLoading}
-                  className="flex-1 h-[42px] px-3.5 text-sm text-gray-800 rounded-xl border border-gray-200 bg-white focus:border-[#9333ea] focus:outline-none transition-colors"
+                  className="flex-1 h-full text-[13px] text-[#212121] placeholder:text-[#A1A1AA] border-0 outline-none bg-transparent min-w-0"
                   placeholder="PO-00017"
                 />
                 <button
                   type="button"
                   style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}
-                  className="h-[42px] w-[42px] rounded-xl text-white bg-[#9333ea] hover:bg-[#7e22ce] shrink-0 shadow-sm transition-colors cursor-pointer"
+                  className="h-[30px] w-[30px] rounded-[8px] text-white bg-[#9D43D6] hover:bg-[#8732BE] shrink-0 transition-colors cursor-pointer"
                   disabled={orderNumberLoading}
                   title="Settings"
                 >
-                  <Settings size={18} className="shrink-0" />
+                  <Settings size={15} className="shrink-0" />
                 </button>
               </div>
             </div>
@@ -2736,15 +2737,16 @@ const PurchaseOrderCreate = () => {
             {/* Date */}
             <div>
               <Label required>Date</Label>
-              <div className="flex items-center h-[42px] border border-gray-200 rounded-xl bg-white px-3.5 focus-within:border-[#9333ea] transition-colors">
+              <div className="flex items-center h-[42px] border border-[#E5E5E5] rounded-[10px] bg-white px-3.5 focus-within:ring-2 focus-within:ring-[#9D43D6]/15 focus-within:border-[#9D43D6] transition-colors">
                 <input
                   type="text"
                   placeholder="28-08-2026"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className="flex-1 h-full text-sm text-gray-800 border-0 outline-none bg-transparent"
+                  className="flex-1 h-full text-[13px] text-[#212121] placeholder:text-[#A1A1AA] border-0 outline-none bg-transparent min-w-0"
                 />
-                <svg className="w-4 h-4 text-gray-500 shrink-0 pointer-events-none" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                <span className="h-4 w-[1px] bg-[#E5E5E5] mx-2.5 shrink-0" />
+                <svg className="w-4 h-4 text-[#525252] shrink-0 pointer-events-none" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
                   <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
                 </svg>
               </div>
@@ -2753,15 +2755,16 @@ const PurchaseOrderCreate = () => {
             {/* Delivery Date */}
             <div>
               <Label required>Delivery Date</Label>
-              <div className="flex items-center h-[42px] border border-gray-200 rounded-xl bg-white px-3.5 focus-within:border-[#9333ea] transition-colors">
+              <div className="flex items-center h-[42px] border border-[#E5E5E5] rounded-[10px] bg-white px-3.5 focus-within:ring-2 focus-within:ring-[#9D43D6]/15 focus-within:border-[#9D43D6] transition-colors">
                 <input
                   type="text"
                   placeholder="dd/mm/yyyy"
                   value={deliveryDate}
                   onChange={(e) => setDeliveryDate(e.target.value)}
-                  className="flex-1 h-full text-sm text-gray-800 placeholder:text-gray-400 border-0 outline-none bg-transparent"
+                  className="flex-1 h-full text-[13px] text-[#212121] placeholder:text-[#A1A1AA] border-0 outline-none bg-transparent min-w-0"
                 />
-                <svg className="w-4 h-4 text-gray-500 shrink-0 pointer-events-none" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                <span className="h-4 w-[1px] bg-[#E5E5E5] mx-2.5 shrink-0" />
+                <svg className="w-4 h-4 text-[#525252] shrink-0 pointer-events-none" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
                   <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
                 </svg>
               </div>
@@ -2793,15 +2796,15 @@ const PurchaseOrderCreate = () => {
       </div>
 
       {/* ── Warehouse / discount toolbar ── */}
-      <div className="flex items-center gap-3 my-4">
+      <div className="flex flex-wrap items-center gap-3 my-4">
         <CompactDropdown
-          className="w-36"
+          className="w-40"
           options={branchOptions}
           placeholder="Warehouse"
           value="Warehouse"
         />
         <CompactDropdown
-          className="w-48"
+          className="w-52"
           options={warehouseSelectOptions}
           placeholder="Select a Warehouse"
         />
@@ -2824,11 +2827,11 @@ const PurchaseOrderCreate = () => {
       </div>
 
       {/* ── Item table ── */}
-      <div className="bg-white border border-gray-200 rounded-none overflow-visible shadow-sm">
+      <div className="bg-white border border-[#E5E5E5] rounded-[12px] overflow-visible shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
         {/* Dark table header */}
-        <div className="bg-[#181920] flex items-center px-4 py-3 text-white text-[11px] font-bold uppercase tracking-wider">
+        <div className="bg-[#1B1B1B] rounded-t-[12px] flex items-center px-4 py-3.5 text-white text-[11px] font-semibold uppercase tracking-wider">
           <div className="w-9 shrink-0 flex items-center justify-center">
-            <input type="checkbox" className="h-4 w-4 rounded accent-[#9333ea] cursor-pointer" />
+            <input type="checkbox" className="h-4 w-4 rounded-[4px] accent-[#9D43D6] cursor-pointer" />
           </div>
           <div className="flex-1 min-w-[200px] px-2 text-left">ITEM DETAILS</div>
           <div className="w-36 px-2 text-left">ACCOUNT</div>
@@ -2841,19 +2844,19 @@ const PurchaseOrderCreate = () => {
         </div>
 
         {/* Rows */}
-        <div className="divide-y divide-gray-100 overflow-visible bg-white">
+        <div className="divide-y divide-[#F0F0F0] overflow-visible bg-white">
           {tableRows.map((row) => (
-            <div key={row.id} className="flex items-center px-4 py-3 gap-0 overflow-visible hover:bg-gray-50/50 transition-colors">
+            <div key={row.id} className="flex items-center px-4 py-3 gap-0 overflow-visible hover:bg-[#FAFAFA] transition-colors">
               {/* Checkbox */}
               <div className="w-9 shrink-0 flex items-center justify-center">
-                <input type="checkbox" className="h-4 w-4 rounded accent-[#9333ea] cursor-pointer" />
+                <input type="checkbox" className="h-4 w-4 rounded-[4px] accent-[#9D43D6] cursor-pointer" />
               </div>
 
               {/* Item Details */}
               <div className="flex-1 min-w-[200px] px-2 relative overflow-visible">
                 <div className="flex items-center gap-2.5">
-                  <div className="h-9 w-9 shrink-0 flex items-center justify-center rounded-xl bg-gray-200 overflow-hidden">
-                    <ImageIcon size={16} className="text-gray-400" />
+                  <div className="h-9 w-9 shrink-0 flex items-center justify-center rounded-[8px] bg-[#E5E5E5] overflow-hidden">
+                    <ImageIcon size={16} className="text-[#9CA3AF]" />
                   </div>
                   <div className="flex-1">
                     <ItemDropdown
@@ -2880,14 +2883,14 @@ const PurchaseOrderCreate = () => {
 
               {/* Size */}
               <div className="w-28 px-2">
-                <div className="h-[42px] px-2.5 rounded-xl border border-gray-200 bg-white flex items-center justify-between">
+                <div className="h-[42px] px-2.5 rounded-[10px] border border-[#E5E5E5] bg-white flex items-center justify-between">
                   <button
                     type="button"
                     onClick={() => {
                       const cur = parseInt(row.size) || 0;
                       handleUpdateRow(row.id, "size", Math.max(0, cur - 1));
                     }}
-                    className="text-gray-400 hover:text-gray-700 px-1 text-sm font-medium cursor-pointer"
+                    className="text-[#7A7A7A] hover:text-[#1B1B1B] px-1 text-sm font-medium cursor-pointer"
                   >
                     -
                   </button>
@@ -2895,7 +2898,7 @@ const PurchaseOrderCreate = () => {
                     type="text"
                     value={row.size || 0}
                     onChange={(e) => handleUpdateRow(row.id, "size", e.target.value)}
-                    className="w-8 text-center text-sm font-medium text-gray-700 bg-transparent border-none outline-none p-0"
+                    className="w-8 text-center text-[13px] font-medium text-[#212121] bg-transparent border-none outline-none p-0"
                   />
                   <button
                     type="button"
@@ -2903,7 +2906,7 @@ const PurchaseOrderCreate = () => {
                       const cur = parseInt(row.size) || 0;
                       handleUpdateRow(row.id, "size", cur + 1);
                     }}
-                    className="text-gray-400 hover:text-gray-700 px-1 text-sm font-medium cursor-pointer"
+                    className="text-[#7A7A7A] hover:text-[#1B1B1B] px-1 text-sm font-medium cursor-pointer"
                   >
                     +
                   </button>
@@ -2917,7 +2920,7 @@ const PurchaseOrderCreate = () => {
                   value={row.quantity}
                   onChange={(e) => handleUpdateRow(row.id, "quantity", e.target.value)}
                   placeholder="0.00"
-                  className="w-full h-[42px] rounded-xl border border-gray-200 bg-white text-sm text-gray-700 text-center focus:border-[#9333ea] focus:outline-none transition-colors"
+                  className="w-full h-[42px] rounded-[10px] border border-[#E5E5E5] bg-white text-[13px] text-[#212121] placeholder:text-[#A1A1AA] text-center focus:border-[#9D43D6] focus:outline-none transition-colors"
                 />
               </div>
 
@@ -2928,7 +2931,7 @@ const PurchaseOrderCreate = () => {
                   value={row.rate}
                   onChange={(e) => handleUpdateRow(row.id, "rate", e.target.value)}
                   placeholder="0.00"
-                  className="w-full h-[42px] rounded-xl border border-gray-200 bg-white text-sm text-gray-700 text-center focus:border-[#9333ea] focus:outline-none transition-colors"
+                  className="w-full h-[42px] rounded-[10px] border border-[#E5E5E5] bg-white text-[13px] text-[#212121] placeholder:text-[#A1A1AA] text-center focus:border-[#9D43D6] focus:outline-none transition-colors"
                 />
               </div>
 
@@ -2945,7 +2948,7 @@ const PurchaseOrderCreate = () => {
               </div>
 
               {/* Amount */}
-              <div className="w-28 px-2 text-right text-sm font-bold text-gray-800">
+              <div className="w-28 px-2 text-right text-[13px] font-semibold text-[#1B1B1B] tabular-nums">
                 ₹{row.amount || "0.00"}
               </div>
 
@@ -2955,7 +2958,7 @@ const PurchaseOrderCreate = () => {
                   type="button"
                   onClick={() => handleDeleteRow(row.id)}
                   style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}
-                  className="w-[38px] h-[38px] rounded-xl bg-red-50 hover:bg-red-100 text-red-500 border border-red-100 transition-colors cursor-pointer"
+                  className="w-[38px] h-[38px] rounded-[10px] bg-[#FEE2E2]/70 hover:bg-[#FEE2E2] text-[#EF4444] transition-colors cursor-pointer"
                   title="Delete Row"
                 >
                   <Trash2 size={15} className="shrink-0" />
@@ -2966,18 +2969,18 @@ const PurchaseOrderCreate = () => {
         </div>
 
         {/* Add row buttons */}
-        <div className="flex items-center gap-3 p-4 bg-white border-t border-gray-100">
+        <div className="flex items-center gap-3 p-4 bg-white border-t border-[#F0F0F0] rounded-b-[12px]">
           <button
             type="button"
             onClick={handleAddNewRow}
-            className="h-[38px] px-4 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+            className="h-[38px] px-4 rounded-[10px] bg-[#F4F4F5] hover:bg-[#E5E5E5] text-[#212121] text-[13px] font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
           >
             <Plus size={14} />
             Add Row
           </button>
           <button
             type="button"
-            className="h-[38px] px-4 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+            className="h-[38px] px-4 rounded-[10px] bg-[#F4F4F5] hover:bg-[#E5E5E5] text-[#212121] text-[13px] font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
           >
             <Plus size={14} />
             Add Bulk Items
@@ -2986,29 +2989,29 @@ const PurchaseOrderCreate = () => {
       </div>
 
       {/* Totals section */}
-          <div className="mt-8 overflow-visible">
+          <div className="mt-6 overflow-visible">
             <div className="flex justify-end">
-              <div className="w-full max-w-[400px]">
-                <div className="rounded-2xl border border-[#edf1ff] bg-white p-6">
+              <div className="w-full max-w-[420px]">
+                <div className="rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-[0_2px_10px_rgba(0,0,0,0.03)]">
                 {/* Sub Total */}
-                <div className="flex items-center justify-between text-base font-semibold text-[#111827] mb-4">
+                <div className="flex items-center justify-between text-[15px] font-semibold text-[#1B1B1B] mb-4">
                   <span>Sub Total</span>
-                  <span>{totals.subTotal}</span>
+                  <span className="tabular-nums">{totals.subTotal}</span>
                 </div>
 
                 {/* Discount Section - Show for "At Transaction Level" and "At Line Item Level and at Transaction Level" */}
                 {(discountType === "At Transaction Level" || discountType === "At Line Item Level and at Transaction Level") && (
                   <div className="space-y-3 mb-4">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-sm font-medium text-[#111827]">Discount</span>
+                      <span className="text-[13px] font-medium text-[#212121]">Discount</span>
                       <div className="flex items-center gap-2">
                         <Input 
-                          className="w-20 text-sm text-right" 
+                          className="w-20 text-[13px] text-right" 
                           value={discount.value}
                           onChange={(e) => setDiscount({ ...discount, value: e.target.value })}
                         />
                         <Select 
-                          className="w-16 text-sm"
+                          className="w-16 text-[13px]"
                           value={discount.type}
                           onChange={(e) => setDiscount({ ...discount, type: e.target.value })}
                         >
@@ -3016,16 +3019,16 @@ const PurchaseOrderCreate = () => {
                           <option>₹</option>
                         </Select>
                       </div>
-                      <span className="text-sm text-[#64748b] w-20 text-right">{totals.discountAmount}</span>
+                      <span className="text-[13px] text-[#7A7A7A] w-20 text-right tabular-nums">{totals.discountAmount}</span>
                     </div>
                     {/* Show Discount Account dropdown for "At Line Item Level and at Transaction Level" */}
                     {discountType === "At Line Item Level and at Transaction Level" && (
                       <div className="space-y-2">
-                        <Label>Discount Account*</Label>
+                        <Label required>Discount Account</Label>
                         <Select
                           value={transactionDiscountAccount}
                           onChange={(e) => setTransactionDiscountAccount(e.target.value)}
-                          className="w-full text-sm"
+                          className="w-full text-[13px]"
                         >
                           <option value="">Select Discount Account</option>
                           {discountAccountOptions.map((account) => (
@@ -3034,14 +3037,14 @@ const PurchaseOrderCreate = () => {
                             </option>
                           ))}
                         </Select>
-                        <p className="text-xs text-[#64748b]">You can create a new account with type as Expense or Other Expense.</p>
+                        <p className="text-[12px] text-[#7A7A7A]">You can create a new account with type as Expense or Other Expense.</p>
                       </div>
                     )}
                     <div className="flex items-center justify-end">
                       <button
                         type="button"
                         onClick={() => setApplyDiscountAfterTax(!applyDiscountAfterTax)}
-                        className={`text-xs ${applyDiscountAfterTax ? 'text-[#2563eb] font-medium' : 'text-[#64748b]'} hover:text-[#2563eb] hover:underline underline-offset-4 transition-colors`}
+                        className={`text-[12px] cursor-pointer ${applyDiscountAfterTax ? 'text-[#9D43D6] font-medium' : 'text-[#7A7A7A]'} hover:text-[#9D43D6] hover:underline underline-offset-4 transition-colors`}
                       >
                         Apply after tax
                       </button>
@@ -3050,25 +3053,23 @@ const PurchaseOrderCreate = () => {
                 )}
 
                 {/* Divider */}
-                <div className="border-t border-[#eef2ff] my-4"></div>
+                <div className="border-t border-[#F0F0F0] my-4"></div>
 
                 {/* Tax Details - CGST & SGST (Aggregated by rate) */}
                 {totals.taxBreakdown.length > 0 && (
                   <div className="space-y-2 mb-4">
                     {totals.taxBreakdown.map((tax, idx) => {
-                      const taxType = tax.type; // 'CGST', 'SGST', or 'IGST'
+                      const taxType = tax.type;
                       const taxRate = tax.rate;
                       const taxAmount = tax.amount;
-                      
-                      // Format rate display (handle decimal rates like 2.5, 9, etc.)
                       const rateDisplay = taxRate % 1 === 0 ? taxRate.toFixed(0) : taxRate.toFixed(1);
                       
                       return (
                         <div key={idx} className="flex items-center justify-between">
-                          <span className="text-sm text-[#64748b]">
+                          <span className="text-[13px] text-[#7A7A7A]">
                             {taxType}{rateDisplay} [{rateDisplay}%]
                           </span>
-                          <span className="text-sm text-[#111827]">{taxAmount.toFixed(2)}</span>
+                          <span className="text-[13px] text-[#212121] tabular-nums">{taxAmount.toFixed(2)}</span>
                         </div>
                       );
                     })}
@@ -3077,16 +3078,16 @@ const PurchaseOrderCreate = () => {
 
                 {/* Total Tax Amount */}
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-sm font-medium text-[#111827]">Total Tax Amount</span>
+                  <span className="text-[13px] font-medium text-[#212121]">Total Tax Amount</span>
                   <div className="flex items-center gap-2">
                     <Input 
-                      className="w-24 text-sm text-right" 
+                      className="w-24 text-[13px] text-right" 
                       value={totalTaxAmount || (totals.calculatedTotalTax > 0 ? totals.calculatedTotalTax.toFixed(2) : "")}
                       onChange={(e) => setTotalTaxAmount(e.target.value)}
                     />
                     <button
                       type="button"
-                      className="text-xs text-[#2563eb] hover:text-[#1d4ed8] hover:underline underline-offset-4 transition-colors"
+                      className="text-[12px] font-medium text-[#9D43D6] hover:text-[#7E22CE] hover:underline underline-offset-4 transition-colors cursor-pointer"
                       title="Edit tax amount"
                     >
                       Edit
@@ -3095,7 +3096,7 @@ const PurchaseOrderCreate = () => {
                 </div>
 
                 {/* Divider */}
-                <div className="border-t border-[#eef2ff] my-4"></div>
+                <div className="border-t border-[#F0F0F0] my-4"></div>
 
                 {/* TDS/TCS Section */}
                 <div className="space-y-3 mb-4">
@@ -3109,11 +3110,11 @@ const PurchaseOrderCreate = () => {
                           checked={tdsTcsType === "TDS"}
                           onChange={(e) => {
                             setTdsTcsType(e.target.value);
-                            setTdsTcsTax(""); // Reset tax selection when switching type
+                            setTdsTcsTax("");
                           }}
-                          className="text-[#2563eb] focus:ring-[#2563eb]"
+                          className="accent-[#9D43D6] h-4 w-4"
                         />
-                        <span className="text-sm text-[#111827]">TDS</span>
+                        <span className="text-[13px] text-[#212121]">TDS</span>
                       </label>
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
@@ -3123,11 +3124,11 @@ const PurchaseOrderCreate = () => {
                           checked={tdsTcsType === "TCS"}
                           onChange={(e) => {
                             setTdsTcsType(e.target.value);
-                            setTdsTcsTax(""); // Reset tax selection when switching type
+                            setTdsTcsTax("");
                           }}
-                          className="text-[#2563eb] focus:ring-[#2563eb]"
+                          className="accent-[#9D43D6] h-4 w-4"
                         />
-                        <span className="text-sm text-[#111827]">TCS</span>
+                        <span className="text-[13px] text-[#212121]">TCS</span>
                       </label>
                     </div>
 
@@ -3143,9 +3144,9 @@ const PurchaseOrderCreate = () => {
                       />
                     </div>
 
-                    {/* TDS/TCS Amount - On separate line, right-aligned */}
+                    {/* TDS/TCS Amount */}
                     <div className="flex items-center justify-end">
-                      <span className="text-sm text-[#64748b] text-right whitespace-nowrap font-medium">
+                      <span className="text-[13px] text-[#7A7A7A] text-right whitespace-nowrap font-medium tabular-nums">
                         {totals.tdsTcsAmount > 0 ? `- ${totals.tdsTcsAmount}` : '0.00'}
                       </span>
                     </div>
@@ -3154,25 +3155,25 @@ const PurchaseOrderCreate = () => {
 
                 {/* Adjustment */}
                 <div className="flex items-center justify-between gap-2 mb-4">
-                  <span className="text-sm font-medium text-[#111827]">Adjustment</span>
+                  <span className="text-[13px] font-medium text-[#212121]">Adjustment</span>
                   <div className="flex items-center gap-2">
                     <Input 
-                      className="w-24 text-sm text-right border-dashed" 
+                      className="w-24 text-[13px] text-right border-dashed" 
                       value={adjustment}
                       onChange={(e) => setAdjustment(e.target.value)}
                       placeholder="0.00"
                     />
                   </div>
-                  <span className="text-sm text-[#64748b] w-20 text-right">{totals.adjustmentAmount}</span>
+                  <span className="text-[13px] text-[#7A7A7A] w-20 text-right tabular-nums">{totals.adjustmentAmount}</span>
                 </div>
 
                 {/* Divider */}
-                <div className="border-t border-[#eef2ff] my-4"></div>
+                <div className="border-t border-[#F0F0F0] my-4"></div>
 
                 {/* Total */}
-                <div className="flex items-center justify-between text-base font-semibold text-[#111827]">
+                <div className="flex items-center justify-between text-[16px] font-semibold text-[#1B1B1B]">
                   <span>Total</span>
-                  <span>{totals.finalTotal}</span>
+                  <span className="tabular-nums">{totals.finalTotal}</span>
                 </div>
                 </div>
               </div>
@@ -3180,9 +3181,9 @@ const PurchaseOrderCreate = () => {
           </div>
 
           {/* Attach Files Section */}
-          <div className="mt-8">
-            <div className="rounded-xl border border-[#e6eafb] p-4">
-              <div className="text-sm font-medium text-[#475569]">Attach Files to Purchase Order</div>
+          <div className="mt-6">
+            <div className="rounded-[16px] border border-[#E5E5E5] bg-white p-5 shadow-[0_2px_10px_rgba(0,0,0,0.03)]">
+              <div className="text-[13px] font-semibold text-[#1B1B1B]">Attach Files to Purchase Order</div>
               <div className="mt-4">
                 <ImageUpload
                   onImagesSelect={(files) => setAttachments(files)}
@@ -3193,17 +3194,23 @@ const PurchaseOrderCreate = () => {
                   multiple={true}
                 />
               </div>
-              <p className="mt-2 text-[11px] text-[#94a3b8]">You can upload a maximum of 15 files, 5MB each</p>
+              <p className="mt-2 text-[11px] text-[#8A8A8A]">You can upload a maximum of 15 files, 5MB each</p>
             </div>
           </div>
 
           {/* Bottom action bar */}
-          <div className="flex items-center gap-3 mt-6 bg-white p-4 border border-gray-200 rounded-xl shadow-sm">
+          <div className="flex flex-wrap items-center justify-end gap-3 mt-6">
+            <Link
+              to="/purchase/orders"
+              className="rf-btn-cancel !h-[40px] !px-5 !text-[13px] inline-flex items-center justify-center"
+            >
+              Cancel
+            </Link>
             <button 
               type="button"
               onClick={() => handleSavePurchaseOrder("draft")}
               disabled={saving}
-              className="rounded-xl border border-gray-200 bg-white px-5 py-2.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              className="h-[40px] px-5 rounded-[10px] border border-[#E5E5E5] bg-white hover:bg-[#FAFAFA] text-[13px] font-medium text-[#212121] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {saving ? "Saving..." : "Save as Draft"}
             </button>
@@ -3211,17 +3218,13 @@ const PurchaseOrderCreate = () => {
               type="button"
               onClick={() => handleSavePurchaseOrder("sent")}
               disabled={saving}
-              className="rounded-xl bg-[#9333ea] hover:bg-[#7e22ce] px-5 py-2.5 text-xs font-semibold text-white transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              className="rf-btn-primary !h-[40px] !px-6 !text-[13px] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {saving ? "Saving..." : "Save and Send"}
             </button>
-            <Link
-              to="/purchase/orders"
-              className="rounded-xl border border-gray-200 bg-white px-5 py-2.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
-            >
-              Cancel
-            </Link>
           </div>
+        </div>
+      </div>
 
       {/* Address Selection Modal */}
       {showAddressModal && (
@@ -3545,7 +3548,7 @@ const PurchaseOrderCreate = () => {
               </button>
               <button
                 onClick={handleSaveNewTax}
-                className="rounded-md border border-[#d7dcf5] bg-white px-5 py-2.5 text-sm font-semibold text-[#475569] hover:bg-[#f8fafc] transition-colors shadow-sm"
+                className="rf-btn-primary !h-[38px] !px-5 !text-[13px]"
               >
                 Save
               </button>

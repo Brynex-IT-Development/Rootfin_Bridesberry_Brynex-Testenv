@@ -7,9 +7,10 @@ export const ALL_MODULE_DEFINITIONS = [
         key: "daybook",
         label: "Day Book",
         isStandalone: true,
-        path: "/",
+        path: "/daybook",
         subpages: [
-            { path: "/", label: "Day Book" }
+            { path: "/daybook", label: "Day Book" },
+            { path: "/", label: "Dashboard" }
         ]
     },
     {

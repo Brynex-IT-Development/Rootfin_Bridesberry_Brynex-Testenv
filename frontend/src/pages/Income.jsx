@@ -3,12 +3,11 @@ import SingleImageUpload from "../components/SingleImageUpload";
 import baseUrl from "../api/api";
 import { BsBank2 } from "react-icons/bs";
 import { MdCurrencyRupee } from "react-icons/md";
-import { ChevronDown, Loader2, Menu } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Helmet } from "react-helmet";
 import { useSidebar } from "../hooks/useSidebar.js";
 import { useActiveStores } from "../utils/storeService.js";
-import Breadcrumbs from "../components/Breadcrumbs.jsx";
-
+import Header from "../components/Header.jsx";
 import AppSelect from "../components/AppSelect.jsx";
 const baseIncomeCats = [
   {
@@ -245,92 +244,75 @@ const Income = () => {
   );
 
   return (
-    <div
-      className={`min-h-screen bg-[#f1f4ff] transition-all duration-300 ${
-        isSidebarOpen ? "md:ml-64" : "ml-0"
-      }`}
-    >
+    <div className="invoice-page-wrapper min-h-screen bg-[#FAFAFA] text-[#212121]">
       <Helmet>
         <title>Income | RootFin</title>
       </Helmet>
 
-      <main className="w-full px-5 py-10 sm:px-8 lg:px-12">
-        <header className="mb-8 flex items-start gap-3">
-          <button
-            type="button"
-            onClick={() =>
-              window.dispatchEvent(new CustomEvent("toggle-sidebar"))
-            }
-            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50"
-            title="Toggle Sidebar Menu"
-            aria-label="Toggle sidebar menu"
-          >
-            <Menu size={23} />
-          </button>
-          <div className="min-w-0 pt-0.5">
-            <Breadcrumbs currentTitle="Income" className="mb-1" />
-            <h1 className="text-xl font-bold uppercase tracking-wide text-[#07132e] sm:text-2xl">
+      <Header title="Income" />
+
+      <div
+        className={`transition-all duration-300 ${
+          isSidebarOpen ? "ml-[240px]" : "ml-0"
+        }`}
+      >
+        {/* Clean Page Title Header */}
+        <div className="bg-white px-6 md:px-8 py-4 border-b border-[#E5E5E5] flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h1 className="text-[18px] font-semibold text-[#1B1B1B] leading-snug">
               Income
             </h1>
-            <p className="mt-0.5 text-sm text-[#617091] sm:text-base">
-              Record &amp; Track your business transactions
+            <p className="text-[12px] text-[#8A8A8A] mt-0.5">
+              Record &amp; track your business transactions
             </p>
           </div>
-        </header>
+        </div>
 
-        <section className="rounded-[20px] border border-[#dfe5f2] bg-white p-6 shadow-[0_1px_5px_rgba(30,41,59,0.08)] sm:p-8 lg:p-9">
-          <form
-            onSubmit={handleSubmit}
-            className="flex flex-col gap-7 lg:min-h-[calc(100vh-195px)]"
-          >
-            <div>
-              <label
-                htmlFor="income-store"
-                className="mb-2 block text-sm font-semibold uppercase text-[#667085]"
-              >
-                Store / Branch
-              </label>
-              <div className="relative">
-                <AppSelect
-                  id="income-store"
-                  value={selectedStore}
-                  onChange={(event) => setSelectedStore(event.target.value)}
-                  disabled={!canSelectStore || storesLoading}
-                  required
-                  className="h-[68px] w-full appearance-none rounded-xl border border-[#d7deef] bg-white px-6 py-4 pr-12 text-base text-[#17213b] outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-100 disabled:cursor-default disabled:bg-white sm:text-lg"
-                >
-                  {!selectedStore && storesLoading && (
-                    <option value="">Loading stores...</option>
-                  )}
-                  {!storesLoading && selectableStores.length === 0 && (
-                    <option value="">No stores available</option>
-                  )}
-                  {selectableStores.map((store) => (
-                    <option key={store.locCode} value={store.locCode}>
-                      {store.locName} ({store.locCode})
-                    </option>
-                  ))}
-                </AppSelect>
-                
+        <main className="p-5 md:p-6 max-w-[1200px] w-full">
+          <section className="rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-[0_2px_10px_rgba(0,0,0,0.03)]">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-[#9D43D6]">
+                INCOME DETAILS
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-7">
-              <div>
-                <label
-                  htmlFor="income-category"
-                  className="mb-2 block text-sm font-semibold uppercase text-[#667085]"
-                >
-                  Category
-                </label>
-                <div className="relative">
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+                {/* Store / Branch */}
+                <div>
+                  <label htmlFor="income-store" className="rf-field-label">
+                    Store / Branch <span className="text-[#EF4444]">*</span>
+                  </label>
+                  <AppSelect
+                    id="income-store"
+                    value={selectedStore}
+                    onChange={(event) => setSelectedStore(event.target.value)}
+                    disabled={!canSelectStore || storesLoading}
+                    required
+                  >
+                    {!selectedStore && storesLoading && (
+                      <option value="">Loading stores...</option>
+                    )}
+                    {!storesLoading && selectableStores.length === 0 && (
+                      <option value="">No stores available</option>
+                    )}
+                    {selectableStores.map((store) => (
+                      <option key={store.locCode} value={store.locCode}>
+                        {store.locName} ({store.locCode})
+                      </option>
+                    ))}
+                  </AppSelect>
+                </div>
+
+                {/* Category */}
+                <div>
+                  <label htmlFor="income-category" className="rf-field-label">
+                    Category <span className="text-[#EF4444]">*</span>
+                  </label>
                   <AppSelect
                     id="income-category"
                     value={selectedCategory.value}
                     onChange={(event) =>
                       handleCategoryChange(event.target.value)
                     }
-                    className="h-[54px] w-full appearance-none rounded-xl border border-[#d7deef] bg-white px-5 py-3 pr-12 text-base text-[#17213b] outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-100 sm:text-lg"
                   >
                     {cats.map((category) => (
                       <option key={category.value} value={category.value}>
@@ -338,205 +320,194 @@ const Income = () => {
                       </option>
                     ))}
                   </AppSelect>
-                  
                 </div>
-              </div>
 
-              <div>
-                <label
-                  htmlFor="income-amount"
-                  className="mb-2 block text-sm font-semibold uppercase text-[#667085]"
-                >
-                  Amount
-                </label>
-                <div className="relative">
-                  <span className="absolute left-5 top-1/2 -translate-y-1/2 text-base font-medium text-[#8390aa]">
-                    ₹
-                  </span>
-                  <input
-                    id="income-amount"
-                    type="number"
-                    min="0.01"
-                    step="0.01"
-                    value={amount}
-                    onChange={(event) => setAmount(event.target.value)}
-                    placeholder="0.00"
-                    required
-                    className="h-[54px] w-full rounded-xl border border-[#d7deef] bg-white py-3 pl-11 pr-5 text-base text-[#17213b] outline-none transition placeholder:text-[#8c98af] focus:border-purple-500 focus:ring-2 focus:ring-purple-100 sm:text-lg"
-                  />
-                </div>
-              </div>
-
-              {selectedCategory.value === "shoe sales" && (
-                <div className="lg:col-span-2">
-                  <label
-                    htmlFor="income-quantity"
-                    className="mb-2 block text-sm font-semibold uppercase text-[#667085]"
-                  >
-                    Quantity
+                {/* Amount */}
+                <div>
+                  <label htmlFor="income-amount" className="rf-field-label">
+                    Amount <span className="text-[#EF4444]">*</span>
                   </label>
-                  <input
-                    id="income-quantity"
-                    type="number"
-                    min="1"
-                    value={quantity}
-                    onChange={(event) => setQuantity(event.target.value)}
-                    placeholder="Enter quantity"
-                    required
-                    className="h-[50px] w-full rounded-xl border border-[#d7deef] px-5 text-base outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
-                  />
-                </div>
-              )}
-            </div>
-
-            <div className="border-t border-[#e2e7f2] pt-7">
-              <p className="mb-4 text-sm font-semibold uppercase text-[#667085]">
-                Way of Payment
-              </p>
-              <div className="flex flex-wrap items-center gap-4">
-                {paymentOptions.map(({ id, label, icon }) => {
-                  const active = !splitPayment && paymentMethod === id;
-                  return (
-                    <label
-                      key={id}
-                      className={`flex h-12 cursor-pointer select-none items-center gap-2 rounded-xl border px-4 text-base transition ${
-                        active
-                          ? "border-[#a12cff] bg-[#fbf7ff] text-[#9329f4]"
-                          : "border-[#dce1eb] bg-white text-[#2f3a50] hover:bg-slate-50"
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="incomePaymentMethod"
-                        value={id}
-                        checked={active}
-                        onChange={() => {
-                          setPaymentMethod(id);
-                          setSplitPayment(false);
-                        }}
-                        className="h-[18px] w-[18px] accent-[#9d27f5]"
-                      />
-                      <span className="flex items-center gap-1.5">
-                        {icon} {label}
-                      </span>
-                    </label>
-                  );
-                })}
-
-                {selectedCategory.value !== "bank to cash" && (
-                  <label
-                    className={`flex h-12 cursor-pointer select-none items-center gap-2 rounded-xl border px-4 text-base transition ${
-                      splitPayment
-                        ? "border-[#a12cff] bg-[#fbf7ff] text-[#9329f4]"
-                        : "border-[#dce1eb] bg-white text-[#2f3a50] hover:bg-slate-50"
-                    }`}
-                  >
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[13px] font-medium text-[#7A7A7A] pointer-events-none">
+                      ₹
+                    </span>
                     <input
-                      type="checkbox"
-                      checked={splitPayment}
-                      onChange={(event) =>
-                        setSplitPayment(event.target.checked)
-                      }
-                      className="h-[18px] w-[18px] rounded accent-[#9d27f5]"
+                      id="income-amount"
+                      type="number"
+                      min="0.01"
+                      step="0.01"
+                      value={amount}
+                      onChange={(event) => setAmount(event.target.value)}
+                      placeholder="0.00"
+                      required
+                      className="rf-input !h-[42px] !pl-8 bg-white"
                     />
-                    <span>Split Payment (Cash + Bank + UPI)</span>
-                  </label>
+                  </div>
+                </div>
+
+                {selectedCategory.value === "shoe sales" && (
+                  <div>
+                    <label htmlFor="income-quantity" className="rf-field-label">
+                      Quantity <span className="text-[#EF4444]">*</span>
+                    </label>
+                    <input
+                      id="income-quantity"
+                      type="number"
+                      min="1"
+                      value={quantity}
+                      onChange={(event) => setQuantity(event.target.value)}
+                      placeholder="Enter quantity"
+                      required
+                      className="rf-input !h-[42px] bg-white"
+                    />
+                  </div>
                 )}
               </div>
 
-              {splitPayment && (
-                <div className="mt-5 space-y-2">
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                    {[
-                      ["Cash", cashAmount, setCashAmount],
-                      ["Bank", bankAmount, setBankAmount],
-                      ["UPI", upiAmount, setUpiAmount],
-                    ].map(([label, value, setValue]) => (
-                      <label
-                        key={label}
-                        className="text-xs font-semibold uppercase text-[#667085]"
-                      >
-                        {label} Amount
-                        <div className="relative mt-1.5">
-                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-[#8390aa]">
-                            ₹
-                          </span>
-                          <input
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            value={value}
-                            onChange={(event) => setValue(event.target.value)}
-                            placeholder="0.00"
-                            className="h-12 w-full rounded-xl border border-[#d7deef] bg-white pl-9 pr-4 text-sm font-normal text-[#17213b] outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
-                          />
-                        </div>
-                      </label>
-                    ))}
-                  </div>
-                  <p
-                    className={`text-xs font-semibold ${
-                      splitBalance < 0.01
-                        ? "text-emerald-600"
-                        : "text-amber-600"
-                    }`}
-                  >
-                    Balance: ₹{splitBalance.toFixed(2)}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-7">
-              <div>
-                <label
-                  htmlFor="income-remarks"
-                  className="mb-2 block text-sm font-semibold uppercase text-[#667085]"
-                >
-                  Remarks
-                </label>
-                <textarea
-                  id="income-remarks"
-                  value={remark}
-                  onChange={(event) => setRemark(event.target.value)}
-                  required
-                  placeholder="Enter your transaction details here..."
-                  className="h-[124px] w-full resize-none rounded-xl border border-[#d7deef] px-5 py-3 text-base text-[#17213b] outline-none transition placeholder:text-[#8c98af] focus:border-purple-500 focus:ring-2 focus:ring-purple-100 sm:text-lg"
-                />
-              </div>
-
-              <div>
-                <p className="mb-2 text-sm font-semibold uppercase text-[#667085]">
-                  Attachment (Optional)
+              {/* Way of Payment */}
+              <div className="border-t border-[#F0F0F0] pt-5">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-[#9D43D6] mb-3">
+                  WAY OF PAYMENT
                 </p>
-                <SingleImageUpload
-                  onImageSelect={setAttachmentFile}
-                  existingImage={attachmentFile}
-                  variant="expense-card"
-                />
-              </div>
-            </div>
+                <div className="flex flex-wrap items-center gap-3">
+                  {paymentOptions.map(({ id, label, icon }) => {
+                    const active = !splitPayment && paymentMethod === id;
+                    return (
+                      <label
+                        key={id}
+                        className={`flex h-[42px] cursor-pointer select-none items-center gap-2 rounded-[10px] border px-4 text-[13px] font-medium transition-colors ${
+                          active
+                            ? "border-[#9D43D6] bg-[#FBF5FC] text-[#9D43D6]"
+                            : "border-[#E5E5E5] bg-white text-[#212121] hover:bg-[#FAFAFA]"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="incomePaymentMethod"
+                          value={id}
+                          checked={active}
+                          onChange={() => {
+                            setPaymentMethod(id);
+                            setSplitPayment(false);
+                          }}
+                          className="h-4 w-4 accent-[#9D43D6] cursor-pointer"
+                        />
+                        <span className="flex items-center gap-1.5">
+                          {icon} {label}
+                        </span>
+                      </label>
+                    );
+                  })}
 
-            <div className="mt-auto flex flex-col-reverse items-stretch justify-end gap-4 pt-7 sm:flex-row sm:items-center">
-              <button
-                type="button"
-                onClick={handleCancel}
-                className="h-12 rounded-xl px-7 text-base font-medium text-[#17213b] transition hover:bg-slate-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="inline-flex h-12 min-w-[208px] items-center justify-center gap-2 rounded-xl bg-[#a23aeb] px-8 text-base font-semibold text-white shadow-sm transition hover:bg-[#9228dd] disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-                <span>{isSubmitting ? "Submitting..." : "Submit Income"}</span>
-              </button>
-            </div>
-          </form>
-        </section>
-      </main>
+                  {selectedCategory.value !== "bank to cash" && (
+                    <label
+                      className={`flex h-[42px] cursor-pointer select-none items-center gap-2 rounded-[10px] border px-4 text-[13px] font-medium transition-colors ${
+                        splitPayment
+                          ? "border-[#9D43D6] bg-[#FBF5FC] text-[#9D43D6]"
+                          : "border-[#E5E5E5] bg-white text-[#212121] hover:bg-[#FAFAFA]"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={splitPayment}
+                        onChange={(event) =>
+                          setSplitPayment(event.target.checked)
+                        }
+                        className="h-4 w-4 rounded-[4px] accent-[#9D43D6] cursor-pointer"
+                      />
+                      <span>Split Payment (Cash + Bank + UPI)</span>
+                    </label>
+                  )}
+                </div>
+
+                {splitPayment && (
+                  <div className="mt-4 space-y-2.5 rounded-[12px] border border-[#E5E5E5] bg-[#FAFAFA] p-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                      {[
+                        ["Cash", cashAmount, setCashAmount],
+                        ["Bank", bankAmount, setBankAmount],
+                        ["UPI", upiAmount, setUpiAmount],
+                      ].map(([label, value, setValue]) => (
+                        <label key={label} className="block">
+                          <span className="rf-field-label">{label} Amount</span>
+                          <div className="relative">
+                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[13px] text-[#7A7A7A] pointer-events-none">
+                              ₹
+                            </span>
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={value}
+                              onChange={(event) => setValue(event.target.value)}
+                              placeholder="0.00"
+                              className="rf-input !h-[40px] !pl-8 bg-white"
+                            />
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                    <p
+                      className={`text-[12px] font-semibold ${
+                        splitBalance < 0.01
+                          ? "text-[#16A34A]"
+                          : "text-[#D97706]"
+                      }`}
+                    >
+                      Balance: ₹{splitBalance.toFixed(2)}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Remarks & Attachment */}
+              <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 border-t border-[#F0F0F0] pt-5">
+                <div>
+                  <label htmlFor="income-remarks" className="rf-field-label">
+                    Remarks <span className="text-[#EF4444]">*</span>
+                  </label>
+                  <textarea
+                    id="income-remarks"
+                    value={remark}
+                    onChange={(event) => setRemark(event.target.value)}
+                    required
+                    placeholder="Enter your transaction details here..."
+                    className="h-[130px] w-full resize-none rounded-[10px] border border-[#E5E5E5] bg-white px-3.5 py-2.5 text-[13px] text-[#212121] outline-none transition placeholder:text-[#A1A1AA] focus:border-[#9D43D6] focus:ring-2 focus:ring-[#9D43D6]/15"
+                  />
+                </div>
+
+                <div>
+                  <p className="rf-field-label">Attachment (Optional)</p>
+                  <SingleImageUpload
+                    onImageSelect={setAttachmentFile}
+                    existingImage={attachmentFile}
+                    variant="expense-card"
+                  />
+                </div>
+              </div>
+
+              {/* Footer Actions */}
+              <div className="flex flex-wrap items-center justify-end gap-3 border-t border-[#F0F0F0] pt-5">
+                <button
+                  type="button"
+                  onClick={handleCancel}
+                  className="rf-btn-cancel !h-[40px] !px-5 !text-[13px]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="rf-btn-primary !h-[40px] !px-6 !text-[13px] inline-flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+                  <span>{isSubmitting ? "Submitting..." : "Submit Income"}</span>
+                </button>
+              </div>
+            </form>
+          </section>
+        </main>
+      </div>
     </div>
   );
 };

@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
+import rootfinLogoText from "../assets/rootfin-logo-text.png";
+import rootfinLogoArrow from "../assets/rootfin-logo-arrow.png";
 import {
     FileText,
     ChevronDown,
@@ -32,7 +34,8 @@ import {
     ChevronLeft,
     ShieldCheck,
     BookOpen,
-    ArrowLeft
+    ArrowLeft,
+    LayoutDashboard
 } from "lucide-react";
 import salesInventoryAccessConfig from "../config/salesInventoryAccess.json";
 import { usePermissions } from "../utils/permissionService";
@@ -388,9 +391,21 @@ const Nav = () => {
             >
                 <div className="flex flex-col flex-1 overflow-hidden">
                     {/* Sidebar Header with Logo and Collapse Arrow (Height: 56px) */}
-                    <div className="h-[56px] px-4 flex items-center justify-between border-b border-[#242424]/60 shrink-0">
-                        <Link to="/" className="text-white font-bold text-[20px] tracking-wide flex items-center select-none">
-                            ROOT<span className="text-[#9D43D6] flex items-center"><LineChart size={18} className="mx-0.5" strokeWidth={3} />FIN</span>
+                    <div className="h-[56px] pl-6 pr-4 flex items-center justify-between border-b border-[#242424]/60 shrink-0">
+                        <Link to="/" className="relative inline-flex items-center select-none h-[19px] shrink-0" aria-label="RootFin Home">
+                            <img
+                                src={rootfinLogoText}
+                                alt="ROOTFIN"
+                                className="h-[19px] w-auto object-contain block pointer-events-none"
+                                draggable={false}
+                            />
+                            <img
+                                src={rootfinLogoArrow}
+                                alt=""
+                                aria-hidden="true"
+                                className="rf-logo-arrow absolute inset-0 h-[19px] w-auto object-contain pointer-events-none"
+                                draggable={false}
+                            />
                         </Link>
                         <button
                             onClick={() => setIsOpen(false)}
@@ -404,9 +419,11 @@ const Nav = () => {
                     {/* Navigation Items */}
                     <nav className="space-y-1 p-2.5 overflow-y-auto pb-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
 
-                    {/* ── CLUSTER MANAGER: only Financial Summary + Reports ── */}
+                    {/* ── CLUSTER MANAGER: Dashboard + Financial Summary + Reports ── */}
                     {isClusterManager ? (
                         <>
+                            {renderSingleItem("/", "Dashboard", LayoutDashboard)}
+
                             {hasModule("financial_summary") && renderSingleItem("/datewisedaybook", "Financial Summary", LineChart)}
 
                             {hasModule("reports") && reportsLinks.length > 0 && renderDropdownItem(
@@ -420,8 +437,11 @@ const Nav = () => {
                         </>
                     ) : (
                         <>
+                            {/* Dashboard - Home */}
+                            {renderSingleItem("/", "Dashboard", LayoutDashboard)}
+
                             {/* Day Book - Standalone */}
-                            {hasModule("daybook") && renderSingleItem("/", "Day Book", BookOpen)}
+                            {hasModule("daybook") && renderSingleItem("/daybook", "Day Book", BookOpen)}
 
                             {/* Financial Summary - Standalone */}
                             {hasModule("financial_summary") && renderSingleItem("/datewisedaybook", "Financial Summary", LineChart)}

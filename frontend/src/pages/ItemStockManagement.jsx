@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useEnterToSave } from "../hooks/useEnterToSave";
 import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom";
 import { X, Trash2, Plus, Copy, Package, Store, Check, ArrowLeft, Layers } from "lucide-react";
+import Header from "../components/Header";
 import baseUrl from "../api/api";
 import useSidebar from "../hooks/useSidebar";
 
@@ -304,120 +305,122 @@ const ItemStockManagement = () => {
   }
 
   return (
-    <div className={`transition-all duration-300 p-6 md:p-8 bg-[#f8fafc] min-h-screen ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-      <div className="max-w-4xl mx-auto space-y-6">
-        
+    <div className="min-h-screen bg-[#FAFAFA] text-[#212121]">
+      <Header title="Stock Management" />
+      <div className={`transition-all duration-300 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
+        {/* Clean Page Title Header */}
+        <div className="bg-white px-6 md:px-8 py-4 border-b border-[#E5E5E5] flex items-center justify-between">
+          <h1 className="text-[18px] font-semibold text-[#212121]">Stock Management</h1>
+        </div>
+        <div className="p-5 md:p-6">
+      <div className="max-w-4xl mx-auto space-y-5">
         {/* Main Card */}
-        <div className="rounded-2xl border border-slate-200/80 bg-white shadow-[0_10px_35px_-15px_rgba(0,0,0,0.06)] overflow-hidden">
-          
+        <div className="rounded-[16px] border border-[#E5E5E5] bg-white shadow-[0_2px_10px_rgba(0,0,0,0.03)] overflow-hidden">
           {/* Header */}
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 px-6 sm:px-8 py-5 bg-gradient-to-r from-white via-white to-slate-50/50">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#F0F0F0] px-6 py-5 bg-white">
             <div className="flex items-center gap-3.5">
-              <div className="w-11 h-11 rounded-xl bg-slate-900 text-white flex items-center justify-center shadow-xs">
-                <Store size={20} />
+              <div className="w-10 h-10 rounded-[10px] bg-[#F3E8FF] text-[#9D43D6] flex items-center justify-center">
+                <Store size={19} />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="text-xl font-bold text-slate-900 tracking-tight">
+                  <h1 className="text-[18px] font-bold text-[#1B1B1B] tracking-tight">
                     {item.name || item.itemName || "Item Stock Management"}
                   </h1>
                   {item.sku && (
-                    <span className="text-[11px] font-semibold uppercase tracking-wider bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md border border-slate-200/60">
+                    <span className="text-[11px] font-semibold uppercase tracking-wider bg-[#F3E8FF] text-[#9D43D6] px-2 py-0.5 rounded-[6px]">
                       SKU: {item.sku}
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-2">
-                  <span>Group: <strong className="text-slate-700 font-medium">{itemGroup.name}</strong></span>
+                <p className="text-[12px] text-[#7A7A7A] mt-0.5 flex items-center gap-2">
+                  <span>Group: <strong className="text-[#212121] font-medium">{itemGroup.name}</strong></span>
                   {item.size && (
                     <>
                       <span>•</span>
-                      <span>Size: <strong className="text-slate-700 font-medium">{item.size}</strong></span>
+                      <span>Size: <strong className="text-[#212121] font-medium">{item.size}</strong></span>
                     </>
                   )}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => navigate(`/shoe-sales/item-groups/${id}/items/${itemId}`)}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-2xs hover:bg-slate-100 hover:text-slate-800 transition-all"
-                title="Close"
-              >
-                <X size={18} />
-              </button>
-            </div>
+            <button
+              onClick={() => navigate(`/shoe-sales/item-groups/${id}/items/${itemId}`)}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-[10px] border border-[#E5E5E5] bg-white text-[#525252] hover:bg-[#FAFAFA] hover:text-[#1B1B1B] transition-colors cursor-pointer"
+              title="Close"
+            >
+              <X size={17} />
+            </button>
           </div>
 
           {/* Stats Bar */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 px-6 sm:px-8 py-4 bg-slate-50/60 border-b border-slate-100">
-            <div className="bg-white rounded-xl p-3.5 border border-slate-200/70 shadow-2xs flex items-center justify-between">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 px-6 py-4 bg-[#FAFAFA] border-b border-[#F0F0F0]">
+            <div className="bg-white rounded-[12px] p-3.5 border border-[#E5E5E5] flex items-center justify-between">
               <div>
-                <p className="text-[11px] font-medium uppercase tracking-wider text-slate-500">Configured Locations</p>
-                <p className="text-lg font-bold text-slate-900 mt-0.5">{configuredBranchesCount} / {warehouses.length}</p>
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-[#7A7A7A]">Configured Locations</p>
+                <p className="text-[18px] font-bold text-[#1B1B1B] mt-0.5 tabular-nums">{configuredBranchesCount} / {warehouses.length}</p>
               </div>
-              <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-[8px] bg-[#F3E8FF] text-[#9D43D6] flex items-center justify-center">
                 <Store size={16} />
               </div>
             </div>
 
-            <div className="bg-white rounded-xl p-3.5 border border-slate-200/70 shadow-2xs flex items-center justify-between">
+            <div className="bg-white rounded-[12px] p-3.5 border border-[#E5E5E5] flex items-center justify-between">
               <div>
-                <p className="text-[11px] font-medium uppercase tracking-wider text-slate-500">Total Stock</p>
-                <p className="text-lg font-bold text-slate-900 mt-0.5">{totalStock} <span className="text-xs font-normal text-slate-400">units</span></p>
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-[#7A7A7A]">Total Stock</p>
+                <p className="text-[18px] font-bold text-[#1B1B1B] mt-0.5 tabular-nums">{totalStock} <span className="text-[12px] font-normal text-[#7A7A7A]">units</span></p>
               </div>
-              <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-[8px] bg-[#DCFCE7] text-[#16A34A] flex items-center justify-center">
                 <Package size={16} />
               </div>
             </div>
           </div>
 
           {/* Table Content */}
-          <div className="p-6 sm:p-8">
-            <div className="overflow-hidden rounded-xl border border-slate-200/90 shadow-2xs">
+          <div className="p-6">
+            <div className="overflow-hidden rounded-[12px] border border-[#E5E5E5]">
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-200">
-                  <thead className="bg-slate-50/90">
+                <table className="min-w-full border-collapse">
+                  <thead className="bg-[#1B1B1B] text-white">
                     <tr>
-                      <th scope="col" className="px-5 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-slate-600 w-1/2">
+                      <th scope="col" className="px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider w-1/2">
                         Store / Warehouse
                       </th>
-                      <th scope="col" className="px-5 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-slate-600">
+                      <th scope="col" className="px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider">
                         <div className="flex items-center justify-between gap-2">
                           <span>Opening Stock</span>
                           <button
                             type="button"
                             onClick={() => handleCopyToAll("openingStock")}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-semibold rounded-md border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300 shadow-2xs transition-all active:scale-95"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-semibold rounded-[6px] bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
                           >
                             {copiedField === "openingStock" ? (
                               <>
-                                <Check size={12} className="text-emerald-600" />
-                                <span className="text-emerald-600">Copied</span>
+                                <Check size={12} className="text-[#4ADE80]" />
+                                <span className="text-[#4ADE80]">Copied</span>
                               </>
                             ) : (
                               <>
-                                <Copy size={11} className="text-slate-400" />
+                                <Copy size={11} />
                                 <span>Copy All</span>
                               </>
                             )}
                           </button>
                         </div>
                       </th>
-                      <th scope="col" className="px-4 py-3.5 text-center text-[11px] font-bold uppercase tracking-wider text-slate-600 w-16">
+                      <th scope="col" className="px-4 py-3.5 text-center text-[11px] font-semibold uppercase tracking-wider w-16">
                         Action
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 bg-white">
+                  <tbody className="divide-y divide-[#F0F0F0] bg-white">
                     {stockRows.map((row, index) => (
-                      <tr key={index} className="hover:bg-slate-50/70 transition-colors">
+                      <tr key={index} className="hover:bg-[#FAFAFA] transition-colors">
                         <td className="px-5 py-3.5">
                           <AppSelect
                             value={row.warehouse}
                             onChange={(e) => handleInputChange(index, "warehouse", e.target.value)}
-                            className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-800 focus:border-slate-400 focus:outline-none focus:ring-3 focus:ring-slate-100 transition-all shadow-2xs"
                           >
                             <option value="">Select Store</option>
                             {warehouses.map((wh, idx) => (
@@ -430,7 +433,7 @@ const ItemStockManagement = () => {
                             type="number"
                             value={row.openingStock}
                             onChange={(e) => handleInputChange(index, "openingStock", e.target.value)}
-                            className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-800 focus:border-slate-400 focus:outline-none focus:ring-3 focus:ring-slate-100 transition-all shadow-2xs"
+                            className="rf-input !h-[40px]"
                             placeholder="0"
                             step="1"
                           />
@@ -440,13 +443,13 @@ const ItemStockManagement = () => {
                             <button
                               type="button"
                               onClick={() => handleDeleteRow(index)}
-                              className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors mx-auto"
+                              className="inline-flex h-9 w-9 items-center justify-center rounded-[8px] bg-[#FEF2F2] text-[#EF4444] hover:bg-[#FEE2E2] transition-colors mx-auto cursor-pointer"
                               title="Delete Row"
                             >
-                              <Trash2 size={16} />
+                              <Trash2 size={15} />
                             </button>
                           ) : (
-                            <span className="text-slate-300 text-xs">—</span>
+                            <span className="text-[#A1A1AA] text-xs">—</span>
                           )}
                         </td>
                       </tr>
@@ -457,24 +460,32 @@ const ItemStockManagement = () => {
             </div>
 
             {/* Add New Row Button */}
-            <div className="mt-4 flex items-center justify-between">
+            <div className="mt-4">
               <button
                 type="button"
                 onClick={handleAddRow}
-                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-2xs transition-all hover:bg-slate-50 hover:border-slate-300 active:scale-[0.99]"
+                className="inline-flex items-center gap-1.5 h-[38px] rounded-[10px] bg-[#F3F4F6] hover:bg-[#E5E7EB] px-4 text-[13px] font-medium text-[#212121] transition-colors cursor-pointer"
               >
-                <Plus size={16} className="text-slate-500" />
+                <Plus size={15} className="text-[#525252]" />
                 <span>Add Store Row</span>
               </button>
             </div>
 
             {/* Footer Actions */}
-            <div className="mt-8 flex items-center justify-start gap-3 border-t border-slate-100 pt-6">
+            <div className="mt-6 flex items-center justify-end gap-2.5 border-t border-[#F0F0F0] pt-5">
+              <button
+                type="button"
+                onClick={() => navigate(`/shoe-sales/item-groups/${id}/items/${itemId}`)}
+                disabled={loading}
+                className="rf-btn-cancel !h-[40px] !px-5 !text-[13px] disabled:opacity-50"
+              >
+                Cancel
+              </button>
               <button
                 type="button"
                 onClick={handleSave}
                 disabled={loading}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-2.5 text-sm font-semibold text-white shadow-xs transition-all hover:bg-slate-800 hover:shadow disabled:opacity-50 active:scale-[0.99]"
+                className="rf-btn-primary inline-flex items-center gap-2 !h-[40px] !px-6 !text-[13px] disabled:opacity-50"
               >
                 {loading ? (
                   <>
@@ -485,16 +496,10 @@ const ItemStockManagement = () => {
                   <span>Save Changes</span>
                 )}
               </button>
-              <button
-                type="button"
-                onClick={() => navigate(`/shoe-sales/item-groups/${id}/items/${itemId}`)}
-                disabled={loading}
-                className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-2xs transition-all hover:bg-slate-50 hover:border-slate-300 disabled:opacity-50"
-              >
-                Cancel
-              </button>
             </div>
           </div>
+        </div>
+      </div>
         </div>
       </div>
     </div>

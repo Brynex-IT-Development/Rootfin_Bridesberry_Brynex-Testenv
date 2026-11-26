@@ -8,6 +8,7 @@ import { FiDownload, FiSearch, FiChevronDown, FiChevronUp } from "react-icons/fi
 import useSidebar from '../hooks/useSidebar.js';
 import { fetchActiveStores } from '../utils/storeService.js';
 
+import { appSelectStyles } from "../components/AppSelect.jsx";
 // Add CSS animations
 const styles = `
   @keyframes fadeIn {

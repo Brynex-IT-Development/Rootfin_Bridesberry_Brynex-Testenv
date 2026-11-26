@@ -166,135 +166,138 @@ const PurchaseVendors = () => {
   };
 
   return (
-    <>
-      <Header title="All Vendors" />
-      <div className={`transition-all duration-300 min-h-screen bg-[#f8fafc] p-6 md:p-8 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-        {/* Header Title & Action button */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-          <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-bold text-[#111827] tracking-tight">
-              All Vendors
-            </h1>
-            {!loading && (
-              <span className="px-3 py-1 rounded-full bg-[#e2e8f0] text-xs font-semibold text-[#475569]">
-                {filteredVendors.length} {filteredVendors.length === 1 ? 'vendor' : 'vendors'}
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-3">
+    <div className="min-h-screen bg-[#FAFAFA] text-[#212121]">
+      <Header title="Vendors" />
+      <div className={`transition-all duration-300 flex flex-col ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
+        {/* Clean Page Title Header */}
+        <div className="bg-white px-6 md:px-8 py-4 border-b border-[#E5E5E5] flex flex-wrap items-center justify-between gap-4">
+          <h1 className="text-[18px] font-semibold text-[#1B1B1B]">All Vendors</h1>
+          <div className="flex items-center gap-2.5">
             <button
+              type="button"
               onClick={handleExport}
-              className="inline-flex items-center gap-2 rounded-none bg-[#EEEEEE] hover:bg-[#E2E2E2] px-4 py-2.5 text-sm font-semibold text-[#111827] border border-[#d1d5db] shadow-sm transition-colors cursor-pointer"
+              className="inline-flex items-center gap-2 h-[38px] px-4 rounded-[10px] bg-[#ECECEE] hover:bg-[#E2E2E5] text-[13px] font-medium text-[#1B1B1B] transition-colors cursor-pointer"
             >
-              <Download size={16} />
-              <span>Export All</span>
+              <span>Export CSV</span>
+              <Download size={15} className="text-[#1B1B1B]" />
             </button>
             <Link
               to="/purchase/vendors/new"
-              className="inline-flex items-center gap-2 rounded-none bg-[#8B5CF6] hover:bg-[#7C3AED] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors cursor-pointer"
+              className="rf-btn-primary inline-flex items-center gap-1.5 !h-[38px] !px-5 !text-[13px]"
             >
-              <Plus size={18} />
+              <Plus size={15} />
               <span>New Vendor</span>
             </Link>
           </div>
         </div>
 
-        {/* Search */}
-        <div className="mb-6">
-          <div className="relative max-w-md">
-            <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-[#9ca3af]" size={18} />
-            <input
-              type="text"
-              placeholder="Search vendors by name, company, email, phone..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-10 py-2.5 rounded-none border border-[#e2e8f0] bg-white text-sm text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:border-[#8B5CF6] shadow-sm transition-colors"
-            />
-            {searchTerm && (
-              <button
-                onClick={() => setSearchTerm("")}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#9ca3af] hover:text-[#4b5563]"
-              >
-                <X size={16} />
-              </button>
-            )}
+        <div className="p-5 md:p-6 flex-1 space-y-4">
+          {/* Search Bar */}
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="relative w-full sm:w-[340px]">
+              <div className="pointer-events-none absolute inset-y-0 left-0 pl-3.5 flex items-center">
+                <Search size={15} className="text-[#212121]" />
+                <span className="h-4 w-[1px] bg-[#E5E5E5] ml-2.5" />
+              </div>
+              <input
+                type="text"
+                placeholder="Search vendors"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="rf-input !pl-12 !pr-9 !h-[42px] bg-white"
+              />
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={() => setSearchTerm("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#525252] cursor-pointer"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* Vendors Table */}
-        <div className="rounded-none border border-gray-200 bg-white shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse min-w-full text-left text-xs">
-              <thead style={{ position: "sticky", top: 0, zIndex: 2 }}>
-                <tr className="bg-[#1e1e1e] text-white text-xs uppercase tracking-wide font-bold">
-                  <th scope="col" className="px-3 py-3 text-center border-r border-[#333333] text-xs font-bold uppercase tracking-wider text-white w-14">
-                    #
-                  </th>
-                  <th scope="col" className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-white border-r border-[#333333]">
-                    NAME
-                  </th>
-                  <th scope="col" className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-white border-r border-[#333333]">
-                    COMPANY NAME
-                  </th>
-                  <th scope="col" className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-white border-r border-[#333333]">
-                    EMAIL
-                  </th>
-                  <th scope="col" className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-white border-r border-[#333333]">
-                    WORK PHONE
-                  </th>
-                  <th scope="col" className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-white border-r border-[#333333]">
-                    GST TREATMENT
-                  </th>
-                  <th scope="col" className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-white border-r border-[#333333]">
-                    PAYABLES (BCY)
-                  </th>
-                  <th scope="col" className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-white">
-                    UNUSED CREDITS
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 text-xs">
-                {loading ? (
-                  <tr>
-                    <td colSpan="8" className="px-6 py-12 text-center text-gray-500">
-                      Loading vendors...
-                    </td>
+          {/* Vendors Table */}
+          <div className="rounded-[12px] border border-[#E5E5E5] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.02)] overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse min-w-full text-left">
+                <thead style={{ position: "sticky", top: 0, zIndex: 2 }}>
+                  <tr className="bg-[#1B1B1B] text-white text-[11px] uppercase tracking-wider font-semibold">
+                    <th scope="col" className="px-4 py-3.5 text-center w-12">
+                      #
+                    </th>
+                    <th scope="col" className="px-4 py-3.5 text-left">
+                      NAME
+                    </th>
+                    <th scope="col" className="px-4 py-3.5 text-left">
+                      COMPANY NAME
+                    </th>
+                    <th scope="col" className="px-4 py-3.5 text-left">
+                      EMAIL
+                    </th>
+                    <th scope="col" className="px-4 py-3.5 text-center">
+                      WORK PHONE
+                    </th>
+                    <th scope="col" className="px-4 py-3.5 text-center">
+                      GST TREATMENT
+                    </th>
+                    <th scope="col" className="px-4 py-3.5 text-right">
+                      PAYABLES (BCY)
+                    </th>
+                    <th scope="col" className="px-4 py-3.5 text-right">
+                      UNUSED CREDITS
+                    </th>
                   </tr>
-                ) : filteredVendors.length === 0 ? (
-                  <tr>
-                    <td colSpan="8" className="px-6 py-12 text-center text-gray-500">
-                      {searchTerm ? "No vendors found matching your search." : "No vendors added yet. Click 'New Vendor' to add one."}
-                    </td>
-                  </tr>
-                ) : (
-                  filteredVendors.map((v, index) => (
-                    <tr key={v.id || index} className="border-b border-gray-100 hover:bg-[#f8fafc] transition-colors">
-                      <td className="px-3 py-3.5 border-r border-gray-100 text-center text-gray-500 font-medium">
-                        {index + 1}
+                </thead>
+                <tbody className="divide-y divide-[#F0F0F0] bg-white text-[13px]">
+                  {loading ? (
+                    <tr>
+                      <td colSpan="8" className="px-6 py-16 text-center">
+                        <div className="flex flex-col items-center justify-center gap-3">
+                          <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#9D43D6] border-t-transparent" />
+                          <p className="text-[13px] font-medium text-[#7A7A7A]">Loading vendors...</p>
+                        </div>
                       </td>
-                      <td className="px-4 py-3.5 whitespace-nowrap border-r border-gray-100">
-                        <Link
-                          to={`/purchase/vendors/${v._id || v.id}`}
-                          className="font-semibold text-[#8B5CF6] hover:text-[#7C3AED] transition-colors"
-                        >
-                          {v.displayName || v.companyName || v.name || `${v.firstName || ""} ${v.lastName || ""}`.trim()}
-                        </Link>
-                      </td>
-                      <td className="px-4 py-3.5 text-gray-700 border-r border-gray-100">{v.companyName || "-"}</td>
-                      <td className="px-4 py-3.5 text-gray-700 border-r border-gray-100">{v.email || "-"}</td>
-                      <td className="px-4 py-3.5 text-gray-700 border-r border-gray-100">{v.phone || v.mobile || "-"}</td>
-                      <td className="px-4 py-3.5 whitespace-pre-line text-gray-700 border-r border-gray-100">{v.gstTreatment || "-"}</td>
-                      <td className="px-4 py-3.5 text-right font-bold text-gray-900 border-r border-gray-100">{currency(v.payables || 0)}</td>
-                      <td className="px-4 py-3.5 text-right text-gray-700 font-medium">{currency(v.credits || 0)}</td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ) : filteredVendors.length === 0 ? (
+                    <tr>
+                      <td colSpan="8" className="px-6 py-16 text-center text-[#7A7A7A]">
+                        {searchTerm ? "No vendors found matching your search." : "No vendors added yet. Click 'New Vendor' to add one."}
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredVendors.map((v, index) => (
+                      <tr key={v.id || index} className="hover:bg-[#FAFAFA] transition-colors">
+                        <td className="px-4 py-3.5 text-center text-[#525252] font-medium">
+                          {index + 1}
+                        </td>
+                        <td className="px-4 py-3.5 whitespace-nowrap">
+                          <Link
+                            to={`/purchase/vendors/${v._id || v.id}`}
+                            className="font-medium text-[#212121] hover:text-[#9D43D6] transition-colors"
+                          >
+                            {v.displayName || v.companyName || v.name || `${v.firstName || ""} ${v.lastName || ""}`.trim()}
+                          </Link>
+                        </td>
+                        <td className="px-4 py-3.5 text-[#525252]">{v.companyName || "-"}</td>
+                        <td className="px-4 py-3.5 text-[#525252] break-all max-w-[220px]">{v.email || "-"}</td>
+                        <td className="px-4 py-3.5 text-center text-[#525252]">{v.phone || v.mobile || "-"}</td>
+                        <td className="px-4 py-3.5 text-center whitespace-pre-line text-[#525252]">{v.gstTreatment || "-"}</td>
+                        <td className="px-4 py-3.5 text-right font-semibold text-[#1B1B1B] tabular-nums">{currency(v.payables || 0)}</td>
+                        <td className={`px-4 py-3.5 text-right font-medium tabular-nums ${(v.credits || 0) > 0 ? "text-[#1B1B1B]" : "text-[#A1A1AA]"}`}>
+                          {currency(v.credits || 0)}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

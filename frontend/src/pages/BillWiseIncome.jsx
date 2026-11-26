@@ -2,6 +2,7 @@ import { CSVLink } from "react-csv";
 import Headers from '../components/Header.jsx';
 import React, { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import Select from "react-select";
+import { appSelectStyles } from "../components/AppSelect.jsx";
 import useFetch from '../hooks/useFetch.jsx';
 import baseUrl from '../api/api.js';
 import { Minus, Plus } from "lucide-react";
@@ -205,7 +206,16 @@ const DayBookInc = ({ admin = false }) => {
         return saved ? JSON.parse(saved) : Array(denominations.length).fill("");
     });
 
-    const showAction = (currentusers?.power || "").toLowerCase() === "admin";
+    const userPower = (currentusers?.power || "").toLowerCase().trim();
+    const userRole = (currentusers?.role || "").toLowerCase().trim();
+    const showAction =
+        userPower === "admin" ||
+        userPower === "super_admin" ||
+        userPower === "superadmin" ||
+        userRole === "admin" ||
+        userRole === "super_admin" ||
+        userRole === "superadmin" ||
+        userRole === "super admin";
 
     const [year, month, day] = currentDate.split("-");
     const date = `${day}-${month}-${year}`;
@@ -1223,7 +1233,12 @@ const DayBookInc = ({ admin = false }) => {
                 <Headers title={"Day Book"} />
 
                 <div className={`transition-all duration-300 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
-                    <div className="p-6 md:p-8 bg-[#F7F7F7] min-h-screen">
+                    {/* Clean Page Title Header */}
+                    <div className="bg-white px-8 py-4 border-b border-[#E5E5E5] flex items-center justify-between no-print">
+                        <h1 className="text-[18px] font-semibold text-[#212121]">Day Book</h1>
+                    </div>
+
+                    <div className="px-8 py-6 bg-[#FFFFFF] min-h-screen">
 
                         {isLateClose && (
                             <div className="no-print mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
@@ -1246,27 +1261,29 @@ const DayBookInc = ({ admin = false }) => {
                             </div>
                         )}
 
-                        {/* Top Section: Page Header, Category Filters & Date */}
-                        <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4 no-print">
+                        {/* Top Section: Category Filters & Date */}
+                        <div className="mb-5 flex flex-col md:flex-row md:items-end justify-between gap-4 no-print">
                             {/* Left Filters */}
                             <div className="flex flex-wrap items-center gap-4">
-                                <div className="w-[180px] sm:w-[200px]">
-                                    <label className="block text-xs font-semibold text-gray-500 mb-1.5">Category</label>
+                                <div className="w-[190px] sm:w-[210px]">
+                                    <label className="rf-field-label !text-[#6A6A6A]">Category</label>
                                     <Select
+                                        classNamePrefix="rf-select"
                                         options={categories}
                                         value={selectedCategory}
                                         onChange={setSelectedCategory}
-                                        styles={customSelectStyles}
+                                        styles={appSelectStyles}
                                         isSearchable={false}
                                     />
                                 </div>
-                                <div className="w-[180px] sm:w-[200px]">
-                                    <label className="block text-xs font-semibold text-gray-500 mb-1.5">Sub Category</label>
+                                <div className="w-[190px] sm:w-[210px]">
+                                    <label className="rf-field-label !text-[#6A6A6A]">Sub Category</label>
                                     <Select
+                                        classNamePrefix="rf-select"
                                         options={subCategories}
                                         value={selectedSubCategory}
                                         onChange={setSelectedSubCategory}
-                                        styles={customSelectStyles}
+                                        styles={appSelectStyles}
                                         isSearchable={false}
                                     />
                                 </div>
@@ -1274,8 +1291,8 @@ const DayBookInc = ({ admin = false }) => {
 
                             {/* Right Date Display */}
                             <div className="text-right">
-                                <span className="block text-xs font-semibold text-gray-400 mb-0.5">Date</span>
-                                <span className="text-sm md:text-base font-bold text-gray-900">{displayFormattedDate}</span>
+                                <span className="block text-[11px] font-medium text-[#6A6A6A] mb-0.5">Date</span>
+                                <span className="text-[14px] font-semibold text-[#212121]">{displayFormattedDate}</span>
                             </div>
                         </div>
 
@@ -1294,49 +1311,49 @@ const DayBookInc = ({ admin = false }) => {
                                 </div>
                             </div>
                             {/* Main Transactions Table */}
-                            <div className="bg-white border border-[#E5E5E5] rounded-xl overflow-hidden shadow-xs mb-6">
+                            <div className="bg-white border border-[#E5E5E5] rounded-none overflow-hidden mb-7">
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-left border-collapse min-w-[1200px]">
                                         <thead>
-                                            <tr className="bg-[#1B1B1B] text-white h-[36px]">
-                                                <th className="h-[36px] px-3 text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap">TIME</th>
-                                                <th className="h-[36px] px-3 text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap">INVOICE NO.</th>
-                                                <th className="h-[36px] px-3 text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap">CUSTOMER NAME</th>
-                                                <th className="h-[36px] px-3 text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap">CATEGORY</th>
-                                                <th className="h-[36px] px-3 text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap">SUB CATEGORY</th>
-                                                <th className="h-[36px] px-3 text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap">REMARKS</th>
-                                                <th className="h-[36px] px-3 text-[11px] font-semibold uppercase tracking-wider text-right whitespace-nowrap">AMOUNT</th>
-                                                <th className="h-[36px] px-3 text-[11px] font-semibold uppercase tracking-wider text-right whitespace-nowrap">TOTAL TXN</th>
-                                                <th className="h-[36px] px-3 text-[11px] font-semibold uppercase tracking-wider text-right whitespace-nowrap">DISCOUNT</th>
-                                                <th className="h-[36px] px-3 text-[11px] font-semibold uppercase tracking-wider text-right whitespace-nowrap">BILL VALUE</th>
-                                                <th className="h-[36px] px-3 text-[11px] font-semibold uppercase tracking-wider text-right whitespace-nowrap">CASH</th>
-                                                <th className="h-[36px] px-3 text-[11px] font-semibold uppercase tracking-wider text-right whitespace-nowrap">RAZORPAY</th>
-                                                <th className="h-[36px] px-3 text-[11px] font-semibold uppercase tracking-wider text-right whitespace-nowrap">CARD/BANK</th>
-                                                <th className="h-[36px] px-3 text-[11px] font-semibold uppercase tracking-wider text-right whitespace-nowrap">UPI</th>
-                                                {showAction && <th className="h-[36px] px-3 text-[11px] font-semibold uppercase tracking-wider text-center whitespace-nowrap">ACTION</th>}
+                                            <tr className="bg-[#1B1B1B] text-white h-[38px]">
+                                                <th className="h-[38px] px-3.5 text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap">TIME</th>
+                                                <th className="h-[38px] px-3.5 text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap">INVOICE NO.</th>
+                                                <th className="h-[38px] px-3.5 text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap">CUSTOMER NAME</th>
+                                                <th className="h-[38px] px-3.5 text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap">CATEGORY</th>
+                                                <th className="h-[38px] px-3.5 text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap">SUB CATEGORY</th>
+                                                <th className="h-[38px] px-3.5 text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap">REMARKS</th>
+                                                <th className="h-[38px] px-3.5 text-[11px] font-semibold uppercase tracking-wider text-right whitespace-nowrap">AMOUNT</th>
+                                                <th className="h-[38px] px-3.5 text-[11px] font-semibold uppercase tracking-wider text-right whitespace-nowrap">TOTAL TXN</th>
+                                                <th className="h-[38px] px-3.5 text-[11px] font-semibold uppercase tracking-wider text-right whitespace-nowrap">DISCOUNT</th>
+                                                <th className="h-[38px] px-3.5 text-[11px] font-semibold uppercase tracking-wider text-right whitespace-nowrap">BILL VALUE</th>
+                                                <th className="h-[38px] px-3.5 text-[11px] font-semibold uppercase tracking-wider text-right whitespace-nowrap">CASH</th>
+                                                <th className="h-[38px] px-3.5 text-[11px] font-semibold uppercase tracking-wider text-right whitespace-nowrap">RAZORPAY</th>
+                                                <th className="h-[38px] px-3.5 text-[11px] font-semibold uppercase tracking-wider text-right whitespace-nowrap">CARD/BANK</th>
+                                                <th className="h-[38px] px-3.5 text-[11px] font-semibold uppercase tracking-wider text-right whitespace-nowrap">UPI</th>
+                                                {showAction && <th className="h-[38px] px-3.5 text-[11px] font-semibold uppercase tracking-wider text-center whitespace-nowrap">ACTION</th>}
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-[#E5E5E5] text-[13px]">
+                                        <tbody className="divide-y divide-[#EFEFEF] text-[13px]">
                                             {/* Special Row: OPENING BALANCE */}
-                                            <tr className="bg-white font-medium text-[#212121] h-[44px] hover:bg-[#FBF5FC] transition-colors border-b border-[#E5E5E5]">
-                                                <td colSpan="6" className="h-[44px] px-3 font-semibold text-[12px] uppercase tracking-wider text-[#212121]">
+                                            <tr className="bg-[#FAFAFA] font-medium text-[#212121] h-[44px] hover:bg-[#FBF5FC] transition-colors border-b border-[#EFEFEF]">
+                                                <td colSpan="6" className="h-[44px] px-3.5 font-semibold text-[12px] uppercase tracking-wider text-[#212121] border-r border-[#F3F3F3]">
                                                     OPENING BALANCE
                                                 </td>
-                                                <td className="h-[44px] px-3 text-right font-medium text-[#212121]">
+                                                <td className="h-[44px] px-3.5 text-right font-medium text-[#212121] border-r border-[#F3F3F3] tabular-nums">
                                                     {preOpen?.cash ?? preOpen?.Closecash ?? 0}
                                                 </td>
-                                                <td className="h-[44px] px-3 text-right font-medium text-[#212121]">
+                                                <td className="h-[44px] px-3.5 text-right font-medium text-[#212121] border-r border-[#F3F3F3] tabular-nums">
                                                     {preOpen?.cash ?? preOpen?.Closecash ?? 0}
                                                 </td>
-                                                <td className="h-[44px] px-3 text-right text-[#6A6A6A]">-</td>
-                                                <td className="h-[44px] px-3 text-right text-[#6A6A6A]">-</td>
-                                                <td className="h-[44px] px-3 text-right font-medium text-[#212121]">
+                                                <td className="h-[44px] px-3.5 text-right text-[#6A6A6A] border-r border-[#F3F3F3]">-</td>
+                                                <td className="h-[44px] px-3.5 text-right text-[#6A6A6A] border-r border-[#F3F3F3]">-</td>
+                                                <td className="h-[44px] px-3.5 text-right font-medium text-[#212121] border-r border-[#F3F3F3] tabular-nums">
                                                     {preOpen?.cash ?? preOpen?.Closecash ?? 0}
                                                 </td>
-                                                <td className="h-[44px] px-3 text-right text-[#6A6A6A]">-</td>
-                                                <td className="h-[44px] px-3 text-right text-[#6A6A6A]">-</td>
-                                                <td className="h-[44px] px-3 text-right text-[#6A6A6A]">-</td>
-                                                {showAction && <td className="h-[44px] px-3"></td>}
+                                                <td className="h-[44px] px-3.5 text-right text-[#6A6A6A] border-r border-[#F3F3F3]">-</td>
+                                                <td className="h-[44px] px-3.5 text-right text-[#6A6A6A] border-r border-[#F3F3F3]">-</td>
+                                                <td className="h-[44px] px-3.5 text-right text-[#6A6A6A]">-</td>
+                                                {showAction && <td className="h-[44px] px-3.5 border-l border-[#F3F3F3]"></td>}
                                             </tr>
 
                                             {/* Data Rows */}
@@ -1359,14 +1376,14 @@ const DayBookInc = ({ admin = false }) => {
                                                     const displayUpi = tx.upi != null ? tx.upi : 0;
 
                                                     return (
-                                                        <tr key={tx._id || idx} className="h-[44px] hover:bg-[#FBF5FC] transition-colors text-[#212121] border-b border-[#E5E5E5]">
-                                                            <td className="h-[44px] px-3 text-[13px] text-[#6A6A6A] whitespace-nowrap">{displayTime}</td>
-                                                            <td className="h-[44px] px-3 text-[13px] font-medium text-[#9D43D6] whitespace-nowrap">{displayInvoice}</td>
-                                                            <td className="h-[44px] px-3 text-[13px] font-medium text-[#212121] whitespace-nowrap">{displayCustomer}</td>
-                                                            <td className="h-[44px] px-3 text-[13px] whitespace-nowrap">{displayCategory}</td>
-                                                            <td className="h-[44px] px-3 text-[13px] whitespace-nowrap">{displaySubCategory}</td>
-                                                            <td className="h-[44px] px-3 text-[13px] text-[#6A6A6A] max-w-[160px] truncate">{displayRemarks}</td>
-                                                            <td className="h-[44px] px-3 text-[13px] text-right font-medium whitespace-nowrap">
+                                                        <tr key={tx._id || idx} className="h-[46px] bg-white hover:bg-[#FBF5FC] transition-colors text-[#212121]">
+                                                            <td className="h-[46px] px-3.5 text-[13px] text-[#4A4A4A] border-r border-[#F3F3F3] whitespace-nowrap">{displayTime}</td>
+                                                            <td className="h-[46px] px-3.5 text-[13px] text-[#212121] border-r border-[#F3F3F3] whitespace-nowrap">{displayInvoice}</td>
+                                                            <td className="h-[46px] px-3.5 text-[13px] text-[#212121] border-r border-[#F3F3F3] whitespace-nowrap">{displayCustomer}</td>
+                                                            <td className="h-[46px] px-3.5 text-[13px] text-[#4A4A4A] border-r border-[#F3F3F3] whitespace-nowrap">{displayCategory}</td>
+                                                            <td className="h-[46px] px-3.5 text-[13px] text-[#4A4A4A] border-r border-[#F3F3F3] whitespace-nowrap">{displaySubCategory}</td>
+                                                            <td className="h-[46px] px-3.5 text-[13px] text-[#6A6A6A] border-r border-[#F3F3F3] max-w-[160px] truncate">{displayRemarks}</td>
+                                                            <td className="h-[46px] px-3.5 text-[13px] text-right font-medium border-r border-[#F3F3F3] whitespace-nowrap tabular-nums">
                                                                 {isEditing ? (
                                                                     <input
                                                                         type="number"
@@ -1376,7 +1393,7 @@ const DayBookInc = ({ admin = false }) => {
                                                                     />
                                                                 ) : displayAmount}
                                                             </td>
-                                                            <td className="h-[44px] px-3 text-[13px] text-right font-medium whitespace-nowrap">
+                                                            <td className="h-[46px] px-3.5 text-[13px] text-right font-medium border-r border-[#F3F3F3] whitespace-nowrap tabular-nums">
                                                                 {isEditing ? (
                                                                     <input
                                                                         type="number"
@@ -1386,13 +1403,13 @@ const DayBookInc = ({ admin = false }) => {
                                                                     />
                                                                 ) : displayTotalTxn}
                                                             </td>
-                                                            <td className="h-[44px] px-3 text-right text-[13px] text-[#6A6A6A] whitespace-nowrap">
+                                                            <td className="h-[46px] px-3.5 text-right text-[13px] text-[#6A6A6A] border-r border-[#F3F3F3] whitespace-nowrap">
                                                                 {displayDiscount}
                                                             </td>
-                                                            <td className="h-[44px] px-3 text-right font-medium text-[13px] whitespace-nowrap">
+                                                            <td className="h-[46px] px-3.5 text-right font-medium text-[13px] border-r border-[#F3F3F3] whitespace-nowrap tabular-nums">
                                                                 {displayBillValue}
                                                             </td>
-                                                            <td className="h-[44px] px-3 text-right font-medium text-[13px] whitespace-nowrap">
+                                                            <td className="h-[46px] px-3.5 text-right font-medium text-[13px] border-r border-[#F3F3F3] whitespace-nowrap tabular-nums">
                                                                 {isEditing ? (
                                                                     <input
                                                                         type="number"
@@ -1403,7 +1420,7 @@ const DayBookInc = ({ admin = false }) => {
                                                                     />
                                                                 ) : displayCash}
                                                             </td>
-                                                            <td className="h-[44px] px-3 text-right font-medium text-[13px] whitespace-nowrap">
+                                                            <td className="h-[46px] px-3.5 text-right font-medium text-[13px] border-r border-[#F3F3F3] whitespace-nowrap tabular-nums">
                                                                 {isEditing ? (
                                                                     <input
                                                                         type="number"
@@ -1414,7 +1431,7 @@ const DayBookInc = ({ admin = false }) => {
                                                                     />
                                                                 ) : displayRazorpay}
                                                             </td>
-                                                            <td className="h-[44px] px-3 text-right font-medium text-[13px] whitespace-nowrap">
+                                                            <td className="h-[46px] px-3.5 text-right font-medium text-[13px] border-r border-[#F3F3F3] whitespace-nowrap tabular-nums">
                                                                 {isEditing ? (
                                                                     <input
                                                                         type="number"
@@ -1425,7 +1442,7 @@ const DayBookInc = ({ admin = false }) => {
                                                                     />
                                                                 ) : displayBank}
                                                             </td>
-                                                            <td className="h-[44px] pl-3 pr-6 text-right font-medium text-[13px] whitespace-nowrap">
+                                                            <td className="h-[46px] pl-3.5 pr-6 text-right font-medium text-[13px] whitespace-nowrap tabular-nums">
                                                                 {isEditing ? (
                                                                     <input
                                                                         type="number"
@@ -1437,18 +1454,18 @@ const DayBookInc = ({ admin = false }) => {
                                                                 ) : displayUpi}
                                                             </td>
                                                             {showAction && (
-                                                                <td className="py-3.5 px-3 text-center whitespace-nowrap">
+                                                                <td className="py-3 px-3 text-center border-l border-[#F3F3F3] whitespace-nowrap">
                                                                     {isEditing ? (
                                                                         <button
                                                                             onClick={handleSave}
-                                                                            className="bg-emerald-600 text-white px-2.5 py-1 rounded-none text-xs font-semibold hover:bg-emerald-700 cursor-pointer"
+                                                                            className="bg-emerald-600 text-white px-2.5 py-1 rounded-md text-xs font-semibold hover:bg-emerald-700 cursor-pointer"
                                                                         >
                                                                             Save
                                                                         </button>
                                                                     ) : (
                                                                         <button
                                                                             onClick={() => handleEditClick(tx, idx)}
-                                                                            className="bg-gray-800 text-white px-2.5 py-1 rounded-none text-xs font-semibold hover:bg-black cursor-pointer"
+                                                                            className="bg-[#1B1B1B] text-white px-2.5 py-1 rounded-md text-xs font-semibold hover:bg-black cursor-pointer"
                                                                         >
                                                                             Edit
                                                                         </button>
@@ -1460,42 +1477,42 @@ const DayBookInc = ({ admin = false }) => {
                                                 })
                                             ) : (
                                                 <tr>
-                                                    <td colSpan={showAction ? 15 : 14} className="py-12 text-center text-gray-400 text-sm">
+                                                    <td colSpan={showAction ? 15 : 14} className="py-12 text-center text-[#A3A3A3] text-[13px]">
                                                         No transactions found
                                                     </td>
                                                 </tr>
                                             )}
                                         </tbody>
                                         <tfoot>
-                                            <tr className="bg-[#E5E5E5] text-[#212121] font-semibold h-[44px] border-t border-[#E5E5E5]">
-                                                <td colSpan="6" className="h-[44px] px-3 font-semibold text-[11px] uppercase tracking-wider">
+                                            <tr className="bg-[#DCDCDC] text-[#212121] font-semibold h-[44px] border-t border-[#D4D4D4]">
+                                                <td colSpan="6" className="h-[44px] px-3.5 font-semibold text-[12px] uppercase tracking-wider">
                                                     TOTAL
                                                 </td>
-                                                <td className="h-[44px] px-3 text-right text-[13px] font-semibold">
+                                                <td className="h-[44px] px-3.5 text-right text-[13px] font-semibold tabular-nums">
                                                     {totalAmountWithOpening}
                                                 </td>
-                                                <td className="h-[44px] px-3 text-right text-[13px] font-semibold">
+                                                <td className="h-[44px] px-3.5 text-right text-[13px] font-semibold tabular-nums">
                                                     {totalTransactionWithOpening}
                                                 </td>
-                                                <td className="h-[44px] px-3 text-right text-[#6A6A6A]">
+                                                <td className="h-[44px] px-3.5 text-right text-[#6A6A6A]">
                                                     {totalCalculatedDiscount > 0 ? totalCalculatedDiscount : "-"}
                                                 </td>
-                                                <td className="h-[44px] px-3 text-right text-[13px] font-semibold">
+                                                <td className="h-[44px] px-3.5 text-right text-[13px] font-semibold tabular-nums">
                                                     {totalCalculatedBillValue > 0 ? totalCalculatedBillValue : "-"}
                                                 </td>
-                                                <td className="h-[44px] px-3 text-right text-[13px] font-semibold">
+                                                <td className="h-[44px] px-3.5 text-right text-[13px] font-semibold tabular-nums">
                                                     {calculatedTotals.totalCash}
                                                 </td>
-                                                <td className="h-[44px] px-3 text-right text-[13px] font-semibold">
+                                                <td className="h-[44px] px-3.5 text-right text-[13px] font-semibold tabular-nums">
                                                     {calculatedTotals.totalRblAmount}
                                                 </td>
-                                                <td className="h-[44px] px-3 text-right text-[13px] font-semibold">
+                                                <td className="h-[44px] px-3.5 text-right text-[13px] font-semibold tabular-nums">
                                                     {calculatedTotals.totalBankAmount1}
                                                 </td>
-                                                <td className="h-[44px] pl-3 pr-6 text-right text-[13px] font-semibold">
+                                                <td className="h-[44px] pl-3.5 pr-6 text-right text-[13px] font-semibold tabular-nums">
                                                     {calculatedTotals.totalBankAmountupi}
                                                 </td>
-                                                {showAction && <td className="h-[44px] px-3"></td>}
+                                                {showAction && <td className="h-[44px] px-3.5"></td>}
                                             </tr>
                                         </tfoot>
                                     </table>
@@ -1504,28 +1521,28 @@ const DayBookInc = ({ admin = false }) => {
 
                             {/* Bottom 2-Column Section: Physical Denomination Count & Cash Summary */}
                             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                                
-                                {/* Left Box: Denomination Count (Takes 7 cols on desktop ~668px) */}
-                                <div className="lg:col-span-7 bg-white border border-[#E5E5E5] rounded-xl overflow-hidden shadow-xs">
-                                    <div className="bg-[#1B1B1B] text-white px-4 h-[36px] flex justify-between items-center">
-                                        <span className="text-[11px] font-semibold uppercase tracking-wider w-1/3">DENOMINATION</span>
+
+                                {/* Left Box: Denomination Count */}
+                                <div className="lg:col-span-7 bg-white border border-[#E5E5E5] rounded-xl overflow-hidden">
+                                    <div className="bg-[#1B1B1B] text-white px-6 h-[40px] flex justify-between items-center">
+                                        <span className="text-[11px] font-semibold uppercase tracking-wider w-1/3 text-center">DENOMINATION</span>
                                         <span className="text-[11px] font-semibold uppercase tracking-wider w-1/3 text-center">QUANTITY</span>
-                                        <span className="text-[11px] font-semibold uppercase tracking-wider w-1/3 text-right">AMOUNT</span>
+                                        <span className="text-[11px] font-semibold uppercase tracking-wider w-1/3 text-center">AMOUNT</span>
                                     </div>
 
-                                    <div className="divide-y divide-gray-100">
+                                    <div className="divide-y divide-[#EFEFEF]">
                                         {denominations.map((denom, index) => {
                                             const amt = (parseInt(quantities[index], 10) || 0) * denom.value;
                                             return (
-                                                <div key={denom.label} className="px-6 py-3 flex justify-between items-center hover:bg-gray-50/70 transition-colors">
-                                                    <span className="text-sm font-semibold text-gray-700 w-1/3">{denom.label}</span>
+                                                <div key={denom.label} className="px-6 py-3 flex justify-between items-center hover:bg-[#FBF5FC] transition-colors">
+                                                    <span className="text-[13px] font-medium text-[#4A4A4A] w-1/3 text-center">{denom.label}</span>
                                                     <div className="w-1/3 flex justify-center">
-                                                        <div className="inline-flex items-center border border-gray-300 bg-white">
+                                                        <div className="inline-flex items-center border border-[#E5E5E5] rounded-lg overflow-hidden bg-white">
                                                             <button
                                                                 type="button"
                                                                 onClick={() => decrementQuantity(index)}
                                                                 disabled={preOpen1 != null}
-                                                                className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors border-r border-gray-300 disabled:opacity-40 cursor-pointer"
+                                                                className="w-8 h-8 flex items-center justify-center text-[#6A6A6A] hover:text-[#212121] hover:bg-[#F7F7F7] transition-colors border-r border-[#E5E5E5] disabled:opacity-40 cursor-pointer"
                                                             >
                                                                 <Minus size={13} />
                                                             </button>
@@ -1536,19 +1553,19 @@ const DayBookInc = ({ admin = false }) => {
                                                                 onChange={(e) => handleQuantityChange(index, e.target.value)}
                                                                 readOnly={preOpen1 != null}
                                                                 placeholder="0"
-                                                                className="w-12 h-8 text-center text-sm font-semibold text-gray-800 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                                className="w-12 h-8 text-center text-[13px] font-medium text-[#212121] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                                             />
                                                             <button
                                                                 type="button"
                                                                 onClick={() => incrementQuantity(index)}
                                                                 disabled={preOpen1 != null}
-                                                                className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors border-l border-gray-300 disabled:opacity-40 cursor-pointer"
+                                                                className="w-8 h-8 flex items-center justify-center text-[#6A6A6A] hover:text-[#212121] hover:bg-[#F7F7F7] transition-colors border-l border-[#E5E5E5] disabled:opacity-40 cursor-pointer"
                                                             >
                                                                 <Plus size={13} />
                                                             </button>
                                                         </div>
                                                     </div>
-                                                    <span className="text-sm font-semibold text-gray-800 w-1/3 text-right">
+                                                    <span className="text-[13px] font-semibold text-[#212121] w-1/3 text-center tabular-nums">
                                                         {amt.toFixed(2)}
                                                     </span>
                                                 </div>
@@ -1557,36 +1574,37 @@ const DayBookInc = ({ admin = false }) => {
                                     </div>
 
                                     {/* Physical Total Footer */}
-                                    <div className="bg-[#dedede] px-6 py-3.5 flex justify-between items-center border-t border-gray-300">
-                                        <span className="text-sm font-bold text-gray-900">Physical Total</span>
-                                        <span className="text-sm font-bold text-gray-900">
+                                    <div className="bg-[#DCDCDC] px-6 py-3.5 flex justify-between items-center border-t border-[#D4D4D4]">
+                                        <span className="text-[13px] font-semibold text-[#212121] w-1/3 text-center">Physical Total</span>
+                                        <span className="w-1/3" />
+                                        <span className="text-[14px] font-bold text-[#212121] w-1/3 text-center tabular-nums">
                                             {totalAmount.toFixed(2)}
                                         </span>
                                     </div>
                                 </div>
 
-                                {/* Right Box: Cash Summary Card (Takes 5 cols on desktop) */}
-                                <div className="lg:col-span-5 bg-white border border-[#E5E5E5] rounded-xl p-6 flex flex-col justify-between shadow-xs">
+                                {/* Right Box: Cash Summary Card */}
+                                <div className="lg:col-span-5 bg-white border border-[#212121]/75 rounded-xl p-6 flex flex-col justify-between">
                                     <div>
-                                        <h3 className="text-[18px] font-semibold text-[#212121] mb-6">Cash Summary</h3>
-                                        <div className="space-y-4">
+                                        <h3 className="text-[17px] font-semibold text-[#212121] mb-5">Cash Summary</h3>
+                                        <div className="space-y-3.5">
                                             <div className="flex justify-between items-center">
-                                                <span className="text-sm text-gray-500 font-medium">Closing Cash</span>
-                                                <span className="text-base font-bold text-gray-900">
+                                                <span className="text-[13px] text-[#6A6A6A] font-medium">Closing Cash</span>
+                                                <span className="text-[15px] font-semibold text-[#212121] tabular-nums">
                                                     {calculatedTotals.totalCash.toLocaleString()}
                                                 </span>
                                             </div>
                                             <div className="flex justify-between items-center">
-                                                <span className="text-sm text-gray-500 font-medium">Physical Cash</span>
-                                                <span className="text-base font-bold text-gray-900">
+                                                <span className="text-[13px] text-[#6A6A6A] font-medium">Physical Cash</span>
+                                                <span className="text-[15px] font-semibold text-[#212121] tabular-nums">
                                                     {physicalCash.toLocaleString()}
                                                 </span>
                                             </div>
-                                            <div className="border-t border-dashed border-gray-200 my-3" />
+                                            <div className="border-t border-dashed border-[#E5E5E5] my-3" />
                                             <div className="flex justify-between items-center">
-                                                <span className="text-sm font-bold text-gray-800">Difference</span>
-                                                <span className={`text-base font-bold ${
-                                                    difference < 0 ? "text-red-500" : "text-emerald-600"
+                                                <span className="text-[13px] font-semibold text-[#212121]">Difference</span>
+                                                <span className={`text-[15px] font-semibold tabular-nums ${
+                                                    difference < 0 ? "text-[#DC2626]" : "text-[#16A34A]"
                                                 }`}>
                                                     {difference.toLocaleString()}
                                                 </span>
@@ -1595,13 +1613,13 @@ const DayBookInc = ({ admin = false }) => {
                                     </div>
 
                                     {/* Action Buttons */}
-                                    <div className="flex items-center gap-4 mt-8 no-print">
+                                    <div className="flex items-center justify-between gap-4 mt-7 no-print">
                                         <button
                                             type="button"
                                             onClick={handleDownloadReport}
                                             disabled={!isDaybookClosed}
                                             title={!isDaybookClosed ? "Close the day book before downloading the report" : "Download day book report"}
-                                            className="rf-btn-secondary flex-1 py-2.5 px-4 rounded-xl cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                                            className="rf-btn-cancel !px-5 !py-2.5 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                                         >
                                             Download Report
                                         </button>
@@ -1609,7 +1627,7 @@ const DayBookInc = ({ admin = false }) => {
                                         {loading || !isDataReady || closingDataLoading ? (
                                             <button
                                                 disabled
-                                                className="rf-btn-disabled flex-1 py-2.5 px-4 rounded-xl flex items-center justify-center gap-2"
+                                                className="rf-btn-disabled !px-5 !py-2.5 flex items-center justify-center gap-2"
                                             >
                                                 <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
                                                 <span>{loading ? "Saving..." : "Loading day book..."}</span>
@@ -1617,7 +1635,7 @@ const DayBookInc = ({ admin = false }) => {
                                         ) : preOpen1 == null && !stabilized ? (
                                             <button
                                                 disabled
-                                                className="rf-btn-disabled flex-1 py-2.5 px-4 rounded-xl text-center"
+                                                className="rf-btn-disabled !px-5 !py-2.5 text-center"
                                             >
                                                 Stabilizing…
                                             </button>
@@ -1625,7 +1643,7 @@ const DayBookInc = ({ admin = false }) => {
                                             <button
                                                 type="button"
                                                 onClick={CreateCashBank}
-                                                className="rf-btn-primary flex-1 py-2.5 px-4 rounded-xl cursor-pointer"
+                                                className="rf-btn-primary !px-5 !py-2.5 cursor-pointer"
                                             >
                                                 {isLateClose ? "Save & Finish Day (Late)" : "Save & Finish Day"}
                                             </button>
@@ -1633,7 +1651,7 @@ const DayBookInc = ({ admin = false }) => {
                                             <button
                                                 type="button"
                                                 onClick={handlePrint}
-                                                className="rf-btn-primary flex-1 py-2.5 px-4 rounded-xl cursor-pointer"
+                                                className="rf-btn-primary !px-5 !py-2.5 cursor-pointer"
                                             >
                                                 Print Summary
                                             </button>

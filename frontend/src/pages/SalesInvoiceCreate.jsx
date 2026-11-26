@@ -8,7 +8,7 @@ import baseUrl from "../api/api";
 import { mapLocNameToWarehouse } from "../utils/warehouseMapping";
 import { getActiveStores } from "../utils/storeService";
 import useSidebar from "../hooks/useSidebar";
-
+import Header from "../components/Header.jsx";
 import AppSelect from "../components/AppSelect.jsx";
 // Utility function to round to 2 decimal places without floating-point errors
 // This fixes issues like 9999.99 showing as 9999.989999 or 100.01 instead of 100.00
@@ -3195,16 +3195,17 @@ Customer Service Available`;
         </div>
       )}
 
-      <div className={`invoice-page-wrapper transition-all duration-300 min-h-screen flex flex-col ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+      <Header title={isEditMode ? "Edit Invoice" : "New Invoice"} />
+      <div className={`invoice-page-wrapper transition-all duration-300 min-h-screen bg-[#FAFAFA] flex flex-col ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
         {/* ── Top Header Bar ── */}
-        <div className="px-6 pt-5 pb-3">
+        <div className="px-6 pt-5 pb-4">
           {/* Heading and Action Buttons */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-4">
             <div>
-              <h1 className="text-xl font-bold tracking-tight text-[#111827] uppercase">
+              <h1 className="text-[18px] font-bold tracking-tight text-[#212121] uppercase">
                 {isEditMode ? "Edit Invoice" : "Create Invoice"}
               </h1>
-              <p className="text-xs text-[#6B7280] mt-0.5">
+              <p className="text-[12px] text-[#6A6A6A] mt-0.5">
                 {isEditMode ? "Update an existing invoice" : "Create a new sales invoice"}
               </p>
             </div>
@@ -3212,18 +3213,18 @@ Customer Service Available`;
             <div className="flex items-center gap-2.5">
               <Link
                 to="/sales/invoices"
-                className="inline-flex items-center gap-2 rounded-none border border-[#E5E7EB] bg-white px-4 py-2 text-xs font-semibold text-[#8B5CF6] hover:bg-purple-50 transition-colors shadow-sm"
+                className="rf-btn-secondary h-[38px]"
               >
-                <X size={14} className="text-[#8B5CF6]" />
-                Back to Invoice
+                <X size={14} className="text-[#212121]" />
+                <span>Back to Invoice</span>
               </Link>
               <button
                 type="button"
                 onClick={() => setShowInvoiceSettingsModal(true)}
-                className="inline-flex items-center justify-center h-8 w-8 rounded-none border border-[#E5E7EB] bg-white text-[#374151] hover:bg-[#F9FAFB] transition-colors shadow-sm"
+                className="inline-flex items-center justify-center h-[38px] w-[38px] rounded-xl border border-[#E5E5E5] bg-white text-[#212121] hover:bg-[#F7F7F7] transition-colors cursor-pointer"
                 title="Settings"
               >
-                <Settings size={15} className="text-[#4B5563]" />
+                <Settings size={15} className="text-[#212121]" />
               </button>
             </div>
           </div>
@@ -3233,34 +3234,34 @@ Customer Service Available`;
         <div className="flex flex-1 min-h-0 px-6 pb-6 gap-4 items-stretch">
           {/* ── LEFT / MAIN COLUMN ── */}
           <div className="flex-1 min-w-0 flex flex-col">
-            <div className="rounded-none border border-[#E5E7EB] bg-white p-6 shadow-sm w-full flex-1 flex flex-col justify-between">
+            <div className="rounded-2xl border border-[#E5E5E5] bg-white p-6 shadow-xs w-full flex-1 flex flex-col justify-between">
               <div>
                 {/* BILL TO & INVOICE DETAILS */}
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* BILL TO */}
                   <div>
-                    <p className="mb-4 text-xs font-bold uppercase tracking-wider text-[#8B5CF6]">
+                    <p className="mb-4 text-[11px] font-bold uppercase tracking-wider text-[#9D43D6]">
                       BILL TO
                     </p>
                     <div className="space-y-4">
-                      <div>
-                        <label className="block text-xs font-medium text-[#374151] mb-1.5">
-                          Customer Name <span className="text-red-500">*</span>
+                      <div className="rf-form-field !mb-0">
+                        <label className="rf-field-label">
+                          Customer Name <span className="required">*</span>
                         </label>
                         <input
                           type="text"
                           value={customer}
                           onChange={(e) => setCustomer(e.target.value)}
                           placeholder="Search or add customer"
-                          className="w-full h-[42px] rounded-none border border-[#E5E7EB] bg-white px-3.5 text-sm text-[#111827] placeholder:text-[#9CA3AF] focus:border-[#8B5CF6] focus:outline-none transition-colors"
+                          className="rf-input"
                         />
                       </div>
-                      <div>
-                        <label className="block text-xs font-medium text-[#374151] mb-1.5">
-                          Phone Number <span className="text-red-500">*</span>
+                      <div className="rf-form-field !mb-0">
+                        <label className="rf-field-label">
+                          Phone Number <span className="required">*</span>
                         </label>
-                        <div className="flex h-[42px] rounded-none border border-[#E5E7EB] bg-white overflow-hidden focus-within:border-[#8B5CF6] transition-colors">
-                          <span className="inline-flex items-center px-3.5 text-sm font-medium text-[#374151] border-r border-[#E5E7EB] bg-[#F9FAFB]">
+                        <div className="flex h-[40px] rounded-[10px] border border-[#E5E5E5] bg-white overflow-hidden focus-within:border-[#9B48D7] focus-within:ring-1 focus-within:ring-[#9B48D7] transition-colors">
+                          <span className="inline-flex items-center px-3.5 text-[13px] font-medium text-[#212121] border-r border-[#E5E5E5] bg-[#FAFAFA]">
                             +91
                           </span>
                           <input
@@ -3268,7 +3269,7 @@ Customer Service Available`;
                             value={customerPhone}
                             onChange={(e) => setCustomerPhone(e.target.value)}
                             placeholder="Enter phone number"
-                            className="flex-1 px-3.5 text-sm text-[#111827] placeholder:text-[#9CA3AF] focus:outline-none bg-transparent"
+                            className="flex-1 px-3.5 text-[13px] font-medium text-[#212121] placeholder:text-[#A3A3A3] focus:outline-none bg-transparent"
                           />
                         </div>
                       </div>
@@ -3288,63 +3289,62 @@ Customer Service Available`;
 
                   {/* INVOICE DETAILS */}
                   <div>
-                    <p className="mb-4 text-xs font-bold uppercase tracking-wider text-[#8B5CF6]">
+                    <p className="mb-4 text-[11px] font-bold uppercase tracking-wider text-[#9D43D6]">
                       INVOICE DETAILS
                     </p>
                     <div className="space-y-4">
-                      <div>
-                        <label className="block text-xs font-medium text-[#374151] mb-1.5">
-                          Invoice Number <span className="text-red-500">*</span>
+                      <div className="rf-form-field !mb-0">
+                        <label className="rf-field-label">
+                          Invoice Number <span className="required">*</span>
                         </label>
-                        <div className="flex h-[42px] items-center rounded-none border border-[#E5E7EB] bg-white px-3.5 focus-within:border-[#8B5CF6] transition-colors">
+                        <div className="flex h-[40px] items-center rounded-[10px] border border-[#E5E5E5] bg-white pl-3.5 pr-2 focus-within:border-[#9B48D7] focus-within:ring-1 focus-within:ring-[#9B48D7] transition-colors">
                           <input
                             value={invoiceNumber}
                             onChange={(e) => setInvoiceNumber(e.target.value)}
-                            className="flex-1 border-0 bg-transparent text-sm text-[#374151] focus:outline-none"
+                            className="flex-1 border-0 bg-transparent text-[13px] font-medium text-[#212121] focus:outline-none"
                           />
+                          <span className="h-4 w-[1px] bg-[#E5E5E5] mx-2" />
                           <button
                             type="button"
                             onClick={() => setShowInvoiceSettingsModal(true)}
-                            className="text-[#9CA3AF] hover:text-[#374151] transition-colors p-1"
+                            className="text-[#4A4A4A] hover:text-[#212121] transition-colors p-1 cursor-pointer"
                             title="Invoice Settings"
                           >
-                            <Settings size={16} />
+                            <Settings size={15} />
                           </button>
                         </div>
                       </div>
-                      <div>
-                        <label className="block text-xs font-medium text-[#374151] mb-1.5">
-                          Invoice Date <span className="text-red-500">*</span>
+                      <div className="rf-form-field !mb-0">
+                        <label className="rf-field-label">
+                          Invoice Date <span className="required">*</span>
                         </label>
-                        <div className="flex h-[42px] items-center rounded-none border border-[#E5E7EB] bg-white px-3.5 focus-within:border-[#8B5CF6] transition-colors">
-                          <input
-                            type="date"
-                            value={invoiceDate}
-                            onChange={(e) => setInvoiceDate(e.target.value)}
-                            className="flex-1 border-0 bg-transparent text-sm text-[#374151] focus:outline-none cursor-pointer"
-                          />
-                        </div>
+                        <input
+                          type="date"
+                          value={invoiceDate}
+                          onChange={(e) => setInvoiceDate(e.target.value)}
+                          className="rf-input cursor-pointer"
+                        />
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* CLASSIFICATION */}
-                <div className="mt-8 pt-6 border-t border-[#F3F4F6]">
-                  <p className="mb-4 text-xs font-bold uppercase tracking-wider text-[#8B5CF6]">
+                <div className="mt-7 pt-6 border-t border-[#EFEFEF]">
+                  <p className="mb-4 text-[11px] font-bold uppercase tracking-wider text-[#9D43D6]">
                     CLASSIFICATION
                   </p>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-medium text-[#374151] mb-1.5">
-                        Branch <span className="text-red-500">*</span>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="rf-form-field !mb-0">
+                      <label className="rf-field-label">
+                        Branch <span className="required">*</span>
                       </label>
                       {storeAccess.isStoreUser ? (
                         <input
                           type="text"
                           value={branch}
                           readOnly
-                          className="w-full h-[42px] rounded-none border border-[#E5E7EB] bg-[#F9FAFB] px-3.5 text-sm text-[#111827] cursor-not-allowed opacity-75"
+                          className="rf-input !bg-[#FAFAFA] cursor-not-allowed opacity-75"
                         />
                       ) : (
                         <div className="relative">
@@ -3355,7 +3355,7 @@ Customer Service Available`;
                               setBranch(b);
                               setWarehouse(mapLocNameToWarehouse(b));
                             }}
-                            className="w-full h-[42px] appearance-none rounded-none border border-[#E5E7EB] bg-white px-3.5 pr-8 text-sm text-[#111827] focus:border-[#8B5CF6] focus:outline-none transition-colors cursor-pointer"
+                            className="w-full"
                           >
                             {(() => {
                               const activeStores = getActiveStores?.() || [];
@@ -3368,34 +3368,32 @@ Customer Service Available`;
                               ));
                             })()}
                           </AppSelect>
-                          
                         </div>
                       )}
                     </div>
 
-                    <div>
-                      <label className="block text-xs font-medium text-[#374151] mb-1.5">
-                        Category <span className="text-red-500">*</span>
+                    <div className="rf-form-field !mb-0">
+                      <label className="rf-field-label">
+                        Category <span className="required">*</span>
                       </label>
                       <div className="relative">
                         <AppSelect
                           value="Income"
                           disabled
-                          className="w-full h-[42px] appearance-none rounded-none border border-[#E5E7EB] bg-[#F9FAFB] px-3.5 pr-8 text-sm text-[#111827] cursor-not-allowed"
+                          className="w-full"
                         >
                           <option value="Income">Income</option>
                         </AppSelect>
-                        
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* ITEMS TABLE */}
-                <div className="mt-8">
-                  <div className="overflow-x-auto rounded-none border border-[#E5E7EB]">
-                    <table className="min-w-full divide-y divide-[#E5E7EB]">
-                      <thead className="bg-[#18181B] text-white">
+                <div className="mt-7">
+                  <div className="overflow-x-auto rounded-lg border border-[#E5E5E5]">
+                    <table className="min-w-full divide-y divide-[#EFEFEF]">
+                      <thead className="bg-[#1B1B1B] text-white">
                         <tr>
                           <th className="w-10 px-3 py-3 text-center">
                             <input
@@ -3567,14 +3565,14 @@ Customer Service Available`;
                       <button
                         type="button"
                         onClick={addLineItem}
-                        className="inline-flex items-center gap-1.5 rounded-none border border-[#E5E7EB] bg-white px-3.5 py-2 text-xs font-semibold text-[#374151] hover:bg-gray-50 transition-colors shadow-sm"
+                        className="rf-btn-cancel !rounded-lg !px-3.5 !py-2 !text-[12px] cursor-pointer"
                       >
                         <Plus size={14} /> Add Row
                       </button>
                       <button
                         type="button"
                         onClick={handleBulkAddOpen}
-                        className="inline-flex items-center gap-1.5 rounded-none border border-[#E5E7EB] bg-white px-3.5 py-2 text-xs font-semibold text-[#374151] hover:bg-gray-50 transition-colors shadow-sm"
+                        className="rf-btn-cancel !rounded-lg !px-3.5 !py-2 !text-[12px] cursor-pointer"
                       >
                         <Plus size={14} /> Add Bulk Items
                       </button>
@@ -3588,13 +3586,13 @@ Customer Service Available`;
                             });
                             setSelectedItems(new Set());
                           }}
-                          className="inline-flex items-center gap-1.5 rounded-none border border-red-200 bg-red-50 px-3.5 py-2 text-xs font-semibold text-red-600 hover:bg-red-100 transition-colors shadow-sm"
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3.5 py-2 text-xs font-semibold text-red-600 hover:bg-red-100 transition-colors cursor-pointer"
                         >
                           <X size={14} /> Remove ({selectedItems.size})
                         </button>
                       )}
                     </div>
-                    <span className="text-xs text-[#9CA3AF]">All price exclude local tax</span>
+                    <span className="text-[11px] text-[#6A6A6A]">All price exclude local tax</span>
                   </div>
                 </div>
               </div>
@@ -3602,12 +3600,12 @@ Customer Service Available`;
           </div>
 
           {/* ── RIGHT SIDEBAR (320px) - Stretches to same height as left card ── */}
-          <div className="w-80 shrink-0 bg-white rounded-none border border-[#E5E7EB] shadow-sm p-5 flex flex-col justify-between">
+          <div className="w-80 shrink-0 bg-white rounded-2xl border border-[#E5E5E5] shadow-xs p-5 flex flex-col justify-between">
             {/* TOP SECTION: Payment methods, sub total, discount */}
             <div className="space-y-5">
               {/* PAYMENT METHOD */}
               <div>
-                <p className="mb-3 text-xs font-bold uppercase tracking-wider text-[#8B5CF6]">
+                <p className="mb-3 text-[11px] font-bold uppercase tracking-wider text-[#9D43D6]">
                   PAYMENT METHOD
                 </p>
                 <div className="grid grid-cols-2 gap-2.5">
@@ -3959,8 +3957,8 @@ Customer Service Available`;
               )}
 
               {/* DISCOUNT */}
-              <div className="rounded-none bg-[#F9FAFB] p-3 border border-[#E5E7EB]/60">
-                <p className="text-xs font-bold uppercase tracking-wider text-[#8B5CF6] mb-2">
+              <div className="rounded-xl bg-[#F3F4F6]/80 p-3.5 border border-[#E5E5E5]">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-[#9D43D6] mb-2">
                   DISCOUNT
                 </p>
                 <div className="flex items-center gap-1.5 w-full">
@@ -3969,15 +3967,15 @@ Customer Service Available`;
                     value={discount.value}
                     onChange={(e) => setDiscount((prev) => ({ ...prev, value: e.target.value }))}
                     placeholder="Enter discount"
-                    className="flex-1 min-w-0 h-[42px] rounded-none border border-[#E5E7EB] bg-white px-3 text-sm text-[#111827] placeholder:text-[#9CA3AF] focus:border-[#8B5CF6] focus:outline-none"
+                    className="rf-input flex-1 min-w-0"
                   />
                   <button
                     type="button"
                     onClick={() => setDiscount((prev) => ({ ...prev, type: "₹" }))}
-                    className={`h-[42px] w-10 shrink-0 flex items-center justify-center rounded-none border text-sm font-semibold transition-colors cursor-pointer ${
+                    className={`h-[40px] w-10 shrink-0 flex items-center justify-center rounded-[10px] border text-sm font-semibold transition-colors cursor-pointer ${
                       discount.type === "₹"
-                        ? "border-[#8B5CF6] bg-[#F5F3FF] text-[#7C3AED]"
-                        : "border-[#E5E7EB] bg-white text-[#7C3AED] hover:bg-gray-50"
+                        ? "border-[#9D43D6] bg-[#FBF5FC] text-[#9D43D6]"
+                        : "border-[#E5E5E5] bg-white text-[#9D43D6] hover:bg-[#F7F7F7]"
                     }`}
                   >
                     ₹
@@ -3985,10 +3983,10 @@ Customer Service Available`;
                   <button
                     type="button"
                     onClick={() => setDiscount((prev) => ({ ...prev, type: "%" }))}
-                    className={`h-[42px] w-10 shrink-0 flex items-center justify-center rounded-none border text-sm font-semibold transition-colors cursor-pointer ${
+                    className={`h-[40px] w-10 shrink-0 flex items-center justify-center rounded-[10px] border text-sm font-semibold transition-colors cursor-pointer ${
                       discount.type === "%"
-                        ? "border-[#8B5CF6] bg-[#F5F3FF] text-[#7C3AED]"
-                        : "border-[#E5E7EB] bg-white text-[#7C3AED] hover:bg-gray-50"
+                        ? "border-[#9D43D6] bg-[#FBF5FC] text-[#9D43D6]"
+                        : "border-[#E5E5E5] bg-white text-[#9D43D6] hover:bg-[#F7F7F7]"
                     }`}
                   >
                     %
@@ -4003,11 +4001,11 @@ Customer Service Available`;
             </div>
 
             {/* BOTTOM SECTION: Total and Save Button pinned to bottom */}
-            <div className="space-y-4 pt-4 border-t border-[#F3F4F6]">
+            <div className="space-y-4 pt-4 border-t border-[#EFEFEF]">
               {/* Total */}
               <div className="flex items-center justify-between">
-                <span className="text-sm font-bold text-[#111827]">Total</span>
-                <span className="text-xl font-bold text-[#16A34A]">₹ {totals.finalTotal}</span>
+                <span className="text-[14px] font-semibold text-[#212121]">Total</span>
+                <span className="text-[20px] font-bold text-[#16A34A] tabular-nums">₹ {totals.finalTotal}</span>
               </div>
 
               {/* Save Button */}
@@ -4015,7 +4013,11 @@ Customer Service Available`;
                 type="button"
                 onClick={() => handleSaveInvoice("sent")}
                 disabled={isSaving}
-                className="w-full flex items-center justify-center gap-2 rounded-none bg-[#8B5CF6] py-3.5 text-sm font-semibold text-white shadow-sm hover:bg-[#7C3AED] active:bg-[#6D28D9] transition-colors disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wide"
+                className={
+                  isSaving
+                    ? "rf-btn-disabled w-full !py-3 !rounded-xl"
+                    : "rf-btn-primary w-full !py-3 !rounded-xl cursor-pointer"
+                }
               >
                 {isSaving ? "Saving..." : "Save & Send to Whatsapp"}
               </button>

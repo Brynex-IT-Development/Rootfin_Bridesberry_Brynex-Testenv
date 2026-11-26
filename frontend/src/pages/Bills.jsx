@@ -3805,295 +3805,288 @@ ${storeNameZpl}^FO81,21
   };
 
   return (
-    <div className={`transition-all duration-300 min-h-screen bg-[#f8f9fa] p-8 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-      {/* Page Title & Actions Bar */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">{isEditMode ? "Edit Bill" : "New Bill"}</h1>
-          <p className="text-xs text-gray-500 mt-0.5">Create and manage purchase bills</p>
-        </div>
-        <div className="flex items-center gap-2.5">
-          <button
-            onClick={() => navigate("/sales/invoices")}
-            className="px-3.5 py-1.5 border border-purple-200 text-purple-600 hover:bg-purple-50 rounded-none text-xs font-medium transition-colors bg-white shadow-sm cursor-pointer"
-          >
-            Back to Invoice
-          </button>
-          <button
-            onClick={() => {}}
-            className="p-1.5 border border-gray-200 bg-white text-gray-500 hover:bg-gray-50 rounded-none transition-colors shadow-sm cursor-pointer"
-            title="Settings"
-          >
-            <Settings size={16} />
-          </button>
-        </div>
-      </div>
-
-      {/* Main Form Content */}
-      <div className="space-y-6">
-        {/* Vendor & Bill Information Card */}
-        <div className="bg-white rounded-none p-6 border border-gray-100 shadow-sm space-y-5">
-          <div className="text-purple-600 font-bold text-[11px] tracking-wider uppercase">
-            VENDOR & BILL INFORMATION
+    <div className="invoice-page-wrapper min-h-screen bg-[#FAFAFA] text-[#212121]">
+      <Header title={isEditMode ? "Edit Bill" : "Add New Bill"} />
+      <div className={`transition-all duration-300 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
+        {/* Clean Page Title Header */}
+        <div className="bg-white px-6 md:px-8 py-4 border-b border-[#E5E5E5] flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h1 className="text-[18px] font-semibold text-[#1B1B1B] leading-snug">
+              {isEditMode ? "Edit Bill" : "New Bill"}
+            </h1>
+            <p className="text-[12px] text-[#8A8A8A] mt-0.5">
+              Create and manage purchase bills
+            </p>
           </div>
+          <button
+            type="button"
+            onClick={() => navigate("/purchase/bills")}
+            className="inline-flex items-center gap-1.5 h-[38px] px-4 rounded-[10px] border border-[#E5E5E5] bg-white hover:bg-[#FAFAFA] text-[13px] font-medium text-[#9D43D6] transition-colors cursor-pointer"
+          >
+            <X size={14} className="text-[#9D43D6]" />
+            <span>Close</span>
+          </button>
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            {/* Vendor Name */}
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                Vendor Name <span className="text-red-500">*</span>
-              </label>
-              <VendorDropdown
-                value={selectedVendor}
-                onChange={(vendor) => {
-                  setSelectedVendor(vendor);
-                  setVendorName(vendor ? (vendor.displayName || vendor.companyName || "") : "");
-                  if (vendor) {
-                    const rawSource =
-                      vendor.sourceOfSupply ||
-                      vendor.placeOfSupply ||
-                      vendor.state ||
-                      vendor.billingAddress?.state ||
-                      vendor.shippingAddress?.state ||
-                      vendor.address?.state ||
-                      "";
-                    if (rawSource) {
-                      setSourceOfSupply(normalizeSupplyState(rawSource));
-                    }
-                  }
-                }}
-                onNewVendor={() => navigate("/purchase/vendors/new")}
-              />
+        {/* Main Form Content */}
+        <div className="p-5 md:p-6 space-y-5">
+          {/* Vendor & Bill Information Card */}
+          <div className="bg-white rounded-[16px] p-6 border border-[#E5E5E5] shadow-[0_2px_10px_rgba(0,0,0,0.03)] space-y-5">
+            <div className="text-[#9D43D6] font-bold text-[11px] tracking-wider uppercase">
+              VENDOR &amp; BILL INFORMATION
             </div>
 
-            {/* Bill Date */}
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                Bill Date <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={billDate}
-                  onChange={(e) => setBillDate(e.target.value)}
-                  placeholder="dd-MM-yyyy"
-                  className="w-full h-9 rounded-none border border-gray-200 bg-white px-3 py-2 text-xs text-gray-900 placeholder:text-gray-400 focus:border-purple-600 focus:outline-none focus:ring-1 focus:ring-purple-600 pr-9"
-                />
-                <input
-                  ref={billDateInputRef}
-                  type="date"
-                  value={convertToDateInputFormat(billDate)}
-                  onChange={(e) => {
-                    if (e.target.value) {
-                      setBillDate(convertFromDateInputFormat(e.target.value));
-                    }
-                  }}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 opacity-0 cursor-pointer z-10"
-                />
-                <div
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-purple-600"
-                  onClick={() => {
-                    if (billDateInputRef.current) {
-                      if (billDateInputRef.current.showPicker) {
-                        billDateInputRef.current.showPicker();
-                      } else {
-                        billDateInputRef.current.click();
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+              {/* Vendor Name */}
+              <div>
+                <label className="rf-field-label">
+                  Vendor Name <span className="text-[#EF4444]">*</span>
+                </label>
+                <VendorDropdown
+                  value={selectedVendor}
+                  onChange={(vendor) => {
+                    setSelectedVendor(vendor);
+                    setVendorName(vendor ? (vendor.displayName || vendor.companyName || "") : "");
+                    if (vendor) {
+                      const rawSource =
+                        vendor.sourceOfSupply ||
+                        vendor.placeOfSupply ||
+                        vendor.state ||
+                        vendor.billingAddress?.state ||
+                        vendor.shippingAddress?.state ||
+                        vendor.address?.state ||
+                        "";
+                      if (rawSource) {
+                        setSourceOfSupply(normalizeSupplyState(rawSource));
                       }
                     }
                   }}
-                >
-                  <Calendar size={16} />
+                  onNewVendor={() => navigate("/purchase/vendors/new")}
+                />
+              </div>
+
+              {/* Bill Date */}
+              <div>
+                <label className="rf-field-label">
+                  Bill Date <span className="text-[#EF4444]">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={billDate}
+                    onChange={(e) => setBillDate(e.target.value)}
+                    placeholder="dd-MM-yyyy"
+                    className="rf-input !h-[42px] !pr-10 bg-white"
+                  />
+                  <input
+                    ref={billDateInputRef}
+                    type="date"
+                    value={convertToDateInputFormat(billDate)}
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        setBillDate(convertFromDateInputFormat(e.target.value));
+                      }
+                    }}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 opacity-0 cursor-pointer z-10"
+                  />
+                  <div
+                    className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-[#525252] hover:text-[#9D43D6] pl-2.5 border-l border-[#E5E5E5]"
+                    onClick={() => {
+                      if (billDateInputRef.current) {
+                        if (billDateInputRef.current.showPicker) {
+                          billDateInputRef.current.showPicker();
+                        } else {
+                          billDateInputRef.current.click();
+                        }
+                      }
+                    }}
+                  >
+                    <Calendar size={15} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Bill Number */}
+              <div>
+                <label className="rf-field-label">
+                  Bill Number <span className="text-[#EF4444]">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={billNumber}
+                    onChange={(e) => setBillNumber(e.target.value)}
+                    placeholder="BILL-0001"
+                    className="rf-input !h-[42px] !pr-10 bg-white"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const randomNum = Math.floor(1000 + Math.random() * 9000);
+                      setBillNumber(`BILL-${randomNum}`);
+                    }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#525252] hover:text-[#9D43D6] pl-2.5 border-l border-[#E5E5E5] transition-colors cursor-pointer"
+                    title="Auto-generate Bill Number"
+                  >
+                    <Settings size={15} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Warehouse / Branch */}
+              <div>
+                <label className="rf-field-label">
+                  Warehouse <span className="text-[#EF4444]">*</span>
+                </label>
+                <div className="relative">
+                  <AppSelect
+                    value={warehouse}
+                    onChange={(e) => {
+                      setWarehouse(e.target.value);
+                      setBranch(e.target.value);
+                    }}
+                  >
+                    <option value="Warehouse">Warehouse</option>
+                    <option value="Store 1">Store 1</option>
+                    <option value="Store 2">Store 2</option>
+                  </AppSelect>
                 </div>
               </div>
             </div>
 
-            {/* Bill Number */}
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                Bill Number <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={billNumber}
-                  onChange={(e) => setBillNumber(e.target.value)}
-                  placeholder="BILL-0001"
-                  className="w-full h-9 rounded-none border border-gray-200 bg-white px-3 py-2 text-xs text-gray-900 placeholder:text-gray-400 focus:border-purple-600 focus:outline-none focus:ring-1 focus:ring-purple-600 pr-9"
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    const randomNum = Math.floor(1000 + Math.random() * 9000);
-                    setBillNumber(`BILL-${randomNum}`);
-                  }}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-purple-600 transition-colors cursor-pointer"
-                  title="Auto-generate Bill Number"
-                >
-                  <Settings size={15} />
-                </button>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+              {/* Order Number */}
+              <div>
+                <label className="rf-field-label">
+                  Order Number
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={orderNumber}
+                    onChange={(e) => setOrderNumber(e.target.value)}
+                    placeholder="INV-009193"
+                    className="rf-input !h-[42px] !pr-10 bg-white"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const randomNum = Math.floor(100000 + Math.random() * 900000);
+                      setOrderNumber(`INV-${randomNum}`);
+                    }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#525252] hover:text-[#9D43D6] pl-2.5 border-l border-[#E5E5E5] transition-colors cursor-pointer"
+                    title="Auto-generate Order Number"
+                  >
+                    <Settings size={15} />
+                  </button>
+                </div>
               </div>
-            </div>
 
-            {/* Warehouse / Branch */}
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                Warehouse <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <AppSelect
-                  value={warehouse}
-                  onChange={(e) => {
-                    setWarehouse(e.target.value);
-                    setBranch(e.target.value);
-                  }}
-                  className="w-full h-9 rounded-none border border-gray-200 bg-white px-3 py-2 text-xs text-gray-900 focus:border-purple-600 focus:outline-none focus:ring-1 focus:ring-purple-600 appearance-none cursor-pointer pr-9"
-                >
-                  <option value="Warehouse">Warehouse</option>
-                  <option value="Store 1">Store 1</option>
-                  <option value="Store 2">Store 2</option>
-                </AppSelect>
-                
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            {/* Order Number */}
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                Order Number
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={orderNumber}
-                  onChange={(e) => setOrderNumber(e.target.value)}
-                  placeholder="INV-009193"
-                  className="w-full h-9 rounded-none border border-gray-200 bg-white px-3 py-2 text-xs text-gray-900 placeholder:text-gray-400 focus:border-purple-600 focus:outline-none focus:ring-1 focus:ring-purple-600 pr-9"
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    const randomNum = Math.floor(100000 + Math.random() * 900000);
-                    setOrderNumber(`INV-${randomNum}`);
-                  }}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-purple-600 transition-colors cursor-pointer"
-                  title="Auto-generate Order Number"
-                >
-                  <Settings size={15} />
-                </button>
-              </div>
-            </div>
-
-            {/* Due Date */}
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                Due Date <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={dueDate}
-                  onChange={(e) => setDueDate(e.target.value)}
-                  placeholder="dd-MM-yyyy"
-                  className="w-full h-9 rounded-none border border-gray-200 bg-white px-3 py-2 text-xs text-gray-900 placeholder:text-gray-400 focus:border-purple-600 focus:outline-none focus:ring-1 focus:ring-purple-600 pr-9"
-                />
-                <input
-                  ref={dueDateInputRef}
-                  type="date"
-                  value={convertToDateInputFormat(dueDate)}
-                  onChange={(e) => {
-                    if (e.target.value) {
-                      setDueDate(convertFromDateInputFormat(e.target.value));
-                    }
-                  }}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 opacity-0 cursor-pointer z-10"
-                />
-                <div
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-purple-600"
-                  onClick={() => {
-                    if (dueDateInputRef.current) {
-                      if (dueDateInputRef.current.showPicker) {
-                        dueDateInputRef.current.showPicker();
-                      } else {
-                        dueDateInputRef.current.click();
+              {/* Due Date */}
+              <div>
+                <label className="rf-field-label">
+                  Due Date <span className="text-[#EF4444]">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={dueDate}
+                    onChange={(e) => setDueDate(e.target.value)}
+                    placeholder="dd-MM-yyyy"
+                    className="rf-input !h-[42px] !pr-10 bg-white"
+                  />
+                  <input
+                    ref={dueDateInputRef}
+                    type="date"
+                    value={convertToDateInputFormat(dueDate)}
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        setDueDate(convertFromDateInputFormat(e.target.value));
                       }
-                    }
-                  }}
-                >
-                  <Calendar size={16} />
+                    }}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 opacity-0 cursor-pointer z-10"
+                  />
+                  <div
+                    className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-[#525252] hover:text-[#9D43D6] pl-2.5 border-l border-[#E5E5E5]"
+                    onClick={() => {
+                      if (dueDateInputRef.current) {
+                        if (dueDateInputRef.current.showPicker) {
+                          dueDateInputRef.current.showPicker();
+                        } else {
+                          dueDateInputRef.current.click();
+                        }
+                      }
+                    }}
+                  >
+                    <Calendar size={15} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Source of Supply */}
+              <div>
+                <label className="rf-field-label">
+                  Source of Supply
+                </label>
+                <div className="relative">
+                  <AppSelect
+                    value={sourceOfSupply}
+                    onChange={(e) => setSourceOfSupply(e.target.value)}
+                  >
+                    <option value="">Select source of supply</option>
+                    {SUPPLY_STATE_OPTIONS.map((state) => (
+                      <option key={state.code} value={state.value}>
+                        {state.value}
+                      </option>
+                    ))}
+                  </AppSelect>
+                </div>
+              </div>
+
+              {/* Destination of Supply */}
+              <div>
+                <label className="rf-field-label">
+                  Destination of Supply
+                </label>
+                <div className="relative">
+                  <AppSelect
+                    value={destinationOfSupply || "[KL] - Kerala"}
+                    onChange={(e) => setDestinationOfSupply(e.target.value)}
+                  >
+                    {SUPPLY_STATE_OPTIONS.map((state) => (
+                      <option key={state.code} value={state.value}>
+                        {state.value}
+                      </option>
+                    ))}
+                  </AppSelect>
                 </div>
               </div>
             </div>
-
-            {/* Source of Supply */}
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                Source of Supply
-              </label>
-              <div className="relative">
-                <AppSelect
-                  value={sourceOfSupply}
-                  onChange={(e) => setSourceOfSupply(e.target.value)}
-                  className="w-full h-9 rounded-none border border-gray-200 bg-white px-3 py-2 text-xs text-gray-900 focus:border-purple-600 focus:outline-none focus:ring-1 focus:ring-purple-600 appearance-none cursor-pointer pr-9"
-                >
-                  <option value="">Select source of supply</option>
-                  {SUPPLY_STATE_OPTIONS.map((state) => (
-                    <option key={state.code} value={state.value}>
-                      {state.value}
-                    </option>
-                  ))}
-                </AppSelect>
-                
-              </div>
-            </div>
-
-            {/* Destination of Supply */}
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                Destination of Supply
-              </label>
-              <div className="relative">
-                <AppSelect
-                  value={destinationOfSupply || "[KL] - Kerala"}
-                  onChange={(e) => setDestinationOfSupply(e.target.value)}
-                  className="w-full h-9 rounded-none border border-gray-200 bg-white px-3 py-2 text-xs text-gray-900 focus:border-purple-600 focus:outline-none focus:ring-1 focus:ring-purple-600 appearance-none cursor-pointer pr-9"
-                >
-                  {SUPPLY_STATE_OPTIONS.map((state) => (
-                    <option key={state.code} value={state.value}>
-                      {state.value}
-                    </option>
-                  ))}
-                </AppSelect>
-                
-              </div>
-            </div>
           </div>
-        </div>
 
-        {/* Item Details Table */}
-        <div className="bg-white rounded-none border border-gray-100 shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[1180px]">
-              <thead className="bg-[#181924] text-slate-200 text-[11px] font-semibold tracking-wider sticky top-0 z-10 select-none">
-                <tr className="border-b border-slate-700/60">
-                  <th className="w-10 px-3 py-3.5 text-center whitespace-nowrap">
-                    <input type="checkbox" className="rounded-none border-gray-600 bg-transparent text-purple-600 focus:ring-purple-500 cursor-pointer" />
-                  </th>
-                  <th className="px-3 py-3.5 font-semibold uppercase min-w-[220px] text-left whitespace-nowrap">ITEM NAME</th>
-                  <th className="px-3 py-3.5 font-semibold uppercase w-28 text-left whitespace-nowrap">CATEGORY</th>
-                  <th className="px-3 py-3.5 font-semibold uppercase w-28 text-left whitespace-nowrap">ITEM CODE</th>
-                  <th className="px-3 py-3.5 font-semibold uppercase w-28 text-left whitespace-nowrap">HSN CODE</th>
-                  <th className="px-3 py-3.5 font-semibold uppercase w-28 text-center whitespace-nowrap">QUANTITY</th>
-                  <th className="px-3 py-3.5 font-semibold uppercase w-36 text-left whitespace-nowrap">TAX</th>
-                  <th className="px-3 py-3.5 font-semibold uppercase w-28 text-left whitespace-nowrap">COST PRICE</th>
-                  <th className="px-3 py-3.5 font-semibold uppercase w-24 text-center whitespace-nowrap">PERCENTAGE</th>
-                  <th className="px-3 py-3.5 font-semibold uppercase w-28 text-left whitespace-nowrap">SELLING PRICE</th>
-                  <th className="px-3 py-3.5 font-semibold uppercase w-28 text-left whitespace-nowrap">MRP</th>
-                  <th className="px-3 py-3.5 font-semibold uppercase w-24 text-center whitespace-nowrap">ACTIONS</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 bg-white">
+          {/* Item Details Table */}
+          <div className="bg-white rounded-[12px] border border-[#E5E5E5] shadow-[0_1px_2px_rgba(0,0,0,0.02)] overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-[1180px]">
+                <thead className="bg-[#1B1B1B] text-white text-[11px] font-semibold tracking-wider sticky top-0 z-10 select-none">
+                  <tr>
+                    <th className="w-10 px-3 py-3.5 text-center whitespace-nowrap">
+                      <input type="checkbox" className="h-4 w-4 rounded-[4px] border-gray-500 accent-[#9D43D6] cursor-pointer" />
+                    </th>
+                    <th className="px-3 py-3.5 font-semibold uppercase min-w-[220px] text-left whitespace-nowrap">ITEM NAME</th>
+                    <th className="px-3 py-3.5 font-semibold uppercase w-28 text-left whitespace-nowrap">CATEGORY</th>
+                    <th className="px-3 py-3.5 font-semibold uppercase w-28 text-left whitespace-nowrap">ITEM CODE</th>
+                    <th className="px-3 py-3.5 font-semibold uppercase w-28 text-left whitespace-nowrap">HSN CODE</th>
+                    <th className="px-3 py-3.5 font-semibold uppercase w-28 text-center whitespace-nowrap">QUANTITY</th>
+                    <th className="px-3 py-3.5 font-semibold uppercase w-36 text-left whitespace-nowrap">TAX</th>
+                    <th className="px-3 py-3.5 font-semibold uppercase w-28 text-left whitespace-nowrap">COST PRICE</th>
+                    <th className="px-3 py-3.5 font-semibold uppercase w-24 text-center whitespace-nowrap">PERCENTAGE</th>
+                    <th className="px-3 py-3.5 font-semibold uppercase w-28 text-left whitespace-nowrap">SELLING PRICE</th>
+                    <th className="px-3 py-3.5 font-semibold uppercase w-28 text-left whitespace-nowrap">MRP</th>
+                    <th className="px-3 py-3.5 font-semibold uppercase w-28 text-center whitespace-nowrap">ACTIONS</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#F0F0F0] bg-white">
                 {tableRows.map((row) => {
                   const mrpNum = parseFloat(row.mrp);
                   const hasValidMrp =
@@ -4426,7 +4419,7 @@ ${storeNameZpl}^FO81,21
                             <button
                               type="button"
                               onClick={() => handleSplitRow(row.id)}
-                              className="w-7 h-7 rounded-none bg-blue-50 text-blue-600 hover:bg-blue-100 flex items-center justify-center transition-colors shadow-2xs"
+                              className="w-8 h-8 rounded-[8px] bg-[#EFF6FF] text-[#2563EB] hover:bg-[#DBEAFE] flex items-center justify-center transition-colors cursor-pointer"
                               title={`Split this Qty ${qtyNum} item into ${qtyNum} separate rows`}
                             >
                               <Scissors size={14} />
@@ -4435,7 +4428,7 @@ ${storeNameZpl}^FO81,21
                           <button
                             type="button"
                             onClick={() => handleOpenAddToGroup(row)}
-                            className="w-7 h-7 rounded-none bg-purple-50 text-purple-600 hover:bg-purple-100 flex items-center justify-center transition-colors shadow-2xs"
+                            className="w-8 h-8 rounded-[8px] bg-[#F3E8FF] text-[#9D43D6] hover:bg-[#E9D5FF] flex items-center justify-center transition-colors cursor-pointer"
                             title="Add to Item Group"
                           >
                             <Plus size={14} />
@@ -4443,7 +4436,7 @@ ${storeNameZpl}^FO81,21
                           <button
                             type="button"
                             onClick={() => handleDeleteRow(row.id)}
-                            className="w-7 h-7 rounded-none bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center transition-colors shadow-2xs"
+                            className="w-8 h-8 rounded-[8px] bg-[#FEE2E2]/70 text-[#EF4444] hover:bg-[#FEE2E2] flex items-center justify-center transition-colors cursor-pointer"
                             title="Delete Row"
                           >
                             <Trash2 size={14} />
@@ -4458,13 +4451,14 @@ ${storeNameZpl}^FO81,21
           </div>
 
           {/* Table Bottom Action Buttons */}
-          <div className="p-3.5 bg-white flex items-center gap-3 border-t border-gray-100">
+          <div className="p-4 bg-white flex items-center gap-3 border-t border-[#F0F0F0]">
             <button
               type="button"
               onClick={handleAddNewRow}
-              className="h-8 px-3.5 inline-flex items-center justify-center rounded-none bg-[#f4f4f5] hover:bg-gray-200 text-gray-700 text-xs font-medium transition-colors cursor-pointer"
+              className="h-[38px] px-4 inline-flex items-center gap-1.5 justify-center rounded-[10px] bg-[#F4F4F5] hover:bg-[#E5E5E5] text-[#212121] text-[13px] font-medium transition-colors cursor-pointer"
             >
-              Add Row
+              <Plus size={14} />
+              <span>Add Row</span>
             </button>
             <button
               type="button"
@@ -4472,30 +4466,31 @@ ${storeNameZpl}^FO81,21
                 setShowBulkAddModal(true);
                 fetchBulkItems();
               }}
-              className="h-8 px-3.5 inline-flex items-center justify-center rounded-none bg-[#f4f4f5] hover:bg-gray-200 text-gray-700 text-xs font-medium transition-colors cursor-pointer"
+              className="h-[38px] px-4 inline-flex items-center gap-1.5 justify-center rounded-[10px] bg-[#F4F4F5] hover:bg-[#E5E5E5] text-[#212121] text-[13px] font-medium transition-colors cursor-pointer"
             >
-              Add Bulk Items
+              <Plus size={14} />
+              <span>Add Bulk Items</span>
             </button>
           </div>
         </div>
 
         {/* Bottom 2-Column Section: Attachments & Bill Summary */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
           {/* Left: Attach File(s) to Bill */}
           <div className="lg:col-span-7 space-y-2.5">
-            <label className="block text-xs font-semibold text-gray-700">
+            <label className="rf-field-label">
               Attach File (s) to Bill
             </label>
             <div
               onDragOver={(e) => e.preventDefault()}
               onDrop={handleDrop}
-              className="border-2 border-dashed border-gray-200 rounded-none bg-white p-8 flex flex-col items-center justify-center text-center min-h-[280px]"
+              className="border-2 border-dashed border-[#E5E5E5] rounded-[16px] bg-white p-8 flex flex-col items-center justify-center text-center min-h-[290px]"
             >
-              <UploadCloud size={44} className="text-gray-300 stroke-1 mb-2" />
-              <p className="text-sm font-semibold text-gray-800 mb-1">
+              <UploadCloud size={44} className="text-[#D4D4D8] stroke-1 mb-2.5" />
+              <p className="text-[14px] font-semibold text-[#1B1B1B] mb-1">
                 Drag image (s) here or browse images
               </p>
-              <p className="text-[11px] text-gray-400 mb-4 max-w-sm leading-relaxed">
+              <p className="text-[12px] text-[#8A8A8A] mb-5 max-w-sm leading-relaxed">
                 You can add up to 15 images, each not exceeding 5MB in size and 7000x7000 pixels resolution.
               </p>
               
@@ -4507,7 +4502,7 @@ ${storeNameZpl}^FO81,21
                   onChange={handleFileUpload}
                   className="hidden"
                 />
-                <span className="inline-block bg-purple-600 hover:bg-purple-700 text-white font-medium px-5 py-2 rounded-none text-xs transition-colors shadow-sm">
+                <span className="rf-btn-primary inline-flex items-center justify-center !h-[38px] !px-5 !text-[13px]">
                   Upload File
                 </span>
               </label>
@@ -4516,18 +4511,18 @@ ${storeNameZpl}^FO81,21
               {attachments.length > 0 && (
                 <div className="flex flex-wrap gap-2.5 mt-4 justify-center">
                   {attachments.map((att, i) => (
-                    <div key={i} className="relative group rounded-none border border-gray-200 p-1 bg-white shadow-2xs">
+                    <div key={i} className="relative group rounded-[10px] border border-[#E5E5E5] p-1 bg-white shadow-xs">
                       {att.base64 ? (
-                        <img src={att.base64} alt="attachment" className="w-12 h-12 object-cover rounded-none" />
+                        <img src={att.base64} alt="attachment" className="w-12 h-12 object-cover rounded-[8px]" />
                       ) : (
-                        <div className="w-12 h-12 flex items-center justify-center bg-gray-100 rounded-none text-[10px] text-gray-600 truncate px-1">
+                        <div className="w-12 h-12 flex items-center justify-center bg-[#F4F4F5] rounded-[8px] text-[10px] text-[#525252] truncate px-1">
                           {att.name || "File"}
                         </div>
                       )}
                       <button
                         type="button"
                         onClick={() => setAttachments(attachments.filter((_, idx) => idx !== i))}
-                        className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white rounded-none flex items-center justify-center text-[10px]"
+                        className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-[#EF4444] text-white rounded-full flex items-center justify-center text-[10px] cursor-pointer"
                       >
                         ×
                       </button>
@@ -4540,20 +4535,20 @@ ${storeNameZpl}^FO81,21
 
           {/* Right: Bill Summary */}
           <div className="lg:col-span-5">
-            <div className="bg-white rounded-none p-6 border border-gray-100/80 shadow-[0_2px_16px_rgba(0,0,0,0.03)] space-y-4">
-              <div className="text-[#9333ea] font-bold text-[11px] tracking-wider uppercase mb-1">
+            <div className="bg-white rounded-[16px] p-6 border border-[#E5E5E5] shadow-[0_2px_10px_rgba(0,0,0,0.03)] space-y-4">
+              <div className="text-[#9D43D6] font-bold text-[11px] tracking-wider uppercase mb-1">
                 BILL SUMMARY
               </div>
 
               {/* Sub Total */}
-              <div className="flex items-center justify-between text-sm py-0.5">
-                <span className="font-semibold text-gray-800">Sub Total</span>
-                <span className="font-semibold text-gray-900">₹ {totals.subTotal}</span>
+              <div className="flex items-center justify-between text-[14px] py-0.5">
+                <span className="font-semibold text-[#1B1B1B]">Sub Total</span>
+                <span className="font-semibold text-[#1B1B1B] tabular-nums">₹ {totals.subTotal}</span>
               </div>
 
               {/* Discount */}
-              <div className="flex items-center justify-between text-sm py-0.5">
-                <span className="font-medium text-gray-700">Discount</span>
+              <div className="flex items-center justify-between text-[13px] py-0.5">
+                <span className="font-medium text-[#212121]">Discount</span>
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-2">
                     <input
@@ -4561,53 +4556,51 @@ ${storeNameZpl}^FO81,21
                       value={discount.value}
                       onChange={(e) => setDiscount({ ...discount, value: e.target.value })}
                       placeholder="0"
-                      className="w-[78px] h-9 rounded-none border border-gray-200 bg-white px-3 text-xs text-right text-gray-700 placeholder:text-gray-400 focus:border-purple-600 focus:outline-none"
+                      className="w-[82px] h-[38px] rounded-[10px] border border-[#E5E5E5] bg-white px-3 text-[13px] text-right text-[#212121] placeholder:text-[#A1A1AA] focus:border-[#9D43D6] focus:outline-none"
                     />
-                    <div className="relative">
+                    <div className="w-[74px]">
                       <AppSelect
                         value={discount.type}
                         onChange={(e) => setDiscount({ ...discount, type: e.target.value })}
-                        className="w-[68px] h-9 rounded-none border border-gray-200 bg-white pl-3 pr-6 text-xs text-gray-500 focus:border-purple-600 focus:outline-none appearance-none cursor-pointer"
                       >
                         <option value="%">%</option>
                         <option value="₹">₹</option>
                       </AppSelect>
-                      
                     </div>
                   </div>
-                  <span className="text-xs text-gray-500 w-10 text-right">{totals.discountAmount}</span>
+                  <span className="text-[13px] text-[#7A7A7A] w-12 text-right tabular-nums">{totals.discountAmount}</span>
                 </div>
               </div>
 
               {/* Total Tax Amount */}
-              <div className="flex items-center justify-between text-sm py-0.5">
-                <div className="flex flex-col text-xs font-medium text-gray-700 leading-tight">
+              <div className="flex items-center justify-between text-[13px] py-0.5">
+                <div className="flex flex-col text-[13px] font-medium text-[#212121] leading-tight">
                   <span>Total</span>
                   <span>Tax Amount</span>
                 </div>
-                <div className="flex items-center gap-2 flex-1 max-w-[270px] ml-4">
+                <div className="flex items-center gap-2 flex-1 max-w-[260px] ml-4">
                   <div className="relative flex-1">
                     <input
                       type="text"
                       value={totalTaxAmount || (totals.calculatedTotalTax > 0 ? totals.calculatedTotalTax : "")}
                       onChange={(e) => setTotalTaxAmount(e.target.value)}
-                      className="w-full h-9 rounded-none border border-gray-200 bg-white px-3 text-xs text-right text-gray-600 placeholder:text-gray-400 focus:border-purple-600 focus:outline-none pr-10"
+                      className="w-full h-[38px] rounded-[10px] border border-[#E5E5E5] bg-white px-3 text-[13px] text-right text-[#212121] placeholder:text-[#A1A1AA] focus:border-[#9D43D6] focus:outline-none pr-10"
                     />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-gray-400 font-normal pointer-events-none">INR</span>
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-[#8A8A8A] font-normal pointer-events-none">INR</span>
                   </div>
                   <button
                     type="button"
-                    className="w-9 h-9 rounded-none bg-[#faf5ff] border border-purple-100 flex items-center justify-center text-[#a855f7] hover:bg-[#f3e8ff] transition-colors shrink-0"
+                    className="w-[38px] h-[38px] rounded-[10px] bg-[#F3E8FF] border border-[#E9D5FF] flex items-center justify-center text-[#9D43D6] hover:bg-[#E9D5FF] transition-colors shrink-0 cursor-pointer"
                     title="Edit tax amount"
                   >
-                    <Pencil size={14} className="text-[#a855f7]" />
+                    <Pencil size={14} className="text-[#9D43D6]" />
                   </button>
                 </div>
               </div>
 
               {/* TDS / TCS Radios */}
               <div className="flex items-center gap-6 py-0.5">
-                <label className="flex items-center gap-2 text-xs font-medium text-gray-600 cursor-pointer">
+                <label className="flex items-center gap-2 text-[13px] font-medium text-[#525252] cursor-pointer">
                   <input
                     type="radio"
                     name="tdsTcsType"
@@ -4617,11 +4610,11 @@ ${storeNameZpl}^FO81,21
                       setTdsTcsType(e.target.value);
                       setTdsTcsTax("");
                     }}
-                    className="w-3.5 h-3.5 text-purple-600 border-gray-300 focus:ring-purple-500 cursor-pointer"
+                    className="w-4 h-4 accent-[#9D43D6] cursor-pointer"
                   />
                   <span>TDS</span>
                 </label>
-                <label className="flex items-center gap-2 text-xs font-medium text-gray-600 cursor-pointer">
+                <label className="flex items-center gap-2 text-[13px] font-medium text-[#525252] cursor-pointer">
                   <input
                     type="radio"
                     name="tdsTcsType"
@@ -4631,7 +4624,7 @@ ${storeNameZpl}^FO81,21
                       setTdsTcsType(e.target.value);
                       setTdsTcsTax("");
                     }}
-                    className="w-3.5 h-3.5 text-purple-600 border-gray-300 focus:ring-purple-500 cursor-pointer"
+                    className="w-4 h-4 accent-[#9D43D6] cursor-pointer"
                   />
                   <span>TCS</span>
                 </label>
@@ -4647,44 +4640,38 @@ ${storeNameZpl}^FO81,21
                       setTdsTcsType("TDS");
                     }
                   }}
-                  className={`w-full h-9 rounded-none border border-gray-200 bg-white px-3 py-2 text-xs focus:border-purple-600 focus:outline-none focus:ring-1 focus:ring-purple-600 appearance-none cursor-pointer pr-9 ${
-                    tdsTcsTax ? "text-gray-900 font-medium" : "text-gray-400"
-                  }`}
                 >
-                  <option value="" className="text-gray-400">
-                    Select a Tax
-                  </option>
+                  <option value="">Select a Tax</option>
                   {(tdsTcsType === "TCS" ? taxOptions : tdsOptions).map((tax) => (
-                    <option key={tax.id} value={tax.id} className="text-gray-900">
+                    <option key={tax.id} value={tax.id}>
                       {tax.display || tax.name}
                     </option>
                   ))}
                 </AppSelect>
-                
               </div>
 
               {/* Adjustment */}
-              <div className="flex items-center justify-between text-sm py-0.5">
-                <span className="font-medium text-gray-700 text-xs">Adjustment</span>
+              <div className="flex items-center justify-between text-[13px] py-0.5">
+                <span className="font-medium text-[#212121]">Adjustment</span>
                 <div className="flex items-center gap-3">
                   <input
                     type="text"
                     value={adjustment}
                     onChange={(e) => setAdjustment(e.target.value)}
                     placeholder="0.00"
-                    className="w-[145px] h-9 rounded-none border border-gray-200 bg-white px-3 text-xs text-right text-gray-700 placeholder:text-gray-400 focus:border-purple-600 focus:outline-none"
+                    className="w-[155px] h-[38px] rounded-[10px] border border-[#E5E5E5] bg-white px-3 text-[13px] text-right text-[#212121] placeholder:text-[#A1A1AA] focus:border-[#9D43D6] focus:outline-none"
                   />
-                  <span className="text-xs text-gray-400 w-10 text-right">{totals.adjustmentAmount}</span>
+                  <span className="text-[13px] text-[#8A8A8A] w-12 text-right tabular-nums">{totals.adjustmentAmount}</span>
                 </div>
               </div>
 
               {/* Divider */}
-              <div className="border-t border-gray-100 my-4"></div>
+              <div className="border-t border-[#F0F0F0] my-4"></div>
 
               {/* Total */}
               <div className="flex items-center justify-between py-1">
-                <span className="font-semibold text-gray-800 text-sm">Total</span>
-                <span className="font-bold text-lg text-gray-900">₹ {totals.finalTotal}</span>
+                <span className="font-semibold text-[#1B1B1B] text-[15px]">Total</span>
+                <span className="font-bold text-[18px] text-[#1B1B1B] tabular-nums">₹ {totals.finalTotal}</span>
               </div>
 
               {/* Save Buttons */}
@@ -4693,7 +4680,7 @@ ${storeNameZpl}^FO81,21
                   type="button"
                   onClick={() => handleSaveBill("draft")}
                   disabled={saving}
-                  className="h-10 px-4 bg-[#f4f4f5] hover:bg-gray-200 text-gray-800 font-medium rounded-none text-xs flex items-center justify-center transition-colors text-center disabled:opacity-50"
+                  className="rf-btn-cancel !h-[42px] !text-[13px] w-full flex items-center justify-center disabled:opacity-50"
                 >
                   {saving ? "Saving..." : "Save as Draft"}
                 </button>
@@ -4701,7 +4688,7 @@ ${storeNameZpl}^FO81,21
                   type="button"
                   onClick={() => handleSaveBill("completed")}
                   disabled={saving}
-                  className="h-10 px-4 bg-[#9333ea] hover:bg-[#7e22ce] text-white font-medium rounded-none text-xs flex items-center justify-center transition-colors shadow-sm text-center disabled:opacity-50"
+                  className="rf-btn-primary !h-[42px] !text-[13px] w-full flex items-center justify-center disabled:opacity-50"
                 >
                   {saving ? "Saving..." : "Save & Complete"}
                 </button>
@@ -4709,6 +4696,7 @@ ${storeNameZpl}^FO81,21
             </div>
           </div>
         </div>
+      </div>
       </div>
 
       {/* New Tax Modal */}
@@ -6406,286 +6394,304 @@ const Bills = () => {
   }
 
   return (
-    <>
+    <div className="min-h-screen bg-[#FAFAFA] text-[#212121]">
       <Header title="Bills" />
-      <div className={`transition-all duration-300 min-h-screen bg-[#f8fafc] p-6 md:p-8 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-        {/* Header Title & New Bill button */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-bold text-[#111827] tracking-tight">
-              Bills
-            </h1>
-            {!loading && (
-              <span className="px-3 py-1 rounded-full bg-[#e2e8f0] text-xs font-semibold text-[#475569]">
-                {processedBills.length} {processedBills.length === 1 ? 'bill' : 'bills'}
-              </span>
-            )}
-          </div>
+      <div className={`transition-all duration-300 flex flex-col ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
+        {/* Clean Page Title Header */}
+        <div className="bg-white px-6 md:px-8 py-4 border-b border-[#E5E5E5] flex flex-wrap items-center justify-between gap-4">
+          <h1 className="text-[18px] font-semibold text-[#1B1B1B]">Bills</h1>
           <Link
             to="/purchase/bills/new"
-            className="inline-flex items-center gap-2 rounded-none bg-[#8B5CF6] hover:bg-[#7C3AED] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors cursor-pointer"
+            className="rf-btn-primary inline-flex items-center gap-1.5 !h-[38px] !px-5 !text-[13px]"
           >
-            <Plus size={18} />
-            <span>New Bill</span>
+            <Plus size={15} />
+            <span>New Bills</span>
           </Link>
         </div>
 
-        {/* Search Bar */}
-        <div className="mb-6">
-          <div className="relative max-w-md">
-            <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-[#9ca3af]" size={18} />
-            <input
-              type="text"
-              placeholder="Search by bill number, vendor, or reference..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-10 py-2.5 rounded-none border border-[#e2e8f0] bg-white text-sm text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:border-[#8B5CF6] shadow-sm transition-colors"
-            />
-            {searchTerm && (
-              <button
-                onClick={() => setSearchTerm("")}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#9ca3af] hover:text-[#4b5563]"
-              >
-                <X size={16} />
-              </button>
+        <div className="p-5 md:p-6 flex-1 space-y-4">
+          {/* Toolbar Row: Search (left) & Count Pill (right) */}
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="relative w-full sm:w-[340px]">
+              <div className="pointer-events-none absolute inset-y-0 left-0 pl-3.5 flex items-center">
+                <Search size={15} className="text-[#212121]" />
+                <span className="h-4 w-[1px] bg-[#E5E5E5] ml-2.5" />
+              </div>
+              <input
+                type="text"
+                placeholder="Search by bill number, vendor or reference"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="rf-input !pl-12 !pr-9 !h-[42px] bg-white"
+              />
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={() => setSearchTerm("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#525252] cursor-pointer"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+
+            {!loading && (
+              <span className="inline-flex items-center px-3.5 py-1.5 rounded-full bg-[#F3E8FF] text-[#9D43D6] text-[12px] font-medium">
+                {processedBills.length} {processedBills.length === 1 ? 'Bill' : 'Bills'}
+              </span>
             )}
           </div>
-        </div>
 
-        {/* Action Buttons Bar - Show when bills are selected */}
-        {selectedBills.size > 0 && (
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 bg-white rounded-none border border-[#e5e7eb] shadow-sm p-4">
-            <div className="flex items-center gap-4">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#111827]">
-                {selectedBills.size} {selectedBills.size === 1 ? 'Bill' : 'Bills'} Selected
-              </span>
-              <button
-                onClick={handleClearSelection}
-                className="text-xs text-[#6b7280] hover:text-[#111827] flex items-center gap-1 font-medium transition-colors"
-              >
-                <X size={14} />
-                Clear Selection
-              </button>
+          {/* Action Buttons Bar - Show when bills are selected */}
+          {selectedBills.size > 0 && (
+            <div className="flex flex-wrap items-center justify-between gap-3 bg-white rounded-[12px] border border-[#E5E5E5] shadow-[0_1px_2px_rgba(0,0,0,0.02)] p-4">
+              <div className="flex items-center gap-4">
+                <span className="text-[13px] font-semibold text-[#1B1B1B]">
+                  {selectedBills.size} {selectedBills.size === 1 ? 'Bill' : 'Bills'} Selected
+                </span>
+                <button
+                  type="button"
+                  onClick={handleClearSelection}
+                  className="text-[12px] text-[#7A7A7A] hover:text-[#1B1B1B] flex items-center gap-1 font-medium transition-colors cursor-pointer"
+                >
+                  <X size={14} />
+                  Clear Selection
+                </button>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowBulkUpdateModal(true)}
+                  className="h-[34px] px-3 text-[12px] font-medium text-[#212121] bg-[#F4F4F5] hover:bg-[#E5E5E5] rounded-[8px] transition-colors cursor-pointer"
+                >
+                  Bulk Update
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleEmailBills()}
+                  className="inline-flex h-[34px] items-center gap-1.5 px-3 text-[12px] font-medium text-[#212121] bg-[#F4F4F5] hover:bg-[#E5E5E5] rounded-[8px] transition-colors cursor-pointer"
+                >
+                  <Mail size={13} />
+                  Email
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handlePrintBills()}
+                  className="inline-flex h-[34px] items-center gap-1.5 px-3 text-[12px] font-medium text-[#212121] bg-[#F4F4F5] hover:bg-[#E5E5E5] rounded-[8px] transition-colors cursor-pointer"
+                >
+                  <Printer size={13} />
+                  Print
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDownloadBills()}
+                  className="inline-flex h-[34px] items-center gap-1.5 px-3 text-[12px] font-medium text-[#212121] bg-[#F4F4F5] hover:bg-[#E5E5E5] rounded-[8px] transition-colors cursor-pointer"
+                >
+                  <Download size={13} />
+                  Download
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowBulkPaymentModal(true)}
+                  className="h-[34px] px-3 text-[12px] font-medium text-[#212121] bg-[#F4F4F5] hover:bg-[#E5E5E5] rounded-[8px] transition-colors cursor-pointer"
+                >
+                  Record Bulk Payment
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowLinkPOModal(true)}
+                  className="inline-flex h-[34px] items-center gap-1.5 px-3 text-[12px] font-medium text-[#212121] bg-[#F4F4F5] hover:bg-[#E5E5E5] rounded-[8px] transition-colors cursor-pointer"
+                >
+                  <LinkIcon size={13} />
+                  Link to PO
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleMarkAsReceived()}
+                  className="inline-flex h-[34px] items-center gap-1.5 px-3 text-[12px] font-medium text-[#212121] bg-[#F4F4F5] hover:bg-[#E5E5E5] rounded-[8px] transition-colors cursor-pointer"
+                >
+                  <Package size={13} />
+                  Mark Received
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleUndoReceive()}
+                  className="inline-flex h-[34px] items-center gap-1.5 px-3 text-[12px] font-medium text-[#212121] bg-[#F4F4F5] hover:bg-[#E5E5E5] rounded-[8px] transition-colors cursor-pointer"
+                >
+                  <PackageX size={13} />
+                  Undo Receive
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="inline-flex h-[34px] items-center gap-1.5 px-3 text-[12px] font-semibold text-white bg-[#DC2626] hover:bg-[#B91C1C] rounded-[8px] transition-colors cursor-pointer"
+                >
+                  <Trash2 size={13} />
+                  Delete
+                </button>
+              </div>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                onClick={() => setShowBulkUpdateModal(true)}
-                className="h-8 px-3 text-xs font-bold uppercase tracking-wider text-[#111827] bg-[#eeeeee] hover:bg-[#e2e2e2] border border-[#e5e7eb] rounded-none transition-colors"
-              >
-                Bulk Update
-              </button>
-              <button
-                onClick={() => handleEmailBills()}
-                className="inline-flex h-8 items-center gap-1.5 px-3 text-xs font-bold uppercase tracking-wider text-[#111827] bg-[#eeeeee] hover:bg-[#e2e2e2] border border-[#e5e7eb] rounded-none transition-colors"
-              >
-                <Mail size={14} />
-                Email
-              </button>
-              <button
-                onClick={() => handlePrintBills()}
-                className="inline-flex h-8 items-center gap-1.5 px-3 text-xs font-bold uppercase tracking-wider text-[#111827] bg-[#eeeeee] hover:bg-[#e2e2e2] border border-[#e5e7eb] rounded-none transition-colors"
-              >
-                <Printer size={14} />
-                Print
-              </button>
-              <button
-                onClick={() => handleDownloadBills()}
-                className="inline-flex h-8 items-center gap-1.5 px-3 text-xs font-bold uppercase tracking-wider text-[#111827] bg-[#eeeeee] hover:bg-[#e2e2e2] border border-[#e5e7eb] rounded-none transition-colors"
-              >
-                <Download size={14} />
-                Download
-              </button>
-              <button
-                onClick={() => setShowBulkPaymentModal(true)}
-                className="h-8 px-3 text-xs font-bold uppercase tracking-wider text-[#111827] bg-[#eeeeee] hover:bg-[#e2e2e2] border border-[#e5e7eb] rounded-none transition-colors"
-              >
-                Record Bulk Payment
-              </button>
-              <button
-                onClick={() => setShowLinkPOModal(true)}
-                className="inline-flex h-8 items-center gap-1.5 px-3 text-xs font-bold uppercase tracking-wider text-[#111827] bg-[#eeeeee] hover:bg-[#e2e2e2] border border-[#e5e7eb] rounded-none transition-colors"
-              >
-                <LinkIcon size={14} />
-                Link to PO
-              </button>
-              <button
-                onClick={() => handleMarkAsReceived()}
-                className="inline-flex h-8 items-center gap-1.5 px-3 text-xs font-bold uppercase tracking-wider text-[#111827] bg-[#eeeeee] hover:bg-[#e2e2e2] border border-[#e5e7eb] rounded-none transition-colors"
-              >
-                <Package size={14} />
-                Mark Received
-              </button>
-              <button
-                onClick={() => handleUndoReceive()}
-                className="inline-flex h-8 items-center gap-1.5 px-3 text-xs font-bold uppercase tracking-wider text-[#111827] bg-[#eeeeee] hover:bg-[#e2e2e2] border border-[#e5e7eb] rounded-none transition-colors"
-              >
-                <PackageX size={14} />
-                Undo Receive
-              </button>
-              <button
-                onClick={() => setShowDeleteConfirm(true)}
-                className="inline-flex h-8 items-center gap-1.5 px-3 text-xs font-bold uppercase tracking-wider text-white bg-[#dc2626] hover:bg-[#b91c1c] rounded-none transition-colors"
-              >
-                <Trash2 size={14} />
-                Delete
-              </button>
-            </div>
-          </div>
-        )}
+          )}
 
-        {/* Bills Table */}
-        <div className="rounded-none border border-gray-200 bg-white shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse min-w-full text-left text-xs">
-              <thead style={{ position: "sticky", top: 0, zIndex: 2 }}>
-                <tr className="bg-[#1e1e1e] text-white text-xs uppercase tracking-wide font-bold">
-                  <th scope="col" className="px-3 py-3 text-center border-r border-[#333333] text-xs font-bold uppercase tracking-wider text-white w-12">
-                    <input
-                      type="checkbox"
-                      checked={selectedBills.size === processedBills.length && processedBills.length > 0}
-                      onChange={handleSelectAll}
-                      className="h-4 w-4 rounded-none border-gray-600 bg-gray-800 text-[#8B5CF6] focus:ring-[#8B5CF6] cursor-pointer"
-                    />
-                  </th>
-                  <th scope="col" className="px-3 py-3 text-center border-r border-[#333333] text-xs font-bold uppercase tracking-wider text-white w-14">
-                    #
-                  </th>
-                  <th scope="col" className="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-white border-r border-[#333333]">
-                    DATE
-                  </th>
-                  <th scope="col" className="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-white border-r border-[#333333]">
-                    BILL #
-                  </th>
-                  <th scope="col" className="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-white border-r border-[#333333]">
-                    VENDOR
-                  </th>
-                  <th scope="col" className="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-white border-r border-[#333333]">
-                    STATUS
-                  </th>
-                  <th scope="col" className="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-white border-r border-[#333333]">
-                    DUE DATE
-                  </th>
-                  <th scope="col" className="px-3 py-3 text-right text-xs font-bold uppercase tracking-wider text-white border-r border-[#333333]">
-                    AMOUNT
-                  </th>
-                  <th scope="col" className="px-3 py-3 text-right text-xs font-bold uppercase tracking-wider text-white">
-                    BALANCE DUE
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white">
-                {loading ? (
-                  <tr>
-                    <td colSpan={9} className="px-6 py-16 text-center">
-                      <div className="flex flex-col items-center justify-center gap-3">
-                        <div className="h-7 w-7 animate-spin rounded-none border-2 border-[#1e1e1e] border-t-transparent"></div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-gray-500">Loading bills...</p>
-                      </div>
-                    </td>
-                  </tr>
-                ) : processedBills.length === 0 ? (
-                  <tr>
-                    <td colSpan={9} className="px-6 py-16 text-center">
-                      <div className="flex flex-col items-center justify-center">
-                        <div className="w-14 h-14 rounded-none bg-[#f1f5f9] flex items-center justify-center mb-4">
-                          <Search className="text-[#94a3b8]" size={24} />
-                        </div>
-                        <p className="text-sm font-bold text-[#111827] uppercase tracking-wide mb-1">
-                          {searchTerm ? "No bills found" : "No bills yet"}
-                        </p>
-                        <p className="text-xs text-[#6b7280]">
-                          {searchTerm ? "Try adjusting your search query" : "Create your first bill to get started"}
-                        </p>
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                  processedBills.map((bill, index) => (
-                    <tr
-                      key={bill._id || bill.id}
-                      className={`border-b border-gray-100 hover:bg-gray-50/80 transition-colors cursor-pointer group ${selectedBills.has(bill._id) ? 'bg-[#f0f7ff]' : ''}`}
-                      onClick={() => {
-                        if (bill._id || bill.id) {
-                          navigate(`/purchase/bills/${bill._id || bill.id}`);
-                        } else {
-                          console.error("Bill ID is missing:", bill);
-                        }
-                      }}
-                    >
-                      <td 
-                        className="px-3 py-2.5 whitespace-nowrap border-r border-gray-100 text-center"
-                        onClick={(e) => e.stopPropagation()}
-                      >
+          {/* Loading / Empty / Table */}
+          {loading ? (
+            <div className="bg-white rounded-[16px] border border-[#E5E5E5] py-24 flex flex-col items-center justify-center gap-3">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#9D43D6] border-t-transparent" />
+              <p className="text-[13px] font-medium text-[#7A7A7A]">Loading bills...</p>
+            </div>
+          ) : processedBills.length === 0 ? (
+            <div className="bg-white rounded-[16px] border border-[#E5E5E5] shadow-[0_1px_2px_rgba(0,0,0,0.02)] py-20 px-6 flex flex-col items-center justify-center text-center min-h-[340px]">
+              {/* Purple Clipboard & Magnifier Illustration */}
+              <svg
+                width="170"
+                height="120"
+                viewBox="0 0 170 120"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="mb-5"
+                aria-hidden="true"
+              >
+                <ellipse cx="85" cy="108" rx="62" ry="6" fill="#F3E8FF" />
+                <path d="M132 104C132 90 140 80 148 76C146 88 140 97 132 104Z" fill="#C4B5FD" />
+                <path d="M130 104C128 92 132 82 137 74C138 85 135 95 130 104Z" fill="#A78BFA" />
+                <path d="M124 104C121 96 121 89 124 83C127 89 127 97 124 104Z" fill="#DDD6FE" />
+                <rect x="68" y="20" width="54" height="84" rx="8" fill="#EDE9FE" stroke="#C4B5FD" strokeWidth="2" />
+                <rect x="74" y="27" width="42" height="70" rx="5" fill="#FFFFFF" />
+                <rect x="85" y="14" width="20" height="10" rx="4" fill="#9D43D6" />
+                <circle cx="95" cy="19" r="2" fill="#FFFFFF" />
+                <rect x="83" y="42" width="24" height="32" rx="3" fill="#F5F3FF" stroke="#A78BFA" strokeWidth="1.5" />
+                <circle cx="91" cy="54" r="1.5" fill="#9D43D6" />
+                <circle cx="99" cy="54" r="1.5" fill="#9D43D6" />
+                <path d="M90 62C92.5 59.5 97.5 59.5 100 62" stroke="#9D43D6" strokeWidth="1.5" strokeLinecap="round" />
+                <circle cx="107" cy="70" r="7" fill="#9D43D6" />
+                <path d="M104.5 67.5L109.5 72.5M109.5 67.5L104.5 72.5" stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round" />
+                <circle cx="66" cy="48" r="13" fill="#F3E8FF" fillOpacity="0.65" stroke="#7C3AED" strokeWidth="2.5" />
+                <line x1="56.5" y1="57.5" x2="47" y2="67" stroke="#7C3AED" strokeWidth="3.5" strokeLinecap="round" />
+                <circle cx="44" cy="42" r="8" fill="#2E1065" />
+                <path d="M30 78C30 62 36 54 46 54C54 54 58 60 60 72L52 80H30V78Z" fill="#A78BFA" />
+                <path d="M32 78L52 78L62 96H34L32 78Z" fill="#4C1D95" />
+                <rect x="34" y="96" width="28" height="8" rx="4" fill="#DDD6FE" />
+              </svg>
+
+              <h2 className="text-[16px] font-semibold text-[#1B1B1B] tracking-tight">
+                {searchTerm ? "No bills found" : "No bills yet"}
+              </h2>
+              <p className="text-[13px] text-[#8A8A8A] mt-1.5">
+                {searchTerm ? "Try adjusting your search query" : "Create your first bill to get started"}
+              </p>
+            </div>
+          ) : (
+            <div className="rounded-[12px] border border-[#E5E5E5] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.02)] overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse min-w-full text-left">
+                  <thead style={{ position: "sticky", top: 0, zIndex: 2 }}>
+                    <tr className="bg-[#1B1B1B] text-white text-[11px] uppercase tracking-wider font-semibold">
+                      <th scope="col" className="px-4 py-3.5 text-center w-12">
                         <input
                           type="checkbox"
-                          checked={selectedBills.has(bill._id)}
-                          onChange={(e) => handleSelectBill(bill._id, e)}
-                          className="h-4 w-4 rounded-none border-gray-300 text-[#8B5CF6] focus:ring-[#8B5CF6] cursor-pointer"
+                          checked={selectedBills.size === processedBills.length && processedBills.length > 0}
+                          onChange={handleSelectAll}
+                          className="h-4 w-4 rounded-[4px] border-gray-500 accent-[#9D43D6] cursor-pointer"
                         />
-                      </td>
-                      <td className="px-3 py-2.5 whitespace-nowrap border-r border-gray-100 text-center text-xs text-gray-500 font-medium">
-                        {index + 1}
-                      </td>
-                      <td className="px-3 py-2.5 whitespace-nowrap text-xs text-gray-700 border-r border-gray-100">
-                        {bill.date}
-                      </td>
-                      <td className="px-3 py-2.5 whitespace-nowrap text-xs border-r border-gray-100">
-                        <span className="font-bold text-[#8B5CF6] group-hover:text-[#7C3AED] group-hover:underline">
-                          {bill.billNumber}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2.5 whitespace-nowrap text-xs text-gray-800 font-medium border-r border-gray-100">
-                        {bill.vendorName}
-                      </td>
-                      <td 
-                        className="px-3 py-2.5 whitespace-nowrap text-xs border-r border-gray-100"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <AppSelect
-                          value={bill.status}
-                          onChange={(e) => handleStatusUpdate(bill._id, e.target.value, e)}
-                          className={`rounded-full border-0 px-2.5 py-0.5 text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-offset-1 transition-colors cursor-pointer ${
-                            bill.status === "DRAFT"
-                              ? "bg-[#f1f5f9] text-[#475569]"
-                              : bill.status === "OVERDUE"
-                              ? "bg-[#fee2e2] text-[#dc2626]"
-                              : bill.status === "UNPAID"
-                              ? "bg-[#fef3c7] text-[#d97706]"
-                              : "bg-[#dcfce7] text-[#15803d]"
-                          }`}
-                          style={{
-                            appearance: 'none',
-                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='${bill.status === "DRAFT" ? "%23475569" : bill.status === "OVERDUE" ? "%23dc2626" : bill.status === "UNPAID" ? "%23d97706" : "%2315803d"}' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
-                            backgroundRepeat: 'no-repeat',
-                            backgroundPosition: 'right 0.5rem center',
-                            paddingRight: '1.5rem',
-                          }}
-                        >
-                          <option value="DRAFT" className="bg-white text-[#475569]">Draft</option>
-                          {bill.isOverdue ? (
-                            <option value="OVERDUE" className="bg-white text-[#dc2626]">Overdue {bill.overdueDays > 0 ? `${bill.overdueDays}d` : ''}</option>
-                          ) : (
-                            <option value="OVERDUE" className="bg-white text-[#dc2626]">Overdue</option>
-                          )}
-                          <option value="UNPAID" className="bg-white text-[#d97706]">Unpaid</option>
-                          <option value="COMPLETED" className="bg-white text-[#15803d]">Completed</option>
-                        </AppSelect>
-                      </td>
-                      <td className="px-3 py-2.5 whitespace-nowrap text-xs text-gray-600 border-r border-gray-100">
-                        {bill.dueDate}
-                      </td>
-                      <td className="px-3 py-2.5 whitespace-nowrap text-xs font-bold text-gray-900 text-right border-r border-gray-100">
-                        {bill.amount}
-                      </td>
-                      <td className="px-3 py-2.5 whitespace-nowrap text-xs font-bold text-gray-900 text-right">
-                        {bill.balanceDue}
-                      </td>
+                      </th>
+                      <th scope="col" className="px-4 py-3.5 text-center w-12">#</th>
+                      <th scope="col" className="px-4 py-3.5 text-left">DATE</th>
+                      <th scope="col" className="px-4 py-3.5 text-left">BILL #</th>
+                      <th scope="col" className="px-4 py-3.5 text-left">VENDOR</th>
+                      <th scope="col" className="px-4 py-3.5 text-left">STATUS</th>
+                      <th scope="col" className="px-4 py-3.5 text-left">DUE DATE</th>
+                      <th scope="col" className="px-4 py-3.5 text-right">AMOUNT</th>
+                      <th scope="col" className="px-4 py-3.5 text-right">BALANCE DUE</th>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-[#F0F0F0]">
+                    {processedBills.map((bill, index) => (
+                      <tr
+                        key={bill._id || bill.id}
+                        className={`hover:bg-[#FAFAFA] transition-colors cursor-pointer group ${selectedBills.has(bill._id) ? 'bg-[#FBF5FC]' : ''}`}
+                        onClick={() => {
+                          if (bill._id || bill.id) {
+                            navigate(`/purchase/bills/${bill._id || bill.id}`);
+                          } else {
+                            console.error("Bill ID is missing:", bill);
+                          }
+                        }}
+                      >
+                        <td 
+                          className="px-4 py-3 whitespace-nowrap text-center"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedBills.has(bill._id)}
+                            onChange={(e) => handleSelectBill(bill._id, e)}
+                            className="h-4 w-4 rounded-[4px] border-gray-300 accent-[#9D43D6] cursor-pointer"
+                          />
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-center text-[13px] text-[#8A8A8A] font-medium">
+                          {index + 1}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-[13px] text-[#525252]">
+                          {bill.date}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-[13px]">
+                          <span className="font-semibold text-[#9D43D6] group-hover:text-[#7E22CE] group-hover:underline">
+                            {bill.billNumber}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-[13px] text-[#212121] font-medium">
+                          {bill.vendorName}
+                        </td>
+                        <td 
+                          className="px-4 py-3 whitespace-nowrap text-[13px]"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <AppSelect
+                            value={bill.status}
+                            onChange={(e) => handleStatusUpdate(bill._id, e.target.value, e)}
+                            className={`rounded-full border-0 px-2.5 py-0.5 text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-offset-1 transition-colors cursor-pointer ${
+                              bill.status === "DRAFT"
+                                ? "bg-[#F4F4F5] text-[#525252]"
+                                : bill.status === "OVERDUE"
+                                ? "bg-[#FEE2E2] text-[#DC2626]"
+                                : bill.status === "UNPAID"
+                                ? "bg-[#FEF3C7] text-[#B45309]"
+                                : "bg-[#DCFCE7] text-[#15803D]"
+                            }`}
+                            style={{
+                              appearance: 'none',
+                              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='${bill.status === "DRAFT" ? "%23525252" : bill.status === "OVERDUE" ? "%23DC2626" : bill.status === "UNPAID" ? "%23B45309" : "%2315803D"}' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                              backgroundRepeat: 'no-repeat',
+                              backgroundPosition: 'right 0.5rem center',
+                              paddingRight: '1.5rem',
+                            }}
+                          >
+                            <option value="DRAFT" className="bg-white text-[#525252]">Draft</option>
+                            {bill.isOverdue ? (
+                              <option value="OVERDUE" className="bg-white text-[#DC2626]">Overdue {bill.overdueDays > 0 ? `${bill.overdueDays}d` : ''}</option>
+                            ) : (
+                              <option value="OVERDUE" className="bg-white text-[#DC2626]">Overdue</option>
+                            )}
+                            <option value="UNPAID" className="bg-white text-[#B45309]">Unpaid</option>
+                            <option value="COMPLETED" className="bg-white text-[#15803D]">Completed</option>
+                          </AppSelect>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-[13px] text-[#525252]">
+                          {bill.dueDate}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-[13px] font-semibold text-[#1B1B1B] text-right tabular-nums">
+                          {bill.amount}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-[13px] font-semibold text-[#1B1B1B] text-right tabular-nums">
+                          {bill.balanceDue}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
 
       {/* Bulk Update Modal */}
@@ -6905,8 +6911,8 @@ const Bills = () => {
           </div>
         </div>
       )}
+      </div>
     </div>
-    </>
   );
 };
 

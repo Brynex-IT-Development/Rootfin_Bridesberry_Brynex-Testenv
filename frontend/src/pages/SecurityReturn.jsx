@@ -6,6 +6,7 @@ import baseUrl from "../api/api";
 import { FiInfo } from "react-icons/fi";
 import useSidebar from "../hooks/useSidebar";
 
+import { appSelectStyles } from "../components/AppSelect.jsx";
 const baseExpenseCats = [
   { value: "petty expenses",        label: "Petty Expenses" },
   { value: "staff reimbursement",   label: "Staff Reimbursement" },

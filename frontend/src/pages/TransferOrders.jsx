@@ -344,443 +344,501 @@ const TransferOrders = () => {
   // Status badge (non-admin)
   const getStatusBadge = (status) => {
     const map = {
-      transferred: { label: "Transferred", bg: "bg-[#d1fae5]", text: "text-[#065f46]", dot: "#065f46" },
-      in_transit: { label: "In Transit", bg: "bg-[#ede9fe]", text: "text-[#6d28d9]", dot: "#6d28d9" },
-      draft: { label: "Draft", bg: "bg-[#f3f4f6]", text: "text-[#6b7280]", dot: "#6b7280" },
+      transferred: { label: "Transferred", bg: "bg-[#DCFCE7]", text: "text-[#16A34A]" },
+      in_transit: { label: "In Transit", bg: "bg-[#F3E8FF]", text: "text-[#9D43D6]" },
+      draft: { label: "Draft", bg: "bg-[#F4F4F5]", text: "text-[#525252]" },
     };
-    const s = map[status] || { label: status, bg: "bg-[#f3f4f6]", text: "text-[#6b7280]", dot: "#6b7280" };
+    const s = map[status] || { label: status, bg: "bg-[#F4F4F5]", text: "text-[#525252]" };
     return (
-      <span className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full ${s.bg} ${s.text}`}>
-        <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: s.dot }} />
+      <span className={`inline-flex items-center px-3 py-1 text-[12px] font-semibold rounded-[6px] ${s.bg} ${s.text}`}>
         {s.label}
       </span>
     );
   };
 
-  // Admin status dropdown
+  // Admin status dropdown (tinted pill matching screenshot)
   const getStatusSelect = (order) => {
-    const map = {
-      transferred: { bg: "bg-[#d1fae5]", text: "text-[#065f46]" },
-      in_transit: { bg: "bg-[#ede9fe]", text: "text-[#6d28d9]" },
-      draft: { bg: "bg-[#f3f4f6]", text: "text-[#6b7280]" },
+    const colorMap = {
+      transferred: { bg: "#DCFCE7", text: "#16A34A", border: "#BBF7D0" },
+      in_transit: { bg: "#F3E8FF", text: "#9D43D6", border: "#E9D5FF" },
+      draft: { bg: "#F4F4F5", text: "#525252", border: "#E4E4E7" },
     };
-    const s = map[order.status] || map.draft;
+    const c = colorMap[order.status] || colorMap.draft;
     const id = order._id || order.id;
+
+    const pillStyles = {
+      control: (base) => ({
+        ...base,
+        minHeight: "30px",
+        height: "30px",
+        backgroundColor: c.bg,
+        borderColor: "transparent",
+        borderRadius: "6px",
+        boxShadow: "none",
+        padding: "0 2px",
+        minWidth: "112px",
+        cursor: "pointer",
+        "&:hover": { borderColor: c.border },
+      }),
+      valueContainer: (base) => ({
+        ...base,
+        padding: "0 4px 0 10px",
+      }),
+      singleValue: (base) => ({
+        ...base,
+        color: c.text,
+        fontSize: "12px",
+        fontWeight: 600,
+      }),
+      indicatorSeparator: () => ({ display: "none" }),
+      dropdownIndicator: (base) => ({
+        ...base,
+        color: c.text,
+        padding: "0 6px 0 2px",
+        "&:hover": { color: c.text },
+      }),
+      menu: (base) => ({
+        ...base,
+        borderRadius: "10px",
+        border: "1px solid #E5E5E5",
+        boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)",
+        overflow: "hidden",
+        minWidth: "130px",
+      }),
+    };
+
     return (
-      <div className="relative inline-flex items-center">
+      <div className="inline-flex items-center justify-center">
         <AppSelect
           value={order.status}
           onChange={(e) => handleStatusChange(id, e.target.value)}
           disabled={updatingStatus.has(id)}
-          className={`appearance-none pr-6 pl-3 py-1 text-xs font-semibold rounded-full border-0 focus:outline-none focus:ring-2 focus:ring-[#9B48D7] disabled:opacity-50 cursor-pointer ${s.bg} ${s.text}`}
+          isSearchable={false}
+          styles={pillStyles}
         >
           <option value="draft">Draft</option>
           <option value="in_transit">In Transit</option>
           <option value="transferred">Transferred</option>
         </AppSelect>
-        
       </div>
     );
   };
 
   const TABLE_COLS = [
-    "DATE",
-    "TRANSFER ORDER #",
-    "REASON",
-    "STATUS",
-    "QUANTITY",
-    "SOURCE WAREHOUSE",
-    "DESTINATION WAREHOUSE",
-    "CREATED BY",
+    { label: "DATE", align: "text-left" },
+    { label: "TRANSFER ORDER #", align: "text-left" },
+    { label: "REASON", align: "text-left" },
+    { label: "STATUS", align: "text-center" },
+    { label: "QUANTITY", align: "text-center" },
+    { label: "SOURCE WAREHOUSE", align: "text-center" },
+    { label: "DESTINATION WAREHOUSE", align: "text-center" },
+    { label: "CREATED BY", align: "text-center" },
   ];
 
   return (
-    <>
+    <div className="min-h-screen bg-[#FAFAFA] text-[#212121]">
       <Header title="Transfer Orders" />
-      <div className={`transition-all duration-300 p-8 bg-[#f8f9fa] min-h-screen ${isSidebarOpen ? "ml-64" : "ml-0"}`}>
-
-        {/* ── Top bar: Search + New button ── */}
-        <div className="flex items-center justify-between mb-5">
-          <div className="flex items-center gap-3">
-            {/* Search */}
-            <div className="relative flex items-center">
-              <Search className="absolute left-3 text-[#94a3b8]" size={15} />
-              <input
-                type="text"
-                placeholder="Search by reference number, reasons, or description"
-                value={searchTerm}
-                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                className="pl-9 pr-3 h-9 w-[320px] border border-[#e2e8f0] bg-white text-xs text-[#1e293b] placeholder:text-[#b0b7c3] focus:outline-none focus:ring-1 focus:ring-[#9B48D7] rounded-md"
-              />
-            </div>
-            {/* Order count pill */}
-            {!loading && (
-              <span className="px-3 py-1 text-xs font-semibold bg-[#ede9fe] text-[#6d28d9] rounded-full">
-                {filteredOrders.length} {filteredOrders.length === 1 ? "Order" : "Orders"}
-              </span>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2">
-            {isAdmin && selectedOrders.size > 0 && (
-              <button
-                onClick={handleDeleteClick}
-                className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#dc2626] px-4 text-sm font-semibold text-white hover:bg-[#b91c1c] transition cursor-pointer"
-              >
-                <Trash2 size={14} />
-                <span>Delete ({selectedOrders.size})</span>
-              </button>
-            )}
-            <Link
-              to="/inventory/transfer-orders/new"
-              className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#9B48D7] px-5 text-sm font-semibold text-white hover:bg-[#8637c3] transition"
-            >
-              <span className="text-base leading-none">+</span>
-              <span>New Transfer Order</span>
-            </Link>
-          </div>
+      <div className={`transition-all duration-300 ${isSidebarOpen ? "ml-[240px]" : "ml-0"}`}>
+        {/* Clean Page Title Header */}
+        <div className="bg-white px-6 md:px-8 py-4 border-b border-[#E5E5E5] flex items-center justify-between">
+          <h1 className="text-[18px] font-semibold text-[#212121]">Transfer Orders</h1>
         </div>
-
-        {/* ── Second row: Transfer Period (left) + Status tabs (right) ── */}
-        <div className="flex items-center justify-between mb-4">
-          {/* Transfer Period dropdown */}
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-medium text-[#64748b]">Transfer Period</span>
-            <div className="relative">
-              <AppSelect
-                value={transferPeriod}
-                onChange={(e) => setTransferPeriod(Number(e.target.value))}
-                className="appearance-none h-7 pl-2.5 pr-7 text-[11px] font-semibold border border-[#e2e8f0] bg-white text-[#374151] rounded-md focus:outline-none focus:ring-1 focus:ring-[#9B48D7] cursor-pointer"
-              >
-                {PERIOD_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
-                ))}
-              </AppSelect>
-              
-            </div>
-          </div>
-
-          {/* Status tab pills */}
-          <div className="flex items-center bg-[#f0f0f3] rounded-full p-0.5">
-            {[
-              { key: "all",         label: "All",         count: transferOrders.length },
-              { key: "in_transit",  label: "In Transit",  count: inTransitCount },
-              { key: "transferred", label: "Transfered", count: transferredCount },
-              { key: "draft",       label: "Draft",        count: draftCount },
-            ].map(({ key, label, count }) => (
-              <button
-                key={key}
-                onClick={() => { setStatusFilter(key); setCurrentPage(1); }}
-                className={`inline-flex items-center px-2 py-0.5 rounded-full transition-all cursor-pointer whitespace-nowrap ${
-                  statusFilter === key
-                    ? "bg-white shadow-sm text-[#111827]"
-                    : "text-[#b0b7c3] hover:text-[#9ca3af]"
-                }`}
-                style={{ fontSize: "10px", fontWeight: statusFilter === key ? 700 : 400 }}
-              >
-                {label}
-                <span
-                  className="inline-flex items-center justify-center rounded-full bg-[#9B48D7] text-white shrink-0 ml-1"
-                  style={{ width: "14px", height: "14px", fontSize: "8px", fontWeight: 500 }}
-                >
-                  {count}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* ── Table ── */}
-        <div className="bg-white border border-[#e2e8f0] overflow-hidden rounded-sm">
-          <div className="overflow-x-auto">
-            {loading ? (
-              <table className="min-w-full">
-                <thead>
-                  <tr className="bg-[#18181b]">
-                    <th className="w-10 px-4 py-3 border-r border-[#27272a]" />
-                    {TABLE_COLS.map((c) => (
-                      <th key={c} className="px-4 py-3 text-left text-[10px] font-semibold tracking-widest text-[#a1a1aa] uppercase border-r border-[#27272a] last:border-r-0 whitespace-nowrap">
-                        {c}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#f1f5f9]">
-                  {Array.from({ length: 8 }).map((_, i) => (
-                    <tr key={i} className="animate-pulse">
-                      {Array.from({ length: TABLE_COLS.length + 1 }).map((_, j) => (
-                        <td key={j} className="px-4 py-3 border-r border-[#f1f5f9] last:border-r-0">
-                          <div className="h-4 bg-[#e2e8f0] rounded w-3/4" />
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : filteredOrders.length === 0 ? (
-              <div className="px-6 py-16 text-center">
-                <div className="mx-auto w-14 h-14 rounded-full bg-[#f1f5f9] flex items-center justify-center mb-4">
-                  <Search className="text-[#94a3b8]" size={22} />
-                </div>
-                <p className="text-sm font-semibold text-[#1e293b] mb-1">
-                  {searchTerm ? "No transfer orders found" : "No transfer orders yet"}
-                </p>
-                <p className="text-xs text-[#64748b] mb-4">
-                  {searchTerm ? "Try adjusting your search" : "Create your first transfer order to get started"}
-                </p>
-                {!searchTerm && (
-                  <Link
-                    to="/inventory/transfer-orders/new"
-                    className="inline-flex items-center gap-2 rounded-md bg-[#9B48D7] px-4 py-2 text-sm font-semibold text-white hover:bg-[#8637c3] transition"
-                  >
-                    + Create Transfer Order
-                  </Link>
-                )}
+        <div className="p-5 md:p-6">
+          {/* ── Row 1: Search + Order Count Pill (left) & New Transfer Order (right) ── */}
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Search */}
+              <div className="relative w-full sm:w-[340px]">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#525252] pointer-events-none" size={15} />
+                <input
+                  type="text"
+                  placeholder="Search by reference number, reasons, or description"
+                  value={searchTerm}
+                  onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                  className="rf-input !pl-10 !h-[42px] bg-white"
+                />
               </div>
-            ) : (
-              <table className="min-w-full">
-                <thead>
-                  <tr className="bg-[#18181b]">
-                    <th className="w-10 px-4 py-3 text-center border-r border-[#27272a]">
-                      <input
-                        type="checkbox"
-                        className="h-4 w-4 rounded border-[#52525b] accent-[#9B48D7] cursor-pointer"
-                        checked={
-                          pagedOrders.length > 0 &&
-                          pagedOrders.every((o) => {
-                            const id = o._id || o.id;
-                            return !id || selectedOrders.has(id);
-                          })
-                        }
-                        onChange={(e) => handleSelectAll(e.target.checked)}
-                      />
-                    </th>
-                    {TABLE_COLS.map((col, i) => (
-                      <th
-                        key={col}
-                        className={`px-4 py-3 text-left text-[10px] font-semibold tracking-widest text-[#a1a1aa] uppercase whitespace-nowrap ${i < TABLE_COLS.length - 1 ? "border-r border-[#27272a]" : ""}`}
-                      >
-                        {col}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#f1f5f9]">
-                  {pagedOrders.map((order) => {
-                    const id = order._id || order.id;
-                    return (
-                      <tr
-                        key={id}
-                        className="hover:bg-[#faf5ff] transition-colors cursor-pointer group"
-                        onClick={() => navigate(`/inventory/transfer-orders/${id}`)}
-                      >
-                        {/* Checkbox */}
-                        <td
-                          className="px-4 py-3 text-center border-r border-[#f1f5f9]"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <div className="flex items-center justify-center gap-1.5">
-                            <input
-                              type="checkbox"
-                              className="h-4 w-4 rounded border-[#d1d5db] accent-[#9B48D7] cursor-pointer"
-                              checked={selectedOrders.has(id)}
-                              onChange={(e) => handleCheckboxChange(id, e.target.checked)}
-                            />
-                            {isAdmin && selectedOrders.has(id) && (
-                              <button
-                                onClick={(e) => { e.stopPropagation(); handleSingleDelete(order); }}
-                                className="p-0.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded transition"
-                              >
-                                <Trash2 size={13} />
-                              </button>
-                            )}
-                          </div>
-                        </td>
+              {/* Order count pill */}
+              {!loading && (
+                <span className="inline-flex items-center px-3.5 py-1.5 text-[12px] font-semibold bg-[#F3E8FF]/80 text-[#9D43D6] rounded-full">
+                  {filteredOrders.length} {filteredOrders.length === 1 ? "Order" : "Orders"}
+                </span>
+              )}
+            </div>
 
-                        {/* Date */}
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-[#475569] border-r border-[#f1f5f9]">
-                          {formatDate(order.date)}
-                        </td>
-
-                        {/* Transfer Order # */}
-                        <td className="px-4 py-3 whitespace-nowrap text-sm border-r border-[#f1f5f9]">
-                          <span
-                            className="font-semibold text-[#9B48D7] group-hover:underline cursor-pointer"
-                            onClick={(e) => { e.stopPropagation(); navigate(`/inventory/transfer-orders/${id}`); }}
-                          >
-                            {order.transferOrderNumber || "—"}
-                          </span>
-                        </td>
-
-                        {/* Reason */}
-                        <td className="px-4 py-3 text-sm text-[#6b7280] border-r border-[#f1f5f9] max-w-[180px] truncate">
-                          {order.reason || "—"}
-                        </td>
-
-                        {/* Status */}
-                        <td
-                          className="px-4 py-3 whitespace-nowrap text-sm border-r border-[#f1f5f9]"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {isAdmin ? getStatusSelect(order) : getStatusBadge(order.status)}
-                        </td>
-
-                        {/* Quantity */}
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-center font-semibold text-[#1f2937] border-r border-[#f1f5f9]">
-                          {parseFloat(order.totalQuantityTransferred || 0).toFixed(0)}
-                        </td>
-
-                        {/* Source Warehouse */}
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-[#475569] border-r border-[#f1f5f9]">
-                          {order.sourceWarehouse || "—"}
-                        </td>
-
-                        {/* Destination Warehouse */}
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-[#475569] border-r border-[#f1f5f9]">
-                          {order.destinationWarehouse || "—"}
-                        </td>
-
-                        {/* Created By */}
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-[#64748b]">
-                          {order.createdBy || "—"}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            )}
+            <div className="flex items-center gap-2.5">
+              {isAdmin && selectedOrders.size > 0 && (
+                <button
+                  onClick={handleDeleteClick}
+                  className="inline-flex h-[40px] items-center gap-1.5 rounded-[10px] bg-[#DC2626] px-4 text-[13px] font-semibold text-white hover:bg-[#B91C1C] transition cursor-pointer"
+                >
+                  <Trash2 size={14} />
+                  <span>Delete ({selectedOrders.size})</span>
+                </button>
+              )}
+              <Link
+                to="/inventory/transfer-orders/new"
+                className="rf-btn-primary inline-flex items-center gap-1.5 !h-[40px] !px-5 !text-[13px]"
+              >
+                <span className="text-[16px] leading-none">+</span>
+                <span>New Transfer Order</span>
+              </Link>
+            </div>
           </div>
 
-          {/* ── Pagination ── */}
-          {!loading && filteredOrders.length > PAGE_SIZE && (
-            <div className="flex items-center justify-center gap-1 py-5 border-t border-[#f1f5f9]">
-              {/* Previous */}
-              <button
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="inline-flex items-center gap-1 px-3 h-8 text-xs font-medium text-[#6b7280] hover:text-[#1f2937] disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
-              >
-                <ChevronLeft size={14} />
-                Previous
-              </button>
+          {/* ── Row 2: Transfer Period (left) + Status Segmented Tabs (right) ── */}
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+            {/* Transfer Period dropdown */}
+            <div className="flex items-center gap-3">
+              <span className="text-[13px] font-medium text-[#212121] whitespace-nowrap">
+                Transfer Period
+              </span>
+              <div className="min-w-[132px]">
+                <AppSelect
+                  value={transferPeriod}
+                  onChange={(e) => setTransferPeriod(Number(e.target.value))}
+                  isSearchable={false}
+                >
+                  {PERIOD_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
+                  ))}
+                </AppSelect>
+              </div>
+            </div>
 
-              {getPageNumbers().map((page, idx) =>
-                page === "..." ? (
-                  <span key={`ellipsis-${idx}`} className="px-2 text-[#9ca3af] text-xs select-none">
-                    ...
-                  </span>
-                ) : (
+            {/* Status tab pills */}
+            <div className="inline-flex items-center bg-[#F4F4F5] rounded-[12px] p-1 gap-1">
+              {[
+                { key: "all",         label: "All",         count: transferOrders.length },
+                { key: "transferred", label: "Transferred", count: transferredCount },
+                { key: "in_transit",  label: "In Transit",  count: inTransitCount },
+                { key: "draft",       label: "Draft",       count: draftCount },
+              ].map(({ key, label, count }) => {
+                const isActive = statusFilter === key;
+                return (
                   <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`w-8 h-8 text-xs font-semibold rounded-md transition cursor-pointer ${
-                      currentPage === page
-                        ? "bg-[#9B48D7] text-white"
-                        : "text-[#374151] hover:bg-[#f3f4f6]"
+                    key={key}
+                    type="button"
+                    onClick={() => { setStatusFilter(key); setCurrentPage(1); }}
+                    className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-[8px] text-[12px] transition-all cursor-pointer whitespace-nowrap ${
+                      isActive
+                        ? "bg-white shadow-xs text-[#1B1B1B] font-semibold"
+                        : "text-[#7A7A7A] hover:text-[#212121] font-medium"
                     }`}
                   >
-                    {page}
+                    <span>{label}</span>
+                    <span
+                      className={`inline-flex items-center justify-center rounded-full px-1.5 min-w-[20px] h-[18px] text-[10px] font-semibold tabular-nums ${
+                        isActive
+                          ? "bg-[#9D43D6] text-white"
+                          : "bg-[#F3E8FF] text-[#9D43D6]"
+                      }`}
+                    >
+                      {count}
+                    </span>
                   </button>
-                )
-              )}
+                );
+              })}
+            </div>
+          </div>
 
-              {/* Next */}
-              <button
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className="inline-flex items-center gap-1 px-3 h-8 text-xs font-medium text-[#6b7280] hover:text-[#1f2937] disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
-              >
-                Next
-                <ChevronRight size={14} />
-              </button>
+          {/* ── Table Card ── */}
+          <div className="bg-white border border-[#E5E5E5] rounded-[12px] shadow-[0_1px_2px_rgba(0,0,0,0.02)] overflow-hidden">
+            <div className="overflow-x-auto">
+              {loading ? (
+                <table className="min-w-full border-collapse">
+                  <thead>
+                    <tr className="bg-[#1B1B1B] text-white">
+                      <th className="w-11 px-4 py-3.5" />
+                      {TABLE_COLS.map((c) => (
+                        <th key={c.label} className={`px-4 py-3.5 ${c.align} text-[11px] font-semibold tracking-wider text-white uppercase whitespace-nowrap`}>
+                          {c.label}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#F0F0F0]">
+                    {Array.from({ length: 8 }).map((_, i) => (
+                      <tr key={i} className="animate-pulse">
+                        {Array.from({ length: TABLE_COLS.length + 1 }).map((_, j) => (
+                          <td key={j} className="px-4 py-3.5">
+                            <div className="h-4 bg-[#ECECEF] rounded w-3/4 mx-auto" />
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : filteredOrders.length === 0 ? (
+                <div className="px-6 py-16 text-center">
+                  <div className="mx-auto w-12 h-12 rounded-[12px] bg-[#F3E8FF] flex items-center justify-center mb-3">
+                    <Search className="text-[#9D43D6]" size={22} />
+                  </div>
+                  <p className="text-[14px] font-semibold text-[#1B1B1B] mb-1">
+                    {searchTerm ? "No transfer orders found" : "No transfer orders yet"}
+                  </p>
+                  <p className="text-[12px] text-[#7A7A7A] mb-4">
+                    {searchTerm ? "Try adjusting your search" : "Create your first transfer order to get started"}
+                  </p>
+                  {!searchTerm && (
+                    <Link
+                      to="/inventory/transfer-orders/new"
+                      className="rf-btn-primary inline-flex items-center gap-2 !h-[38px] !px-4 !text-[13px]"
+                    >
+                      + Create Transfer Order
+                    </Link>
+                  )}
+                </div>
+              ) : (
+                <table className="min-w-full border-collapse">
+                  <thead>
+                    <tr className="bg-[#1B1B1B] text-white">
+                      <th className="w-11 px-4 py-3.5 text-center">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 rounded-[4px] border-gray-500 accent-[#9D43D6] cursor-pointer align-middle"
+                          checked={
+                            pagedOrders.length > 0 &&
+                            pagedOrders.every((o) => {
+                              const id = o._id || o.id;
+                              return !id || selectedOrders.has(id);
+                            })
+                          }
+                          onChange={(e) => handleSelectAll(e.target.checked)}
+                        />
+                      </th>
+                      {TABLE_COLS.map((col) => (
+                        <th
+                          key={col.label}
+                          className={`px-4 py-3.5 ${col.align} text-[11px] font-semibold tracking-wider text-white uppercase whitespace-nowrap`}
+                        >
+                          {col.label}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#F0F0F0] bg-white">
+                    {pagedOrders.map((order) => {
+                      const id = order._id || order.id;
+                      return (
+                        <tr
+                          key={id}
+                          className="hover:bg-[#FAFAFA] transition-colors cursor-pointer group"
+                          onClick={() => navigate(`/inventory/transfer-orders/${id}`)}
+                        >
+                          {/* Checkbox */}
+                          <td
+                            className="px-4 py-3.5 text-center border-r border-[#F5F5F5]"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <div className="flex items-center justify-center gap-1.5">
+                              <input
+                                type="checkbox"
+                                className="h-4 w-4 rounded-[4px] border-[#D4D4D8] accent-[#9D43D6] cursor-pointer align-middle"
+                                checked={selectedOrders.has(id)}
+                                onChange={(e) => handleCheckboxChange(id, e.target.checked)}
+                              />
+                              {isAdmin && selectedOrders.has(id) && (
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleSingleDelete(order); }}
+                                  className="p-0.5 text-[#DC2626] hover:bg-[#FEF2F2] rounded transition cursor-pointer"
+                                >
+                                  <Trash2 size={13} />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* Date */}
+                          <td className="px-4 py-3.5 whitespace-nowrap text-[13px] text-[#525252] border-r border-[#F5F5F5]">
+                            {formatDate(order.date)}
+                          </td>
+
+                          {/* Transfer Order # */}
+                          <td className="px-4 py-3.5 whitespace-nowrap text-[13px] border-r border-[#F5F5F5]">
+                            <span
+                              className="font-semibold text-[#9D43D6] group-hover:underline cursor-pointer"
+                              onClick={(e) => { e.stopPropagation(); navigate(`/inventory/transfer-orders/${id}`); }}
+                            >
+                              {order.transferOrderNumber || "—"}
+                            </span>
+                          </td>
+
+                          {/* Reason */}
+                          <td className="px-4 py-3.5 text-[13px] text-[#7A7A7A] border-r border-[#F5F5F5] max-w-[200px] truncate">
+                            {order.reason || "—"}
+                          </td>
+
+                          {/* Status */}
+                          <td
+                            className="px-4 py-3.5 whitespace-nowrap text-[13px] text-center border-r border-[#F5F5F5]"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {isAdmin ? getStatusSelect(order) : getStatusBadge(order.status)}
+                          </td>
+
+                          {/* Quantity */}
+                          <td className="px-4 py-3.5 whitespace-nowrap text-[13px] text-center font-semibold text-[#1B1B1B] tabular-nums border-r border-[#F5F5F5]">
+                            {parseFloat(order.totalQuantityTransferred || 0).toFixed(0)}
+                          </td>
+
+                          {/* Source Warehouse */}
+                          <td className="px-4 py-3.5 whitespace-nowrap text-[13px] text-center text-[#525252] border-r border-[#F5F5F5]">
+                            {order.sourceWarehouse || "—"}
+                          </td>
+
+                          {/* Destination Warehouse */}
+                          <td className="px-4 py-3.5 whitespace-nowrap text-[13px] text-center text-[#525252] border-r border-[#F5F5F5]">
+                            {order.destinationWarehouse || "—"}
+                          </td>
+
+                          {/* Created By */}
+                          <td className="px-4 py-3.5 whitespace-nowrap text-[13px] text-center text-[#7A7A7A]">
+                            {order.createdBy || "—"}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
+            </div>
+
+            {/* ── Pagination ── */}
+            {!loading && filteredOrders.length > PAGE_SIZE && (
+              <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3.5 border-t border-[#F0F0F0] bg-white">
+                <div className="text-[12px] text-[#7A7A7A]">
+                  Showing {(currentPage - 1) * PAGE_SIZE + 1} to {Math.min(currentPage * PAGE_SIZE, filteredOrders.length)} of {filteredOrders.length} orders
+                </div>
+                <div className="flex items-center gap-1.5">
+                  {/* Previous */}
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-[13px] font-medium text-[#525252] hover:text-[#1B1B1B] hover:bg-[#F4F4F5] disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+                  >
+                    <span>←</span>
+                    <span>Previous</span>
+                  </button>
+
+                  {getPageNumbers().map((page, idx) =>
+                    page === "..." ? (
+                      <span key={`ellipsis-${idx}`} className="px-1.5 text-[#7A7A7A] text-[13px] select-none">
+                        ...
+                      </span>
+                    ) : (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`w-8 h-8 text-[13px] font-semibold rounded-[8px] transition cursor-pointer flex items-center justify-center ${
+                          currentPage === page
+                            ? "bg-[#1B1B1B] text-white shadow-xs"
+                            : "text-[#525252] hover:text-[#1B1B1B] hover:bg-[#F4F4F5]"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    )
+                  )}
+
+                  {/* Next */}
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-[13px] font-medium text-[#1B1B1B] hover:bg-[#F4F4F5] disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+                  >
+                    <span>Next</span>
+                    <span>→</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* ── 2-Step Delete Modal ── */}
+          {showDeleteModal && (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-[1px] flex items-center justify-center z-50 p-4">
+              <div className="bg-white shadow-2xl max-w-md w-full rounded-[16px] border border-[#E5E5E5] overflow-hidden">
+                <div className="p-6">
+                  {deleteStep === 1 ? (
+                    <>
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 rounded-[10px] bg-[#FEE2E2] flex items-center justify-center shrink-0">
+                          <AlertTriangle className="text-[#DC2626]" size={20} />
+                        </div>
+                        <h3 className="text-[16px] font-semibold text-[#1B1B1B]">
+                          Delete {ordersToDelete.length === 1 ? "Transfer Order" : `${ordersToDelete.length} Transfer Orders`}?
+                        </h3>
+                      </div>
+                      <p className="text-[13px] text-[#525252] mb-6 leading-relaxed">
+                        Are you sure you want to delete{" "}
+                        {ordersToDelete.length === 1 ? "this transfer order" : `these ${ordersToDelete.length} transfer orders`}?
+                        {ordersToDelete.some((o) => o.status === "transferred") && (
+                          <span className="block mt-2 text-[#DC2626] font-semibold">
+                            Some orders are already transferred. Stock will be reversed before deletion.
+                          </span>
+                        )}
+                      </p>
+                      <div className="flex gap-2.5 justify-end">
+                        <button onClick={handleCancelDelete} className="rf-btn-cancel !h-[38px] !px-4 !text-[13px]">
+                          Cancel
+                        </button>
+                        <button onClick={() => setDeleteStep(2)} className="inline-flex items-center justify-center h-[38px] px-4 text-[13px] font-semibold text-white bg-[#DC2626] rounded-[10px] hover:bg-[#B91C1C] transition cursor-pointer">
+                          Continue
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 rounded-[10px] bg-[#FEE2E2] flex items-center justify-center shrink-0">
+                          <AlertTriangle className="text-[#DC2626]" size={20} />
+                        </div>
+                        <h3 className="text-[16px] font-semibold text-[#1B1B1B]">Final Confirmation</h3>
+                      </div>
+                      <p className="text-[13px] text-[#525252] mb-4 leading-relaxed">
+                        This action cannot be undone. Are you absolutely sure?
+                      </p>
+                      {ordersToDelete.length > 0 && (
+                        <div className="mb-5 p-3 bg-[#FAFAFA] max-h-40 overflow-y-auto border border-[#E5E5E5] rounded-[10px]">
+                          <p className="text-[11px] font-semibold uppercase tracking-wider text-[#7A7A7A] mb-2">Orders to be deleted:</p>
+                          <ul className="text-[12px] text-[#212121] space-y-1">
+                            {ordersToDelete.map((order, idx) => (
+                              <li key={order._id || order.id || idx}>
+                                • {order.transferOrderNumber || `Order-${String(order._id || order.id).slice(-8)}`} — {order.reason || "No reason"} ({order.status})
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      <div className="flex gap-2.5 justify-end">
+                        <button onClick={() => setDeleteStep(1)} disabled={deleting} className="rf-btn-cancel !h-[38px] !px-4 !text-[13px]">
+                          Back
+                        </button>
+                        <button
+                          onClick={handleConfirmDeleteStep2}
+                          disabled={deleting}
+                          className="inline-flex items-center justify-center gap-2 h-[38px] px-4 text-[13px] font-semibold text-white bg-[#DC2626] rounded-[10px] hover:bg-[#B91C1C] transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                        >
+                          {deleting ? (
+                            <>
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                              Deleting...
+                            </>
+                          ) : (
+                            "Confirm Delete"
+                          )}
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
           )}
         </div>
-
-        {/* ── 2-Step Delete Modal ── */}
-        {showDeleteModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white shadow-xl max-w-md w-full mx-4 rounded-md">
-              <div className="p-6">
-                {deleteStep === 1 ? (
-                  <>
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
-                        <AlertTriangle className="text-red-600" size={20} />
-                      </div>
-                      <h3 className="text-lg font-semibold text-[#1e293b]">
-                        Delete {ordersToDelete.length === 1 ? "Transfer Order" : `${ordersToDelete.length} Transfer Orders`}?
-                      </h3>
-                    </div>
-                    <p className="text-sm text-[#64748b] mb-6">
-                      Are you sure you want to delete{" "}
-                      {ordersToDelete.length === 1 ? "this transfer order" : `these ${ordersToDelete.length} transfer orders`}?
-                      {ordersToDelete.some((o) => o.status === "transferred") && (
-                        <span className="block mt-2 text-red-600 font-medium">
-                          ⚠️ Some orders are already transferred. Stock will be reversed before deletion.
-                        </span>
-                      )}
-                    </p>
-                    <div className="flex gap-3 justify-end">
-                      <button onClick={handleCancelDelete} className="px-4 py-2 text-sm font-medium text-[#64748b] bg-white border border-[#e2e8f0] rounded-md hover:bg-[#f8fafc] transition">
-                        Cancel
-                      </button>
-                      <button onClick={() => setDeleteStep(2)} className="px-4 py-2 text-sm font-medium text-white bg-[#dc2626] rounded-md hover:bg-[#b91c1c] transition">
-                        Continue
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
-                        <AlertTriangle className="text-red-600" size={20} />
-                      </div>
-                      <h3 className="text-lg font-semibold text-[#1e293b]">Final Confirmation</h3>
-                    </div>
-                    <p className="text-sm text-[#64748b] mb-4">
-                      This action cannot be undone. Are you absolutely sure?
-                    </p>
-                    {ordersToDelete.length > 0 && (
-                      <div className="mb-4 p-3 bg-[#f8fafc] max-h-40 overflow-y-auto border border-[#e2e8f0] rounded">
-                        <p className="text-xs font-semibold text-[#64748b] mb-2">Orders to be deleted:</p>
-                        <ul className="text-xs text-[#475569] space-y-1">
-                          {ordersToDelete.map((order, idx) => (
-                            <li key={order._id || order.id || idx}>
-                              • {order.transferOrderNumber || `Order-${String(order._id || order.id).slice(-8)}`} — {order.reason || "No reason"} ({order.status})
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    <div className="flex gap-3 justify-end">
-                      <button onClick={() => setDeleteStep(1)} disabled={deleting} className="px-4 py-2 text-sm font-medium text-[#64748b] bg-white border border-[#e2e8f0] rounded-md hover:bg-[#f8fafc] transition">
-                        Back
-                      </button>
-                      <button
-                        onClick={handleConfirmDeleteStep2}
-                        disabled={deleting}
-                        className="px-4 py-2 text-sm font-medium text-white bg-[#dc2626] rounded-md hover:bg-[#b91c1c] transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                      >
-                        {deleting ? (
-                          <>
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                            Deleting...
-                          </>
-                        ) : (
-                          "Confirm Delete"
-                        )}
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
       </div>
-    </>
+    </div>
   );
 };
 

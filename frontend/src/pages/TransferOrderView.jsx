@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { createPortal } from "react-dom";
 import JsBarcode from "jsbarcode";
+import Header from "../components/Header";
 import {
   ArrowLeft,
   Edit,
@@ -1136,7 +1137,7 @@ const TransferOrderView = () => {
   
   if (loading) {
     return (
-      <div className={`transition-all duration-300 p-6 bg-[#f5f7fb] min-h-screen flex items-center justify-center ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+      <div className={`transition-all duration-300 p-6 bg-[#FAFAFA] min-h-screen flex items-center justify-center ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
         <div className="text-[#64748b]">Loading transfer order...</div>
       </div>
     );
@@ -1144,12 +1145,12 @@ const TransferOrderView = () => {
   
   if (!transferOrder) {
     return (
-      <div className={`transition-all duration-300 p-6 bg-[#f5f7fb] min-h-screen flex items-center justify-center ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+      <div className={`transition-all duration-300 p-6 bg-[#FAFAFA] min-h-screen flex items-center justify-center ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
         <div className="text-center">
           <p className="text-[#64748b] mb-4">Transfer order not found</p>
           <Link
             to="/inventory/transfer-orders"
-            className="text-[#2563eb] hover:underline"
+            className="text-[#9D43D6] hover:underline"
           >
             Back to Transfer Orders
           </Link>
@@ -1162,7 +1163,14 @@ const TransferOrderView = () => {
   const statusLabel = transferOrder.status === "transferred" ? "Transferred" : transferOrder.status === "in_transit" ? "In Transit" : "Draft";
   
   return (
-    <div className={`transition-all duration-300 min-h-screen bg-[#f5f7fb] p-6 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+    <div className="min-h-screen bg-[#FAFAFA] text-[#212121]">
+      <Header title="Transfer Order Details" />
+      <div className={`transition-all duration-300 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
+        {/* Clean Page Title Header */}
+        <div className="bg-white px-6 md:px-8 py-4 border-b border-[#E5E5E5] flex items-center justify-between">
+          <h1 className="text-[18px] font-semibold text-[#212121]">Transfer Order Details</h1>
+        </div>
+        <div className="p-5 md:p-6">
       {/* Top Bar with Actions */}
       <div className="mb-4 flex items-center justify-between bg-white rounded-lg border border-[#e2e8f0] px-4 py-3 shadow-sm">
         <div className="flex items-center gap-3">
@@ -1203,7 +1211,7 @@ const TransferOrderView = () => {
               {!showScanner ? (
                 <button
                   onClick={startScanner}
-                  className="inline-flex items-center gap-2 rounded-md bg-[#2563eb] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#1d4ed8]"
+                  className="inline-flex items-center gap-2 rounded-md bg-[#9D43D6] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#8732BE]"
                 >
                   <Scan size={16} />
                   Start Scanning
@@ -1238,7 +1246,7 @@ const TransferOrderView = () => {
             />
             Show PDF View
           </label>
-          <button className="inline-flex items-center gap-2 rounded-md bg-[#2563eb] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#1d4ed8]">
+          <button className="inline-flex items-center gap-2 rounded-md bg-[#9D43D6] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#8732BE]">
             Customize
           </button>
         </div>
@@ -1264,7 +1272,7 @@ const TransferOrderView = () => {
           )}
           {transferOrder.status === "in_transit" && (
             <div 
-              className="absolute top-0 left-0 bg-[#3b82f6] text-white px-16 py-2 text-xs font-bold uppercase tracking-wider shadow-lg z-10"
+              className="absolute top-0 left-0 bg-[#9D43D6] text-white px-16 py-2 text-xs font-bold uppercase tracking-wider shadow-lg z-10"
               style={{
                 transform: 'rotate(-45deg)',
                 transformOrigin: 'top left',
@@ -1531,7 +1539,7 @@ const TransferOrderView = () => {
             <h3 className="text-sm font-semibold text-[#64748b] mb-3">Items</h3>
             <div className="border border-[#e2e8f0] rounded-lg overflow-hidden">
               <table className="w-full">
-                <thead className="bg-[#f8fafc]">
+                <thead className="bg-[#FAFAFA]">
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-[#64748b]">Item</th>
                     <th className="px-4 py-3 text-right text-xs font-semibold text-[#64748b]">Quantity</th>
@@ -1618,7 +1626,7 @@ const TransferOrderView = () => {
                   type="text"
                   onKeyDown={handleExternalScannerInput}
                   placeholder="Focus here to scan with external scanner..."
-                  className="w-full px-3 py-2 text-sm border border-[#d7dcf5] rounded-md focus:border-[#2563eb] focus:outline-none focus:ring-1 focus:ring-[#2563eb]"
+                  className="w-full px-3 py-2 text-sm border border-[#d7dcf5] rounded-md focus:border-[#9D43D6] focus:outline-none focus:ring-1 focus:ring-[#9D43D6]"
                   autoFocus
                 />
                 <p className="text-xs text-[#64748b] mt-1">
@@ -1650,7 +1658,7 @@ const TransferOrderView = () => {
                     const isComplete = scannedCount >= expectedQuantity;
                     
                     return (
-                      <div key={index} className="flex items-center justify-between p-1.5 bg-[#f8fafc] rounded border border-[#e2e8f0]">
+                      <div key={index} className="flex items-center justify-between p-1.5 bg-[#FAFAFA] rounded border border-[#e2e8f0]">
                         <div className="flex-1 min-w-0">
                           <div className="text-xs font-medium text-[#1e293b] truncate">{item.itemName || "-"}</div>
                         </div>
@@ -1682,7 +1690,7 @@ const TransferOrderView = () => {
                 </button>
                 <button
                   onClick={stopScanner}
-                  className="px-3 py-1.5 text-xs font-medium bg-[#2563eb] text-white rounded-md hover:bg-[#1d4ed8]"
+                  className="px-3 py-1.5 text-xs font-medium bg-[#9D43D6] text-white rounded-md hover:bg-[#8732BE]"
                 >
                   Close
                 </button>
@@ -1712,6 +1720,8 @@ const TransferOrderView = () => {
         </div>,
         document.body
       )}
+        </div>
+      </div>
     </div>
   );
 };

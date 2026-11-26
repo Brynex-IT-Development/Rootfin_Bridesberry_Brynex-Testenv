@@ -8,6 +8,7 @@ import { categories, subCategories } from '../data/categories';
 import { baseUrl } from '../api/api';
 import useSidebar from "../hooks/useSidebar";
 
+import { appSelectStyles } from "../components/AppSelect.jsx";
 const OptimizedFinancialSummary = () => {
   const isSidebarOpen = useSidebar();
   const todayStr = new Date().toISOString().split('T')[0];

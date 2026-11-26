@@ -5,7 +5,7 @@ import Select from "react-select";
 import baseUrl from '../api/api.js';
 import { CSVLink } from 'react-csv';
 import { Helmet } from "react-helmet";
-import { FiDownload } from "react-icons/fi";
+import { FiDownload, FiEdit2 } from "react-icons/fi";
 import useSidebar from "../hooks/useSidebar";
 import { excludeAdminOnlyTransactions } from "../utils/adminTransactionVisibility.js";
 
@@ -120,6 +120,7 @@ const getCatLabel = (val) => CATEGORY_LABEL_MAP[(val || "").toLowerCase().trim()
 
 import { fetchActiveStores, getActiveStores } from "../utils/storeService.js";
 
+import { appSelectStyles } from "../components/AppSelect.jsx";
 const allStoresCsvHeaders = [
   { label: "Store", key: "store" },
   { label: "LocCode", key: "locCode" },
@@ -1437,10 +1438,15 @@ const Datewisedaybook = () => {
         <title> Financial Summary | RootFin</title>
       </Helmet>
 
-      <div className="bg-slate-50 min-h-screen">
+      <div className="bg-[#FFFFFF] min-h-screen">
         <Headers title={"Financial Summary Report"} />
-        <div className={`transition-all duration-300 ${isSidebarOpen ? "ml-64" : "ml-0"}`}>
-          <div className="p-6">
+        <div className={`transition-all duration-300 ${isSidebarOpen ? "ml-[240px]" : "ml-0"}`}>
+          {/* Clean Page Title Header */}
+          <div className="bg-white px-8 py-4 border-b border-[#E5E5E5] flex items-center justify-between no-print">
+            <h1 className="text-[18px] font-semibold text-[#212121]">Financial Summary Report</h1>
+          </div>
+
+          <div className="px-8 py-6 bg-[#FFFFFF]">
             <style>{`
               @keyframes fadeIn {
                 from { opacity: 0; transform: translateY(-4px); }
@@ -1476,95 +1482,106 @@ const Datewisedaybook = () => {
             `}</style>
 
             {/* Filter Bar */}
-            <div className="bg-white rounded-none p-6 border border-gray-200 shadow-sm mb-6 no-print">
-              <div className="flex flex-col gap-5">
-                {/* Inputs & Selects Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 items-end">
-                  {/* From Date */}
-                  <div className="flex flex-col">
-                    <label className="text-sm font-medium text-gray-500 mb-1.5">From Date</label>
-                    <input
-                      type="date"
-                      id="fromDate"
-                      value={fromDate}
-                      onChange={(e) => setFromDate(e.target.value)}
-                      max="2099-12-31"
-                      min="2000-01-01"
-                      className="h-[42px] border border-gray-200 rounded-none px-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#9B48D7]/20 focus:border-[#9B48D7] transition-all bg-white text-gray-700 font-medium"
-                    />
+            <div className="bg-white mb-5 no-print">
+              <div className="flex flex-col gap-4">
+                {/* Row 1: From Date + To Date (Left) | Category + Sub Category + Store (Middle/Right) */}
+                <div className="flex flex-wrap items-end justify-between gap-4">
+                  <div className="flex flex-wrap items-end gap-3">
+                    {/* From Date */}
+                    <div className="rf-form-field !mb-0">
+                      <label className="rf-field-label !text-[#6A6A6A]">From Date</label>
+                      <input
+                        type="date"
+                        id="fromDate"
+                        value={fromDate}
+                        onChange={(e) => setFromDate(e.target.value)}
+                        max="2099-12-31"
+                        min="2000-01-01"
+                        className="rf-input !w-[160px]"
+                      />
+                    </div>
+
+                    {/* To Date */}
+                    <div className="rf-form-field !mb-0">
+                      <label className="rf-field-label !text-[#6A6A6A]">To Date</label>
+                      <input
+                        type="date"
+                        id="toDate"
+                        value={toDate}
+                        onChange={(e) => setToDate(e.target.value)}
+                        max="2099-12-31"
+                        min="2000-01-01"
+                        className="rf-input !w-[160px]"
+                      />
+                    </div>
                   </div>
 
-                  {/* To Date */}
-                  <div className="flex flex-col">
-                    <label className="text-sm font-medium text-gray-500 mb-1.5">To Date</label>
-                    <input
-                      type="date"
-                      id="toDate"
-                      value={toDate}
-                      onChange={(e) => setToDate(e.target.value)}
-                      max="2099-12-31"
-                      min="2000-01-01"
-                      className="h-[42px] border border-gray-200 rounded-none px-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#9B48D7]/20 focus:border-[#9B48D7] transition-all bg-white text-gray-700 font-medium"
-                    />
-                  </div>
+                  <div className="flex flex-wrap items-end gap-3">
+                    {/* Category */}
+                    <div className="rf-form-field !mb-0 w-[180px]">
+                      <label className="rf-field-label !text-[#6A6A6A]">Category</label>
+                      <Select
+                        classNamePrefix="rf-select"
+                        options={categories}
+                        value={selectedCategory}
+                        onChange={setSelectedCategory}
+                        menuPortalTarget={document.body}
+                        styles={appSelectStyles}
+                      />
+                    </div>
 
-                  {/* Category */}
-                  <div className="flex flex-col">
-                    <label className="text-sm font-medium text-gray-500 mb-1.5">Category</label>
-                    <Select classNamePrefix="rf-select"
-                      options={categories}
-                      value={selectedCategory}
-                      onChange={setSelectedCategory}
-                      menuPortalTarget={document.body}
-                      styles={appSelectStyles}
-                    />
-                  </div>
+                    {/* Sub Category */}
+                    <div className="rf-form-field !mb-0 w-[180px]">
+                      <label className="rf-field-label !text-[#6A6A6A]">Sub Category</label>
+                      <Select
+                        classNamePrefix="rf-select"
+                        options={subCategories}
+                        value={selectedSubCategory}
+                        onChange={setSelectedSubCategory}
+                        menuPortalTarget={document.body}
+                        styles={appSelectStyles}
+                      />
+                    </div>
 
-                  {/* Sub Category */}
-                  <div className="flex flex-col">
-                    <label className="text-sm font-medium text-gray-500 mb-1.5">Sub Category</label>
-                    <Select classNamePrefix="rf-select"
-                      options={subCategories}
-                      value={selectedSubCategory}
-                      onChange={setSelectedSubCategory}
-                      menuPortalTarget={document.body}
-                      styles={appSelectStyles}
-                    />
-                  </div>
-
-                  {/* Store */}
-                  <div className="flex flex-col">
-                    <label className="text-sm font-medium text-gray-500 mb-1.5">Store</label>
-                    <Select classNamePrefix="rf-select"
-                      options={[
-                        { value: "current", label: `Current Store (${currentusers.locCode})` },
-                        ...(((currentusers.power || '').toLowerCase() === 'admin' || isClusterManager)
-                          ? [{ value: "all", label: "All Stores (Totals)" }]
-                          : []),
-                        ...(((currentusers.power || '').toLowerCase() === 'admin')
-                          ? [{ value: "multi", label: "Multiple Branches" }]
-                          : []),
-                      ]}
-                      value={[
-                        { value: "current", label: `Current Store (${currentusers.locCode})` },
-                        { value: "all", label: "All Stores (Totals)" },
-                        { value: "multi", label: "Multiple Branches" }
-                      ].find(o => o.value === selectedStore)}
-                      onChange={(opt) => setSelectedStore(opt ? opt.value : "current")}
-                      menuPortalTarget={document.body}
-                      styles={appSelectStyles}
-                    />
+                    {/* Store */}
+                    <div className="rf-form-field !mb-0 w-[195px]">
+                      <label className="rf-field-label !text-[#6A6A6A]">Store</label>
+                      <Select
+                        classNamePrefix="rf-select"
+                        options={[
+                          { value: "current", label: `Current Store (${currentusers.locCode})` },
+                          ...(((currentusers.power || '').toLowerCase() === 'admin' || isClusterManager)
+                            ? [{ value: "all", label: "All Stores (Totals)" }]
+                            : []),
+                          ...(((currentusers.power || '').toLowerCase() === 'admin')
+                            ? [{ value: "multi", label: "Multiple Branches" }]
+                            : []),
+                        ]}
+                        value={[
+                          { value: "current", label: `Current Store (${currentusers.locCode})` },
+                          { value: "all", label: "All Stores (Totals)" },
+                          { value: "multi", label: "Multiple Branches" }
+                        ].find(o => o.value === selectedStore)}
+                        onChange={(opt) => setSelectedStore(opt ? opt.value : "current")}
+                        menuPortalTarget={document.body}
+                        styles={appSelectStyles}
+                      />
+                    </div>
                   </div>
                 </div>
 
-                {/* Bottom Row Actions: Fetch Data on Left, Export & Print on Right */}
-                <div className="flex flex-wrap items-center justify-between gap-4 pt-1">
+                {/* Row 2: Fetch Data (Left) + Export CSV & Print PDF */}
+                <div className="flex flex-wrap items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
                     <button
+                      type="button"
                       onClick={handleFetch}
                       disabled={isFetching}
-                      style={{ backgroundColor: isFetching ? 'rgba(155, 72, 215, 0.6)' : '#9B48D7', color: '#ffffff' }}
-                      className="h-[42px] rounded-none text-white px-6 text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 shadow-sm hover:opacity-90 active:scale-95 cursor-pointer"
+                      className={
+                        isFetching
+                          ? "rf-btn-disabled h-[40px] !px-6"
+                          : "rf-btn-primary h-[40px] !px-6 cursor-pointer"
+                      }
                     >
                       {isFetching ? (
                         <>
@@ -1580,27 +1597,25 @@ const Datewisedaybook = () => {
                     {/* Select Branches dropdown button */}
                     {selectedStore === "multi" && (
                       <button
+                        type="button"
                         onClick={() => setShowStoreSelector(prev => !prev)}
-                        className="h-[42px] px-4 rounded-none border border-gray-200 bg-white text-gray-700 text-sm font-medium flex items-center gap-2 hover:bg-gray-50 transition-colors"
+                        className="rf-btn-secondary h-[40px] cursor-pointer"
                       >
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-4 h-4 text-gray-500 shrink-0"><path d="M3 6h18M7 12h10M11 18h2"/></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-4 h-4 text-[#6A6A6A] shrink-0"><path d="M3 6h18M7 12h10M11 18h2"/></svg>
                         <span>
                           {selectedStores.length === 0 ? "Select Branches" : `${selectedStores.length} Branch${selectedStores.length > 1 ? "es" : ""}`}
                         </span>
                         {selectedStores.length > 0 && (
-                          <span
-                            style={{ backgroundColor: '#9B48D7', color: '#ffffff' }}
-                            className="inline-flex items-center justify-center h-5 px-1.5 rounded-none text-white text-[10px] font-bold"
-                          >
+                          <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-full bg-[#9D43D6] text-white text-[10px] font-bold">
                             {selectedStores.length}
                           </span>
                         )}
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`w-3.5 h-3.5 text-gray-400 transition-transform shrink-0 ${showStoreSelector ? "rotate-180" : ""}`}><path d="M6 9l6 6 6-6"/></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`w-3.5 h-3.5 text-[#6A6A6A] transition-transform shrink-0 ${showStoreSelector ? "rotate-180" : ""}`}><path d="M6 9l6 6 6-6"/></svg>
                       </button>
                     )}
                   </div>
 
-                  {/* Action Buttons Right Side */}
+                  {/* Export CSV & Print PDF */}
                   <div className="flex items-center gap-3">
                     <CSVLink
                       data={selectedStore === "all" ? allStoresSummary : selectedStore === "multi" ? multiBranchData.map(t => ({ ...t, attachment: t.hasAttachment ? "Yes" : "No" })) : exportData}
@@ -1609,21 +1624,19 @@ const Datewisedaybook = () => {
                     >
                       <button
                         type="button"
-                        style={{ backgroundColor: '#EEEEEE', color: '#111827', borderRadius: '0px' }}
-                        className="h-[42px] rounded-none bg-[#EEEEEE] hover:bg-[#E2E2E2] text-[#111827] px-5 text-sm font-medium flex items-center gap-2.5 transition-colors cursor-pointer shadow-none"
+                        className="rf-btn-cancel h-[40px] !px-5 cursor-pointer"
                       >
                         <span>Export CSV</span>
-                        <FiDownload className="w-4 h-4 text-[#111827]" />
+                        <FiDownload className="w-4 h-4 text-[#212121]" />
                       </button>
                     </CSVLink>
                     <button
                       type='button'
                       onClick={handlePrint}
-                      style={{ backgroundColor: '#EEEEEE', color: '#111827', borderRadius: '0px' }}
-                      className="h-[42px] rounded-none bg-[#EEEEEE] hover:bg-[#E2E2E2] text-[#111827] px-5 text-sm font-medium flex items-center gap-2.5 transition-colors cursor-pointer shadow-none"
+                      className="rf-btn-cancel h-[40px] !px-5 cursor-pointer"
                     >
                       <span>Print PDF</span>
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 text-[#111827]"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 text-[#212121]"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
                     </button>
                   </div>
                 </div>
@@ -2031,10 +2044,12 @@ const Datewisedaybook = () => {
                                           </button>
                                         ) : (
                                           <button
+                                            type="button"
                                             onClick={() => handleEditClick(transaction, index)}
-                                            className="bg-[#18181b] text-white px-3 py-1 rounded-none text-xs font-medium hover:bg-black cursor-pointer"
+                                            className="inline-flex items-center gap-1.5 text-[12px] font-medium text-[#212121] border-b border-[#212121] pb-0.5 hover:text-[#9D43D6] hover:border-[#9D43D6] transition-colors cursor-pointer bg-transparent"
                                           >
-                                            Edit
+                                            <FiEdit2 size={12} />
+                                            <span>Edit</span>
                                           </button>
                                         )}
                                       </td>
@@ -2188,10 +2203,12 @@ const Datewisedaybook = () => {
                                       </button>
                                     ) : (
                                       <button
+                                        type="button"
                                         onClick={() => handleEditClick(transaction, index)}
-                                        className="bg-[#18181b] text-white px-3 py-1 rounded-none text-xs font-medium hover:bg-black cursor-pointer"
+                                        className="inline-flex items-center gap-1.5 text-[12px] font-medium text-[#212121] border-b border-[#212121] pb-0.5 hover:text-[#9D43D6] hover:border-[#9D43D6] transition-colors cursor-pointer bg-transparent"
                                       >
-                                        Edit
+                                        <FiEdit2 size={12} />
+                                        <span>Edit</span>
                                       </button>
                                     )}
                                   </td>
@@ -2211,7 +2228,7 @@ const Datewisedaybook = () => {
 
                       <tfoot>
                         <tr
-                          className="bg-[#e2e8f0] font-bold border-t-2 border-gray-300"
+                          className="bg-[#DCDCDC] font-bold border-t border-[#D4D4D4]"
                           style={{ position: "sticky", bottom: 0, zIndex: 2 }}
                         >
                           <td colSpan="10" className="px-3 py-2.5 text-left text-gray-800 text-xs font-bold uppercase tracking-wider">

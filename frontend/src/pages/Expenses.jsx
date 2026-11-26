@@ -4,13 +4,12 @@ import AssignTargetModal from "../components/AssignTargetModal.jsx";
 import baseUrl from "../api/api";
 import { BsBank2 } from "react-icons/bs";
 import { MdCurrencyRupee } from "react-icons/md";
-import { ChevronDown, Loader2, Menu } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Helmet } from "react-helmet";
 import { useSidebar } from "../hooks/useSidebar.js";
 import { baseExpenseCats } from "../config/expenseCategories.js";
 import { useActiveStores } from "../utils/storeService.js";
-import Breadcrumbs from "../components/Breadcrumbs.jsx";
-
+import Header from "../components/Header.jsx";
 import AppSelect from "../components/AppSelect.jsx";
 const currentDate = () => {
   const date = new Date();
@@ -181,255 +180,223 @@ const Expenses = () => {
   };
 
   return (
-    <div
-      className={`min-h-screen bg-[#f1f4ff] transition-all duration-300 ${
-        isSidebarOpen ? "md:ml-64" : "ml-0"
-      }`}
-    >
+    <div className="invoice-page-wrapper min-h-screen bg-[#FAFAFA] text-[#212121]">
       <Helmet>
         <title>Expenses | RootFin</title>
       </Helmet>
 
-      <main className="w-full px-5 py-8 sm:px-8 lg:px-12">
-        <header className="mb-8 flex flex-wrap items-start justify-between gap-5">
-          <div className="flex min-w-0 items-start gap-3">
-            <button
-              type="button"
-              onClick={() =>
-                window.dispatchEvent(new CustomEvent("toggle-sidebar"))
-              }
-              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50"
-              title="Toggle Sidebar Menu"
-              aria-label="Toggle sidebar menu"
-            >
-              <Menu size={23} />
-            </button>
-            <div className="min-w-0 pt-0.5">
-              <Breadcrumbs currentTitle="Expenses" className="mb-1" />
-              <h1 className="text-xl font-bold uppercase tracking-wide text-[#07132e] sm:text-2xl">
-                Expenses
-              </h1>
-              <p className="mt-0.5 text-sm text-[#617091] sm:text-base">
-                Record &amp; Track your business transactions
-              </p>
-            </div>
+      <Header title="Expenses" />
+
+      <div
+        className={`transition-all duration-300 ${
+          isSidebarOpen ? "ml-[240px]" : "ml-0"
+        }`}
+      >
+        {/* Clean Page Title Header */}
+        <div className="bg-white px-6 md:px-8 py-4 border-b border-[#E5E5E5] flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h1 className="text-[18px] font-semibold text-[#1B1B1B] leading-snug">
+              Expenses
+            </h1>
+            <p className="text-[12px] text-[#8A8A8A] mt-0.5">
+              Record &amp; track your business transactions
+            </p>
           </div>
 
           {canSetLimits && (
             <button
               type="button"
               onClick={() => setShowTargetModal(true)}
-              className="inline-flex h-12 items-center justify-center rounded-[10px] bg-[#07132e] px-6 text-sm font-semibold text-white shadow-sm transition hover:bg-[#111f3e] sm:text-base"
+              className="inline-flex h-[38px] items-center justify-center rounded-[10px] bg-[#1B1B1B] hover:bg-[#2E2E2E] px-4 text-[13px] font-medium text-white transition-colors cursor-pointer"
             >
               Set Expense Limit
             </button>
           )}
-        </header>
+        </div>
 
-        <section className="rounded-[20px] border border-[#dfe5f2] bg-white p-6 shadow-[0_1px_5px_rgba(30,41,59,0.08)] sm:p-8 lg:p-9">
-          <form
-            onSubmit={handleSubmit}
-            className="flex flex-col gap-7 lg:min-h-[calc(100vh-235px)]"
-          >
-            <div className="w-full lg:w-1/3">
-              <label
-                htmlFor="expense-store"
-                className="mb-2 block text-sm font-semibold uppercase text-[#667085]"
-              >
-                Store
-              </label>
-              {canSelectStore ? (
-                <div className="relative">
+        <main className="p-5 md:p-6 max-w-[1200px] w-full">
+          <section className="rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-[0_2px_10px_rgba(0,0,0,0.03)]">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-[#9D43D6]">
+                EXPENSE DETAILS
+              </div>
+
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+                {/* Store */}
+                <div>
+                  <label htmlFor="expense-store" className="rf-field-label">
+                    Store <span className="text-[#EF4444]">*</span>
+                  </label>
+                  {canSelectStore ? (
+                    <AppSelect
+                      id="expense-store"
+                      value={selectedStore}
+                      onChange={(event) => setSelectedStore(event.target.value)}
+                      disabled={storesLoading}
+                      required
+                    >
+                      {storesLoading && <option value="">Loading stores...</option>}
+                      {!storesLoading && allowedStores.length === 0 && (
+                        <option value="">No stores available</option>
+                      )}
+                      {allowedStores.map((store) => (
+                        <option key={store.locCode} value={store.locCode}>
+                          {store.locName}
+                        </option>
+                      ))}
+                    </AppSelect>
+                  ) : (
+                    <div className="flex h-[42px] items-center rounded-[10px] border border-[#E5E5E5] bg-[#FAFAFA] px-3.5 text-[13px] font-medium text-[#212121]">
+                      {currentusers.storeName ||
+                        currentusers.locName ||
+                        currentusers.username ||
+                        currentusers.locCode ||
+                        "Assigned store"}
+                    </div>
+                  )}
+                </div>
+
+                {/* Category */}
+                <div>
+                  <label htmlFor="expense-category" className="rf-field-label">
+                    Category <span className="text-[#EF4444]">*</span>
+                  </label>
                   <AppSelect
-                    id="expense-store"
-                    value={selectedStore}
-                    onChange={(event) => setSelectedStore(event.target.value)}
-                    disabled={storesLoading}
-                    required
-                    className="h-[68px] w-full appearance-none rounded-xl border border-[#d7deef] bg-white px-6 pr-12 text-base text-[#17213b] outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-100 disabled:cursor-wait disabled:bg-slate-50 sm:text-lg"
+                    id="expense-category"
+                    value={selectedCategory.value}
+                    onChange={(e) => handleCategoryChange(e.target.value)}
                   >
-                    {storesLoading && <option value="">Loading stores...</option>}
-                    {!storesLoading && allowedStores.length === 0 && (
-                      <option value="">No stores available</option>
-                    )}
-                    {allowedStores.map((store) => (
-                      <option key={store.locCode} value={store.locCode}>
-                        {store.locName}
+                    {cats.map((c) => (
+                      <option key={c.value} value={c.value}>
+                        {c.label}
                       </option>
                     ))}
                   </AppSelect>
-                  
                 </div>
-              ) : (
-                <div className="flex h-[68px] items-center rounded-xl border border-[#d7deef] bg-slate-50 px-6 text-base font-medium text-[#17213b] sm:text-lg">
-                  {currentusers.storeName ||
-                    currentusers.locName ||
-                    currentusers.username ||
-                    currentusers.locCode ||
-                    "Assigned store"}
-                </div>
-              )}
-            </div>
 
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-7">
+                {/* Sub Category (conditional) */}
+                {selectedCategory.subs?.length > 0 && (
                   <div>
-                    <label
-                      htmlFor="expense-category"
-                      className="mb-2 block text-sm font-semibold uppercase text-[#667085]"
-                    >
-                      Category
+                    <label htmlFor="expense-subcategory" className="rf-field-label">
+                      Sub Category
                     </label>
-                    <div className="relative">
-                      <AppSelect
-                        id="expense-category"
-                        value={selectedCategory.value}
-                        onChange={(e) => handleCategoryChange(e.target.value)}
-                        className="h-[54px] w-full appearance-none rounded-xl border border-[#d7deef] bg-white px-5 pr-12 text-base text-[#17213b] outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-100 sm:text-lg"
-                      >
-                        {cats.map((c) => (
-                          <option key={c.value} value={c.value}>
-                            {c.label}
-                          </option>
-                        ))}
-                      </AppSelect>
-                      
-                    </div>
-                  </div>
-
-                  {selectedCategory.subs?.length > 0 && (
-                    <div>
-                      <label
-                        htmlFor="expense-subcategory"
-                        className="mb-2 block text-sm font-semibold uppercase text-[#667085]"
-                      >
-                        Sub Category
-                      </label>
-                      <div className="relative">
-                        <AppSelect
-                          id="expense-subcategory"
-                          value={subCategory}
-                          onChange={(e) => setSubCategory(e.target.value)}
-                          className="h-[54px] w-full appearance-none rounded-xl border border-[#d7deef] bg-white px-5 pr-12 text-base text-[#17213b] outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-100 sm:text-lg"
-                        >
-                          {selectedCategory.subs.map((sub) => (
-                            <option key={sub} value={sub}>
-                              {sub}
-                            </option>
-                          ))}
-                        </AppSelect>
-                        
-                      </div>
-                    </div>
-                  )}
-
-                  <div>
-                    <label
-                      htmlFor="expense-amount"
-                      className="mb-2 block text-sm font-semibold uppercase text-[#667085]"
+                    <AppSelect
+                      id="expense-subcategory"
+                      value={subCategory}
+                      onChange={(e) => setSubCategory(e.target.value)}
                     >
-                      Amount
-                    </label>
-                    <div className="relative">
-                      <span className="absolute left-5 top-1/2 -translate-y-1/2 text-base font-medium text-[#8390aa]">
-                        ₹
-                      </span>
-                      <input
-                        id="expense-amount"
-                        type="number"
-                        min="0.01"
-                        step="0.01"
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
-                        placeholder="0.00"
-                        required
-                        className="h-[54px] w-full rounded-xl border border-[#d7deef] bg-white py-3 pl-11 pr-5 text-base text-[#17213b] outline-none transition placeholder:text-[#8c98af] focus:border-purple-500 focus:ring-2 focus:ring-purple-100 sm:text-lg"
-                      />
-                    </div>
+                      {selectedCategory.subs.map((sub) => (
+                        <option key={sub} value={sub}>
+                          {sub}
+                        </option>
+                      ))}
+                    </AppSelect>
                   </div>
-            </div>
+                )}
 
-            <div className="border-t border-[#e2e7f2] pt-7">
-
+                {/* Amount */}
                 <div>
-                  <p className="mb-4 block text-sm font-semibold uppercase text-[#667085]">
-                    Way of Payment
-                  </p>
-                  <div className="flex flex-wrap items-center gap-4">
-                    {[
-                      { id: "cash", label: "Cash", icon: <MdCurrencyRupee size={20} /> },
-                      ...(selectedCategory.value !== "bulk amount transfer" && !isStoreLogin
-                        ? [
-                            { id: "bank", label: "Bank", icon: <BsBank2 size={18} /> },
-                            {
-                              id: "upi",
-                              label: "UPI",
-                              icon: <span className="text-sm font-black italic">UPI</span>,
-                            },
-                          ]
-                        : []),
-                    ].map(({ id, label, icon }) => {
-                      const active = !splitPayment && paymentMethod === id;
-                      return (
-                        <label
-                          key={id}
-                          className={`flex h-12 cursor-pointer select-none items-center gap-2 rounded-xl border px-4 text-base transition ${
-                            active
-                              ? "border-[#a12cff] bg-[#fbf7ff] text-[#9329f4]"
-                              : "border-[#dce1eb] bg-white text-[#2f3a50] hover:bg-slate-50"
-                          }`}
-                        >
-                          <input
-                            type="radio"
-                            name="paymentMethod"
-                            value={id}
-                            checked={active}
-                            onChange={() => {
-                              setPaymentMethod(id);
-                              setSplitPayment(false);
-                            }}
-                            className="h-[18px] w-[18px] accent-[#9d27f5]"
-                          />
-                          <span className="flex items-center gap-1.5">
-                            {icon} {label}
-                          </span>
-                        </label>
-                      );
-                    })}
+                  <label htmlFor="expense-amount" className="rf-field-label">
+                    Amount <span className="text-[#EF4444]">*</span>
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[13px] font-medium text-[#7A7A7A] pointer-events-none">
+                      ₹
+                    </span>
+                    <input
+                      id="expense-amount"
+                      type="number"
+                      min="0.01"
+                      step="0.01"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                      placeholder="0.00"
+                      required
+                      className="rf-input !h-[42px] !pl-8 bg-white"
+                    />
+                  </div>
+                </div>
+              </div>
 
-                    {selectedCategory.value !== "bulk amount transfer" && !isStoreLogin && (
+              {/* Way of Payment */}
+              <div className="border-t border-[#F0F0F0] pt-5">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-[#9D43D6] mb-3">
+                  WAY OF PAYMENT
+                </p>
+                <div className="flex flex-wrap items-center gap-3">
+                  {[
+                    { id: "cash", label: "Cash", icon: <MdCurrencyRupee size={18} /> },
+                    ...(selectedCategory.value !== "bulk amount transfer" && !isStoreLogin
+                      ? [
+                          { id: "bank", label: "Bank", icon: <BsBank2 size={15} /> },
+                          {
+                            id: "upi",
+                            label: "UPI",
+                            icon: <span className="text-[12px] font-black italic">UPI</span>,
+                          },
+                        ]
+                      : []),
+                  ].map(({ id, label, icon }) => {
+                    const active = !splitPayment && paymentMethod === id;
+                    return (
                       <label
-                        className={`flex h-12 cursor-pointer select-none items-center gap-2 rounded-xl border px-4 text-base transition ${
-                          splitPayment
-                            ? "border-[#a12cff] bg-[#fbf7ff] text-[#9329f4]"
-                            : "border-[#dce1eb] bg-white text-[#2f3a50] hover:bg-slate-50"
+                        key={id}
+                        className={`flex h-[42px] cursor-pointer select-none items-center gap-2 rounded-[10px] border px-4 text-[13px] font-medium transition-colors ${
+                          active
+                            ? "border-[#9D43D6] bg-[#FBF5FC] text-[#9D43D6]"
+                            : "border-[#E5E5E5] bg-white text-[#212121] hover:bg-[#FAFAFA]"
                         }`}
                       >
                         <input
-                          type="checkbox"
-                          checked={splitPayment}
-                          onChange={(event) => setSplitPayment(event.target.checked)}
-                          className="h-[18px] w-[18px] rounded accent-[#9d27f5]"
+                          type="radio"
+                          name="paymentMethod"
+                          value={id}
+                          checked={active}
+                          onChange={() => {
+                            setPaymentMethod(id);
+                            setSplitPayment(false);
+                          }}
+                          className="h-4 w-4 accent-[#9D43D6] cursor-pointer"
                         />
-                        <span>Split Payment (Cash + Bank + UPI)</span>
+                        <span className="flex items-center gap-1.5">
+                          {icon} {label}
+                        </span>
                       </label>
-                    )}
-                  </div>
+                    );
+                  })}
 
-                  {/* Split Inputs */}
-                  {splitPayment && (
-                    <div className="mt-5 space-y-2">
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {selectedCategory.value !== "bulk amount transfer" && !isStoreLogin && (
+                    <label
+                      className={`flex h-[42px] cursor-pointer select-none items-center gap-2 rounded-[10px] border px-4 text-[13px] font-medium transition-colors ${
+                        splitPayment
+                          ? "border-[#9D43D6] bg-[#FBF5FC] text-[#9D43D6]"
+                          : "border-[#E5E5E5] bg-white text-[#212121] hover:bg-[#FAFAFA]"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={splitPayment}
+                        onChange={(event) => setSplitPayment(event.target.checked)}
+                        className="h-4 w-4 rounded-[4px] accent-[#9D43D6] cursor-pointer"
+                      />
+                      <span>Split Payment (Cash + Bank + UPI)</span>
+                    </label>
+                  )}
+                </div>
+
+                {/* Split Inputs */}
+                {splitPayment && (
+                  <div className="mt-4 space-y-2.5 rounded-[12px] border border-[#E5E5E5] bg-[#FAFAFA] p-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       {[
                         ["Cash", cashAmount, setCashAmount],
                         ["Bank", bankAmount, setBankAmount],
                         ["UPI", upiAmount, setUpiAmount],
                       ].map(([lbl, val, setVal]) => (
-                        <div key={lbl} className="flex flex-col gap-1">
-                          <label className="text-xs font-medium text-gray-600">
-                            {lbl} Amount
-                          </label>
+                        <div key={lbl}>
+                          <label className="rf-field-label">{lbl} Amount</label>
                           <div className="relative">
-                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-[#8390aa]">
+                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[13px] text-[#7A7A7A] pointer-events-none">
                               ₹
                             </span>
                             <input
@@ -438,77 +405,93 @@ const Expenses = () => {
                               value={val}
                               onChange={(e) => setVal(e.target.value)}
                               placeholder="0.00"
-                              className="h-12 w-full rounded-xl border border-[#d7deef] pl-9 pr-4 text-sm outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
+                              className="rf-input !h-[40px] !pl-8 bg-white"
                             />
                           </div>
                         </div>
                       ))}
-                      </div>
-                      <p className={`text-xs font-semibold ${Math.abs((Number(cashAmount) || 0) + (Number(bankAmount) || 0) + (Number(upiAmount) || 0) - (Number(amount) || 0)) < 0.01 ? "text-emerald-600" : "text-amber-600"}`}>
-                        Balance: ₹{Math.abs((Number(amount) || 0) - (Number(cashAmount) || 0) - (Number(bankAmount) || 0) - (Number(upiAmount) || 0)).toFixed(2)}
-                      </p>
                     </div>
-                  )}
+                    <p
+                      className={`text-[12px] font-semibold ${
+                        Math.abs(
+                          (Number(cashAmount) || 0) +
+                            (Number(bankAmount) || 0) +
+                            (Number(upiAmount) || 0) -
+                            (Number(amount) || 0)
+                        ) < 0.01
+                          ? "text-[#16A34A]"
+                          : "text-[#D97706]"
+                      }`}
+                    >
+                      Balance: ₹
+                      {Math.abs(
+                        (Number(amount) || 0) -
+                          (Number(cashAmount) || 0) -
+                          (Number(bankAmount) || 0) -
+                          (Number(upiAmount) || 0)
+                      ).toFixed(2)}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Remarks & Attachment */}
+              <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 border-t border-[#F0F0F0] pt-5">
+                <div>
+                  <label htmlFor="expense-remarks" className="rf-field-label">
+                    Remarks <span className="text-[#EF4444]">*</span>
+                  </label>
+                  <textarea
+                    id="expense-remarks"
+                    value={remark}
+                    onChange={(event) => setRemark(event.target.value)}
+                    required
+                    placeholder="Enter your transaction details here..."
+                    className="h-[130px] w-full resize-none rounded-[10px] border border-[#E5E5E5] bg-white px-3.5 py-2.5 text-[13px] text-[#212121] outline-none transition placeholder:text-[#A1A1AA] focus:border-[#9D43D6] focus:ring-2 focus:ring-[#9D43D6]/15"
+                  />
                 </div>
-            </div>
 
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-7">
-              <div>
-                <label
-                  htmlFor="expense-remarks"
-                  className="mb-2 block text-sm font-semibold uppercase text-[#667085]"
+                <div>
+                  <p className="rf-field-label">
+                    Attachment <span className="text-[#EF4444]">*</span>
+                  </p>
+                  <SingleImageUpload
+                    onImageSelect={setAttachmentFile}
+                    existingImage={attachmentFile}
+                    required
+                    variant="expense-card"
+                  />
+                </div>
+              </div>
+
+              {feedback && (
+                <div className="rounded-[10px] border border-[#BBF7D0] bg-[#F0FDF4] px-4 py-3 text-[13px] font-medium text-[#15803D]">
+                  {feedback}
+                </div>
+              )}
+
+              {/* Footer Actions */}
+              <div className="flex flex-wrap items-center justify-end gap-3 border-t border-[#F0F0F0] pt-5">
+                <button
+                  type="button"
+                  onClick={handleCancel}
+                  className="rf-btn-cancel !h-[40px] !px-5 !text-[13px]"
                 >
-                  Remarks
-                </label>
-                <textarea
-                  id="expense-remarks"
-                  value={remark}
-                  onChange={(event) => setRemark(event.target.value)}
-                  required
-                  placeholder="Enter your transaction details here..."
-                  className="h-[124px] w-full resize-none rounded-xl border border-[#d7deef] px-5 py-3 text-base text-[#17213b] outline-none transition placeholder:text-[#8c98af] focus:border-purple-500 focus:ring-2 focus:ring-purple-100 sm:text-lg"
-                />
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="rf-btn-primary !h-[40px] !px-6 !text-[13px] inline-flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+                  <span>{isSubmitting ? "Submitting..." : "Submit Expense"}</span>
+                </button>
               </div>
-
-              <div>
-                <p className="mb-2 text-sm font-semibold uppercase text-[#667085]">
-                  Attachment <span className="text-red-500">*</span>
-                </p>
-                <SingleImageUpload
-                  onImageSelect={setAttachmentFile}
-                  existingImage={attachmentFile}
-                  required
-                  variant="expense-card"
-                />
-              </div>
-            </div>
-
-            {feedback && (
-              <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
-                {feedback}
-              </div>
-            )}
-
-            <div className="mt-auto flex flex-col-reverse items-stretch justify-end gap-4 pt-7 sm:flex-row sm:items-center">
-              <button
-                type="button"
-                onClick={handleCancel}
-                className="h-12 rounded-xl px-7 text-base font-medium text-[#17213b] transition hover:bg-slate-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="inline-flex h-12 min-w-[218px] items-center justify-center gap-2 rounded-xl bg-[#a23aeb] px-8 text-base font-semibold text-white shadow-sm transition hover:bg-[#9228dd] disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-                <span>{isSubmitting ? "Submitting..." : "Submit Expense"}</span>
-              </button>
-            </div>
-          </form>
-        </section>
-      </main>
+            </form>
+          </section>
+        </main>
+      </div>
 
       <AssignTargetModal
         open={showTargetModal}

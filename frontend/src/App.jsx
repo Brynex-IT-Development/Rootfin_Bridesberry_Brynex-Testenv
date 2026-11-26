@@ -1,6 +1,8 @@
 import { Routes, Route, useLocation, Navigate, useNavigate } from "react-router-dom";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import usePreventNumberInputScroll from "./hooks/usePreventNumberInputScroll";
+import RootfinLoader from "./components/RootfinLoader.jsx";
+import Dashboard from "./pages/Dashboard.jsx";
 import DayBookInc from "./pages/BillWiseIncome.jsx";
 import Datewisedaybook from "./pages/Datewisedaybook.jsx";
 import Booking from "./pages/Booking.jsx";
@@ -150,7 +152,7 @@ const App = () => {
   const canAccessAdminRestrictedModules = (isAdmin || isWarehouse) && !isClusterAdmin;
 
   // Allowed routes for cluster managers
-  const clusterAllowedRoutes = ["/datewisedaybook", "/BookingReport", "/RentOutReport", "/securityReport", "/Revenuereport", "/reports/income-expense", "/reports/inventory", "/reports/sales", "/reports/sales-by-invoice", "/reports/sales-by-group"];
+  const clusterAllowedRoutes = ["/", "/datewisedaybook", "/BookingReport", "/RentOutReport", "/securityReport", "/Revenuereport", "/reports/income-expense", "/reports/inventory", "/reports/sales", "/reports/sales-by-invoice", "/reports/sales-by-group"];
   const ClusterGuard = ({ children }) => {
     if (isClusterManager && !clusterAllowedRoutes.includes(location.pathname)) {
       return <Navigate to="/datewisedaybook" />;
@@ -230,8 +232,22 @@ const App = () => {
     };
   }, [navigate, currentuser]);
 
+  // Initial page reload splash screen with animated RootFin upward-growing arrow
+  const [showSplash, setShowSplash] = useState(true);
+  const [fadingSplash, setFadingSplash] = useState(false);
+
+  useEffect(() => {
+    const fadeTimer = setTimeout(() => setFadingSplash(true), 1200);
+    const hideTimer = setTimeout(() => setShowSplash(false), 1700);
+    return () => {
+      clearTimeout(fadeTimer);
+      clearTimeout(hideTimer);
+    };
+  }, []);
+
   return (
     <div className="">
+      <RootfinLoader visible={showSplash} fading={fadingSplash} />
       {currentuser && <Nav />} {/* Show Nav only if user is logged in */}
       <div className="w-full">
         <DaybookGuard user={currentuser} admin={isAdmin}>
@@ -240,7 +256,8 @@ const App = () => {
           <Route path="/login" element={!currentuser ? <Login /> : <Navigate to="/" />} />
 
           {/* Protected Routes (Redirect to Login if Not Authenticated) */}
-          <Route path="/" element={currentuser ? (isClusterManager ? <Navigate to="/datewisedaybook" /> : <DayBookInc admin={isAdmin} />) : <Navigate to="/login" />} />
+          <Route path="/" element={currentuser ? <Dashboard /> : <Navigate to="/login" />} />
+          <Route path="/daybook" element={currentuser ? (isClusterManager ? <Navigate to="/datewisedaybook" /> : <DayBookInc admin={isAdmin} />) : <Navigate to="/login" />} />
           <Route path="/datewisedaybook" element={currentuser ? <Datewisedaybook /> : <Navigate to="/login" />} />
           <Route path="/BookingReport" element={currentuser ? <Booking /> : <Navigate to="/login" />} />
           <Route path="/RentOutReport" element={currentuser ? <DayBook /> : <Navigate to="/login" />} />

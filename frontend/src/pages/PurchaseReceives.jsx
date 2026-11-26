@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Send, PackageCheck } from "lucide-react";
+import { Send, Search, X, Plus } from "lucide-react";
 import Header from "../components/Header";
 import baseUrl from "../api/api";
 import { mapLocNameToWarehouse as mapWarehouse } from "../utils/warehouseMapping";
@@ -18,6 +18,7 @@ const PurchaseReceives = () => {
   const [receives, setReceives] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState({});
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     if (isNewReceive) return;
@@ -96,14 +97,14 @@ const PurchaseReceives = () => {
 
   const getStatusBadge = (status) => {
     const map = {
-      draft:              { label: "Draft",              bg: "bg-[#F3F4F6]", text: "text-[#6B7280]",  dot: "bg-[#9CA3AF]" },
-      in_transit:         { label: "In Transit",         bg: "bg-[#FFFBEB]", text: "text-[#92400E]",  dot: "bg-[#F59E0B]" },
-      partially_received: { label: "Partial",            bg: "bg-[#FFF7ED]", text: "text-[#9A3412]",  dot: "bg-[#F97316]" },
-      received:           { label: "Received",           bg: "bg-[#F0FDF4]", text: "text-[#166534]",  dot: "bg-[#10b981]" },
+      draft:              { label: "Draft",      bg: "bg-[#F4F4F5]", text: "text-[#525252]", dot: "bg-[#9CA3AF]" },
+      in_transit:         { label: "In Transit", bg: "bg-[#FEF3C7]", text: "text-[#B45309]", dot: "bg-[#F59E0B]" },
+      partially_received: { label: "Partial",    bg: "bg-[#FFEDD5]", text: "text-[#C2410C]", dot: "bg-[#F97316]" },
+      received:           { label: "Received",   bg: "bg-[#DCFCE7]", text: "text-[#15803D]", dot: "bg-[#16A34A]" },
     };
     const s = map[status] || map.draft;
     return (
-      <span className={`inline-flex items-center gap-1.5 rounded-none px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider border border-current/20 ${s.bg} ${s.text}`}>
+      <span className={`inline-flex items-center gap-1.5 rounded-[8px] px-2.5 py-1 text-[12px] font-medium ${s.bg} ${s.text}`}>
         <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
         {s.label}
       </span>
@@ -115,144 +116,177 @@ const PurchaseReceives = () => {
     return items.reduce((sum, item) => sum + (parseFloat(item.received) || 0), 0);
   };
 
-  const receivedCount = receives.filter(r => r.status === "received").length;
-  const inTransitCount = receives.filter(r => r.status === "in_transit").length;
-  const draftCount = receives.filter(r => (r.status || "draft") === "draft").length;
+  const filteredReceives = receives.filter((receive) => {
+    if (!searchTerm.trim()) return true;
+    const q = searchTerm.trim().toLowerCase();
+    const num = (receive.receiveNumber || "").toLowerCase();
+    const po = (receive.purchaseOrderNumber || receive.purchaseOrderId?.orderNumber || "").toLowerCase();
+    const vendor = (receive.vendorName || receive.vendorId?.displayName || receive.vendorId?.companyName || "").toLowerCase();
+    return num.includes(q) || po.includes(q) || vendor.includes(q);
+  });
 
   return (
-    <>
+    <div className="min-h-screen bg-[#FAFAFA] text-[#212121]">
       <Header title="Purchase Receives" />
-      <div className={`transition-all duration-300 min-h-screen bg-slate-50 flex flex-col ${isSidebarOpen ? "ml-64" : "ml-0"}`}>
+      <div className={`transition-all duration-300 flex flex-col ${isSidebarOpen ? "ml-[240px]" : "ml-0"}`}>
 
-        {/* ── Top Action Bar ── */}
-        <div className="bg-white border-b border-gray-200 shadow-sm">
-          <div className="px-6 py-4 flex items-center justify-between gap-4">
-            <p className="text-xs text-[#6B7280] font-medium">
-              {receives.length > 0 ? `${receives.length} total receives` : "No receives yet"}
-            </p>
-            <Link
-              to="/purchase/receives/new"
-              className="inline-flex h-9 items-center gap-1.5 px-4 rounded-none bg-[#8B5CF6] hover:bg-[#7C3AED] text-xs font-bold uppercase tracking-wider text-white transition-colors shadow-sm"
-            >
-              + New Receive
-            </Link>
-          </div>
+        {/* Clean Page Title Header */}
+        <div className="bg-white px-6 md:px-8 py-4 border-b border-[#E5E5E5] flex flex-wrap items-center justify-between gap-4">
+          <h1 className="text-[18px] font-semibold text-[#1B1B1B]">All Purchase Receives</h1>
+          <Link
+            to="/purchase/receives/new"
+            className="rf-btn-primary inline-flex items-center gap-1.5 !h-[38px] !px-5 !text-[13px]"
+          >
+            <Plus size={15} />
+            <span>New Purchase Receives</span>
+          </Link>
         </div>
 
-        <div className="px-6 py-6 flex-1">
-          {loading ? (
-            <div className="flex flex-col items-center justify-center py-24 gap-3">
-              <div className="h-6 w-6 animate-spin rounded-none border-2 border-[#8B5CF6] border-t-transparent" />
-              <p className="text-xs font-medium text-[#6B7280] uppercase tracking-wider">Loading receives...</p>
+        <div className="p-5 md:p-6 flex-1 space-y-4">
+          {/* Toolbar Row: Search (left) & Count Pill (right) */}
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="relative w-full sm:w-[340px]">
+              <div className="pointer-events-none absolute inset-y-0 left-0 pl-3.5 flex items-center">
+                <Search size={15} className="text-[#212121]" />
+                <span className="h-4 w-[1px] bg-[#E5E5E5] ml-2.5" />
+              </div>
+              <input
+                type="text"
+                placeholder="Search by bill number, vendor or reference"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="rf-input !pl-12 !pr-9 !h-[42px] bg-white"
+              />
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={() => setSearchTerm("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#525252] cursor-pointer"
+                >
+                  <X size={14} />
+                </button>
+              )}
             </div>
 
-          ) : receives.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-24">
-              <div className="w-16 h-16 rounded-none bg-[#F5F3FF] border border-[#DDD6FE] flex items-center justify-center mb-6">
-                <PackageCheck size={30} className="text-[#8B5CF6]" />
-              </div>
-              <h2 className="text-base font-bold text-[#111827] uppercase tracking-wide mb-2">
-                No Purchase Receives Yet
-              </h2>
-              <p className="text-xs text-[#6B7280] mb-6 text-center max-w-xs">
-                Log items received from your vendors to keep inventory accurate.
-              </p>
-              <Link
-                to="/purchase/receives/new"
-                className="inline-flex h-9 items-center gap-2 px-6 rounded-none bg-[#8B5CF6] hover:bg-[#7C3AED] text-xs font-bold uppercase tracking-wider text-white transition-colors shadow-sm"
+            <span className="inline-flex items-center px-3.5 py-1.5 rounded-full bg-[#F3E8FF] text-[#9D43D6] text-[12px] font-medium">
+              {filteredReceives.length} {filteredReceives.length === 1 ? "Receive" : "Receives"}
+            </span>
+          </div>
+
+          {loading ? (
+            <div className="bg-white rounded-[16px] border border-[#E5E5E5] py-24 flex flex-col items-center justify-center gap-3">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#9D43D6] border-t-transparent" />
+              <p className="text-[13px] font-medium text-[#7A7A7A]">Loading purchase receives...</p>
+            </div>
+
+          ) : filteredReceives.length === 0 ? (
+            <div className="bg-white rounded-[16px] border border-[#E5E5E5] shadow-[0_1px_2px_rgba(0,0,0,0.02)] py-20 px-6 flex flex-col items-center justify-center text-center min-h-[340px]">
+              {/* Purple Clipboard & Magnifier Illustration */}
+              <svg
+                width="170"
+                height="120"
+                viewBox="0 0 170 120"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="mb-5"
+                aria-hidden="true"
               >
-                Receive Items
-              </Link>
+                <ellipse cx="85" cy="108" rx="62" ry="6" fill="#F3E8FF" />
+                <path d="M132 104C132 90 140 80 148 76C146 88 140 97 132 104Z" fill="#C4B5FD" />
+                <path d="M130 104C128 92 132 82 137 74C138 85 135 95 130 104Z" fill="#A78BFA" />
+                <path d="M124 104C121 96 121 89 124 83C127 89 127 97 124 104Z" fill="#DDD6FE" />
+                <rect x="68" y="20" width="54" height="84" rx="8" fill="#EDE9FE" stroke="#C4B5FD" strokeWidth="2" />
+                <rect x="74" y="27" width="42" height="70" rx="5" fill="#FFFFFF" />
+                <rect x="85" y="14" width="20" height="10" rx="4" fill="#9D43D6" />
+                <circle cx="95" cy="19" r="2" fill="#FFFFFF" />
+                <rect x="83" y="42" width="24" height="32" rx="3" fill="#F5F3FF" stroke="#A78BFA" strokeWidth="1.5" />
+                <circle cx="91" cy="54" r="1.5" fill="#9D43D6" />
+                <circle cx="99" cy="54" r="1.5" fill="#9D43D6" />
+                <path d="M90 62C92.5 59.5 97.5 59.5 100 62" stroke="#9D43D6" strokeWidth="1.5" strokeLinecap="round" />
+                <circle cx="107" cy="70" r="7" fill="#9D43D6" />
+                <path d="M104.5 67.5L109.5 72.5M109.5 67.5L104.5 72.5" stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round" />
+                <circle cx="66" cy="48" r="13" fill="#F3E8FF" fillOpacity="0.65" stroke="#7C3AED" strokeWidth="2.5" />
+                <line x1="56.5" y1="57.5" x2="47" y2="67" stroke="#7C3AED" strokeWidth="3.5" strokeLinecap="round" />
+                <circle cx="44" cy="42" r="8" fill="#2E1065" />
+                <path d="M30 78C30 62 36 54 46 54C54 54 58 60 60 72L52 80H30V78Z" fill="#A78BFA" />
+                <path d="M32 78L52 78L62 96H34L32 78Z" fill="#4C1D95" />
+                <rect x="34" y="96" width="28" height="8" rx="4" fill="#DDD6FE" />
+              </svg>
+
+              <h2 className="text-[16px] font-semibold text-[#1B1B1B] tracking-tight">
+                Record Received Purchases Accurately
+              </h2>
+              <p className="text-[13px] text-[#8A8A8A] mt-1.5 max-w-md">
+                Log items received from your vendors.
+              </p>
             </div>
 
           ) : (
-            <>
-              {/* Summary Stats */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-                <div className="bg-white border border-[#E5E7EB] rounded-none shadow-sm p-4">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#6B7280] mb-1">Total</p>
-                  <p className="text-2xl font-bold text-[#111827]">{receives.length}</p>
-                </div>
-                <div className="bg-white border border-[#E5E7EB] rounded-none shadow-sm p-4">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#6B7280] mb-1">Draft</p>
-                  <p className="text-2xl font-bold text-[#9CA3AF]">{draftCount}</p>
-                </div>
-                <div className="bg-white border border-[#E5E7EB] rounded-none shadow-sm p-4">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#6B7280] mb-1">In Transit</p>
-                  <p className="text-2xl font-bold text-[#F59E0B]">{inTransitCount}</p>
-                </div>
-                <div className="bg-white border border-[#E5E7EB] rounded-none shadow-sm p-4">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#6B7280] mb-1">Received</p>
-                  <p className="text-2xl font-bold text-[#10b981]">{receivedCount}</p>
-                </div>
-              </div>
-
-              {/* Table */}
-              <div className="bg-white rounded-none border border-[#E5E7EB] shadow-sm overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-[#E5E7EB]">
-                    <thead className="bg-[#F9FAFB]">
-                      <tr>
-                        <th className="px-5 py-3 text-center text-[10px] font-bold uppercase tracking-wider text-[#6B7280] w-10">#</th>
-                        <th className="px-5 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">Received Date</th>
-                        <th className="px-5 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">Receive #</th>
-                        <th className="px-5 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">Purchase Order #</th>
-                        <th className="px-5 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">Vendor</th>
-                        <th className="px-5 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">Items Received</th>
-                        <th className="px-5 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">Status</th>
-                        <th className="px-5 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-[#E5E7EB]">
-                      {receives.map((receive, index) => (
-                        <tr key={receive._id || receive.id} className="hover:bg-[#FAFAFA] transition-colors">
-                          <td className="px-5 py-3 text-center text-xs text-[#9CA3AF] font-medium">{index + 1}</td>
-                          <td className="px-5 py-3 text-xs text-[#6B7280] whitespace-nowrap">{formatDate(receive.receivedDate)}</td>
-                          <td className="px-5 py-3 whitespace-nowrap">
-                            <Link
-                              to={`/purchase/receives/${receive._id || receive.id}`}
-                              className="text-xs font-bold text-[#8B5CF6] hover:text-[#7C3AED] hover:underline"
+            <div className="bg-white rounded-[12px] border border-[#E5E5E5] shadow-[0_1px_2px_rgba(0,0,0,0.02)] overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead className="bg-[#1B1B1B] text-white">
+                    <tr>
+                      <th className="py-3.5 px-4 text-center text-[11px] font-semibold uppercase tracking-wider w-12">#</th>
+                      <th className="py-3.5 px-4 text-left text-[11px] font-semibold uppercase tracking-wider">Received Date</th>
+                      <th className="py-3.5 px-4 text-left text-[11px] font-semibold uppercase tracking-wider">Receive #</th>
+                      <th className="py-3.5 px-4 text-left text-[11px] font-semibold uppercase tracking-wider">Purchase Order #</th>
+                      <th className="py-3.5 px-4 text-left text-[11px] font-semibold uppercase tracking-wider">Vendor</th>
+                      <th className="py-3.5 px-4 text-left text-[11px] font-semibold uppercase tracking-wider">Items Received</th>
+                      <th className="py-3.5 px-4 text-left text-[11px] font-semibold uppercase tracking-wider">Status</th>
+                      <th className="py-3.5 px-4 text-left text-[11px] font-semibold uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-[#F0F0F0]">
+                    {filteredReceives.map((receive, index) => (
+                      <tr key={receive._id || receive.id} className="hover:bg-[#FAFAFA] transition-colors">
+                        <td className="py-3.5 px-4 text-center text-[13px] text-[#8A8A8A] font-medium">{index + 1}</td>
+                        <td className="py-3.5 px-4 text-[13px] text-[#525252] whitespace-nowrap">{formatDate(receive.receivedDate)}</td>
+                        <td className="py-3.5 px-4 whitespace-nowrap">
+                          <Link
+                            to={`/purchase/receives/${receive._id || receive.id}`}
+                            className="text-[13px] font-semibold text-[#9D43D6] hover:text-[#7E22CE] hover:underline"
+                          >
+                            {receive.receiveNumber}
+                          </Link>
+                        </td>
+                        <td className="py-3.5 px-4 text-[13px] text-[#525252] whitespace-nowrap">
+                          {receive.purchaseOrderNumber || receive.purchaseOrderId?.orderNumber || "—"}
+                        </td>
+                        <td className="py-3.5 px-4 text-[13px] text-[#212121] font-medium whitespace-nowrap">
+                          {receive.vendorName || receive.vendorId?.displayName || receive.vendorId?.companyName || "—"}
+                        </td>
+                        <td className="py-3.5 px-4 whitespace-nowrap">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-[8px] bg-[#F4F4F5] text-[12px] font-medium text-[#525252]">
+                            {getTotalReceived(receive.items)} items
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 whitespace-nowrap">
+                          {getStatusBadge(receive.status || "received")}
+                        </td>
+                        <td className="py-3.5 px-4 whitespace-nowrap">
+                          {receive.status === "draft" && (
+                            <button
+                              type="button"
+                              onClick={() => handleSendReceive(receive._id || receive.id)}
+                              disabled={sending[receive._id || receive.id]}
+                              className="inline-flex items-center gap-1.5 h-[32px] px-3 rounded-[8px] border border-[#E9D5FF] bg-[#F3E8FF] text-[#9D43D6] text-[12px] font-medium hover:bg-[#E9D5FF] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                             >
-                              {receive.receiveNumber}
-                            </Link>
-                          </td>
-                          <td className="px-5 py-3 text-xs text-[#6B7280] whitespace-nowrap">
-                            {receive.purchaseOrderNumber || receive.purchaseOrderId?.orderNumber || "—"}
-                          </td>
-                          <td className="px-5 py-3 text-xs text-[#374151] font-medium whitespace-nowrap">
-                            {receive.vendorName || receive.vendorId?.displayName || receive.vendorId?.companyName || "—"}
-                          </td>
-                          <td className="px-5 py-3 text-xs text-[#6B7280] whitespace-nowrap">
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-none bg-[#F3F4F6] border border-[#E5E7EB] text-[10px] font-bold text-[#374151]">
-                              {getTotalReceived(receive.items)} items
-                            </span>
-                          </td>
-                          <td className="px-5 py-3 whitespace-nowrap">
-                            {getStatusBadge(receive.status || "received")}
-                          </td>
-                          <td className="px-5 py-3 whitespace-nowrap">
-                            {receive.status === "draft" && (
-                              <button
-                                onClick={() => handleSendReceive(receive._id || receive.id)}
-                                disabled={sending[receive._id || receive.id]}
-                                className="inline-flex items-center gap-1.5 h-7 px-3 rounded-none border border-[#C4B5FD] bg-[#F5F3FF] text-[#7C3AED] text-[10px] font-bold uppercase tracking-wider hover:bg-[#EDE9FE] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                              >
-                                <Send size={11} />
-                                {sending[receive._id || receive.id] ? "Sending..." : "Send"}
-                              </button>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                              <Send size={12} />
+                              <span>{sending[receive._id || receive.id] ? "Sending..." : "Send"}</span>
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            </>
+            </div>
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

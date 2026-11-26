@@ -355,34 +355,36 @@ const Permissions = () => {
                     </div>
                 )}
 
-                {/* Role Tabs Row */}
-                <div className="bg-[#F7F7F7] p-1.5 rounded-xl border border-[#E5E5E5] flex flex-wrap items-center gap-1.5">
-                    {/* All Roles Matrix Option */}
+                {/* Standard Clean Tab Bar */}
+                <div className="border-b border-[#E5E5E5] flex flex-wrap items-center gap-1">
+                    {/* All Roles Matrix Tab */}
                     <button
+                        type="button"
                         onClick={() => setActiveTab("matrix")}
-                        className={`px-3.5 py-2 rounded-lg text-[12px] font-semibold transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
+                        className={`relative px-4 py-3 text-[13px] transition-colors whitespace-nowrap cursor-pointer inline-flex items-center gap-2 border-b-2 -mb-[1px] ${
                             activeTab === "matrix"
-                                ? "bg-[#9D43D6] text-white shadow-xs"
-                                : "bg-white text-[#4A4A4A] border border-[#E5E5E5] hover:border-[#9D43D6]/40 hover:text-[#9D43D6]"
+                                ? "border-[#9D43D6] text-[#9D43D6] font-semibold"
+                                : "border-transparent text-[#6A6A6A] font-medium hover:text-[#212121] hover:border-[#D4D4D4]"
                         }`}
                     >
                         <LayoutGrid size={14} />
-                        All Roles Matrix
+                        <span>All Roles Matrix</span>
                     </button>
 
-                    <div className="hidden sm:block w-[1px] h-5 bg-[#DCDCDC] mx-1 shrink-0" />
+                    <div className="hidden sm:block w-[1px] h-4 bg-[#E5E5E5] mx-2 shrink-0" />
 
-                    {/* Individual Roles */}
+                    {/* Individual Role Tabs */}
                     {SYSTEM_ROLES.map((r) => {
                         const isSelected = activeTab === r.key;
                         return (
                             <button
+                                type="button"
                                 key={r.key}
                                 onClick={() => setActiveTab(r.key)}
-                                className={`px-3.5 py-2 rounded-lg text-[12px] font-semibold transition-all whitespace-nowrap cursor-pointer ${
+                                className={`relative px-3.5 py-3 text-[13px] transition-colors whitespace-nowrap cursor-pointer border-b-2 -mb-[1px] ${
                                     isSelected
-                                        ? "bg-[#9D43D6] text-white shadow-xs"
-                                        : "text-[#525252] hover:text-[#212121] hover:bg-white"
+                                        ? "border-[#9D43D6] text-[#9D43D6] font-semibold"
+                                        : "border-transparent text-[#6A6A6A] font-medium hover:text-[#212121] hover:border-[#D4D4D4]"
                                 }`}
                             >
                                 {r.label}

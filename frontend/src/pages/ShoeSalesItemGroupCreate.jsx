@@ -933,7 +933,7 @@ const ShoeSalesItemGroupCreate = () => {
     handleSave(syntheticEvent);
   }, loading);  if (loading) {
     return (
-      <div className={`transition-all duration-300 min-h-screen bg-[#F8FAFC] p-6 flex items-center justify-center ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+      <div className={`transition-all duration-300 min-h-screen bg-[#FAFAFA] p-6 flex items-center justify-center ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
         <div className="rounded-2xl border border-gray-200/80 bg-white shadow-md p-8 text-center max-w-sm w-full">
           <div className="w-8 h-8 border-3 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
           <p className="text-sm font-semibold text-gray-700">Loading item group...</p>
@@ -945,468 +945,443 @@ const ShoeSalesItemGroupCreate = () => {
   const selectedTaxRateValue = intraStateTaxRate || interStateTaxRate;
 
   return (
-    <div className="invoice-page-wrapper min-h-screen bg-[#F8FAFC] text-gray-900">
-      <Header title={isEditMode ? "Edit Item Group" : "Create Item Group"} />
+    <div className="invoice-page-wrapper min-h-screen bg-[#FAFAFA] text-[#212121]">
+      <Header title={isEditMode ? "Edit Item Group" : "Add Item Group"} />
 
-      <div className={`transition-all duration-300 p-6 md:p-8 max-w-7xl mx-auto space-y-6 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-        {/* Top Action Toolbar */}
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-3.5 min-w-0">
-            <Link
-              to={isEditMode ? `/shoe-sales/item-groups/${id}` : "/shoe-sales/item-groups"}
-              className="inline-flex items-center gap-2 h-9 px-3.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-xs font-semibold text-gray-700 shadow-xs hover:border-purple-200 hover:text-purple-600 transition cursor-pointer shrink-0"
-            >
-              <ArrowLeft size={14} className="text-gray-500 group-hover:text-purple-600" />
-              <span>{isEditMode ? "Back to Details" : "Back to Groups"}</span>
-            </Link>
-            <div className="min-w-0">
-              <h1 className="text-xl md:text-2xl font-bold tracking-tight text-gray-900 truncate">
-                {isEditMode ? "Edit Item Group" : "New Item Group"}
-              </h1>
-              <p className="text-xs text-gray-500 font-medium mt-0.5">
-                {isEditMode ? "Update item group details and attributes." : "Define a reusable item group template with shared pricing and attributes."}
-              </p>
-            </div>
-          </div>
+      <div className={`transition-all duration-300 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
+        {/* Clean Page Title Header */}
+        <div className="bg-white px-6 md:px-8 py-4 border-b border-[#E5E5E5] flex items-center justify-between">
+          <h1 className="text-[18px] font-semibold text-[#212121]">
+            {isEditMode ? "Edit Item Group" : "Add Item Group"}
+          </h1>
         </div>
-
-        {/* Card 1: Basic Information & Attributes */}
-        <div className="bg-white border border-gray-200/80 rounded-2xl shadow-xs overflow-hidden transition-all duration-200 hover:shadow-sm">
-          <div className="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-gray-50/80 to-white flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center border border-purple-100/80 shadow-2xs">
-                <Package className="w-4 h-4" />
-              </div>
+        <div className="p-5 md:p-6 max-w-[1440px] mx-auto space-y-5">
+          {/* Card 1: Main Item Group Details */}
+          <div className="bg-white border border-[#E5E5E5] rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.03)] p-6 space-y-5">
+            {/* Row 1: Item Group Name, SKU, Unit */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               <div>
-                <h2 className="text-xs font-bold uppercase tracking-wider text-gray-900">Basic Information</h2>
-                <p className="text-[11px] text-gray-500">Define the group name, template details and attributes</p>
+                <label className="rf-field-label">
+                  Item Group Name <span className="text-[#EF4444]">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={itemGroupName}
+                  onChange={(e) => {
+                    setItemGroupName(e.target.value);
+                    if (!skuManuallyEdited) {
+                      setItemGroupSku(generateSkuPreview(e.target.value));
+                    }
+                  }}
+                  className="rf-input !h-[40px]"
+                  placeholder="Enter item group name"
+                />
               </div>
+
+              <div>
+                <label className="rf-field-label">SKU</label>
+                <input
+                  type="text"
+                  value={itemGroupSku}
+                  onChange={(e) => {
+                    setSkuManuallyEdited(true);
+                    setItemGroupSku(e.target.value.toUpperCase());
+                  }}
+                  className="rf-input !h-[40px]"
+                  placeholder="e.g. IGRP-001"
+                />
+              </div>
+
+              <UnitSelect
+                label="Unit"
+                required
+                placeholder="Select or enter the unit"
+                value={unit}
+                onChange={setUnit}
+                options={unitOptions}
+              />
+            </div>
+
+            {/* Row 2: Description */}
+            <div>
+              <label className="rf-field-label">Description</label>
+              <textarea
+                rows={3}
+                placeholder="Enter description"
+                className="w-full rounded-[10px] border border-[#E5E5E5] bg-white p-3.5 text-[13px] text-[#212121] placeholder:text-[#A1A1AA] focus:border-[#9D43D6] focus:ring-2 focus:ring-[#9D43D6]/15 focus:outline-none transition resize-none"
+              />
+            </div>
+
+            {/* Row 3: Returnable Item Checkbox */}
+            <div>
+              {itemType === "goods" ? (
+                <FloatingCheckbox
+                  label="Returnable Item"
+                  checked={returnable}
+                  onChange={(e) => setReturnable(e.target.checked)}
+                />
+              ) : (
+                <FloatingCheckbox label="Receivable Item" />
+              )}
+            </div>
+
+            {/* Row 4: Manufacturer, Brand, Inventory Valuation Method */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <ManufacturerSelect
+                label="Manufacturer"
+                placeholder="Enter or select manufacturer"
+                value={selectedManufacturer}
+                onChange={setSelectedManufacturer}
+                manufacturers={manufacturers}
+                onManageClick={() => setShowManufacturerModal(true)}
+              />
+              <BrandSelect
+                label="Brand"
+                placeholder="Enter or select brand"
+                value={selectedBrand}
+                onChange={setSelectedBrand}
+                brands={brands}
+                onManageClick={() => setShowBrandModal(true)}
+              />
+              {itemType === "goods" && (
+                <InventoryValuationSelect
+                  label="Inventory Valuation Method"
+                  value={inventoryValuation}
+                  onChange={setInventoryValuation}
+                />
+              )}
+            </div>
+
+            {/* Row 5: Tax Preference */}
+            <div className="pt-1 space-y-2.5">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-[#9D43D6]">
+                TAX PREFERENCE
+              </div>
+              <div className="flex flex-wrap items-center gap-6">
+                <label className="inline-flex items-center gap-2 text-[13px] font-medium text-[#212121] cursor-pointer select-none">
+                  <input
+                    type="radio"
+                    name="taxPreference"
+                    value="taxable"
+                    checked={taxPreference === "taxable"}
+                    onChange={(e) => {
+                      setTaxPreference(e.target.value);
+                      setExemptionReason("");
+                    }}
+                    className="w-4 h-4 accent-[#9D43D6] cursor-pointer"
+                  />
+                  <span>Taxable</span>
+                </label>
+                <label className="inline-flex items-center gap-2 text-[13px] font-medium text-[#212121] cursor-pointer select-none">
+                  <input
+                    type="radio"
+                    name="taxPreference"
+                    value="non-taxable"
+                    checked={taxPreference === "non-taxable"}
+                    onChange={(e) => setTaxPreference(e.target.value)}
+                    className="w-4 h-4 accent-[#9D43D6] cursor-pointer"
+                  />
+                  <span>Non taxable</span>
+                </label>
+              </div>
+              {taxPreference === "non-taxable" && (
+                <div className="pt-2 max-w-md">
+                  <label className="rf-field-label">
+                    Exemption Reason <span className="text-[#EF4444]">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={exemptionReason}
+                    onChange={(e) => setExemptionReason(e.target.value)}
+                    placeholder="Select or type to add"
+                    className="rf-input !h-[40px]"
+                  />
+                </div>
+              )}
             </div>
           </div>
-          <div className="p-6 md:p-8">
-            <div className="grid gap-8 lg:grid-cols-[2fr,1fr]">
-              {/* Left Column: Form Fields */}
-              <div className="space-y-6">
-                <div className="grid gap-5 md:grid-cols-2">
-                  <div className="space-y-1.5">
-                    <label className="block text-xs font-semibold text-gray-700">
-                      Item Group Name <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={itemGroupName}
-                      onChange={(e) => {
-                        setItemGroupName(e.target.value);
-                        if (!skuManuallyEdited) {
-                          setItemGroupSku(generateSkuPreview(e.target.value));
-                        }
-                      }}
-                      className="w-full h-10 rounded-xl border border-gray-200 bg-white px-3.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-100 focus:outline-none transition"
-                      placeholder="Enter group name"
+
+          {/* Row 2: 2-Column Bento — Default Tax Rates (Left) + Image Upload (Right) */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-stretch">
+            {/* Left Card: Default Tax Rates */}
+            <div className="bg-white border border-[#E5E5E5] rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.03)] p-6 space-y-4">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-[#9D43D6]">
+                DEFAULT TAX RATES
+              </div>
+              {taxPreference === "taxable" ? (
+                <>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <TaxRateSelect
+                      label="Intra State Tax Rate"
+                      value={intraStateTaxRate}
+                      onChange={setIntraStateTaxRate}
+                      type="intra"
+                    />
+                    <TaxRateSelect
+                      label="Inter State Tax Rate"
+                      value={interStateTaxRate}
+                      onChange={setInterStateTaxRate}
+                      type="inter"
                     />
                   </div>
-                  <div className="space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <label className="block text-xs font-semibold text-gray-700">
-                        SKU
-                      </label>
-                      <div className="flex items-center gap-1 text-[11px] font-medium text-purple-600">
-                        <Info className="w-3.5 h-3.5 text-purple-500" />
-                        Auto-generated
-                      </div>
-                    </div>
-                    <input
-                      type="text"
-                      value={itemGroupSku}
-                      onChange={(e) => {
-                        setSkuManuallyEdited(true);
-                        setItemGroupSku(e.target.value.toUpperCase());
-                      }}
-                      className="w-full h-10 rounded-xl border border-gray-200 bg-white px-3.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-100 focus:outline-none transition"
-                      placeholder="e.g. IGRP-001"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-semibold text-gray-700">
-                    Description
-                  </label>
-                  <textarea
-                    rows={3}
-                    placeholder="Summarize this item group..."
-                    className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-100 focus:outline-none transition"
-                  />
-                </div>
-
-                <div className="grid gap-5 md:grid-cols-2">
-                  <div className="flex items-center">
-                    {itemType === "goods" ? (
-                      <FloatingCheckbox 
-                        label="Returnable Item" 
-                        checked={returnable}
-                        onChange={(e) => setReturnable(e.target.checked)}
-                      />
-                    ) : (
-                      <FloatingCheckbox label="Receivable Item" />
-                    )}
-                  </div>
-                  <UnitSelect
-                    label="Unit"
-                    required
-                    placeholder="Select or type to add"
-                    value={unit}
-                    onChange={setUnit}
-                    options={unitOptions}
-                  />
-                  <ManufacturerSelect
-                    label="Manufacturer"
-                    placeholder="Select or add manufacturer"
-                    value={selectedManufacturer}
-                    onChange={setSelectedManufacturer}
-                    manufacturers={manufacturers}
-                    onManageClick={() => setShowManufacturerModal(true)}
-                  />
-                  <BrandSelect
-                    label="Brand"
-                    placeholder="Select or add brand"
-                    value={selectedBrand}
-                    onChange={setSelectedBrand}
-                    brands={brands}
-                    onManageClick={() => setShowBrandModal(true)}
-                  />
-                  <div className="space-y-2">
-                    <label className="block text-xs font-semibold text-gray-700">
-                      Tax Preference <span className="text-red-500">*</span>
-                    </label>
-                    <div className="flex items-center gap-3">
-                      <label className={`inline-flex items-center gap-2 rounded-xl border px-3.5 py-2 text-xs font-semibold cursor-pointer transition select-none ${taxPreference === "taxable" ? "border-purple-500 bg-purple-50/60 text-purple-700 shadow-2xs" : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"}`}>
-                        <input
-                          type="radio"
-                          name="taxPreference"
-                          value="taxable"
-                          checked={taxPreference === "taxable"}
-                          onChange={(e) => {
-                            setTaxPreference(e.target.value);
-                            setExemptionReason("");
-                          }}
-                          className="text-purple-600 focus:ring-purple-500 accent-purple-600 cursor-pointer"
-                        />
-                        Taxable
-                      </label>
-                      <label className={`inline-flex items-center gap-2 rounded-xl border px-3.5 py-2 text-xs font-semibold cursor-pointer transition select-none ${taxPreference === "non-taxable" ? "border-purple-500 bg-purple-50/60 text-purple-700 shadow-2xs" : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"}`}>
-                        <input
-                          type="radio"
-                          name="taxPreference"
-                          value="non-taxable"
-                          checked={taxPreference === "non-taxable"}
-                          onChange={(e) => setTaxPreference(e.target.value)}
-                          className="text-purple-600 focus:ring-purple-500 accent-purple-600 cursor-pointer"
-                        />
-                        Non-Taxable
-                      </label>
-                    </div>
-                    {taxPreference === "non-taxable" && (
-                      <div className="pt-2">
-                        <label className="block text-xs font-semibold text-gray-700 mb-1">
-                          Exemption Reason <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          value={exemptionReason}
-                          onChange={(e) => setExemptionReason(e.target.value)}
-                          placeholder="Select or type to add"
-                          className="w-full h-10 rounded-xl border border-gray-200 bg-white px-3.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-100 focus:outline-none transition"
-                        />
-                      </div>
-                    )}
-                  </div>
-
-                  {itemType === "goods" && (
-                    <InventoryValuationSelect
-                      label="Inventory Valuation Method"
-                      value={inventoryValuation}
-                      onChange={setInventoryValuation}
-                    />
-                  )}
-                </div>
-
-                {/* Default Tax Rates Section */}
-                {taxPreference === "taxable" && (
-                  <div className="space-y-4 rounded-xl border border-purple-100 bg-purple-50/20 p-5">
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-purple-900">Default Tax Rates</h3>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <TaxRateSelect
-                        label="Intra State Tax Rate"
-                        value={intraStateTaxRate}
-                        onChange={setIntraStateTaxRate}
-                        type="intra"
-                      />
-                      <TaxRateSelect
-                        label="Inter State Tax Rate"
-                        value={interStateTaxRate}
-                        onChange={setInterStateTaxRate}
-                        type="inter"
-                      />
-                    </div>
-                    <div>
-                      <label className="inline-flex items-center gap-2 text-xs font-medium text-gray-700 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          className="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500 accent-purple-600 cursor-pointer"
-                          checked={priceIncludesGST}
-                          onChange={(e) => setPriceIncludesGST(e.target.checked)}
-                        />
-                        <span>Price Includes GST</span>
-                      </label>
-                    </div>
-                  </div>
-                )}
-
-                {/* Attributes & Options Section */}
-                <div className="space-y-4 rounded-xl border border-purple-100 bg-purple-50/30 p-5">
-                  <div className="flex flex-wrap items-center justify-between gap-3 pb-2 border-b border-purple-100">
-                    <label className="inline-flex items-center gap-2.5 rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-xs font-semibold text-gray-800 shadow-2xs cursor-pointer hover:border-purple-200 transition">
+                  <div className="pt-1">
+                    <label className="inline-flex items-center gap-2 text-[13px] font-medium text-[#212121] cursor-pointer select-none">
                       <input
                         type="checkbox"
-                        checked={createAttributes}
-                        onChange={(e) => handleCreateAttributesToggle(e.target.checked)}
-                        className="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500 accent-purple-600"
+                        className="h-4 w-4 rounded-[4px] border-[#D4D4D8] accent-[#9D43D6] cursor-pointer"
+                        checked={priceIncludesGST}
+                        onChange={(e) => setPriceIncludesGST(e.target.checked)}
                       />
-                      Create Attributes & Options
+                      <span>Price includes GST</span>
                     </label>
-                    {createAttributes && (
+                  </div>
+                </>
+              ) : (
+                <p className="text-[13px] text-[#7A7A7A]">
+                  Tax rates are disabled because this item group is marked as Non-Taxable.
+                </p>
+              )}
+            </div>
+
+            {/* Right Card: Group Images */}
+            <div className="bg-white border border-[#E5E5E5] rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.03)] p-5 flex flex-col justify-center">
+              <ImageUpload
+                onImagesSelect={(images) => setGroupImages(images)}
+                existingImages={groupImages}
+                onRemoveImage={(index) => {
+                  setGroupImages(groupImages.filter((_, i) => i !== index));
+                }}
+                multiple={true}
+              />
+            </div>
+          </div>
+
+          {/* Card 3: Create Attribute & Options */}
+          <div className="bg-white border border-[#E5E5E5] rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.03)] p-6 space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-[#9D43D6]">
+                CREATE ATTRIBUTE &amp; OPTIONS
+              </div>
+              <label className="inline-flex items-center gap-2 text-[13px] font-medium text-[#212121] cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={createAttributes}
+                  onChange={(e) => handleCreateAttributesToggle(e.target.checked)}
+                  className="h-4 w-4 rounded-[4px] border-[#D4D4D8] accent-[#9D43D6] cursor-pointer"
+                />
+                <span>Enable Attributes</span>
+              </label>
+            </div>
+
+            {createAttributes && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {attributeRows.map((row, rowIndex) => (
+                  <div
+                    key={row.id}
+                    className="rounded-[12px] border border-dashed border-[#D4D4D8] bg-[#FAFAFA]/40 p-4 space-y-3.5"
+                  >
+                    <div>
+                      <label className="rf-field-label">
+                        Attribute <span className="text-[#EF4444]">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={row.attribute}
+                        onChange={(e) => {
+                          const updated = [...attributeRows];
+                          updated[rowIndex].attribute = e.target.value;
+                          setAttributeRows(updated);
+                        }}
+                        placeholder="eg. colour"
+                        className="rf-input !h-[38px] bg-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="rf-field-label">
+                        Options <span className="text-[#EF4444]">*</span>
+                      </label>
+                      <div className="flex flex-wrap items-center gap-1.5 rounded-[10px] border border-[#E5E5E5] bg-white px-3 py-1.5 min-h-[38px] focus-within:border-[#9D43D6] focus-within:ring-2 focus-within:ring-[#9D43D6]/15 transition">
+                        {row.options.map((opt, idx) => (
+                          <span
+                            key={idx}
+                            className="inline-flex items-center gap-1 rounded-[6px] bg-[#F3E8FF] px-2 py-0.5 text-[11px] font-semibold text-[#9D43D6]"
+                          >
+                            {opt}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const updated = [...attributeRows];
+                                updated[rowIndex].options = updated[rowIndex].options.filter((_, i) => i !== idx);
+                                setAttributeRows(updated);
+                              }}
+                              className="hover:text-[#6D2898] transition cursor-pointer"
+                            >
+                              <X size={11} />
+                            </button>
+                          </span>
+                        ))}
+                        <input
+                          type="text"
+                          value={row.optionInput}
+                          onChange={(e) => {
+                            const updated = [...attributeRows];
+                            updated[rowIndex].optionInput = e.target.value;
+                            setAttributeRows(updated);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" && row.optionInput.trim()) {
+                              e.preventDefault();
+                              const updated = [...attributeRows];
+                              updated[rowIndex].options = [...updated[rowIndex].options, updated[rowIndex].optionInput.trim()];
+                              updated[rowIndex].optionInput = "";
+                              setAttributeRows(updated);
+                            }
+                          }}
+                          data-handle-enter="true"
+                          placeholder={row.options.length === 0 ? "Enter options and press Enter" : "+ add..."}
+                          className="flex-1 border-0 bg-transparent px-1 py-0.5 text-[12px] text-[#212121] placeholder:text-[#A1A1AA] focus:outline-none min-w-[100px]"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-1">
                       <button
+                        type="button"
                         onClick={() => {
                           setAttributeRows([...attributeRows, { id: Date.now(), attribute: "", options: [], optionInput: "" }]);
                         }}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-100/70 hover:bg-purple-200/80 text-purple-700 text-xs font-semibold border border-purple-200 transition cursor-pointer"
+                        className="inline-flex items-center gap-1.5 h-[34px] px-3 rounded-[8px] bg-[#F3F4F6] hover:bg-[#E5E7EB] text-[#212121] text-[12px] font-medium transition cursor-pointer"
                       >
-                        <Plus size={14} />
-                        Add Attribute
+                        <Plus size={13} />
+                        <span>Add More Attribute</span>
                       </button>
-                    )}
-                  </div>
-                  {createAttributes && (
-                    <div className="space-y-4 pt-1">
-                      {attributeRows.map((row, rowIndex) => (
-                        <div key={row.id} className="grid gap-3 md:grid-cols-[200px,1fr]">
-                          <div className="space-y-1.5">
-                            <label className="block text-[11px] font-semibold text-gray-700">
-                              Attribute <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                              type="text"
-                              value={row.attribute}
-                              onChange={(e) => {
-                                const updated = [...attributeRows];
-                                updated[rowIndex].attribute = e.target.value;
-                                setAttributeRows(updated);
-                              }}
-                              placeholder="e.g. Color, Size, Karat"
-                              className="w-full h-10 rounded-xl border border-gray-200 bg-white px-3 text-xs text-gray-900 placeholder:text-gray-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-100 focus:outline-none transition"
-                            />
-                          </div>
-                          <div className="space-y-1.5">
-                            <label className="block text-[11px] font-semibold text-gray-700">
-                              Options <span className="text-red-500">*</span>
-                            </label>
-                            <div className="flex items-center gap-2">
-                              <div className="flex flex-1 flex-wrap items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-1.5 min-h-[2.5rem] focus-within:border-purple-500 focus-within:ring-2 focus-within:ring-purple-100 transition">
-                                {row.options.map((opt, idx) => (
-                                  <span
-                                    key={idx}
-                                    className="inline-flex items-center gap-1 rounded-lg bg-purple-50 border border-purple-200/80 px-2.5 py-1 text-xs font-semibold text-purple-700"
-                                  >
-                                    {opt}
-                                    <button
-                                      onClick={() => {
-                                        const updated = [...attributeRows];
-                                        updated[rowIndex].options = updated[rowIndex].options.filter((_, i) => i !== idx);
-                                        setAttributeRows(updated);
-                                      }}
-                                      className="hover:text-purple-900 transition ml-0.5"
-                                    >
-                                      <X size={12} />
-                                    </button>
-                                  </span>
-                                ))}
-                                <input
-                                  type="text"
-                                  value={row.optionInput}
-                                  onChange={(e) => {
-                                    const updated = [...attributeRows];
-                                    updated[rowIndex].optionInput = e.target.value;
-                                    setAttributeRows(updated);
-                                  }}
-                                  onKeyDown={(e) => {
-                                    if (e.key === "Enter" && row.optionInput.trim()) {
-                                      e.preventDefault();
-                                      const updated = [...attributeRows];
-                                      updated[rowIndex].options = [...updated[rowIndex].options, updated[rowIndex].optionInput.trim()];
-                                      updated[rowIndex].optionInput = "";
-                                      setAttributeRows(updated);
-                                    }
-                                  }}
-                                  data-handle-enter="true"
-                                  placeholder={row.options.length === 0 ? "Type option and press Enter (e.g. Red, Blue, 18K)..." : "+ add..."}
-                                  className="flex-1 border-0 bg-transparent px-1 py-1 text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none min-w-[120px]"
-                                />
-                              </div>
-                              <button
-                                onClick={() => {
-                                  setAttributeRows(attributeRows.filter((_, i) => i !== rowIndex));
-                                }}
-                                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 transition cursor-pointer"
-                                title="Remove Attribute"
-                              >
-                                <Trash2 size={16} />
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
+                      {attributeRows.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAttributeRows(attributeRows.filter((_, i) => i !== rowIndex));
+                          }}
+                          className="inline-flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-[8px] bg-[#FEE2E2]/80 text-[#EF4444] hover:bg-[#FEE2E2] transition cursor-pointer"
+                          title="Remove Attribute"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
                     </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Right Column: Group Images */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
-                  <Package className="w-4 h-4 text-purple-600" />
-                  <div>
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-gray-900">Group Images</h3>
-                    <p className="text-[11px] text-gray-500">Upload images for this item group</p>
                   </div>
-                </div>
-                <ImageUpload
-                  onImagesSelect={(images) => setGroupImages(images)}
-                  existingImages={groupImages}
-                  onRemoveImage={(index) => {
-                    setGroupImages(groupImages.filter((_, i) => i !== index));
-                  }}
-                  multiple={true}
-                />
+                ))}
               </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 2: Generated Item Variants Table */}
-        <div className="bg-white border border-gray-200/80 rounded-2xl shadow-xs overflow-hidden transition-all duration-200 hover:shadow-sm">
-          <div className="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-gray-50/80 to-white flex items-center justify-between flex-wrap gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100/80 shadow-2xs">
-                <Layers className="w-4 h-4" />
-              </div>
-              <div>
-                <h2 className="text-xs font-bold uppercase tracking-wider text-gray-900">Item Variants</h2>
-                <p className="text-[11px] text-gray-500">Configure pricing, SKU and inventory parameters for each variant</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 flex-wrap">
-              <label className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-gray-700 shadow-2xs cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={sellable}
-                  onChange={(e) => setSellable(e.target.checked)}
-                  className="h-3.5 w-3.5 rounded border-gray-300 text-purple-600 focus:ring-purple-500 accent-purple-600"
-                />
-                Sellable
-              </label>
-              <label className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-gray-700 shadow-2xs cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={purchasable}
-                  onChange={(e) => setPurchasable(e.target.checked)}
-                  className="h-3.5 w-3.5 rounded border-gray-300 text-purple-600 focus:ring-purple-500 accent-purple-600"
-                />
-                Purchasable
-              </label>
-              {itemType === "goods" && <FloatingCheckbox label="Track Inventory" defaultChecked />}
-            </div>
+            )}
           </div>
 
-          <div className="p-6">
-            <div className="overflow-x-auto rounded-xl border border-gray-200/80 shadow-2xs">
-              <table className="min-w-full divide-y divide-gray-200 text-xs">
-                <thead className="bg-gradient-to-r from-gray-50 to-purple-50/20">
-                  <tr>
-                    <th className="px-3.5 py-3 text-left font-bold uppercase tracking-wider text-gray-700">
-                      <div>{createAttributes ? "Item" : "Item Name*"}</div>
-                    </th>
-                    <th className="px-3.5 py-3 text-left font-bold uppercase tracking-wider text-gray-700">
-                      <div>Size</div>
-                    </th>
-                    <th className="px-3.5 py-3 text-left font-bold uppercase tracking-wider text-gray-700">
-                      <div>SKU</div>
-                      <div className="mt-1 flex gap-1.5 text-[10px] font-medium normal-case">
-                        <button className="px-1.5 py-0.5 rounded bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200/60 transition">Generate SKU</button>
-                        <button className="px-1.5 py-0.5 rounded bg-gray-50 hover:bg-gray-100 text-gray-600 border border-gray-200 transition">Clear</button>
-                      </div>
-                    </th>
-                    <th className="px-3.5 py-3 text-left font-bold uppercase tracking-wider text-gray-700">
-                      <div>HSN Code</div>
-                      <div className="mt-1 flex gap-1.5 text-[10px] font-medium normal-case">
-                        <button 
-                          onClick={() => handleCopyToAll("hsnCode")}
-                          className="px-1.5 py-0.5 rounded bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200/60 transition"
-                        >
-                          Copy to All
-                        </button>
-                      </div>
-                    </th>
-                    <th className="px-3.5 py-3 text-left font-bold uppercase tracking-wider text-gray-700">
-                      <div>Reorder Point</div>
-                      <div className="mt-1 flex gap-1.5 text-[10px] font-medium normal-case">
-                        <button 
-                          onClick={() => handleCopyToAll("reorderPoint")}
-                          className="px-1.5 py-0.5 rounded bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200/60 transition"
-                        >
-                          Copy to All
-                        </button>
-                      </div>
-                    </th>
-                    <th className="px-3.5 py-3 text-left font-bold uppercase tracking-wider text-gray-700">
-                      <div>Cost Price (₹)*</div>
-                      <div className="mt-1 flex gap-1.5 text-[10px] font-medium normal-case">
-                        <button 
-                          onClick={() => handleCopyToAll("costPrice")}
-                          className="px-1.5 py-0.5 rounded bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200/60 transition"
-                        >
-                          Copy to All
-                        </button>
-                      </div>
-                    </th>
-                    <th className="px-3.5 py-3 text-left font-bold uppercase tracking-wider text-gray-700">
-                      <div>Selling Price (₹)*</div>
-                      <div className="mt-1 flex gap-1.5 text-[10px] font-medium normal-case">
-                        <button 
-                          onClick={() => handleCopyToAll("sellingPrice")}
-                          className="px-1.5 py-0.5 rounded bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200/60 transition"
-                        >
-                          Copy to All
-                        </button>
-                      </div>
-                    </th>
-                    <th className="px-3.5 py-3 text-left font-bold uppercase tracking-wider text-gray-700">
-                      <div>MRP (₹)</div>
-                      <div className="mt-1 flex gap-1.5 text-[10px] font-medium normal-case">
-                        <button 
-                          onClick={() => handleCopyToAll("mrp")}
-                          className="px-1.5 py-0.5 rounded bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200/60 transition"
-                        >
-                          Copy to All
-                        </button>
-                      </div>
-                    </th>
-                    <th className="px-3.5 py-3 text-left font-bold uppercase tracking-wider text-gray-700">
-                      <div>Price with GST (₹)</div>
-                    </th>
-                    <th className="px-3.5 py-3 text-left font-bold uppercase tracking-wider text-gray-700"></th>
-                  </tr>
-                </thead>
+          {/* Section 4: Item Variants Header + Table */}
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <h2 className="text-[15px] font-semibold text-[#1B1B1B]">Item Variants</h2>
+              <div className="flex flex-wrap items-center gap-2.5">
+                <label className="inline-flex items-center gap-2 rounded-[10px] border border-[#E5E5E5] bg-white px-3.5 py-2 text-[13px] font-medium text-[#212121] cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={sellable}
+                    onChange={(e) => setSellable(e.target.checked)}
+                    className="h-4 w-4 rounded-[4px] border-[#D4D4D8] accent-[#9D43D6] cursor-pointer"
+                  />
+                  <span>Sellable</span>
+                </label>
+                <label className="inline-flex items-center gap-2 rounded-[10px] border border-[#E5E5E5] bg-white px-3.5 py-2 text-[13px] font-medium text-[#212121] cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={purchasable}
+                    onChange={(e) => setPurchasable(e.target.checked)}
+                    className="h-4 w-4 rounded-[4px] border-[#D4D4D8] accent-[#9D43D6] cursor-pointer"
+                  />
+                  <span>Purchasable</span>
+                </label>
+                {itemType === "goods" && <FloatingCheckbox label="Track Inventory" defaultChecked />}
+              </div>
+            </div>
+
+            <div className="bg-white border border-[#E5E5E5] rounded-[12px] shadow-[0_1px_2px_rgba(0,0,0,0.02)] overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="min-w-full border-collapse text-[13px]">
+                  <thead className="bg-[#1B1B1B] text-white">
+                    <tr>
+                      <th className="px-4 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider">
+                        <div>{createAttributes ? "ITEM" : "ITEM NAME*"}</div>
+                      </th>
+                      <th className="px-3 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider">
+                        <div>SIZE</div>
+                      </th>
+                      <th className="px-3 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider">
+                        <div>SKU</div>
+                      </th>
+                      <th className="px-3 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider">
+                        <div className="flex items-center gap-1.5">
+                          <span>HSN CODE</span>
+                          <button
+                            type="button"
+                            onClick={() => handleCopyToAll("hsnCode")}
+                            className="px-1.5 py-0.5 rounded bg-white/10 hover:bg-white/20 text-white text-[9px] font-medium normal-case cursor-pointer"
+                          >
+                            Copy All
+                          </button>
+                        </div>
+                      </th>
+                      <th className="px-3 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider">
+                        <div className="flex items-center gap-1.5">
+                          <span>REORDER POINT</span>
+                          <button
+                            type="button"
+                            onClick={() => handleCopyToAll("reorderPoint")}
+                            className="px-1.5 py-0.5 rounded bg-white/10 hover:bg-white/20 text-white text-[9px] font-medium normal-case cursor-pointer"
+                          >
+                            Copy All
+                          </button>
+                        </div>
+                      </th>
+                      <th className="px-3 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider">
+                        <div className="flex items-center gap-1.5">
+                          <span>COST PRICE</span>
+                          <button
+                            type="button"
+                            onClick={() => handleCopyToAll("costPrice")}
+                            className="px-1.5 py-0.5 rounded bg-white/10 hover:bg-white/20 text-white text-[9px] font-medium normal-case cursor-pointer"
+                          >
+                            Copy All
+                          </button>
+                        </div>
+                      </th>
+                      <th className="px-3 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider">
+                        <div className="flex items-center gap-1.5">
+                          <span>SELLING PRICE</span>
+                          <button
+                            type="button"
+                            onClick={() => handleCopyToAll("sellingPrice")}
+                            className="px-1.5 py-0.5 rounded bg-white/10 hover:bg-white/20 text-white text-[9px] font-medium normal-case cursor-pointer"
+                          >
+                            Copy All
+                          </button>
+                        </div>
+                      </th>
+                      <th className="px-3 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider">
+                        <div className="flex items-center gap-1.5">
+                          <span>MRP</span>
+                          <button
+                            type="button"
+                            onClick={() => handleCopyToAll("mrp")}
+                            className="px-1.5 py-0.5 rounded bg-white/10 hover:bg-white/20 text-white text-[9px] font-medium normal-case cursor-pointer"
+                          >
+                            Copy All
+                          </button>
+                        </div>
+                      </th>
+                      <th className="px-3 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider">
+                        <div>PRICE WITH GST</div>
+                      </th>
+                      <th className="px-3 py-3.5 w-12"></th>
+                    </tr>
+                  </thead>
                 <tbody className="divide-y divide-gray-100 bg-white">
                   {!createAttributes ? (
                     <>
@@ -1790,30 +1765,49 @@ const ShoeSalesItemGroupCreate = () => {
                       </td>
                     </tr>
                   )}
-                </tbody>
-              </table>
+                  </tbody>
+                </table>
+              </div>
+              {!createAttributes && (
+                <div className="px-4 py-3 border-t border-[#F0F0F0] bg-white flex items-center gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setItemRows([
+                        ...itemRows,
+                        { id: Date.now(), name: "", size: "", sku: "", hsnCode: "", reorderPoint: "", costPrice: "", sellingPrice: "", mrp: "" },
+                      ])
+                    }
+                    className="inline-flex items-center gap-1.5 h-[36px] px-4 rounded-[10px] bg-[#F3F4F6] hover:bg-[#E5E7EB] text-[#212121] text-[13px] font-medium transition cursor-pointer"
+                  >
+                    <Plus size={14} />
+                    <span>Add Row</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
-        </div>
 
-        {/* Sticky Action Footer */}
-        <div className="sticky bottom-4 z-30 bg-white/95 backdrop-blur-md border border-gray-200/80 rounded-2xl shadow-lg p-4 flex items-center justify-between gap-4 flex-wrap">
-          <div className="text-xs text-gray-500 font-medium">
-            {createAttributes ? `${generatedItems.length} variant(s) generated` : `${itemRows.length} item(s) configured`}
-          </div>
-          <div className="flex items-center gap-3">
-            <Link
-              to={isEditMode ? `/shoe-sales/item-groups/${id}` : "/shoe-sales/item-groups"}
-              className="inline-flex items-center justify-center h-10 px-5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-xs font-semibold text-gray-700 shadow-xs transition-colors cursor-pointer"
-            >
-              Cancel
-            </Link>
-            <button 
-              onClick={handleSave}
-              className="inline-flex items-center justify-center h-10 px-6 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-xs font-bold uppercase tracking-wider text-white shadow-md shadow-purple-500/20 transition transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
-            >
-              {isEditMode ? "Update Item Group" : "Save Item Group"}
-            </button>
+          {/* Footer Actions */}
+          <div className="pt-2 pb-6 flex flex-wrap items-center justify-between gap-4">
+            <div className="text-[13px] text-[#7A7A7A]">
+              {createAttributes ? `${generatedItems.length} variant(s) generated` : `${itemRows.length} item(s) configured`}
+            </div>
+            <div className="flex items-center gap-2.5">
+              <Link
+                to={isEditMode ? `/shoe-sales/item-groups/${id}` : "/shoe-sales/item-groups"}
+                className="rf-btn-cancel inline-flex items-center justify-center !h-[40px] !px-5 !text-[13px]"
+              >
+                Cancel
+              </Link>
+              <button
+                type="button"
+                onClick={handleSave}
+                className="rf-btn-primary inline-flex items-center justify-center !h-[40px] !px-6 !text-[13px]"
+              >
+                {isEditMode ? "Update Item Group" : "Save Item Group"}
+              </button>
+            </div>
           </div>
         </div>
       </div>

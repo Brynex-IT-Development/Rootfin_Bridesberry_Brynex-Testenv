@@ -774,12 +774,12 @@ const ShoeSalesItemDetailFromGroup = () => {
     return (
       <div className="invoice-page-wrapper min-h-screen bg-[#F9FAFB] text-[#111827]">
         <Header title="Item Details" />
-        <div className={`transition-all duration-300 p-8 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-          <div className="bg-white border border-[#E5E7EB] rounded-none p-12 text-center shadow-xs">
+        <div className={`transition-all duration-300 p-8 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
+          <div className="bg-white border border-[#E5E7EB] rounded-[10px] p-12 text-center shadow-xs">
             <p className="text-base font-bold text-[#111827] uppercase tracking-wide">Item not found</p>
             <Link
               to={`/shoe-sales/item-groups/${id}`}
-              className="mt-4 inline-flex items-center gap-1.5 h-9 px-4 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs transition-colors"
+              className="mt-4 inline-flex items-center gap-1.5 h-9 px-4 rounded-[10px] border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs transition-colors"
             >
               <ArrowLeft size={14} />
               <span>Back to Item Group</span>
@@ -1131,16 +1131,21 @@ const ShoeSalesItemDetailFromGroup = () => {
   };
 
   return (
-    <div className="invoice-page-wrapper min-h-screen bg-[#F9FAFB] text-[#111827]">
+    <div className="invoice-page-wrapper min-h-screen bg-[#FAFAFA] text-[#212121]">
       <Header title="Item Details" />
 
-      <div className={`transition-all duration-300 p-8 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+      <div className={`transition-all duration-300 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
+        {/* Clean Page Title Header */}
+        <div className="bg-white px-6 md:px-8 py-4 border-b border-[#E5E5E5] flex items-center justify-between">
+          <h1 className="text-[18px] font-semibold text-[#212121]">Item Details</h1>
+        </div>
+        <div className="p-6 md:p-8">
         {/* Top Action Toolbar */}
         <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
           <div className="flex items-center gap-3 min-w-0">
             <button
               onClick={() => navigate(`/shoe-sales/item-groups/${id}`)}
-              className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs transition-colors cursor-pointer shrink-0"
+              className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-[10px] border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs transition-colors cursor-pointer shrink-0"
             >
               <ArrowLeft size={14} className="text-[#111827]" />
               <span>Item Group</span>
@@ -1149,7 +1154,7 @@ const ShoeSalesItemDetailFromGroup = () => {
               const itemImg = item.image || (item.images && item.images[0]?.data) || (item.images && typeof item.images[0] === 'string' && item.images[0]) || (itemGroup.image) || (itemGroup.images && itemGroup.images[0]) || "";
               if (itemImg) {
                 return (
-                  <div className="w-12 h-12 rounded-none border border-[#E5E7EB] bg-white shrink-0 overflow-hidden flex items-center justify-center p-0.5 shadow-xs">
+                  <div className="w-12 h-12 rounded-[10px] border border-[#E5E7EB] bg-white shrink-0 overflow-hidden flex items-center justify-center p-0.5 shadow-xs">
                     <img src={itemImg} alt="" className="w-full h-full object-contain" />
                   </div>
                 );
@@ -1162,7 +1167,7 @@ const ShoeSalesItemDetailFromGroup = () => {
                   {item.name || "Item Detail"} {searchParams.get("unitIndex") && <span className="text-sm font-bold text-purple-600 lowercase">(unit {searchParams.get("unitIndex")})</span>}
                 </h1>
                 {(searchParams.get("pieceSku") || item.sku) && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-bold rounded-none bg-purple-50 text-purple-800 border border-purple-200 uppercase tracking-wider font-mono shadow-2xs">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-bold rounded-[10px] bg-purple-50 text-purple-800 border border-purple-200 uppercase tracking-wider font-mono shadow-2xs">
                     <Barcode size={12} className="text-purple-600" />
                     SKU: {searchParams.get("pieceSku") || item.sku}
                   </span>
@@ -1180,7 +1185,7 @@ const ShoeSalesItemDetailFromGroup = () => {
               <>
                 <Link
                   to={`/shoe-sales/item-groups/${id}/items/${itemId}/edit${searchParams.toString() ? `?${searchParams.toString()}` : ""}`}
-                  className="inline-flex items-center gap-1.5 h-9 px-4 rounded-none bg-[#8B5CF6] hover:bg-[#7C3AED] text-xs font-bold uppercase tracking-wider text-white shadow-xs transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 h-9 px-4 rounded-[10px] bg-[#8B5CF6] hover:bg-[#7C3AED] text-xs font-bold uppercase tracking-wider text-white shadow-xs transition-colors cursor-pointer"
                 >
                   <Edit size={13} className="text-white" />
                   <span>Edit</span>
@@ -1189,7 +1194,7 @@ const ShoeSalesItemDetailFromGroup = () => {
                 <div className="relative" ref={moreMenuRef}>
                   <button 
                     onClick={() => setShowMoreMenu(!showMoreMenu)}
-                    className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-[10px] border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs transition-colors cursor-pointer"
                   >
                     <span>More</span>
                     <ChevronDown 
@@ -1198,7 +1203,7 @@ const ShoeSalesItemDetailFromGroup = () => {
                     />
                   </button>
                   {showMoreMenu && (
-                    <div className="absolute right-0 mt-1 w-56 rounded-none border border-[#E5E7EB] bg-white shadow-lg z-50 py-1 divide-y divide-[#E5E7EB]">
+                    <div className="absolute right-0 mt-1 w-56 rounded-[10px] border border-[#E5E7EB] bg-white shadow-lg z-50 py-1 divide-y divide-[#E5E7EB]">
                       <div className="py-0.5">
                         <button
                           onClick={handleCloneItem}
@@ -1264,7 +1269,7 @@ const ShoeSalesItemDetailFromGroup = () => {
 
                 <Link
                   to={`/shoe-sales/item-groups/${id}`}
-                  className="inline-flex items-center justify-center h-9 w-9 rounded-none border border-[#E5E7EB] bg-white hover:bg-[#F3F4F6] text-[#6B7280] shadow-xs transition-colors cursor-pointer"
+                  className="inline-flex items-center justify-center h-9 w-9 rounded-[10px] border border-[#E5E7EB] bg-white hover:bg-[#F3F4F6] text-[#6B7280] shadow-xs transition-colors cursor-pointer"
                   title="Close"
                 >
                   <X size={15} />
@@ -1275,7 +1280,7 @@ const ShoeSalesItemDetailFromGroup = () => {
         </div>
 
         {/* Main Card */}
-        <div className="bg-white border border-[#E5E7EB] rounded-none shadow-xs overflow-hidden">
+        <div className="bg-white border border-[#E5E7EB] rounded-[10px] shadow-xs overflow-hidden">
           {/* Tabs Navigation */}
           <div className="flex items-center gap-1 px-6 border-b border-[#E5E7EB] bg-[#F9FAFB]/70">
             {[
@@ -1302,7 +1307,7 @@ const ShoeSalesItemDetailFromGroup = () => {
                   <span>{label}</span>
                   {badge !== undefined && (
                     <span
-                      className={`text-[10px] px-1.5 py-0.5 rounded-none font-mono font-bold border ${
+                      className={`text-[10px] px-1.5 py-0.5 rounded-[10px] font-mono font-bold border ${
                         isActive
                           ? "bg-[#EDE9FE] text-[#7C3AED] border-[#DDD6FE]"
                           : "bg-white text-[#6B7280] border-[#E5E7EB]"
@@ -1322,15 +1327,15 @@ const ShoeSalesItemDetailFromGroup = () => {
               <div className="space-y-8">
                 {/* Stock Summary Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6" key={`stock-summary-${warehouseStocks.length}-${JSON.stringify(stockTotals)}`}>
-                  <div className="bg-[#EFF6FF] border border-[#DBEAFE] rounded-none p-5 shadow-2xs">
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-[#3B82F6] mb-1.5">Stock on Hand</p>
+                  <div className="bg-[#EFF6FF] border border-[#DBEAFE] rounded-[10px] p-5 shadow-2xs">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-[#9D43D6] mb-1.5">Stock on Hand</p>
                     <p className="text-3xl font-extrabold text-[#1E3A8A] font-mono">{searchParams.get("pieceSku") ? "1" : stockTotals.accounting.stockOnHand.toFixed(0)}</p>
                   </div>
-                  <div className="bg-[#ECFDF5] border border-[#D1FAE5] rounded-none p-5 shadow-2xs">
+                  <div className="bg-[#ECFDF5] border border-[#D1FAE5] rounded-[10px] p-5 shadow-2xs">
                     <p className="text-[11px] font-bold uppercase tracking-wider text-[#10B981] mb-1.5">Available for Sale</p>
                     <p className="text-3xl font-extrabold text-[#065F46] font-mono">{searchParams.get("pieceSku") ? "1" : stockTotals.accounting.availableForSale.toFixed(0)}</p>
                   </div>
-                  <div className="bg-[#FFFBEB] border border-[#FEF3C7] rounded-none p-5 shadow-2xs">
+                  <div className="bg-[#FFFBEB] border border-[#FEF3C7] rounded-[10px] p-5 shadow-2xs">
                     <p className="text-[11px] font-bold uppercase tracking-wider text-[#D97706] mb-1.5">Reorder Point</p>
                     <p className="text-3xl font-extrabold text-[#92400E] font-mono">{item.reorderPoint || "—"}</p>
                   </div>
@@ -1338,7 +1343,7 @@ const ShoeSalesItemDetailFromGroup = () => {
 
                 {/* Images Section */}
                 {itemGroup.groupImages && itemGroup.groupImages.length > 0 && (
-                  <div className="bg-[#F9FAFB] border border-[#E5E7EB] p-4 rounded-none">
+                  <div className="bg-[#F9FAFB] border border-[#E5E7EB] p-4 rounded-[10px]">
                     <AttachmentDisplay attachments={itemGroup.groupImages} />
                   </div>
                 )}
@@ -1348,7 +1353,7 @@ const ShoeSalesItemDetailFromGroup = () => {
                   {/* Left Column */}
                   <div className="space-y-6">
                     {/* Pricing */}
-                    <div className="bg-white border border-[#E5E7EB] rounded-none shadow-xs">
+                    <div className="bg-white border border-[#E5E7EB] rounded-[10px] shadow-xs">
                       <div className="px-5 py-3 border-b border-[#E5E7EB] bg-[#F9FAFB]">
                         <h3 className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">Pricing</h3>
                       </div>
@@ -1375,7 +1380,7 @@ const ShoeSalesItemDetailFromGroup = () => {
                     </div>
 
                     {/* Tax */}
-                    <div className="bg-white border border-[#E5E7EB] rounded-none shadow-xs">
+                    <div className="bg-white border border-[#E5E7EB] rounded-[10px] shadow-xs">
                       <div className="px-5 py-3 border-b border-[#E5E7EB] bg-[#F9FAFB]">
                         <h3 className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">Tax</h3>
                       </div>
@@ -1400,21 +1405,21 @@ const ShoeSalesItemDetailFromGroup = () => {
                     </div>
 
                     {/* Status */}
-                    <div className="bg-white border border-[#E5E7EB] rounded-none shadow-xs">
+                    <div className="bg-white border border-[#E5E7EB] rounded-[10px] shadow-xs">
                       <div className="px-5 py-3 border-b border-[#E5E7EB] bg-[#F9FAFB]">
                         <h3 className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">Status</h3>
                       </div>
                       <div className="p-5 flex flex-wrap gap-2.5">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-none text-xs font-bold uppercase tracking-wider border ${itemGroup.sellable !== false ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-gray-100 text-gray-500 border-gray-200'}`}>
-                          <span className={`w-1.5 h-1.5 rounded-none ${itemGroup.sellable !== false ? 'bg-emerald-500' : 'bg-gray-400'}`}></span>
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[10px] text-xs font-bold uppercase tracking-wider border ${itemGroup.sellable !== false ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-gray-100 text-gray-500 border-gray-200'}`}>
+                          <span className={`w-1.5 h-1.5 rounded-[10px] ${itemGroup.sellable !== false ? 'bg-emerald-500' : 'bg-gray-400'}`}></span>
                           Sellable
                         </span>
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-none text-xs font-bold uppercase tracking-wider border ${itemGroup.purchasable !== false ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-gray-100 text-gray-500 border-gray-200'}`}>
-                          <span className={`w-1.5 h-1.5 rounded-none ${itemGroup.purchasable !== false ? 'bg-blue-500' : 'bg-gray-400'}`}></span>
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[10px] text-xs font-bold uppercase tracking-wider border ${itemGroup.purchasable !== false ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-gray-100 text-gray-500 border-gray-200'}`}>
+                          <span className={`w-1.5 h-1.5 rounded-[10px] ${itemGroup.purchasable !== false ? 'bg-blue-500' : 'bg-gray-400'}`}></span>
                           Purchasable
                         </span>
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-none text-xs font-bold uppercase tracking-wider border ${item.returnable === true ? 'bg-purple-50 text-purple-700 border-purple-200' : 'bg-gray-100 text-gray-500 border-gray-200'}`}>
-                          <span className={`w-1.5 h-1.5 rounded-none ${item.returnable === true ? 'bg-purple-500' : 'bg-gray-400'}`}></span>
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[10px] text-xs font-bold uppercase tracking-wider border ${item.returnable === true ? 'bg-purple-50 text-purple-700 border-purple-200' : 'bg-gray-100 text-gray-500 border-gray-200'}`}>
+                          <span className={`w-1.5 h-1.5 rounded-[10px] ${item.returnable === true ? 'bg-purple-500' : 'bg-gray-400'}`}></span>
                           {item.returnable === true ? 'Returnable' : 'Non-Returnable'}
                         </span>
                       </div>
@@ -1424,7 +1429,7 @@ const ShoeSalesItemDetailFromGroup = () => {
                   {/* Right Column */}
                   <div className="space-y-6">
                     {/* Details */}
-                    <div className="bg-white border border-[#E5E7EB] rounded-none shadow-xs">
+                    <div className="bg-white border border-[#E5E7EB] rounded-[10px] shadow-xs">
                       <div className="px-5 py-3 border-b border-[#E5E7EB] bg-[#F9FAFB]">
                         <h3 className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">Details</h3>
                       </div>
@@ -1460,7 +1465,7 @@ const ShoeSalesItemDetailFromGroup = () => {
                     </div>
 
                     {/* Inventory */}
-                    <div className="bg-white border border-[#E5E7EB] rounded-none shadow-xs">
+                    <div className="bg-white border border-[#E5E7EB] rounded-[10px] shadow-xs">
                       <div className="px-5 py-3 border-b border-[#E5E7EB] bg-[#F9FAFB]">
                         <h3 className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">Inventory</h3>
                       </div>
@@ -1485,7 +1490,7 @@ const ShoeSalesItemDetailFromGroup = () => {
                     </div>
 
                     {/* Accounts */}
-                    <div className="bg-white border border-[#E5E7EB] rounded-none shadow-xs">
+                    <div className="bg-white border border-[#E5E7EB] rounded-[10px] shadow-xs">
                       <div className="px-5 py-3 border-b border-[#E5E7EB] bg-[#F9FAFB]">
                         <h3 className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">Accounts</h3>
                       </div>
@@ -1521,7 +1526,7 @@ const ShoeSalesItemDetailFromGroup = () => {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => setStockType("accounting")}
-                      className={`h-8 px-3.5 text-xs font-bold uppercase tracking-wider rounded-none border transition-colors cursor-pointer ${
+                      className={`h-8 px-3.5 text-xs font-bold uppercase tracking-wider rounded-[10px] border transition-colors cursor-pointer ${
                         stockType === "accounting"
                           ? "bg-[#8B5CF6] text-white border-[#8B5CF6]"
                           : "bg-[#EEEEEE] text-[#4B5563] border-[#E5E7EB] hover:bg-[#E2E2E2]"
@@ -1531,7 +1536,7 @@ const ShoeSalesItemDetailFromGroup = () => {
                     </button>
                     <button
                       onClick={() => setStockType("physical")}
-                      className={`h-8 px-3.5 text-xs font-bold uppercase tracking-wider rounded-none border transition-colors cursor-pointer ${
+                      className={`h-8 px-3.5 text-xs font-bold uppercase tracking-wider rounded-[10px] border transition-colors cursor-pointer ${
                         stockType === "physical"
                           ? "bg-[#8B5CF6] text-white border-[#8B5CF6]"
                           : "bg-[#EEEEEE] text-[#4B5563] border-[#E5E7EB] hover:bg-[#E2E2E2]"
@@ -1544,7 +1549,7 @@ const ShoeSalesItemDetailFromGroup = () => {
 
                 {/* Warehouses Table */}
                 {allWarehouses.length > 0 || warehouseStocks.length > 0 ? (
-                  <div className="overflow-x-auto border border-[#E5E7EB] rounded-none shadow-xs">
+                  <div className="overflow-x-auto border border-[#E5E7EB] rounded-[10px] shadow-xs">
                     <table className="min-w-full divide-y divide-[#E5E7EB]">
                       <thead>
                         <tr className="bg-[#1e1e1e] text-white">
@@ -1621,13 +1626,13 @@ const ShoeSalesItemDetailFromGroup = () => {
                     </table>
                   </div>
                 ) : (
-                  <div className="rounded-none border border-[#E5E7EB] bg-white p-12 text-center">
+                  <div className="rounded-[10px] border border-[#E5E7EB] bg-white p-12 text-center">
                     <Warehouse size={40} className="mx-auto mb-3 text-[#9CA3AF]" />
                     <p className="text-xs font-bold uppercase tracking-wider text-[#111827] mb-1">No stock locations added yet</p>
                     <p className="text-xs text-[#6B7280] mb-4">Click "Stock Locations" above to add stocks to warehouses</p>
                     <button
                       onClick={() => navigate(`/shoe-sales/item-groups/${id}/items/${itemId}/stocks?type=${stockType}`)}
-                      className="inline-flex items-center gap-1.5 h-9 px-4 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1.5 h-9 px-4 rounded-[10px] border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs transition-colors cursor-pointer"
                     >
                       <Plus size={14} className="text-[#6B7280]" />
                       <span>Add Stock Locations</span>
@@ -1655,7 +1660,7 @@ const ShoeSalesItemDetailFromGroup = () => {
 
                 {/* Inactive Warehouses (if shown) */}
                 {showInactiveWarehouses && warehouseStocks.length > 0 && (
-                  <div className="mt-3 overflow-x-auto rounded-none border border-[#E5E7EB] bg-white">
+                  <div className="mt-3 overflow-x-auto rounded-[10px] border border-[#E5E7EB] bg-white">
                     <table className="min-w-full divide-y divide-[#E5E7EB]">
                       <thead>
                         <tr className="bg-[#1e1e1e] text-white">
@@ -1709,7 +1714,7 @@ const ShoeSalesItemDetailFromGroup = () => {
                     No history available
                   </div>
                 ) : (
-                  <div className="rounded-none border border-[#E5E7EB] bg-white overflow-hidden shadow-xs">
+                  <div className="rounded-[10px] border border-[#E5E7EB] bg-white overflow-hidden shadow-xs">
                     <table className="min-w-full divide-y divide-[#E5E7EB]">
                       <thead className="bg-[#1e1e1e] text-white">
                         <tr>
@@ -1780,7 +1785,7 @@ const ShoeSalesItemDetailFromGroup = () => {
         {/* Delete Confirmation Modal */}
         {showDeleteModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-            <div className="relative w-full max-w-md rounded-none border border-[#E5E7EB] bg-white shadow-2xl">
+            <div className="relative w-full max-w-md rounded-[10px] border border-[#E5E7EB] bg-white shadow-2xl">
               <div className="px-6 py-4 border-b border-[#E5E7EB] bg-[#F9FAFB]">
                 <h2 className="text-xs font-bold uppercase tracking-wider text-[#111827]">Delete Item</h2>
               </div>
@@ -1793,14 +1798,14 @@ const ShoeSalesItemDetailFromGroup = () => {
                 <button
                   onClick={() => setShowDeleteModal(false)}
                   disabled={loading}
-                  className="h-9 px-4 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                  className="h-9 px-4 rounded-[10px] border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs transition-colors cursor-pointer disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleDelete}
                   disabled={loading}
-                  className="h-9 px-4 rounded-none bg-red-600 hover:bg-red-700 text-xs font-bold uppercase tracking-wider text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                  className="h-9 px-4 rounded-[10px] bg-red-600 hover:bg-red-700 text-xs font-bold uppercase tracking-wider text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50"
                 >
                   {loading ? "Deleting..." : "Delete"}
                 </button>
@@ -1812,7 +1817,7 @@ const ShoeSalesItemDetailFromGroup = () => {
         {/* Mark as Inactive Confirmation Modal */}
         {showInactiveModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-            <div className="relative w-full max-w-md rounded-none border border-[#E5E7EB] bg-white shadow-2xl">
+            <div className="relative w-full max-w-md rounded-[10px] border border-[#E5E7EB] bg-white shadow-2xl">
               <div className="px-6 py-4 border-b border-[#E5E7EB] bg-[#F9FAFB]">
                 <h2 className="text-xs font-bold uppercase tracking-wider text-[#111827]">Mark as Inactive</h2>
               </div>
@@ -1825,14 +1830,14 @@ const ShoeSalesItemDetailFromGroup = () => {
                 <button
                   onClick={() => setShowInactiveModal(false)}
                   disabled={loading}
-                  className="h-9 px-4 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                  className="h-9 px-4 rounded-[10px] border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs transition-colors cursor-pointer disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleMarkAsInactive}
                   disabled={loading}
-                  className="h-9 px-4 rounded-none bg-[#8B5CF6] hover:bg-[#7C3AED] text-xs font-bold uppercase tracking-wider text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                  className="h-9 px-4 rounded-[10px] bg-[#8B5CF6] hover:bg-[#7C3AED] text-xs font-bold uppercase tracking-wider text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50"
                 >
                   {loading ? "Updating..." : "Mark as Inactive"}
                 </button>
@@ -1844,7 +1849,7 @@ const ShoeSalesItemDetailFromGroup = () => {
         {/* Move to Another Group Modal */}
         {showMoveModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-            <div className="relative w-full max-w-md rounded-none border border-[#E5E7EB] bg-white shadow-2xl">
+            <div className="relative w-full max-w-md rounded-[10px] border border-[#E5E7EB] bg-white shadow-2xl">
               <div className="px-6 py-4 border-b border-[#E5E7EB] bg-[#F9FAFB]">
                 <h2 className="text-xs font-bold uppercase tracking-wider text-[#111827]">Move to Another Group</h2>
               </div>
@@ -1862,7 +1867,7 @@ const ShoeSalesItemDetailFromGroup = () => {
                   <AppSelect
                     value={selectedTargetGroupId}
                     onChange={(e) => setSelectedTargetGroupId(e.target.value)}
-                    className="w-full rounded-none border border-[#E5E7EB] bg-white px-3.5 py-2 text-xs font-bold text-[#111827] focus:border-[#8B5CF6] focus:outline-none"
+                    className="w-full rounded-[10px] border border-[#E5E7EB] bg-white px-3.5 py-2 text-xs font-bold text-[#111827] focus:border-[#8B5CF6] focus:outline-none"
                   >
                     <option value="">Select a group...</option>
                     {allItemGroups.map((group) => (
@@ -1880,14 +1885,14 @@ const ShoeSalesItemDetailFromGroup = () => {
                     setSelectedTargetGroupId("");
                   }}
                   disabled={loading}
-                  className="h-9 px-4 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                  className="h-9 px-4 rounded-[10px] border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs transition-colors cursor-pointer disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleMoveToGroup}
                   disabled={loading || !selectedTargetGroupId || loadingGroups || allItemGroups.length === 0}
-                  className="h-9 px-4 rounded-none bg-[#8B5CF6] hover:bg-[#7C3AED] text-xs font-bold uppercase tracking-wider text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="h-9 px-4 rounded-[10px] bg-[#8B5CF6] hover:bg-[#7C3AED] text-xs font-bold uppercase tracking-wider text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? "Moving..." : "Move"}
                 </button>
@@ -1899,7 +1904,7 @@ const ShoeSalesItemDetailFromGroup = () => {
         {/* Remove from Item Group Modal */}
         {showRemoveModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-            <div className="relative w-full max-w-md rounded-none border border-[#E5E7EB] bg-white shadow-2xl">
+            <div className="relative w-full max-w-md rounded-[10px] border border-[#E5E7EB] bg-white shadow-2xl">
               <div className="px-6 py-4 border-b border-[#E5E7EB] bg-[#F9FAFB]">
                 <h2 className="text-xs font-bold uppercase tracking-wider text-[#111827]">Remove from Item Group</h2>
               </div>
@@ -1912,14 +1917,14 @@ const ShoeSalesItemDetailFromGroup = () => {
                 <button
                   onClick={() => setShowRemoveModal(false)}
                   disabled={loading}
-                  className="h-9 px-4 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                  className="h-9 px-4 rounded-[10px] border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs transition-colors cursor-pointer disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleMarkAsInactive}
                   disabled={loading}
-                  className="h-9 px-4 rounded-none bg-[#8B5CF6] hover:bg-[#7C3AED] text-xs font-bold uppercase tracking-wider text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                  className="h-9 px-4 rounded-[10px] bg-[#8B5CF6] hover:bg-[#7C3AED] text-xs font-bold uppercase tracking-wider text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50"
                 >
                   {loading ? "Removing..." : "Remove"}
                 </button>
@@ -1927,6 +1932,7 @@ const ShoeSalesItemDetailFromGroup = () => {
             </div>
           </div>
         )}
+        </div>
       </div>
     </div>
   );

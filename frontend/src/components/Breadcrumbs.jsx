@@ -9,7 +9,8 @@ import { Home, ChevronRight } from "lucide-react";
  */
 const ROUTE_RULES = [
   // Core & Day Book
-  { pattern: /^\/$/, crumbs: [{ label: "Home", path: "/" }, { label: "Day Book" }] },
+  { pattern: /^\/$/, crumbs: [{ label: "Home", path: "/" }, { label: "Dashboard" }] },
+  { pattern: /^\/daybook$/, crumbs: [{ label: "Home", path: "/" }, { label: "Day Book" }] },
   { pattern: /^\/datewisedaybook$/, crumbs: [{ label: "Home", path: "/" }, { label: "Financial Summary" }] },
   { pattern: /^\/BookingReport$/, crumbs: [{ label: "Home", path: "/" }, { label: "Booking Report" }] },
   { pattern: /^\/RentOutReport$/, crumbs: [{ label: "Home", path: "/" }, { label: "Rent Out Report" }] },
@@ -195,6 +196,8 @@ export const getBreadcrumbs = (pathname, customTitle) => {
  */
 const Breadcrumbs = ({ currentTitle, className = "" }) => {
   const location = useLocation();
+  if (location.pathname === "/" || location.pathname === "") return null;
+
   const crumbs = getBreadcrumbs(location.pathname, currentTitle);
 
   // If only one crumb (e.g. Home on root), still display clearly

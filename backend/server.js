@@ -33,6 +33,7 @@ import ExpenseTargetRoutes from "./route/ExpenseTargetRoutes.js";
 import PublicProductRoutes from "./route/PublicProductRoutes.js";
 import PermissionRoutes from "./route/PermissionRoutes.js";
 import NotificationRoutes from "./route/NotificationRoutes.js";
+import DashboardRoutes from "./route/DashboardRoutes.js";
 import setupSwagger   from "./swagger.js";
 
 const env     = process.env.NODE_ENV || "development";
@@ -139,6 +140,7 @@ app.use("/api/expense-targets", ExpenseTargetRoutes);
 app.use("/api/permissions", PermissionRoutes);
 app.use("/api/notifications", NotificationRoutes);
 app.use("/user/notifications", NotificationRoutes);
+app.use("/api/dashboard", DashboardRoutes);
 
 // Test route to verify server is running
 app.get("/api/test", (_req, res) => {

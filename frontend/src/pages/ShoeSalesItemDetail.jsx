@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import Header from "../components/Header";
 import {
   ArrowLeft,
   MoreHorizontal,
@@ -1209,7 +1210,7 @@ const ShoeSalesItemDetail = () => {
 
   if (loadingItem) {
     return (
-      <div className={`transition-all duration-300 flex min-h-screen items-center justify-center bg-[#f5f7fb] p-6 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+      <div className={`transition-all duration-300 flex min-h-screen items-center justify-center bg-[#FAFAFA] p-6 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
         <div className="space-y-3 text-center">
           <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-[#cbd5f5] border-t-[#3762f9]" />
           <p className="text-sm font-medium text-[#475569]">Loading item details…</p>
@@ -1220,13 +1221,13 @@ const ShoeSalesItemDetail = () => {
 
   if (error || !item) {
     return (
-      <div className={`transition-all duration-300 flex min-h-screen items-center justify-center bg-[#f5f7fb] p-6 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+      <div className={`transition-all duration-300 flex min-h-screen items-center justify-center bg-[#FAFAFA] p-6 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
         <div className="max-w-md rounded-2xl border border-red-100 bg-white p-8 text-center shadow-sm">
           <h2 className="text-lg font-semibold text-[#1f2937]">We couldn&apos;t find the item.</h2>
           <p className="mt-2 text-sm text-[#6b7280]">{error || "Please try again or pick a different item."}</p>
           <button
             onClick={() => navigate("/shoe-sales/items")}
-            className="mt-4 inline-flex items-center gap-2 rounded-md bg-[#3762f9] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#2748c9]"
+            className="mt-4 inline-flex items-center gap-2 rounded-md bg-[#9D43D6] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#2748c9]"
           >
             <ArrowLeft size={16} />
             Back to Items
@@ -1237,7 +1238,14 @@ const ShoeSalesItemDetail = () => {
   }
 
   return (
-    <div className={`transition-all duration-300 min-h-screen bg-[#f5f7fb] p-6 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+    <div className="min-h-screen bg-[#FAFAFA] text-[#212121]">
+      <Header title="Item Details" />
+      <div className={`transition-all duration-300 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
+        {/* Clean Page Title Header */}
+        <div className="bg-white px-6 md:px-8 py-4 border-b border-[#E5E5E5] flex items-center justify-between">
+          <h1 className="text-[18px] font-semibold text-[#212121]">Item Details</h1>
+        </div>
+        <div className="p-5 md:p-6">
       <div className="flex gap-6">
         <aside className="w-72 shrink-0 rounded-3xl border border-[#e1e5f5] bg-white shadow-sm">
           <div className="flex items-center justify-between border-b border-[#edf1ff] px-4 py-3">
@@ -1245,7 +1253,7 @@ const ShoeSalesItemDetail = () => {
             {isAdmin && (
               <Link
                 to="/shoe-sales/items/new"
-                className="inline-flex h-8 items-center justify-center rounded-md bg-[#3762f9] px-2 text-xs font-semibold text-white transition hover:bg-[#2748c9]"
+                className="inline-flex h-8 items-center justify-center rounded-md bg-[#9D43D6] px-2 text-xs font-semibold text-white transition hover:bg-[#2748c9]"
               >
                 + New
               </Link>
@@ -1314,7 +1322,7 @@ const ShoeSalesItemDetail = () => {
             <div className="flex items-center justify-between">
               <Link
                 to="/shoe-sales/items"
-                className="inline-flex items-center gap-2 text-sm font-medium text-[#2563eb] hover:text-[#1d4ed8] transition-colors"
+                className="inline-flex items-center gap-2 text-sm font-medium text-[#9D43D6] hover:text-[#1d4ed8] transition-colors"
               >
                 <ArrowLeft size={16} /> Back to Items
               </Link>
@@ -1323,7 +1331,7 @@ const ShoeSalesItemDetail = () => {
                   <>
                     <Link
                       to={`/shoe-sales/items/${itemId}/edit${searchParams.toString() ? `?${searchParams.toString()}` : ""}`}
-                      className="inline-flex h-10 items-center gap-2 rounded-lg border border-[#d7dcf5] bg-white px-4 text-sm font-medium text-[#1f2937] transition hover:bg-[#f8fafc] hover:border-[#cbd5f5]"
+                      className="inline-flex h-10 items-center gap-2 rounded-lg border border-[#d7dcf5] bg-white px-4 text-sm font-medium text-[#1f2937] transition hover:bg-[#FAFAFA] hover:border-[#cbd5f5]"
                     >
                       <Pencil size={16} />
                       Edit
@@ -1331,8 +1339,8 @@ const ShoeSalesItemDetail = () => {
                     <div className="relative" ref={moreMenuRef}>
                       <button 
                         onClick={() => setShowMoreMenu(!showMoreMenu)}
-                        className={`inline-flex h-10 items-center justify-center rounded-lg border border-[#d7dcf5] bg-white px-3 text-[#64748b] transition hover:bg-[#f8fafc] hover:border-[#cbd5f5] ${
-                          showMoreMenu ? "bg-[#f8fafc] border-[#cbd5f5]" : ""
+                        className={`inline-flex h-10 items-center justify-center rounded-lg border border-[#d7dcf5] bg-white px-3 text-[#64748b] transition hover:bg-[#FAFAFA] hover:border-[#cbd5f5] ${
+                          showMoreMenu ? "bg-[#FAFAFA] border-[#cbd5f5]" : ""
                         }`}
                       >
                         <MoreHorizontal size={18} />
@@ -1346,7 +1354,7 @@ const ShoeSalesItemDetail = () => {
                                   setShowInactiveModal(true);
                                   setShowMoreMenu(false);
                                 }}
-                                className="w-full px-4 py-2.5 text-left text-sm font-medium text-[#1f2937] hover:bg-[#f8fafc] transition-colors"
+                                className="w-full px-4 py-2.5 text-left text-sm font-medium text-[#1f2937] hover:bg-[#FAFAFA] transition-colors"
                               >
                                 Mark as Inactive
                               </button>
@@ -1725,7 +1733,7 @@ const ShoeSalesItemDetail = () => {
                       {(isAdmin || user?.power === 'warehouse') && (
                         <button
                           onClick={() => navigate(`/shoe-sales/items/${itemId}/stocks`)}
-                          className="no-blue-button inline-flex items-center gap-2 rounded-lg border border-[#d7dcf5] bg-white px-4 py-2 text-sm font-medium text-[#475569] shadow-sm transition-all duration-200 hover:bg-[#f8fafc] hover:border-[#cbd5f5] hover:shadow-md"
+                          className="no-blue-button inline-flex items-center gap-2 rounded-lg border border-[#d7dcf5] bg-white px-4 py-2 text-sm font-medium text-[#475569] shadow-sm transition-all duration-200 hover:bg-[#FAFAFA] hover:border-[#cbd5f5] hover:shadow-md"
                         >
                           <Plus size={16} className="text-[#64748b]" />
                           <span>Add Stock Locations</span>
@@ -1833,7 +1841,7 @@ const ShoeSalesItemDetail = () => {
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="no-blue-button px-4 py-2 text-sm font-medium text-[#475569] bg-white border border-[#d7dcf5] rounded-lg hover:bg-[#f8fafc]"
+                className="no-blue-button px-4 py-2 text-sm font-medium text-[#475569] bg-white border border-[#d7dcf5] rounded-lg hover:bg-[#FAFAFA]"
               >
                 Cancel
               </button>
@@ -1868,7 +1876,7 @@ const ShoeSalesItemDetail = () => {
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowInactiveModal(false)}
-                className="no-blue-button px-4 py-2 text-sm font-medium text-[#475569] bg-white border border-[#d7dcf5] rounded-lg hover:bg-[#f8fafc]"
+                className="no-blue-button px-4 py-2 text-sm font-medium text-[#475569] bg-white border border-[#d7dcf5] rounded-lg hover:bg-[#FAFAFA]"
               >
                 Cancel
               </button>
@@ -2042,7 +2050,7 @@ const ShoeSalesItemDetail = () => {
                   setCreateAttributes(true);
                   setGroupOption("create");
                 }}
-                className="no-blue-button px-5 py-2 text-sm font-medium text-[#475569] bg-white border border-[#d7dcf5] rounded-lg hover:bg-[#f8fafc] transition-colors"
+                className="no-blue-button px-5 py-2 text-sm font-medium text-[#475569] bg-white border border-[#d7dcf5] rounded-lg hover:bg-[#FAFAFA] transition-colors"
                 disabled={loading}
               >
                 Cancel
@@ -2086,7 +2094,7 @@ const ShoeSalesItemDetail = () => {
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowReturnableModal(false)}
-                className="no-blue-button px-4 py-2 text-sm font-medium text-[#475569] bg-white border border-[#d7dcf5] rounded-lg hover:bg-[#f8fafc]"
+                className="no-blue-button px-4 py-2 text-sm font-medium text-[#475569] bg-white border border-[#d7dcf5] rounded-lg hover:bg-[#FAFAFA]"
               >
                 Cancel
               </button>
@@ -2101,6 +2109,8 @@ const ShoeSalesItemDetail = () => {
           </div>
         </div>
       )}
+        </div>
+      </div>
     </div>
   );
 };
@@ -2152,7 +2162,7 @@ const StatusIndicator = ({ label, active }) => (
   <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em]">
     <span
       className={`flex h-4 w-4 items-center justify-center rounded border ${
-        active ? "border-[#2563eb] bg-[#2563eb]" : "border-[#cbd5f5] bg-white"
+        active ? "border-[#9D43D6] bg-[#9D43D6]" : "border-[#cbd5f5] bg-white"
       }`}
     >
       {active && <span className="h-2 w-2 rounded-full bg-white" />}
@@ -2184,7 +2194,7 @@ const UploadPlaceholder = () => (
     <p className="mt-2 text-xs leading-5">
       You can add up to 15 images, each not exceeding 5 MB in size and 7000 x 7000 pixels resolution.
     </p>
-    <button className="mt-4 rounded-full border border-[#cbd5f5] px-4 py-2 text-sm font-medium text-[#3762f9] hover:bg-[#eef2ff]">
+    <button className="mt-4 rounded-full border border-[#cbd5f5] px-4 py-2 text-sm font-medium text-[#9D43D6] hover:bg-[#eef2ff]">
       Upload
     </button>
   </>

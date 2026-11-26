@@ -147,6 +147,9 @@ const StoreOrders = () => {
   }, []);
   
   // Filter store orders by search term
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 10;
+
   const filteredOrders = storeOrders.filter(order => {
     if (!searchTerm) return true;
     const searchLower = searchTerm.toLowerCase();
@@ -156,6 +159,22 @@ const StoreOrders = () => {
       (order.storeWarehouse || "").toLowerCase().includes(searchLower)
     );
   });
+
+  const totalPages = Math.max(1, Math.ceil(filteredOrders.length / PAGE_SIZE));
+  const safePage = Math.min(currentPage, totalPages);
+  const pagedOrders = filteredOrders.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+
+  const getPageNumbers = () => {
+    if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
+    const pages = [1];
+    if (safePage > 3) pages.push("...");
+    for (let i = Math.max(2, safePage - 1); i <= Math.min(totalPages - 1, safePage + 1); i++) {
+      pages.push(i);
+    }
+    if (safePage < totalPages - 2) pages.push("...");
+    pages.push(totalPages);
+    return pages;
+  };
   
   const getStatusBadge = (status) => {
     const statusMap = {
@@ -391,373 +410,420 @@ const StoreOrders = () => {
     return order.items.reduce((sum, item) => sum + (parseFloat(item.quantity) || 0), 0);
   };
   
-  return (
-    <>
-      <Header title="Store Orders" />
-      <div className={`transition-all duration-300 p-6 bg-[#f8fafc] min-h-screen ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+  const getStatusPillStyles = (status) => {
+    const colorMap = {
+      draft: { bg: "#F4F4F5", text: "#525252", border: "#E4E4E7", dot: "#71717A" },
+      pending: { bg: "#FFF1EC", text: "#EA580C", border: "#FED7AA", dot: "#EA580C" },
+      approved: { bg: "#DCFCE7", text: "#16A34A", border: "#BBF7D0", dot: "#16A34A" },
+      rejected: { bg: "#FEE2E2", text: "#DC2626", border: "#FECACA", dot: "#DC2626" },
+      transferred: { bg: "#F3E8FF", text: "#9D43D6", border: "#E9D5FF", dot: "#9D43D6" },
+    };
+    const c = colorMap[status] || colorMap.pending;
+    return {
+      control: (base) => ({
+        ...base,
+        minHeight: "30px",
+        height: "30px",
+        backgroundColor: c.bg,
+        borderColor: "transparent",
+        borderRadius: "6px",
+        boxShadow: "none",
+        padding: "0 2px",
+        minWidth: "112px",
+        cursor: "pointer",
+        "&:hover": { borderColor: c.border },
+      }),
+      valueContainer: (base) => ({ ...base, padding: "0 4px 0 10px" }),
+      singleValue: (base) => ({
+        ...base,
+        color: c.text,
+        fontSize: "12px",
+        fontWeight: 600,
+        display: "flex",
+        alignItems: "center",
+        gap: "6px",
+        "&::before": {
+          content: '""',
+          display: "inline-block",
+          width: "6px",
+          height: "6px",
+          borderRadius: "9999px",
+          backgroundColor: c.dot,
+          flexShrink: 0,
+        },
+      }),
+      indicatorSeparator: () => ({ display: "none" }),
+      dropdownIndicator: (base) => ({ ...base, color: c.text, padding: "0 6px 0 2px", "&:hover": { color: c.text } }),
+      menu: (base) => ({ ...base, borderRadius: "10px", border: "1px solid #E5E5E5", boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1)", overflow: "hidden", minWidth: "130px" }),
+    };
+  };
 
-        {/* Page Title + Actions */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-[#1f2937]">Store Orders</h1>
-            {!loading && (
-              <span className="px-2.5 py-0.5 text-xs font-semibold bg-[#e2e8f0] text-[#475569] rounded-full">
-                {filteredOrders.length} {filteredOrders.length === 1 ? 'order' : 'orders'}
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-3">
+  return (
+    <div className="min-h-screen bg-[#FAFAFA] text-[#212121]">
+      <Header title="Store Orders" />
+      <div className={`transition-all duration-300 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
+        {/* Clean Page Title Header */}
+        <div className="bg-white px-6 md:px-8 py-4 border-b border-[#E5E5E5] flex flex-wrap items-center justify-between gap-4">
+          <h1 className="text-[18px] font-semibold text-[#212121]">Store Orders</h1>
+          <div className="flex items-center gap-2.5">
             {isAdmin && selectedOrders.size > 0 && (
               <button
                 onClick={handleDeleteClick}
-                className="inline-flex h-10 items-center gap-2 rounded-none bg-[#dc2626] px-4 text-sm font-semibold text-white transition hover:bg-[#b91c1c] shadow-sm cursor-pointer"
+                className="inline-flex h-[38px] items-center gap-2 rounded-[10px] bg-[#DC2626] px-4 text-[13px] font-semibold text-white transition hover:bg-[#B91C1C] shadow-xs cursor-pointer"
               >
-                <Trash2 size={16} />
+                <Trash2 size={15} />
                 <span>Delete ({selectedOrders.size})</span>
               </button>
             )}
             <Link
               to="/inventory/store-orders/new"
-              className="inline-flex h-10 items-center gap-2 rounded-none bg-[#9B48D7] px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#8637c3]"
+              className="rf-btn-primary inline-flex items-center gap-1.5 !h-[38px] !px-5 !text-[13px]"
             >
-              <span className="text-lg leading-none">+</span>
-              <span>New</span>
+              <span className="text-[16px] leading-none">+</span>
+              <span>New Store Order</span>
             </Link>
           </div>
         </div>
+        <div className="p-5 md:p-6">
+          {/* Row 2: Search Input (left) & Segmented Status Tabs (right) */}
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+            <div className="relative w-full sm:w-[300px]">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#525252] pointer-events-none" size={15} />
+              <input
+                type="text"
+                placeholder="Search by order number, reason or store..."
+                value={searchTerm}
+                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                className="rf-input !pl-10 !h-[42px] bg-white"
+              />
+            </div>
 
-        {/* Search Bar */}
-        <div className="relative mb-5">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94a3b8]" size={16} />
-          <input
-            type="text"
-            placeholder="Search by order number, reason, or store..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 h-10 border border-[#e2e8f0] bg-white text-sm text-[#1e293b] placeholder:text-[#94a3b8] focus:outline-none focus:ring-2 focus:ring-[#9B48D7] focus:border-transparent transition-all rounded-none"
-          />
-        </div>
-
-        {/* Table Card */}
-        <div className="border border-[#e2e8f0] bg-white overflow-hidden">
-
-          {/* Status Filter Tabs */}
-          <div className="flex flex-wrap items-center gap-1 border-b border-[#e2e8f0] px-5 py-3 bg-white">
-            <span className="text-xs font-semibold text-[#374151] mr-2">Order period: <span className="font-normal text-[#6b7280]">All orders</span></span>
-            <div className="flex items-center gap-1 ml-2">
-              <button
-                onClick={() => setStatusFilter("draft")}
-                className={`px-3 py-1 text-xs font-semibold transition-colors ${
-                  statusFilter === "draft"
-                    ? "bg-[#18181b] text-white"
-                    : "text-[#6b7280] hover:bg-[#f3f4f6] hover:text-[#111827]"
-                }`}
-              >
-                Draft <span className="ml-1 opacity-80">{draftCount}</span>
-              </button>
-              <button
-                onClick={() => setStatusFilter("pending")}
-                className={`px-3 py-1 text-xs font-semibold transition-colors ${
-                  statusFilter === "pending"
-                    ? "bg-[#18181b] text-white"
-                    : "text-[#6b7280] hover:bg-[#f3f4f6] hover:text-[#111827]"
-                }`}
-              >
-                Pending <span className="ml-1 opacity-80">{pendingCount}</span>
-              </button>
-              <button
-                onClick={() => setStatusFilter("approved")}
-                className={`px-3 py-1 text-xs font-semibold transition-colors ${
-                  statusFilter === "approved"
-                    ? "bg-[#18181b] text-white"
-                    : "text-[#6b7280] hover:bg-[#f3f4f6] hover:text-[#111827]"
-                }`}
-              >
-                Approved ({approvedCount})
-              </button>
-              <button
-                onClick={() => setStatusFilter("rejected")}
-                className={`px-3 py-1 text-xs font-semibold transition-colors ${
-                  statusFilter === "rejected"
-                    ? "bg-[#18181b] text-white"
-                    : "text-[#6b7280] hover:bg-[#f3f4f6] hover:text-[#111827]"
-                }`}
-              >
-                Rejected ({rejectedCount})
-              </button>
-              <button
-                onClick={() => setStatusFilter("transferred")}
-                className={`px-3 py-1 text-xs font-semibold transition-colors ${
-                  statusFilter === "transferred"
-                    ? "bg-[#18181b] text-white"
-                    : "text-[#6b7280] hover:bg-[#f3f4f6] hover:text-[#111827]"
-                }`}
-              >
-                Transferred ({transferredCount})
-              </button>
-              {statusFilter !== "all" && (
-                <button
-                  onClick={() => setStatusFilter("all")}
-                  className="px-3 py-1 text-xs font-semibold text-[#9B48D7] hover:bg-[#f3f4f6] transition-colors"
-                >
-                  Clear
-                </button>
-              )}
+            <div className="inline-flex flex-wrap items-center bg-[#F4F4F5] rounded-[12px] p-1 gap-1">
+              {[
+                { key: "all", label: "All", count: storeOrders.length },
+                { key: "pending", label: "Pending", count: pendingCount },
+                { key: "approved", label: "Approved", count: approvedCount },
+                { key: "rejected", label: "Rejected", count: rejectedCount },
+                { key: "transferred", label: "Transferred", count: transferredCount },
+                { key: "draft", label: "Draft", count: draftCount },
+              ].map(({ key, label, count }) => {
+                const isActive = statusFilter === key;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => { setStatusFilter(key); setCurrentPage(1); }}
+                    className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-[8px] text-[12px] transition-all cursor-pointer whitespace-nowrap ${
+                      isActive
+                        ? "bg-white shadow-xs text-[#1B1B1B] font-semibold"
+                        : "text-[#7A7A7A] hover:text-[#212121] font-medium"
+                    }`}
+                  >
+                    <span>{label}</span>
+                    <span
+                      className={`inline-flex items-center justify-center rounded-full px-1.5 min-w-[20px] h-[18px] text-[10px] font-semibold tabular-nums ${
+                        isActive ? "bg-[#9D43D6] text-white" : "bg-[#F3E8FF] text-[#9D43D6]"
+                      }`}
+                    >
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          <div className="overflow-x-auto">
-            {loading ? (
-              <table className="min-w-full">
-                <thead>
-                  <tr className="bg-[#18181b]">
-                    {["", "DATE", "ORDER #", "STORE WAREHOUSE", "REASON", "STATUS", "ITEMS", "TOTAL QTY", "CREATED BY", "CREATED TIME", "LAST MODIFIED"].map((col, i) => (
-                      <th key={i} className="px-4 py-3 text-left text-[11px] font-semibold tracking-widest text-[#a1a1aa] uppercase border-r border-[#27272a] last:border-r-0 whitespace-nowrap">
-                        {col}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#f1f5f9]">
-                  {Array.from({ length: 6 }).map((_, i) => (
-                    <tr key={i} className="animate-pulse">
-                      {Array.from({ length: 11 }).map((_, j) => (
-                        <td key={j} className="px-4 py-3 border-r border-[#f1f5f9] last:border-r-0">
-                          <div className="h-4 bg-[#e2e8f0] rounded w-3/4" />
-                        </td>
+          {/* Table Card */}
+          <div className="border border-[#E5E5E5] rounded-[12px] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.02)] overflow-hidden">
+            <div className="overflow-x-auto">
+              {loading ? (
+                <table className="min-w-full border-collapse">
+                  <thead>
+                    <tr className="bg-[#1B1B1B] text-white">
+                      {["", "DATE", "ORDER #", "STORE / WAREHOUSE", "REASON", "STATUS", "ITEMS", "TOTAL QTY", "CREATED BY", "CREATED TIME", "LAST MODIFIED"].map((col, i) => (
+                        <th key={i} className="px-4 py-3.5 text-left text-[11px] font-semibold tracking-wider text-white uppercase whitespace-nowrap">
+                          {col}
+                        </th>
                       ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : filteredOrders.length === 0 ? (
-              <div className="px-6 py-16 text-center">
-                <div className="mx-auto w-14 h-14 rounded-full bg-[#f1f5f9] flex items-center justify-center mb-4">
-                  <Search className="text-[#94a3b8]" size={22} />
-                </div>
-                <p className="text-sm font-semibold text-[#1e293b] mb-1">
-                  {searchTerm ? "No store orders found" : "No store orders yet"}
-                </p>
-                <p className="text-xs text-[#64748b] mb-4">
-                  {searchTerm ? "Try adjusting your search" : "Create your first store order to get started"}
-                </p>
-                {!searchTerm && (
-                  <Link
-                    to="/inventory/store-orders/new"
-                    className="inline-flex items-center gap-2 rounded-none bg-[#9B48D7] px-4 py-2 text-sm font-semibold text-white hover:bg-[#8637c3] transition-colors"
-                  >
-                    + Create Store Order
-                  </Link>
-                )}
-              </div>
-            ) : (
-              <table className="min-w-full">
-                <thead>
-                  <tr className="bg-[#18181b]">
-                    <th className="px-4 py-3 text-center text-[11px] font-semibold tracking-widest text-[#a1a1aa] uppercase border-r border-[#27272a] w-12">
-                      <input 
-                        type="checkbox" 
-                        className="h-4 w-4 rounded-none border-[#52525b] text-[#9B48D7] focus:ring-[#9B48D7] cursor-pointer accent-[#9B48D7]" 
-                        checked={filteredOrders.length > 0 && filteredOrders.every(order => {
-                          const id = order._id || order.id;
-                          return !id || selectedOrders.has(id);
-                        })}
-                        onChange={(e) => handleSelectAll(e.target.checked)}
-                      />
-                    </th>
-                    {[
-                      "DATE", "ORDER #", "STORE WAREHOUSE", "REASON", 
-                      `STATUS${(isAdmin || isWarehouseUser) ? " (Admin)" : ""}`, 
-                      "ITEMS", "TOTAL QTY", "CREATED BY", "CREATED TIME", "LAST MODIFIED"
-                    ].map((col, i, arr) => (
-                      <th key={col} className={`px-4 py-3 ${i === 5 || i === 6 ? 'text-right' : 'text-left'} text-[11px] font-semibold tracking-widest text-[#a1a1aa] uppercase whitespace-nowrap ${i < arr.length - 1 ? 'border-r border-[#27272a]' : ''}`}>
-                        {col}
-                      </th>
+                  </thead>
+                  <tbody className="divide-y divide-[#F0F0F0]">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <tr key={i} className="animate-pulse">
+                        {Array.from({ length: 11 }).map((_, j) => (
+                          <td key={j} className="px-4 py-3.5">
+                            <div className="h-4 bg-[#ECECEF] rounded w-3/4" />
+                          </td>
+                        ))}
+                      </tr>
                     ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#f1f5f9]">
-                  {filteredOrders.map((order) => (
-                    <tr
-                      key={order._id || order.id}
-                      className="hover:bg-[#faf5ff] transition-colors cursor-pointer group"
-                      onClick={() => navigate(`/inventory/store-orders/${order._id || order.id}`)}
+                  </tbody>
+                </table>
+              ) : filteredOrders.length === 0 ? (
+                <div className="px-6 py-16 text-center">
+                  <div className="mx-auto w-12 h-12 rounded-[12px] bg-[#F3E8FF] flex items-center justify-center mb-3">
+                    <Search className="text-[#9D43D6]" size={22} />
+                  </div>
+                  <p className="text-[14px] font-semibold text-[#1B1B1B] mb-1">
+                    {searchTerm ? "No store orders found" : "No store orders yet"}
+                  </p>
+                  <p className="text-[12px] text-[#7A7A7A] mb-4">
+                    {searchTerm ? "Try adjusting your search" : "Create your first store order to get started"}
+                  </p>
+                  {!searchTerm && (
+                    <Link
+                      to="/inventory/store-orders/new"
+                      className="rf-btn-primary inline-flex items-center gap-2 !h-[38px] !px-4 !text-[13px]"
                     >
-                      <td className="px-4 py-3 text-center border-r border-[#f1f5f9]" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-center gap-2">
-                          <input 
-                            type="checkbox" 
-                            className="h-4 w-4 rounded-none border-[#d1d9f2] cursor-pointer accent-[#9B48D7]" 
-                            checked={selectedOrders.has(order._id || order.id)}
-                            onChange={(e) => handleCheckboxChange(order._id || order.id, e.target.checked)}
-                          />
-                          {isAdmin && selectedOrders.has(order._id || order.id) && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleSingleDelete(order);
-                              }}
-                              className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 transition-colors"
-                              title="Delete this store order"
-                            >
-                              <Trash2 size={13} />
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-[#475569] border-r border-[#f1f5f9]">
-                        {formatDate(order.date)}
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm border-r border-[#f1f5f9]">
-                        <span
-                          className="font-semibold text-[#9B48D7] group-hover:underline cursor-pointer"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/inventory/store-orders/${order._id || order.id}`);
-                          }}
-                        >
-                          {order.orderNumber || "-"}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-[#475569] border-r border-[#f1f5f9]">
-                        {order.storeWarehouse || "-"}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-[#475569] border-r border-[#f1f5f9] max-w-xs truncate">
-                        {order.reason || "-"}
-                      </td>
-                      <td className="px-4 py-2.5 whitespace-nowrap text-sm border-r border-[#f1f5f9]" onClick={(e) => e.stopPropagation()}>
-                        <div className="relative inline-block">
-                          <AppSelect
-                            value={order.status || "pending"}
-                            disabled={updatingStatus.has(order._id || order.id)}
-                            onChange={(e) => {
-                              const newStatus = e.target.value;
-                              handleStatusChange(order._id || order.id, newStatus);
-                            }}
-                            className={`appearance-none cursor-pointer rounded-full px-3 py-1 pr-6 text-xs font-semibold border focus:outline-none focus:ring-2 focus:ring-[#9B48D7] transition-all ${
-                              order.status === "draft"
-                                ? "bg-[#f3f4f6] text-[#4b5563] border-gray-300"
-                                : order.status === "approved"
-                                ? "bg-[#ecfdf5] text-[#047857] border-emerald-300"
-                                : order.status === "rejected"
-                                ? "bg-[#fee2e2] text-[#991b1b] border-red-300"
-                                : order.status === "transferred"
-                                ? "bg-[#dbeafe] text-[#1e40af] border-blue-300"
-                                : "bg-[#fef3c7] text-[#92400e] border-amber-300"
-                            } ${updatingStatus.has(order._id || order.id) ? "opacity-50 cursor-wait" : ""}`}
-                            style={{
-                              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23666666'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
-                              backgroundRepeat: "no-repeat",
-                              backgroundPosition: "right 6px center",
-                              backgroundSize: "12px 12px"
+                      + Create Store Order
+                    </Link>
+                  )}
+                </div>
+              ) : (
+                <table className="min-w-full border-collapse">
+                  <thead>
+                    <tr className="bg-[#1B1B1B] text-white">
+                      <th className="px-4 py-3.5 text-center w-12">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 rounded-[4px] border-gray-500 accent-[#9D43D6] cursor-pointer align-middle"
+                          checked={pagedOrders.length > 0 && pagedOrders.every(order => {
+                            const id = order._id || order.id;
+                            return !id || selectedOrders.has(id);
+                          })}
+                          onChange={(e) => handleSelectAll(e.target.checked)}
+                        />
+                      </th>
+                      {[
+                        "DATE", "ORDER #", "STORE / WAREHOUSE", "REASON",
+                        "STATUS",
+                        "ITEMS", "TOTAL QTY", "CREATED BY", "CREATED TIME", "LAST MODIFIED"
+                      ].map((col, i) => (
+                        <th key={col} className={`px-4 py-3.5 ${i === 4 || i === 5 || i === 6 ? 'text-center' : 'text-left'} text-[11px] font-semibold tracking-wider text-white uppercase whitespace-nowrap`}>
+                          {col}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#F0F0F0] bg-white">
+                    {pagedOrders.map((order) => (
+                      <tr
+                        key={order._id || order.id}
+                        className="hover:bg-[#FAFAFA] transition-colors cursor-pointer group"
+                        onClick={() => navigate(`/inventory/store-orders/${order._id || order.id}`)}
+                      >
+                        <td className="px-4 py-3.5 text-center border-r border-[#F5F5F5]" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center justify-center gap-1.5">
+                            <input
+                              type="checkbox"
+                              className="h-4 w-4 rounded-[4px] border-[#D4D4D8] cursor-pointer accent-[#9D43D6] align-middle"
+                              checked={selectedOrders.has(order._id || order.id)}
+                              onChange={(e) => handleCheckboxChange(order._id || order.id, e.target.checked)}
+                            />
+                            {isAdmin && selectedOrders.has(order._id || order.id) && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleSingleDelete(order);
+                                }}
+                                className="p-1 text-[#DC2626] hover:bg-[#FEF2F2] rounded transition-colors cursor-pointer"
+                                title="Delete this store order"
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3.5 whitespace-nowrap text-[13px] text-[#525252] border-r border-[#F5F5F5]">
+                          {formatDate(order.date)}
+                        </td>
+                        <td className="px-4 py-3.5 whitespace-nowrap text-[13px] border-r border-[#F5F5F5]">
+                          <span
+                            className="font-semibold text-[#9D43D6] group-hover:underline cursor-pointer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/inventory/store-orders/${order._id || order.id}`);
                             }}
                           >
-                            <option value="draft">Draft</option>
-                            <option value="pending">Pending</option>
-                            <option value="approved">Approved</option>
-                            <option value="rejected">Rejected</option>
-                            <option value="transferred">Transferred</option>
-                          </AppSelect>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-right font-semibold text-[#1f2937] border-r border-[#f1f5f9]">
-                        {order.items && Array.isArray(order.items) ? order.items.length : 0}
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-right font-semibold text-[#1f2937] border-r border-[#f1f5f9]">
-                        {getTotalQuantity(order).toFixed(2)}
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-[#475569] border-r border-[#f1f5f9]">
-                        {order.createdBy || "-"}
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-[#64748b] border-r border-[#f1f5f9]">
-                        {formatDateTime(order.createdAt)}
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-[#64748b]">
-                        {formatDateTime(order.updatedAt)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                            {order.orderNumber || "-"}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3.5 whitespace-nowrap text-[13px] text-[#7A7A7A] border-r border-[#F5F5F5]">
+                          {order.storeWarehouse || "-"}
+                        </td>
+                        <td className="px-4 py-3.5 text-[13px] text-[#7A7A7A] border-r border-[#F5F5F5] max-w-xs truncate">
+                          {order.reason || "-"}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-[13px] text-center border-r border-[#F5F5F5]" onClick={(e) => e.stopPropagation()}>
+                          <div className="inline-flex items-center justify-center">
+                            <AppSelect
+                              value={order.status || "pending"}
+                              disabled={updatingStatus.has(order._id || order.id)}
+                              isSearchable={false}
+                              styles={getStatusPillStyles(order.status || "pending")}
+                              onChange={(e) => {
+                                const newStatus = e.target.value;
+                                handleStatusChange(order._id || order.id, newStatus);
+                              }}
+                            >
+                              <option value="draft">Draft</option>
+                              <option value="pending">Pending</option>
+                              <option value="approved">Approved</option>
+                              <option value="rejected">Rejected</option>
+                              <option value="transferred">Transferred</option>
+                            </AppSelect>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3.5 whitespace-nowrap text-[13px] text-center font-semibold text-[#1B1B1B] tabular-nums border-r border-[#F5F5F5]">
+                          {order.items && Array.isArray(order.items) ? order.items.length : 0}
+                        </td>
+                        <td className="px-4 py-3.5 whitespace-nowrap text-[13px] text-center font-semibold text-[#1B1B1B] tabular-nums border-r border-[#F5F5F5]">
+                          {Math.round(getTotalQuantity(order))}
+                        </td>
+                        <td className="px-4 py-3.5 whitespace-nowrap text-[13px] text-[#7A7A7A] border-r border-[#F5F5F5]">
+                          {order.createdBy || "-"}
+                        </td>
+                        <td className="px-4 py-3.5 whitespace-nowrap text-[13px] text-[#7A7A7A] border-r border-[#F5F5F5]">
+                          {formatDateTime(order.createdAt)}
+                        </td>
+                        <td className="px-4 py-3.5 whitespace-nowrap text-[13px] text-[#7A7A7A]">
+                          {formatDateTime(order.updatedAt)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+
+            {/* Pagination Footer */}
+            {!loading && filteredOrders.length > 0 && (
+              <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3.5 border-t border-[#F0F0F0] bg-white">
+                <div className="text-[12px] text-[#7A7A7A]">
+                  Showing {(safePage - 1) * PAGE_SIZE + 1} to {Math.min(safePage * PAGE_SIZE, filteredOrders.length)} of {filteredOrders.length} orders
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={safePage === 1}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-[13px] font-medium text-[#525252] hover:text-[#1B1B1B] hover:bg-[#F4F4F5] disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+                  >
+                    <span>←</span>
+                    <span>Previous</span>
+                  </button>
+
+                  {getPageNumbers().map((page, idx) =>
+                    page === "..." ? (
+                      <span key={`dots-${idx}`} className="px-1.5 text-[13px] text-[#7A7A7A] select-none">
+                        ...
+                      </span>
+                    ) : (
+                      <button
+                        key={page}
+                        type="button"
+                        onClick={() => setCurrentPage(page)}
+                        className={`w-8 h-8 rounded-[8px] text-[13px] font-semibold transition cursor-pointer flex items-center justify-center ${
+                          safePage === page
+                            ? "bg-[#1B1B1B] text-white shadow-xs"
+                            : "text-[#525252] hover:text-[#1B1B1B] hover:bg-[#F4F4F5]"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    )
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={safePage === totalPages}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-[13px] font-medium text-[#1B1B1B] hover:bg-[#F4F4F5] disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+                  >
+                    <span>Next</span>
+                    <span>→</span>
+                  </button>
+                </div>
+              </div>
             )}
           </div>
-        </div>
 
-        {/* 2-Step Delete Confirmation Modal */}
-        {showDeleteModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white shadow-xl max-w-md w-full mx-4">
-              <div className="p-6">
-                {deleteStep === 1 ? (
-                  <>
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-                        <AlertTriangle className="text-red-600" size={20} />
+          {/* 2-Step Delete Confirmation Modal */}
+          {showDeleteModal && (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-[1px] flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-[16px] border border-[#E5E5E5] shadow-2xl max-w-md w-full overflow-hidden">
+                <div className="p-6">
+                  {deleteStep === 1 ? (
+                    <>
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="flex-shrink-0 w-10 h-10 rounded-[10px] bg-[#FEE2E2] flex items-center justify-center">
+                          <AlertTriangle className="text-[#DC2626]" size={20} />
+                        </div>
+                        <h3 className="text-[16px] font-semibold text-[#1B1B1B]">
+                          Delete {ordersToDelete.length === 1 ? 'Store Order' : `${ordersToDelete.length} Store Orders`}?
+                        </h3>
                       </div>
-                      <h3 className="text-lg font-semibold text-[#1e293b]">
-                        Delete {ordersToDelete.length === 1 ? 'Store Order' : `${ordersToDelete.length} Store Orders`}?
-                      </h3>
-                    </div>
-                    <p className="text-sm text-[#64748b] mb-6">
-                      Are you sure you want to delete {ordersToDelete.length === 1 ? 'this store order' : `these ${ordersToDelete.length} store orders`}? 
-                      {ordersToDelete.some(order => order.status === 'approved' || order.status === 'transferred') && (
-                        <span className="block mt-2 text-red-600 font-medium">
-                          ⚠️ Some orders are already approved or transferred. This action cannot be undone.
-                        </span>
-                      )}
-                    </p>
-                    <div className="flex gap-3 justify-end">
-                      <button
-                        onClick={handleCancelDelete}
-                        className="px-4 py-2 text-sm font-medium text-[#64748b] bg-white border border-[#e2e8f0] rounded-none hover:bg-[#f8fafc] transition-colors"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={handleConfirmDeleteStep1}
-                        className="px-4 py-2 text-sm font-medium text-white bg-[#dc2626] rounded-none hover:bg-[#b91c1c] transition-colors"
-                      >
-                        Continue
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-                        <AlertTriangle className="text-red-600" size={20} />
+                      <p className="text-[13px] text-[#525252] mb-6 leading-relaxed">
+                        Are you sure you want to delete {ordersToDelete.length === 1 ? 'this store order' : `these ${ordersToDelete.length} store orders`}?
+                        {ordersToDelete.some(order => order.status === 'approved' || order.status === 'transferred') && (
+                          <span className="block mt-2 text-[#DC2626] font-semibold">
+                            Some orders are already approved or transferred. This action cannot be undone.
+                          </span>
+                        )}
+                      </p>
+                      <div className="flex gap-2.5 justify-end">
+                        <button
+                          onClick={handleCancelDelete}
+                          className="rf-btn-cancel !h-[38px] !px-4 !text-[13px]"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={handleConfirmDeleteStep1}
+                          className="inline-flex items-center justify-center h-[38px] px-4 text-[13px] font-semibold text-white bg-[#DC2626] rounded-[10px] hover:bg-[#B91C1C] transition-colors cursor-pointer"
+                        >
+                          Continue
+                        </button>
                       </div>
-                      <h3 className="text-lg font-semibold text-[#1e293b]">
-                        Final Confirmation
-                      </h3>
-                    </div>
-                    <p className="text-sm text-[#64748b] mb-4">
-                      This action cannot be undone. Are you absolutely sure you want to delete {ordersToDelete.length === 1 ? 'this store order' : `these ${ordersToDelete.length} store orders`}?
-                    </p>
-                    <div className="flex gap-3 justify-end">
-                      <button
-                        onClick={handleCancelDelete}
-                        disabled={deleting}
-                        className="px-4 py-2 text-sm font-medium text-[#64748b] bg-white border border-[#e2e8f0] rounded-none hover:bg-[#f8fafc] transition-colors disabled:opacity-50"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={handleConfirmDeleteStep2}
-                        disabled={deleting}
-                        className="px-4 py-2 text-sm font-medium text-white bg-[#dc2626] rounded-none hover:bg-[#b91c1c] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {deleting ? "Deleting..." : "Delete Permanently"}
-                      </button>
-                    </div>
-                  </>
-                )}
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="flex-shrink-0 w-10 h-10 rounded-[10px] bg-[#FEE2E2] flex items-center justify-center">
+                          <AlertTriangle className="text-[#DC2626]" size={20} />
+                        </div>
+                        <h3 className="text-[16px] font-semibold text-[#1B1B1B]">
+                          Final Confirmation
+                        </h3>
+                      </div>
+                      <p className="text-[13px] text-[#525252] mb-6 leading-relaxed">
+                        This action cannot be undone. Are you absolutely sure you want to delete {ordersToDelete.length === 1 ? 'this store order' : `these ${ordersToDelete.length} store orders`}?
+                      </p>
+                      <div className="flex gap-2.5 justify-end">
+                        <button
+                          onClick={handleCancelDelete}
+                          disabled={deleting}
+                          className="rf-btn-cancel !h-[38px] !px-4 !text-[13px] disabled:opacity-50"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={handleConfirmDeleteStep2}
+                          disabled={deleting}
+                          className="inline-flex items-center justify-center h-[38px] px-4 text-[13px] font-semibold text-white bg-[#DC2626] rounded-[10px] hover:bg-[#B91C1C] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                        >
+                          {deleting ? "Deleting..." : "Delete Permanently"}
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-    </>
+    </div>
   );
 };
 

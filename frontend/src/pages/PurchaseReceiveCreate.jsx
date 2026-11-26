@@ -10,16 +10,16 @@ import useSidebar from "../hooks/useSidebar";
 
 import AppSelect from "../components/AppSelect.jsx";
 const Label = ({ children, required = false }) => (
-  <span className={`text-[10px] font-bold uppercase tracking-wider ${required ? "text-[#EF4444]" : "text-[#6B7280]"}`}>
+  <span className="rf-field-label">
     {children}
-    {required && <span className="ml-0.5">*</span>}
+    {required && <span className="text-[#EF4444] ml-0.5">*</span>}
   </span>
 );
 
 const Input = ({ placeholder = "", className = "", ...props }) => {
-  const baseClasses = "rounded-none border border-[#E5E7EB] bg-white text-xs text-[#111827] placeholder:text-[#9CA3AF] focus:border-[#8B5CF6] focus:outline-none focus:ring-1 focus:ring-[#8B5CF6]/20 transition-colors";
-  const tableInputClasses = "h-[34px] px-[10px] py-[6px]";
-  const defaultClasses = "w-full h-9 px-3";
+  const baseClasses = "rounded-[10px] border border-[#E5E5E5] bg-white text-[13px] text-[#212121] placeholder:text-[#A1A1AA] focus:border-[#9D43D6] focus:outline-none focus:ring-2 focus:ring-[#9D43D6]/15 transition-colors";
+  const tableInputClasses = "h-[38px] px-3";
+  const defaultClasses = "w-full h-[42px] px-3.5";
 
   const isTableInput = className.includes("table-input");
   const finalClasses = `${baseClasses} ${isTableInput ? tableInputClasses : defaultClasses} ${className}`;
@@ -34,14 +34,10 @@ const Input = ({ placeholder = "", className = "", ...props }) => {
 };
 
 const Select = ({ className = "", ...props }) => {
-  const baseClasses = "w-full rounded-none border border-[#E5E7EB] bg-white text-xs text-[#111827] focus:border-[#8B5CF6] focus:outline-none focus:ring-1 focus:ring-[#8B5CF6]/20 transition-colors cursor-pointer";
-  const defaultClasses = "h-9 px-3";
-  const finalClasses = `${baseClasses} ${defaultClasses} ${className}`;
-
   return (
     <AppSelect
       {...props}
-      className={finalClasses}
+      className={className}
     />
   );
 };
@@ -1052,38 +1048,58 @@ const PurchaseReceiveCreate = () => {
   // Show loading state while fetching receive data in edit mode
   if (loading && isEditMode) {
     return (
-      <div className={`transition-all duration-300 min-h-screen bg-[#f5f7fb] flex items-center justify-center ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-        <div className="text-center text-[#64748b]">Loading purchase receive...</div>
+      <div className="min-h-screen bg-[#FAFAFA] text-[#212121]">
+        <Header title="Edit Purchase Receive" />
+        <div className={`transition-all duration-300 min-h-[60vh] flex items-center justify-center ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
+          <div className="flex flex-col items-center gap-3">
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#9D43D6] border-t-transparent" />
+            <div className="text-[13px] font-medium text-[#7A7A7A]">Loading purchase receive...</div>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <>
+    <div className="invoice-page-wrapper min-h-screen bg-[#FAFAFA] text-[#212121]">
       <Header title={isEditMode ? "Edit Purchase Receive" : "New Purchase Receive"} />
-      <div className={`transition-all duration-300 min-h-screen bg-slate-50 flex flex-col ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+      <div className={`transition-all duration-300 flex flex-col ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
+        {/* Clean Page Title Header */}
+        <div className="bg-white px-6 md:px-8 py-4 border-b border-[#E5E5E5] flex flex-wrap items-center justify-between gap-4">
+          <h1 className="text-[18px] font-semibold text-[#1B1B1B]">
+            {isEditMode ? "Edit Purchase Receive" : "New Purchase Receive"}
+          </h1>
+          <Link
+            to={isEditMode ? `/purchase/receives/${id}` : "/purchase/receives"}
+            className="inline-flex items-center gap-1.5 h-[38px] px-4 rounded-[10px] border border-[#E5E5E5] bg-white hover:bg-[#FAFAFA] text-[13px] font-medium text-[#9D43D6] transition-colors"
+          >
+            <X size={14} className="text-[#9D43D6]" />
+            <span>Close</span>
+          </Link>
+        </div>
 
         {/* Form Content */}
-        <div className="mx-auto max-w-4xl w-full px-6 py-8">
-          <div className="space-y-6">
-            {/* Initial Fields - Always Visible */}
-            <div className="bg-white rounded-none border border-[#E5E7EB] shadow-sm p-6">
-              <h2 className="text-xs font-bold uppercase tracking-wider text-[#6B7280] mb-5 pb-3 border-b border-[#E5E7EB]">Receive Details</h2>
-              <div className="grid gap-6 md:grid-cols-2">
-            {/* Vendor Name */}
-            <div className="space-y-2">
-              <Label>Vendor Name</Label>
-              <VendorDropdown
-                value={selectedVendor}
-                onChange={(vendor) => setSelectedVendor(vendor)}
-                onNewVendor={() => navigate("/purchase/vendors/new")}
-              />
+        <div className="p-5 md:p-6 max-w-[1200px] w-full space-y-5">
+          {/* Main Receive Details Card */}
+          <div className="bg-white rounded-[16px] border border-[#E5E5E5] shadow-[0_2px_10px_rgba(0,0,0,0.03)] p-6 space-y-6">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-[#9D43D6]">
+              RECEIVE DETAILS
             </div>
 
-            {/* Purchase Order# */}
-            <div className="space-y-2">
-              <Label required>Purchase Order#</Label>
-              <div className="relative">
+            <div className="grid gap-5 md:grid-cols-2">
+              {/* Vendor Name */}
+              <div>
+                <Label>Vendor Name</Label>
+                <VendorDropdown
+                  value={selectedVendor}
+                  onChange={(vendor) => setSelectedVendor(vendor)}
+                  onNewVendor={() => navigate("/purchase/vendors/new")}
+                />
+              </div>
+
+              {/* Purchase Order# */}
+              <div>
+                <Label required>Purchase Order#</Label>
                 <Select
                   value={purchaseOrder}
                   onChange={(e) => setPurchaseOrder(e.target.value)}
@@ -1120,107 +1136,104 @@ const PurchaseReceiveCreate = () => {
                     );
                   })}
                 </Select>
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <ChevronDown size={16} className="text-[#9ca3af]" />
-                </div>
               </div>
             </div>
-          </div>
 
-          {/* Vendor Details Section - Show when vendor is selected */}
-          {selectedVendor && (
-            <div className="space-y-4 border-t border-[#e6eafb] pt-6">
-              {/* Billing Address */}
-              {(selectedVendor.billingAddress || selectedVendor.billingCity || selectedVendor.billingState) && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Label>BILLING ADDRESS</Label>
-                    <span
-                      onClick={() => {
-                        const vendorId = selectedVendor._id || selectedVendor.id;
-                        if (vendorId) {
-                          navigate(`/purchase/vendors/${vendorId}/edit`);
-                        }
-                      }}
-                      className="cursor-pointer text-[#64748b] hover:text-[#1f2937] transition-colors"
-                      title="Edit billing address"
-                    >
-                      <Pencil size={14} />
-                    </span>
+            {/* Vendor Details Section - Show when vendor is selected */}
+            {selectedVendor && (
+              <div className="space-y-4 border-t border-[#F0F0F0] pt-5">
+                {/* Billing Address */}
+                {(selectedVendor.billingAddress || selectedVendor.billingCity || selectedVendor.billingState) && (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-[#9D43D6]">BILLING ADDRESS</span>
+                      <span
+                        onClick={() => {
+                          const vendorId = selectedVendor._id || selectedVendor.id;
+                          if (vendorId) {
+                            navigate(`/purchase/vendors/${vendorId}/edit`);
+                          }
+                        }}
+                        className="cursor-pointer text-[#7A7A7A] hover:text-[#9D43D6] transition-colors"
+                        title="Edit billing address"
+                      >
+                        <Pencil size={13} />
+                      </span>
+                    </div>
+                    <div className="rounded-[12px] border border-[#E5E5E5] bg-[#FAFAFA] p-4 text-[13px] leading-relaxed text-[#212121]">
+                      {selectedVendor.billingAttention && (
+                        <div className="font-semibold mb-1">{selectedVendor.billingAttention}</div>
+                      )}
+                      {selectedVendor.billingAddress && <div>{selectedVendor.billingAddress}</div>}
+                      {selectedVendor.billingAddress2 && <div>{selectedVendor.billingAddress2}</div>}
+                      {(selectedVendor.billingCity || selectedVendor.billingState || selectedVendor.billingPinCode) && (
+                        <div>
+                          {[selectedVendor.billingCity, selectedVendor.billingState, selectedVendor.billingPinCode]
+                            .filter(Boolean)
+                            .join(", ")}
+                        </div>
+                      )}
+                      {selectedVendor.billingCountry && <div>{selectedVendor.billingCountry}</div>}
+                      {selectedVendor.billingPhone && <div>Phone: {selectedVendor.billingPhone}</div>}
+                    </div>
                   </div>
-                  <div className="rounded-lg border border-[#d7dcf5] bg-[#fafbff] p-4 text-sm leading-relaxed text-[#1f2937]">
-                    {selectedVendor.billingAttention && (
-                      <div className="font-semibold mb-1">{selectedVendor.billingAttention}</div>
-                    )}
-                    {selectedVendor.billingAddress && <div>{selectedVendor.billingAddress}</div>}
-                    {selectedVendor.billingAddress2 && <div>{selectedVendor.billingAddress2}</div>}
-                    {(selectedVendor.billingCity || selectedVendor.billingState || selectedVendor.billingPinCode) && (
-                      <div>
-                        {[selectedVendor.billingCity, selectedVendor.billingState, selectedVendor.billingPinCode]
-                          .filter(Boolean)
-                          .join(", ")}
+                )}
+                
+                {/* GST Details */}
+                {(selectedVendor.gstTreatment || selectedVendor.gstin) && (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {selectedVendor.gstTreatment && (
+                      <div className="flex items-center justify-between rounded-[10px] border border-[#E5E5E5] bg-[#FAFAFA] px-4 py-2.5">
+                        <span className="text-[12px] font-medium text-[#7A7A7A]">GST Treatment</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[13px] font-medium text-[#212121]">{selectedVendor.gstTreatment}</span>
+                          <span
+                            onClick={() => {
+                              const vendorId = selectedVendor._id || selectedVendor.id;
+                              if (vendorId) {
+                                navigate(`/purchase/vendors/${vendorId}/edit`);
+                              }
+                            }}
+                            className="cursor-pointer text-[#7A7A7A] hover:text-[#9D43D6] transition-colors"
+                            title="Edit GST treatment"
+                          >
+                            <Pencil size={13} />
+                          </span>
+                        </div>
                       </div>
                     )}
-                    {selectedVendor.billingCountry && <div>{selectedVendor.billingCountry}</div>}
-                    {selectedVendor.billingPhone && <div>Phone: {selectedVendor.billingPhone}</div>}
-                  </div>
-                </div>
-              )}
-              
-              {/* GST Details */}
-              <div className="grid gap-4 md:grid-cols-2">
-                {selectedVendor.gstTreatment && (
-                  <div className="flex items-center justify-between">
-                    <Label>GST Treatment:</Label>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-[#1f2937]">{selectedVendor.gstTreatment}</span>
-                      <span
-                        onClick={() => {
-                          const vendorId = selectedVendor._id || selectedVendor.id;
-                          if (vendorId) {
-                            navigate(`/purchase/vendors/${vendorId}/edit`);
-                          }
-                        }}
-                        className="cursor-pointer text-[#64748b] hover:text-[#1f2937] transition-colors"
-                        title="Edit GST treatment"
-                      >
-                        <Pencil size={14} />
-                      </span>
-                    </div>
-                  </div>
-                )}
-                {selectedVendor.gstin && (
-                  <div className="flex items-center justify-between">
-                    <Label>GSTIN:</Label>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-[#1f2937]">{selectedVendor.gstin}</span>
-                      <span
-                        onClick={() => {
-                          const vendorId = selectedVendor._id || selectedVendor.id;
-                          if (vendorId) {
-                            navigate(`/purchase/vendors/${vendorId}/edit`);
-                          }
-                        }}
-                        className="cursor-pointer text-[#64748b] hover:text-[#1f2937] transition-colors"
-                        title="Edit GSTIN"
-                      >
-                        <Pencil size={14} />
-                      </span>
-                    </div>
+                    {selectedVendor.gstin && (
+                      <div className="flex items-center justify-between rounded-[10px] border border-[#E5E5E5] bg-[#FAFAFA] px-4 py-2.5">
+                        <span className="text-[12px] font-medium text-[#7A7A7A]">GSTIN</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[13px] font-medium text-[#212121]">{selectedVendor.gstin}</span>
+                          <span
+                            onClick={() => {
+                              const vendorId = selectedVendor._id || selectedVendor.id;
+                              if (vendorId) {
+                                navigate(`/purchase/vendors/${vendorId}/edit`);
+                              }
+                            }}
+                            className="cursor-pointer text-[#7A7A7A] hover:text-[#9D43D6] transition-colors"
+                            title="Edit GSTIN"
+                          >
+                            <Pencil size={13} />
+                          </span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Rest of Form - Conditionally Rendered */}
-          {showRestOfForm && (
-            <>
-              <div className="grid gap-6 md:grid-cols-2">
-                {/* Purchase Receive# */}
-                <div className="space-y-2">
-                  <Label required>Purchase Receive#</Label>
-                  <div className="relative">
+            {/* Rest of Form - Conditionally Rendered */}
+            {showRestOfForm && (
+              <>
+                <div className="grid gap-5 md:grid-cols-2 border-t border-[#F0F0F0] pt-5">
+                  {/* Purchase Receive# */}
+                  <div>
+                    <Label required>Purchase Receive#</Label>
                     <Input
                       value={loadingNextNumber ? "Generating..." : purchaseReceiveNumber || ""}
                       onChange={(e) => {
@@ -1230,223 +1243,222 @@ const PurchaseReceiveCreate = () => {
                       }}
                       placeholder={loadingNextNumber ? "Generating..." : "Will be auto-generated"}
                       readOnly={isEditMode || loadingNextNumber}
-                      className={(isEditMode || loadingNextNumber) ? "bg-[#f5f7fb] cursor-not-allowed" : ""}
+                      className={(isEditMode || loadingNextNumber) ? "bg-[#FAFAFA] cursor-not-allowed" : ""}
                     />
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                      <div className="h-4 w-4 rounded border border-[#d7dcf5] bg-[#f5f7fb] flex items-center justify-center">
-                        <div className="h-2 w-2 rounded-full bg-[#9ca3af]"></div>
-                      </div>
+                  </div>
+
+                  {/* Received Date */}
+                  <div>
+                    <Label required>Received Date</Label>
+                    <div className="relative">
+                      <Input
+                        type="text"
+                        value={receivedDate}
+                        onChange={(e) => setReceivedDate(e.target.value)}
+                        placeholder="DD/MM/YYYY"
+                        className="pr-10"
+                      />
+                      <input
+                        ref={dateInputRef}
+                        type="date"
+                        value={formatDateForInput(receivedDate)}
+                        onChange={handleDateInputChange}
+                        style={{ 
+                          position: 'absolute',
+                          width: '24px',
+                          height: '24px',
+                          opacity: 0,
+                          cursor: 'pointer',
+                          right: '10px',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          zIndex: 2
+                        }}
+                        tabIndex={-1}
+                      />
+                      <span
+                        onClick={handleCalendarIconClick}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-[#525252] hover:text-[#9D43D6] pl-2.5 border-l border-[#E5E5E5] transition-colors flex items-center justify-center"
+                        aria-label="Open date picker"
+                        style={{ zIndex: 1 }}
+                      >
+                        <Calendar size={15} />
+                      </span>
                     </div>
                   </div>
                 </div>
 
-                {/* Received Date */}
-                <div className="space-y-2">
-                  <Label required>Received Date</Label>
-                  <div className="relative">
-                    <Input
-                      type="text"
-                      value={receivedDate}
-                      onChange={(e) => setReceivedDate(e.target.value)}
-                      placeholder="DD/MM/YYYY"
-                    />
-                    <input
-                      ref={dateInputRef}
-                      type="date"
-                      value={formatDateForInput(receivedDate)}
-                      onChange={handleDateInputChange}
-                      style={{ 
-                        position: 'absolute',
-                        width: '20px',
-                        height: '20px',
-                        opacity: 0,
-                        cursor: 'pointer',
-                        right: '12px',
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        zIndex: 2
-                      }}
-                      tabIndex={-1}
-                    />
-                    <span
-                      onClick={handleCalendarIconClick}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-[#64748b] hover:text-[#1f2937] transition-colors flex items-center justify-center"
-                      aria-label="Open date picker"
-                      style={{ zIndex: 1 }}
-                    >
-                      <Calendar size={16} />
-                    </span>
+                {/* Items & Description Table */}
+                <div className="space-y-3 border-t border-[#F0F0F0] pt-5">
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-[#9D43D6]">
+                    ITEMS &amp; DESCRIPTION
+                  </div>
+                  <div className="rounded-[12px] border border-[#E5E5E5] bg-white overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse">
+                        <thead className="bg-[#1B1B1B] text-white">
+                          <tr>
+                            <th className="px-4 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider">
+                              ITEMS &amp; DESCRIPTION
+                            </th>
+                            <th className="px-4 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider">
+                              ORDERED
+                            </th>
+                            <th className="px-4 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider">
+                              RECEIVED
+                            </th>
+                            <th className="px-4 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider">
+                              IN TRANSIT
+                            </th>
+                            <th className="px-4 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider">
+                              QUANTITY TO RECEIVE
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-[#F0F0F0] bg-white">
+                          {loadingOrderDetails ? (
+                            <tr>
+                              <td colSpan="5" className="px-6 py-10 text-center text-[13px] text-[#7A7A7A]">
+                                Loading items from purchase order...
+                              </td>
+                            </tr>
+                          ) : orderItems.length === 0 ? (
+                            <tr>
+                              <td colSpan="5" className="px-6 py-10 text-center text-[13px] text-[#7A7A7A]">
+                                {purchaseOrder 
+                                  ? "No items found in this purchase order" 
+                                  : "Items will be loaded from the selected Purchase Order"}
+                              </td>
+                            </tr>
+                          ) : (
+                            orderItems.map((item) => (
+                              <tr key={item.id} className="hover:bg-[#FAFAFA] transition-colors">
+                                <td className="px-4 py-3.5">
+                                  <div>
+                                    <div className="text-[13px] font-medium text-[#1B1B1B]">
+                                      {item.itemName || "Unnamed Item"}
+                                    </div>
+                                    {item.itemDescription && (
+                                      <div className="text-[12px] text-[#7A7A7A] mt-0.5">
+                                        {item.itemDescription}
+                                      </div>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="px-4 py-3.5 text-[13px] font-medium text-[#212121] tabular-nums">
+                                  {item.ordered.toFixed(2)} pcs
+                                </td>
+                                <td className="px-4 py-3.5">
+                                  <Input
+                                    type="number"
+                                    value={item.received || ""}
+                                    onChange={(e) => handleItemChange(item.id, "received", e.target.value)}
+                                    className="w-24 table-input text-center"
+                                    min="0"
+                                    step="0.01"
+                                  />
+                                </td>
+                                <td className="px-4 py-3.5">
+                                  <Input
+                                    type="number"
+                                    value={item.inTransit || ""}
+                                    onChange={(e) => handleItemChange(item.id, "inTransit", e.target.value)}
+                                    className="w-24 table-input text-center"
+                                    min="0"
+                                    step="0.01"
+                                  />
+                                </td>
+                                <td className="px-4 py-3.5">
+                                  <Input
+                                    type="number"
+                                    value={item.quantityToReceive || ""}
+                                    onChange={(e) => handleItemChange(item.id, "quantityToReceive", e.target.value)}
+                                    className="w-24 table-input text-center"
+                                    min="0"
+                                    step="0.01"
+                                  />
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Items & Description Table */}
-              <div className="space-y-3">
-                <Label>ITEMS & DESCRIPTION</Label>
-                <div className="rounded-xl border border-[#e6eafb] bg-white overflow-hidden">
-                  <table className="min-w-full divide-y divide-[#e6eafb]">
-                    <thead className="bg-[#f9fafb]">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[#6b7280]">
-                          ITEMS & DESCRIPTION
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[#6b7280]">
-                          ORDERED
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[#6b7280]">
-                          RECEIVED
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[#6b7280]">
-                          IN TRANSIT
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[#6b7280]">
-                          QUANTITY TO RECEIVE
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#e6eafb] bg-white">
-                      {loadingOrderDetails ? (
-                        <tr>
-                          <td colSpan="5" className="px-6 py-8 text-center text-sm text-[#64748b]">
-                            Loading items from purchase order...
-                          </td>
-                        </tr>
-                      ) : orderItems.length === 0 ? (
-                        <tr>
-                          <td colSpan="5" className="px-6 py-8 text-center text-sm text-[#64748b]">
-                            {purchaseOrder 
-                              ? "No items found in this purchase order" 
-                              : "Items will be loaded from the selected Purchase Order"}
-                          </td>
-                        </tr>
-                      ) : (
-                        orderItems.map((item) => (
-                          <tr key={item.id} className="hover:bg-[#f9fafb]">
-                            <td className="px-6 py-4">
-                              <div>
-                                <div className="text-sm font-medium text-[#1f2937]">
-                                  {item.itemName || "Unnamed Item"}
-                                </div>
-                                {item.itemDescription && (
-                                  <div className="text-xs text-[#64748b] mt-1">
-                                    {item.itemDescription}
-                                  </div>
-                                )}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 text-sm text-[#1f2937]">
-                              {item.ordered.toFixed(2)} pcs
-                            </td>
-                            <td className="px-6 py-4">
-                              <Input
-                                type="number"
-                                value={item.received || ""}
-                                onChange={(e) => handleItemChange(item.id, "received", e.target.value)}
-                                className="w-24 table-input"
-                                min="0"
-                                step="0.01"
-                              />
-                            </td>
-                            <td className="px-6 py-4">
-                              <Input
-                                type="number"
-                                value={item.inTransit || ""}
-                                onChange={(e) => handleItemChange(item.id, "inTransit", e.target.value)}
-                                className="w-24 table-input"
-                                min="0"
-                                step="0.01"
-                              />
-                            </td>
-                            <td className="px-6 py-4">
-                              <Input
-                                type="number"
-                                value={item.quantityToReceive || ""}
-                                onChange={(e) => handleItemChange(item.id, "quantityToReceive", e.target.value)}
-                                className="w-24 table-input"
-                                min="0"
-                                step="0.01"
-                              />
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
+                {/* Notes Section */}
+                <div>
+                  <Label>Notes (For Internal Use)</Label>
+                  <textarea
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    rows={4}
+                    className="w-full rounded-[10px] border border-[#E5E5E5] bg-white px-3.5 py-2.5 text-[13px] text-[#212121] placeholder:text-[#A1A1AA] focus:border-[#9D43D6] focus:outline-none focus:ring-2 focus:ring-[#9D43D6]/15 transition-colors resize-y"
+                    placeholder="Add internal notes..."
+                  />
                 </div>
-              </div>
 
-              {/* Notes Section */}
-              <div className="space-y-2">
-                <Label>Notes (For Internal Use)</Label>
-                <textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  rows={4}
-                  className="w-full rounded-md border border-[#d7dcf5] bg-white px-3 py-2.5 text-sm text-[#1f2937] placeholder:text-[#9ca3af] focus:border-[#2563eb] focus:outline-none focus:ring-1 focus:ring-[#2563eb] transition-colors resize-y"
-                  placeholder="Add internal notes..."
-                />
-              </div>
+                {/* File Attachment Section */}
+                <div>
+                  <Label>Attach File(s) to Purchase Receive</Label>
+                  <div className="rounded-[14px] border border-dashed border-[#D4D4D8] bg-[#FAFAFA] p-5">
+                    <ImageUpload
+                      onImagesSelect={(files) => setAttachments(files)}
+                      existingImages={attachments}
+                      onRemoveImage={(index) => {
+                        setAttachments(attachments.filter((_, i) => i !== index));
+                      }}
+                      multiple={true}
+                    />
+                    <p className="text-[11px] text-[#8A8A8A] mt-2">
+                      You can upload a maximum of 15 files, 5MB each
+                    </p>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
 
-              {/* File Attachment Section */}
-              <div className="space-y-3">
-                <Label>Attach File(s) to Purchase Receive</Label>
-                <ImageUpload
-                  onImagesSelect={(files) => setAttachments(files)}
-                  existingImages={attachments}
-                  onRemoveImage={(index) => {
-                    setAttachments(attachments.filter((_, i) => i !== index));
-                  }}
-                  multiple={true}
-                />
-                <p className="text-xs text-[#64748b]">
-                  You can upload a maximum of 15 files, 5MB each
-                </p>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="border-t border-[#e7ebf8] bg-[#fafbff] px-6 py-5">
-        <div className="mx-auto flex max-w-4xl items-center gap-3">
-          {showRestOfForm ? (
-            <>
-              <button 
-                onClick={() => handleSavePurchaseReceive("draft")}
-                disabled={saving}
-                className="rounded-md border border-[#d7dcf5] bg-white px-5 py-2.5 text-sm font-medium text-[#475569] hover:bg-[#f8fafc] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {saving ? (isEditMode ? "Updating..." : "Saving...") : (isEditMode ? "Update Draft" : "Save as Draft")}
-              </button>
-              <button 
-                onClick={() => handleSavePurchaseReceive("received")}
-                disabled={saving}
-                className="inline-flex items-center gap-2 rounded-md border border-[#d7dcf5] bg-[#3b82f6] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#2563eb] transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <span>{saving ? (isEditMode ? "Updating..." : "Saving...") : (isEditMode ? "Update as Received" : "Save as Received")}</span>
-                <ChevronDown size={16} />
-              </button>
+          {/* Action Buttons */}
+          <div className="flex flex-wrap items-center justify-end gap-3 pt-1">
+            {showRestOfForm ? (
+              <>
+                <Link
+                  to={isEditMode ? `/purchase/receives/${id}` : "/purchase/receives"}
+                  className="rf-btn-cancel !h-[40px] !px-5 !text-[13px] inline-flex items-center justify-center"
+                >
+                  Cancel
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => handleSavePurchaseReceive("draft")}
+                  disabled={saving}
+                  className="h-[40px] px-5 rounded-[10px] border border-[#E5E5E5] bg-white hover:bg-[#FAFAFA] text-[13px] font-medium text-[#212121] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  {saving ? (isEditMode ? "Updating..." : "Saving...") : (isEditMode ? "Update Draft" : "Save as Draft")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSavePurchaseReceive("received")}
+                  disabled={saving}
+                  className="rf-btn-primary !h-[40px] !px-6 !text-[13px] inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <span>{saving ? (isEditMode ? "Updating..." : "Saving...") : (isEditMode ? "Update as Received" : "Save as Received")}</span>
+                </button>
+              </>
+            ) : (
               <Link
-                to={isEditMode ? `/purchase/receives/${id}` : "/purchase/receives"}
-                className="rounded-md border border-[#d7dcf5] bg-white px-5 py-2.5 text-sm font-medium text-[#475569] hover:bg-[#f8fafc] transition-colors"
+                to="/purchase/receives"
+                className="rf-btn-cancel !h-[40px] !px-5 !text-[13px] inline-flex items-center justify-center"
               >
                 Cancel
               </Link>
-            </>
-          ) : (
-            <Link
-              to="/purchase/receives"
-              className="rounded-md border border-[#d7dcf5] bg-white px-5 py-2.5 text-sm font-medium text-[#475569] hover:bg-[#f8fafc] transition-colors"
-            >
-              Cancel
-            </Link>
-          )}
-        </div>
-        </div>
+            )}
+          </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

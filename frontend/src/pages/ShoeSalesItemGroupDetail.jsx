@@ -209,12 +209,12 @@ const ShoeSalesItemGroupDetail = () => {
     return (
       <div className="invoice-page-wrapper min-h-screen bg-[#F9FAFB] text-[#111827]">
         <Header title="Item Groups" />
-        <div className={`transition-all duration-300 p-8 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-          <div className="rounded-none border border-[#E5E7EB] bg-white shadow-xs p-8 text-center max-w-md mx-auto mt-12">
+        <div className={`transition-all duration-300 p-8 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
+          <div className="rounded-[10px] border border-[#E5E7EB] bg-white shadow-xs p-8 text-center max-w-md mx-auto mt-12">
             <p className="text-base font-bold text-[#111827] uppercase">Item Group Not Found</p>
             <Link
               to="/shoe-sales/item-groups"
-              className="mt-4 inline-block px-4 py-2 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white text-xs font-bold uppercase tracking-wider rounded-none transition-colors"
+              className="mt-4 inline-block px-4 py-2 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white text-xs font-bold uppercase tracking-wider rounded-[10px] transition-colors"
             >
               Back to Item Groups
             </Link>
@@ -579,16 +579,21 @@ const ShoeSalesItemGroupDetail = () => {
   };
 
   return (
-    <div className="invoice-page-wrapper min-h-screen bg-[#F9FAFB] text-[#111827]">
+    <div className="invoice-page-wrapper min-h-screen bg-[#FAFAFA] text-[#212121]">
       <Header title="Item Groups" />
 
-      <div className={`transition-all duration-300 p-8 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+      <div className={`transition-all duration-300 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
+        {/* Clean Page Title Header */}
+        <div className="bg-white px-6 md:px-8 py-4 border-b border-[#E5E5E5] flex items-center justify-between">
+          <h1 className="text-[18px] font-semibold text-[#212121]">Item Group Details</h1>
+        </div>
+        <div className="p-6 md:p-8">
         {/* Top Action Toolbar */}
         <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
           <div className="flex items-center gap-3 min-w-0">
             <button
               onClick={() => navigate("/shoe-sales/item-groups")}
-              className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs transition-colors cursor-pointer shrink-0"
+              className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-[10px] border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs transition-colors cursor-pointer shrink-0"
             >
               <ArrowLeft size={14} className="text-[#111827]" />
               <span>Item Groups</span>
@@ -597,11 +602,11 @@ const ShoeSalesItemGroupDetail = () => {
               <h1 className="text-xl md:text-2xl font-extrabold tracking-tight text-[#111827] uppercase font-mono truncate">
                 {itemGroup.name}
               </h1>
-              <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-bold rounded-none bg-[#F3F4F6] text-[#4B5563] border border-[#E5E7EB] uppercase tracking-wider">
+              <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-bold rounded-[10px] bg-[#F3F4F6] text-[#4B5563] border border-[#E5E7EB] uppercase tracking-wider">
                 {Array.isArray(items) ? items.length : 0} Items
               </span>
               {itemGroup.isActive === false && (
-                <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-bold rounded-none bg-red-50 text-red-700 border border-red-200 uppercase tracking-wider">
+                <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-bold rounded-[10px] bg-red-50 text-red-700 border border-red-200 uppercase tracking-wider">
                   Inactive
                 </span>
               )}
@@ -614,7 +619,7 @@ const ShoeSalesItemGroupDetail = () => {
               <>
                 <Link
                   to={`/shoe-sales/item-groups/${id}/edit`}
-                  className="inline-flex items-center gap-1.5 h-9 px-4 rounded-none bg-[#8B5CF6] hover:bg-[#7C3AED] text-xs font-bold uppercase tracking-wider text-white shadow-xs transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 h-9 px-4 rounded-[10px] bg-[#8B5CF6] hover:bg-[#7C3AED] text-xs font-bold uppercase tracking-wider text-white shadow-xs transition-colors cursor-pointer"
                 >
                   <Edit size={13} className="text-white" />
                   <span>Edit</span>
@@ -623,13 +628,13 @@ const ShoeSalesItemGroupDetail = () => {
                 <div className="relative" ref={moreMenuRef}>
                   <button
                     onClick={() => setShowMoreMenu(!showMoreMenu)}
-                    className="inline-flex items-center gap-1.5 h-9 px-3 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-1.5 h-9 px-3 rounded-[10px] border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs transition-colors cursor-pointer"
                   >
                     <span>More</span>
                     <ChevronDown size={14} className="text-[#6B7280]" />
                   </button>
                   {showMoreMenu && (
-                    <div className="absolute right-0 mt-1 w-48 rounded-none border border-[#E5E7EB] bg-white shadow-lg z-50 py-1">
+                    <div className="absolute right-0 mt-1 w-48 rounded-[10px] border border-[#E5E7EB] bg-white shadow-lg z-50 py-1">
                       <button
                         onClick={() => {
                           setShowInactiveModal(true);
@@ -657,7 +662,7 @@ const ShoeSalesItemGroupDetail = () => {
 
             <Link
               to="/shoe-sales/item-groups"
-              className="inline-flex items-center justify-center h-9 w-9 rounded-none border border-[#E5E7EB] bg-white hover:bg-[#F3F4F6] text-[#6B7280] shadow-xs transition-colors cursor-pointer"
+              className="inline-flex items-center justify-center h-9 w-9 rounded-[10px] border border-[#E5E7EB] bg-white hover:bg-[#F3F4F6] text-[#6B7280] shadow-xs transition-colors cursor-pointer"
               title="Close"
             >
               <X size={15} />
@@ -667,9 +672,9 @@ const ShoeSalesItemGroupDetail = () => {
 
         {/* Inactive Banner */}
         {itemGroup.isActive === false && (
-          <div className="mb-6 rounded-none border border-red-200 bg-red-50 px-4 py-3">
+          <div className="mb-6 rounded-[10px] border border-red-200 bg-red-50 px-4 py-3">
             <div className="flex items-center gap-2">
-              <div className="h-2 w-2 rounded-none bg-red-500"></div>
+              <div className="h-2 w-2 rounded-[10px] bg-red-500"></div>
               <p className="text-xs font-bold text-red-700 uppercase tracking-wider">
                 This item group is currently inactive and will not appear in active lists.
               </p>
@@ -682,7 +687,7 @@ const ShoeSalesItemGroupDetail = () => {
           {/* Left Column - Primary Details & Items */}
           <div className="space-y-6">
             {/* Primary Details Card */}
-            <div className="bg-white border border-[#E5E7EB] rounded-none shadow-xs">
+            <div className="bg-white border border-[#E5E7EB] rounded-[10px] shadow-xs">
               <div className="px-6 py-4 border-b border-[#E5E7EB]">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-[#6B7280]">
                   Primary Details
@@ -717,7 +722,7 @@ const ShoeSalesItemGroupDetail = () => {
                           .map((row, idx) => (
                             <div
                               key={`${row.attribute}-${idx}`}
-                              className="bg-[#F9FAFB] border border-[#E5E7EB] rounded-none p-4 shadow-2xs"
+                              className="bg-[#F9FAFB] border border-[#E5E7EB] rounded-[10px] p-4 shadow-2xs"
                             >
                               <p className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280] mb-2.5">
                                 {row.attribute}
@@ -726,7 +731,7 @@ const ShoeSalesItemGroupDetail = () => {
                                 {(row.options || []).map((opt, optIdx) => (
                                   <span
                                     key={`${row.attribute}-${opt}-${optIdx}`}
-                                    className="inline-flex items-center px-3 py-1 bg-white border border-[#E5E7EB] text-xs font-bold text-[#111827] rounded-none shadow-2xs"
+                                    className="inline-flex items-center px-3 py-1 bg-white border border-[#E5E7EB] text-xs font-bold text-[#111827] rounded-[10px] shadow-2xs"
                                   >
                                     {opt}
                                   </span>
@@ -769,7 +774,7 @@ const ShoeSalesItemGroupDetail = () => {
 
             {/* Attached Images Gallery */}
             {itemGroup.groupImages && itemGroup.groupImages.length > 0 && (
-              <div className="bg-white border border-[#E5E7EB] rounded-none shadow-xs p-6">
+              <div className="bg-white border border-[#E5E7EB] rounded-[10px] shadow-xs p-6">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-[#6B7280] mb-4">
                   Attached Images
                 </h3>
@@ -779,7 +784,7 @@ const ShoeSalesItemGroupDetail = () => {
 
             {/* Items Table Card */}
             {items.length > 0 && (
-              <div className="bg-white border border-[#E5E7EB] rounded-none shadow-xs overflow-hidden">
+              <div className="bg-white border border-[#E5E7EB] rounded-[10px] shadow-xs overflow-hidden">
                 <div className="px-6 py-4 border-b border-[#E5E7EB] flex items-center justify-between bg-white">
                   <div className="flex items-center gap-2">
                     <Package size={15} className="text-[#8B5CF6]" />
@@ -792,7 +797,7 @@ const ShoeSalesItemGroupDetail = () => {
                   </div>
                   <button
                     onClick={() => setShowOpeningStockModal(true)}
-                    className="inline-flex items-center gap-1.5 h-8 px-3 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-1.5 h-8 px-3 rounded-[10px] border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs transition-colors cursor-pointer"
                   >
                     <Building2 size={13} className="text-[#111827]" />
                     <span>Opening Stock</span>
@@ -851,7 +856,7 @@ const ShoeSalesItemGroupDetail = () => {
                           >
                             <td className="px-6 py-4">
                               <div className="flex items-center gap-3">
-                                <div className="flex h-10 w-10 items-center justify-center rounded-none border border-[#E5E7EB] bg-[#F9FAFB] shrink-0">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-[10px] border border-[#E5E7EB] bg-[#F9FAFB] shrink-0">
                                   <Package size={18} className="text-[#6B7280]" />
                                 </div>
                                 <div>
@@ -878,7 +883,7 @@ const ShoeSalesItemGroupDetail = () => {
                                 <Link
                                   to={`/shoe-sales/item-groups/${id}/items/${item._id || item.id}/edit`}
                                   onClick={(e) => e.stopPropagation()}
-                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-2xs transition-colors"
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-2xs transition-colors"
                                   title="Edit Variant"
                                 >
                                   Edit Variant
@@ -898,7 +903,7 @@ const ShoeSalesItemGroupDetail = () => {
           {/* Right Column - Image Upload & Stock Metrics */}
           <div className="space-y-6">
             {/* Image Upload Card */}
-            <div className="bg-white border border-[#E5E7EB] rounded-none shadow-xs p-6">
+            <div className="bg-white border border-[#E5E7EB] rounded-[10px] shadow-xs p-6">
               <h3 className="text-xs font-bold uppercase tracking-wider text-[#6B7280] mb-4">
                 Product Images
               </h3>
@@ -913,7 +918,7 @@ const ShoeSalesItemGroupDetail = () => {
             </div>
 
             {/* Opening Stock & Accounting Metrics Card */}
-            <div className="bg-white border border-[#E5E7EB] rounded-none shadow-xs overflow-hidden">
+            <div className="bg-white border border-[#E5E7EB] rounded-[10px] shadow-xs overflow-hidden">
               {/* Opening Stock Section */}
               <div className="bg-[#F9FAFB] px-6 py-6 border-b border-[#E5E7EB]">
                 <div className="flex items-center justify-between mb-4">
@@ -943,9 +948,9 @@ const ShoeSalesItemGroupDetail = () => {
                   Accounting Stock
                 </h4>
                 <div className="space-y-2.5">
-                  <div className="flex items-center justify-between py-2.5 px-3.5 bg-[#F9FAFB] border border-[#E5E7EB] rounded-none">
+                  <div className="flex items-center justify-between py-2.5 px-3.5 bg-[#F9FAFB] border border-[#E5E7EB] rounded-[10px]">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-2 h-2 bg-emerald-500 rounded-none"></div>
+                      <div className="w-2 h-2 bg-emerald-500 rounded-[10px]"></div>
                       <span className="text-xs font-bold uppercase tracking-wider text-[#6B7280]">Stock on Hand</span>
                     </div>
                     <span className="text-sm font-bold font-mono text-[#111827]">
@@ -969,9 +974,9 @@ const ShoeSalesItemGroupDetail = () => {
                       ))}
                     </div>
                   )}
-                  <div className="flex items-center justify-between py-2.5 px-3.5 bg-[#F9FAFB] border border-[#E5E7EB] rounded-none">
+                  <div className="flex items-center justify-between py-2.5 px-3.5 bg-[#F9FAFB] border border-[#E5E7EB] rounded-[10px]">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-2 h-2 bg-amber-500 rounded-none"></div>
+                      <div className="w-2 h-2 bg-amber-500 rounded-[10px]"></div>
                       <span className="text-xs font-bold uppercase tracking-wider text-[#6B7280]">Committed Stock</span>
                     </div>
                     <span className="text-sm font-bold font-mono text-[#111827]">
@@ -988,7 +993,7 @@ const ShoeSalesItemGroupDetail = () => {
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-          <div className="relative w-full max-w-md rounded-none border border-[#E5E7EB] bg-white shadow-2xl">
+          <div className="relative w-full max-w-md rounded-[10px] border border-[#E5E7EB] bg-white shadow-2xl">
             <div className="px-6 py-4 border-b border-[#E5E7EB]">
               <h2 className="text-sm font-bold uppercase tracking-wider text-[#111827]">Delete Item Group</h2>
             </div>
@@ -1001,14 +1006,14 @@ const ShoeSalesItemGroupDetail = () => {
               <button
                 onClick={() => setShowDeleteModal(false)}
                 disabled={loading}
-                className="h-9 px-4 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] transition-colors disabled:opacity-50 cursor-pointer"
+                className="h-9 px-4 rounded-[10px] border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] transition-colors disabled:opacity-50 cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDelete}
                 disabled={loading}
-                className="h-9 px-4 rounded-none bg-[#EF4444] hover:bg-[#DC2626] text-xs font-bold uppercase tracking-wider text-white transition-colors disabled:opacity-50 cursor-pointer"
+                className="h-9 px-4 rounded-[10px] bg-[#EF4444] hover:bg-[#DC2626] text-xs font-bold uppercase tracking-wider text-white transition-colors disabled:opacity-50 cursor-pointer"
               >
                 {loading ? "Deleting..." : "Delete Group"}
               </button>
@@ -1020,7 +1025,7 @@ const ShoeSalesItemGroupDetail = () => {
       {/* Mark as Inactive Confirmation Modal */}
       {showInactiveModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-          <div className="relative w-full max-w-md rounded-none border border-[#E5E7EB] bg-white shadow-2xl">
+          <div className="relative w-full max-w-md rounded-[10px] border border-[#E5E7EB] bg-white shadow-2xl">
             <div className="px-6 py-4 border-b border-[#E5E7EB]">
               <h2 className="text-sm font-bold uppercase tracking-wider text-[#111827]">Mark as Inactive</h2>
             </div>
@@ -1033,14 +1038,14 @@ const ShoeSalesItemGroupDetail = () => {
               <button
                 onClick={() => setShowInactiveModal(false)}
                 disabled={loading}
-                className="h-9 px-4 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] transition-colors disabled:opacity-50 cursor-pointer"
+                className="h-9 px-4 rounded-[10px] border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] transition-colors disabled:opacity-50 cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={handleMarkAsInactive}
                 disabled={loading}
-                className="h-9 px-4 rounded-none bg-[#8B5CF6] hover:bg-[#7C3AED] text-xs font-bold uppercase tracking-wider text-white transition-colors disabled:opacity-50 cursor-pointer"
+                className="h-9 px-4 rounded-[10px] bg-[#8B5CF6] hover:bg-[#7C3AED] text-xs font-bold uppercase tracking-wider text-white transition-colors disabled:opacity-50 cursor-pointer"
               >
                 {loading ? "Updating..." : "Mark as Inactive"}
               </button>
@@ -1052,7 +1057,7 @@ const ShoeSalesItemGroupDetail = () => {
       {/* Opening Stock Distribution Modal */}
       {showOpeningStockModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-8 overflow-y-auto">
-          <div className="relative w-full max-w-5xl bg-white rounded-none border border-[#E5E7EB] shadow-2xl my-8">
+          <div className="relative w-full max-w-5xl bg-white rounded-[10px] border border-[#E5E7EB] shadow-2xl my-8">
             {/* Modal Header */}
             <div className="sticky top-0 bg-white border-b border-[#E5E7EB] px-6 py-4 flex items-center justify-between z-10">
               <div className="flex items-center gap-4">
@@ -1069,7 +1074,7 @@ const ShoeSalesItemGroupDetail = () => {
                       setSelectedMonth(e.target.value);
                       setEditingStock({});
                     }}
-                    className="px-2.5 py-1 border border-[#E5E7EB] rounded-none text-xs font-bold bg-[#F9FAFB] focus:outline-none focus:border-[#8B5CF6]"
+                    className="px-2.5 py-1 border border-[#E5E7EB] rounded-[10px] text-xs font-bold bg-[#F9FAFB] focus:outline-none focus:border-[#8B5CF6]"
                   />
                 </div>
               </div>
@@ -1086,7 +1091,7 @@ const ShoeSalesItemGroupDetail = () => {
 
             {/* Modal Body */}
             <div className="px-6 py-4 max-h-[calc(100vh-220px)] overflow-y-auto">
-              <div className="border border-[#E5E7EB] rounded-none overflow-hidden">
+              <div className="border border-[#E5E7EB] rounded-[10px] overflow-hidden">
                 <table className="min-w-full divide-y divide-[#E5E7EB]">
                   <thead className="bg-[#1e1e1e] text-white sticky top-0 z-10">
                     <tr>
@@ -1156,7 +1161,7 @@ const ShoeSalesItemGroupDetail = () => {
                                   min="0"
                                   value={isEditing ? (isEditing.openingStock || '') : Math.round(warehouseEntry.openingStock)}
                                   onChange={(e) => handleStockChange(warehouseEntry.itemId, warehouseEntry.warehouse, 'openingStock', e.target.value, warehouseEntry.itemSellingPrice)}
-                                  className="w-24 px-2 py-1 text-right border border-[#E5E7EB] rounded-none text-xs font-mono font-bold bg-[#F9FAFB] focus:bg-white focus:outline-none focus:border-[#8B5CF6]"
+                                  className="w-24 px-2 py-1 text-right border border-[#E5E7EB] rounded-[10px] text-xs font-mono font-bold bg-[#F9FAFB] focus:bg-white focus:outline-none focus:border-[#8B5CF6]"
                                   placeholder="0"
                                 />
                               </td>
@@ -1182,14 +1187,14 @@ const ShoeSalesItemGroupDetail = () => {
                   setShowOpeningStockModal(false);
                   setEditingStock({});
                 }}
-                className="h-9 px-4 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] transition-colors cursor-pointer"
+                className="h-9 px-4 rounded-[10px] border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] transition-colors cursor-pointer"
               >
                 Close
               </button>
               <button
                 onClick={handleSaveMonthlyStock}
                 disabled={savingStock || Object.keys(editingStock).length === 0}
-                className="h-9 px-4 rounded-none bg-[#8B5CF6] hover:bg-[#7C3AED] text-xs font-bold uppercase tracking-wider text-white shadow-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
+                className="h-9 px-4 rounded-[10px] bg-[#8B5CF6] hover:bg-[#7C3AED] text-xs font-bold uppercase tracking-wider text-white shadow-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
               >
                 {savingStock ? (
                   <>
@@ -1204,7 +1209,8 @@ const ShoeSalesItemGroupDetail = () => {
           </div>
         </div>
       )}
-    </div>
+        </div>
+      </div>
   );
 };
 

@@ -10,28 +10,25 @@ import useSidebar from "../hooks/useSidebar";
 
 import AppSelect from "../components/AppSelect.jsx";
 const Input = ({ label, placeholder = "", hint, type = "text", right, ...props }) => (
-  <label className="flex w-full flex-col gap-1 text-sm text-[#475569]">
-    {label && <span className="text-xs font-bold uppercase tracking-wider text-gray-600">{label}</span>}
-    <div className="flex items-center rounded-none border border-[#e2e8f0] focus-within:border-[#8B5CF6] bg-white transition-colors">
+  <label className="flex w-full flex-col">
+    {label && <span className="rf-field-label">{label}</span>}
+    <div className="flex items-center h-[42px] rounded-[10px] border border-[#E5E5E5] focus-within:border-[#9D43D6] focus-within:ring-2 focus-within:ring-[#9D43D6]/15 bg-white transition-colors">
       <input
         type={type}
         placeholder={placeholder}
-        className="w-full rounded-none px-3 py-2 text-sm text-[#111827] placeholder:text-[#94a3b8] focus:outline-none bg-transparent"
+        className="w-full h-full rounded-[10px] px-3.5 text-[13px] text-[#212121] placeholder:text-[#A1A1AA] focus:outline-none bg-transparent"
         {...props}
       />
       {right}
     </div>
-    {hint && <span className="text-xs text-[#94a3b8]">{hint}</span>}
+    {hint && <span className="text-[11px] text-[#8A8A8A] mt-1">{hint}</span>}
   </label>
 );
 
 const Select = ({ label, children, ...props }) => (
-  <label className="flex w-full flex-col gap-1 text-sm text-[#475569]">
-    {label && <span className="text-xs font-bold uppercase tracking-wider text-gray-600">{label}</span>}
-    <AppSelect
-      className="rounded-none border border-[#e2e8f0] px-3 py-2 text-sm text-[#111827] focus:border-[#8B5CF6] focus:outline-none bg-white transition-colors"
-      {...props}
-    >
+  <label className="flex w-full flex-col">
+    {label && <span className="rf-field-label">{label}</span>}
+    <AppSelect {...props}>
       {children}
     </AppSelect>
   </label>
@@ -720,366 +717,412 @@ const PurchaseVendorCreate = () => {
 
   if (loading) {
     return (
-      <div className={`transition-all duration-300 min-h-screen bg-[#f8fafc] p-6 ${isSidebarOpen ? "ml-64" : "ml-0"}`}>
-        <div className="text-center py-12 text-sm text-gray-500 font-medium">Loading vendor data...</div>
+      <div className="min-h-screen bg-[#FAFAFA] text-[#212121]">
+        <Header title={isEditMode ? "Edit Vendor" : "Add New Vendors"} />
+        <div className={`transition-all duration-300 p-8 flex items-center justify-center min-h-[60vh] ${isSidebarOpen ? "ml-[240px]" : "ml-0"}`}>
+          <div className="flex flex-col items-center gap-3">
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#9D43D6] border-t-transparent" />
+            <div className="text-[13px] text-[#7A7A7A] font-medium">Loading vendor data...</div>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <>
-      <Header title={isEditMode ? "Edit Vendor" : "New Vendor"} />
-      <div className={`transition-all duration-300 min-h-screen bg-[#f8fafc] p-6 md:p-8 ${isSidebarOpen ? "ml-64" : "ml-0"}`}>
-        {/* Header Title & Back Button */}
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold text-[#111827] tracking-tight">
-            {isEditMode ? "Edit Vendor" : "New Vendor"}
+    <div className="invoice-page-wrapper min-h-screen bg-[#FAFAFA] text-[#212121]">
+      <Header title={isEditMode ? "Edit Vendor" : "Add New Vendors"} />
+      <div className={`transition-all duration-300 ${isSidebarOpen ? "ml-[240px]" : "ml-0"}`}>
+        {/* Clean Page Title Header */}
+        <div className="bg-white px-6 md:px-8 py-4 border-b border-[#E5E5E5] flex flex-wrap items-center justify-between gap-4">
+          <h1 className="text-[18px] font-semibold text-[#1B1B1B]">
+            {isEditMode ? "Edit Vendor" : "Add New Vendor"}
           </h1>
           <Link
             to={isEditMode ? `/purchase/vendors/${id}` : "/purchase/vendors"}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-none hover:bg-gray-50 transition-colors shadow-sm"
+            className="inline-flex items-center gap-1.5 h-[38px] px-4 rounded-[10px] border border-[#E5E5E5] bg-white hover:bg-[#FAFAFA] text-[13px] font-medium text-[#9D43D6] transition-colors"
           >
-            Back
+            <X size={14} className="text-[#9D43D6]" />
+            <span>Close</span>
           </Link>
         </div>
 
-        <form onSubmit={save} className="space-y-6">
-          <div className="rounded-none border border-gray-200 bg-white shadow-sm overflow-hidden">
-            <div className="p-6 md:p-8">
-              {/* Primary details */}
-              <div className="grid gap-4 md:grid-cols-3">
-                <Select label="Primary Contact" value={salutation} onChange={(e) => setSalutation(e.target.value)}>
-                  <option value="">Salutation</option>
-                  <option value="Mr">Mr</option>
-                  <option value="Ms">Ms</option>
-                  <option value="Mrs">Mrs</option>
-                  <option value="Dr">Dr</option>
-                </Select>
-                <Input label="First Name" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
-                <Input label="Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)} />
-              </div>
+        <form onSubmit={save} className="p-5 md:p-6 space-y-5">
+          {/* Card 1: Primary Contact Details */}
+          <div className="bg-white rounded-[16px] border border-[#E5E5E5] shadow-[0_2px_10px_rgba(0,0,0,0.03)] p-6 space-y-5">
+            {/* Row 1: Primary Contact, First Name, Last Name */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <Select label="Primary Contact" value={salutation} onChange={(e) => setSalutation(e.target.value)}>
+                <option value="">Salutation</option>
+                <option value="Mr">Mr</option>
+                <option value="Ms">Ms</option>
+                <option value="Mrs">Mrs</option>
+                <option value="Dr">Dr</option>
+              </Select>
+              <Input
+                label="First Name"
+                placeholder="Enter first name"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+              />
+              <Input
+                label="Last Name"
+                placeholder="Enter last name"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+              />
+            </div>
 
-              <div className="mt-4 grid gap-4 md:grid-cols-2">
-                <Input label="Company Name" value={companyName} onChange={(e) => setCompanyName(e.target.value)} />
-                <Input
-                  label="Display Name"
-                  placeholder="Select or type to add"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                />
-              </div>
+            {/* Row 2: Company Name, Display Name, Email Address */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <Input
+                label="Company Name"
+                placeholder="Enter company name"
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+              />
+              <Input
+                label="Display Name"
+                placeholder="Select or type to add"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+              />
+              <Input
+                label="Email Address"
+                type="email"
+                placeholder="Enter email address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
 
-              <div className="mt-4 grid gap-4 md:grid-cols-3">
-                <Input label="Email Address" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-                <div className="grid gap-4 md:grid-cols-2">
-                  <Input label="Phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
-                  <Input label="Mobile" value={mobile} onChange={(e) => setMobile(e.target.value)} />
+            {/* Row 3: Phone, Mobile, Vendor Language */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <Input
+                label="Phone"
+                placeholder="Enter phone number"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+              />
+              <Input
+                label="Mobile"
+                placeholder="Enter mobile number"
+                value={mobile}
+                onChange={(e) => setMobile(e.target.value)}
+              />
+              <Select label="Vendor Language" value={vendorLanguage} onChange={(e) => setVendorLanguage(e.target.value)}>
+                <option value="">Select vendor language</option>
+                <option value="English">English</option>
+                <option value="Hindi">Hindi</option>
+                <option value="Malayalam">Malayalam</option>
+              </Select>
+            </div>
+          </div>
+
+          {/* Card 2: Tabbed Details */}
+          <div className="bg-white rounded-[16px] border border-[#E5E5E5] shadow-[0_2px_10px_rgba(0,0,0,0.03)] p-6">
+            {/* Tabs */}
+            <div className="border-b border-[#E5E5E5]">
+              <div className="flex flex-wrap gap-6">
+                {TABS.map((tab) => (
+                  <button
+                    type="button"
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`cursor-pointer select-none px-1 pb-3 text-[11px] font-semibold uppercase tracking-wider transition-colors ${
+                      activeTab === tab
+                        ? "border-b-2 border-[#9D43D6] text-[#9D43D6]"
+                        : "text-[#7A7A7A] hover:text-[#1B1B1B]"
+                    }`}
+                  >
+                    {tab}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Tab content */}
+            {activeTab === "Other Details" && (
+              <div className="mt-6 space-y-5">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-start">
+                  <GSTTreatmentDropdown value={gstTreatment} onChange={(value) => setGstTreatment(value)} />
+                  <StateDropdown value={sourceOfSupply} onChange={(value) => setSourceOfSupply(value)} />
+                  <Input label="PAN" placeholder="Enter your PAN" value={pan} onChange={(e) => setPan(e.target.value)} />
                 </div>
-                <Select label="Vendor Language" value={vendorLanguage} onChange={(e) => setVendorLanguage(e.target.value)}>
-                  <option value="">Select</option>
-                  <option value="English">English</option>
-                  <option value="Hindi">Hindi</option>
-                  <option value="Malayalam">Malayalam</option>
-                </Select>
-              </div>
 
-              {/* Tabs */}
-              <div className="mt-8 border-b border-gray-200">
-                <div className="flex flex-wrap gap-6 text-sm">
-                  {TABS.map((tab) => (
-                    <button
-                      type="button"
-                      key={tab}
-                      onClick={() => setActiveTab(tab)}
-                      className={`cursor-pointer select-none px-1 pb-3 text-xs font-bold uppercase tracking-wider transition-colors ${
-                        activeTab === tab
-                          ? "border-b-2 border-[#8B5CF6] text-[#8B5CF6]"
-                          : "text-gray-500 hover:text-gray-800"
-                      }`}
-                    >
-                      {tab}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Tab content */}
-              {activeTab === "Other Details" && (
-                <div className="mt-6 max-w-2xl space-y-5">
-                  {gstTreatment && gstTreatment !== "unregistered" ? (
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <GSTTreatmentDropdown value={gstTreatment} onChange={(value) => setGstTreatment(value)} />
-                      <label className="flex w-full flex-col gap-1 text-sm text-[#475569]">
-                        <span className="text-xs font-bold uppercase tracking-wider text-gray-600">
+                {gstTreatment && gstTreatment !== "unregistered" ? (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-end">
+                    <div className="md:col-span-2">
+                      <label className="flex w-full flex-col">
+                        <span className="rf-field-label inline-flex items-center gap-1">
                           GSTIN / UIN
-                          <span className="text-red-500 ml-1">*</span>
-                          <Info size={14} className="inline-block ml-1.5 text-[#8B5CF6] cursor-help" title="UIN" />
+                          <span className="text-[#EF4444]">*</span>
+                          <Info size={13} className="text-[#9D43D6] cursor-help" title="UIN" />
                         </span>
-                        <div className="flex items-center gap-2">
-                          <div className="flex items-center rounded-none border border-[#e2e8f0] focus-within:border-[#8B5CF6] flex-1 min-w-0 bg-white">
-                            <input
-                              type="text"
-                              value={gstin}
-                              onChange={(e) => setGstin(e.target.value)}
-                              className="w-full rounded-none px-3 py-2 text-sm text-[#111827] placeholder:text-[#94a3b8] focus:outline-none bg-transparent"
-                              placeholder="Enter GSTIN / UIN"
-                            />
-                          </div>
+                        <div className="flex items-center gap-2.5">
+                          <input
+                            type="text"
+                            value={gstin}
+                            onChange={(e) => setGstin(e.target.value)}
+                            className="rf-input !h-[42px] flex-1 bg-white"
+                            placeholder="Enter GSTIN / UIN"
+                          />
                           <button
                             type="button"
-                            className="text-xs font-bold uppercase tracking-wider text-[#8B5CF6] hover:text-[#7C3AED] whitespace-nowrap px-3 py-2"
+                            className="h-[42px] px-4 rounded-[10px] border border-[#E9D5FF] bg-[#F3E8FF] text-[#9D43D6] hover:bg-[#E9D5FF] text-[12px] font-medium whitespace-nowrap transition-colors cursor-pointer"
                           >
                             Get Taxpayer details
                           </button>
                         </div>
                       </label>
                     </div>
-                  ) : (
-                    <GSTTreatmentDropdown value={gstTreatment} onChange={(value) => setGstTreatment(value)} />
-                  )}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <Input label="GSTIN" placeholder="Enter GSTIN" value={gstin} onChange={(e) => setGstin(e.target.value)} />
+                  </div>
+                )}
 
-                  <StateDropdown value={sourceOfSupply} onChange={(value) => setSourceOfSupply(value)} />
-                  <Input label="PAN" value={pan} onChange={(e) => setPan(e.target.value)} />
-                  {(!gstTreatment || gstTreatment === "unregistered") && (
-                    <Input label="GSTIN" value={gstin} onChange={(e) => setGstin(e.target.value)} />
-                  )}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  <CurrencyDropdown value={currency} onChange={(value) => setCurrency(value)} />
+                  <PaymentTermsDropdown value={paymentTerms} onChange={(value) => setPaymentTerms(value)} />
+                  <TDSDropdown value={tds} onChange={(value) => setTds(value)} />
+                </div>
 
-                  <label className="mt-2 inline-flex items-center gap-2 text-sm text-[#1f2937] cursor-pointer">
+                <div className="flex flex-wrap items-center gap-6 pt-1">
+                  <label className="inline-flex items-center gap-2 text-[13px] text-[#212121] cursor-pointer">
                     <input
                       type="checkbox"
-                      className="h-4 w-4 rounded-none border-gray-300 text-[#8B5CF6] focus:ring-[#8B5CF6] accent-[#8B5CF6]"
+                      className="h-4 w-4 rounded-[4px] border-gray-300 accent-[#9D43D6] cursor-pointer"
                     />
                     <span>This vendor is MSME registered</span>
                   </label>
 
-                  <CurrencyDropdown value={currency} onChange={(value) => setCurrency(value)} />
-                  <PaymentTermsDropdown value={paymentTerms} onChange={(value) => setPaymentTerms(value)} />
-                  <TDSDropdown value={tds} onChange={(value) => setTds(value)} />
-
-                  {/* Documents UI */}
-                  <div className="rounded-none border border-dashed border-gray-300 bg-[#f8fafc] p-4">
-                    <p className="text-xs font-bold uppercase tracking-wider text-gray-600 mb-3">Documents</p>
-                    <ImageUpload
-                      onImagesSelect={(files) => setAttachments(files)}
-                      existingImages={attachments}
-                      onRemoveImage={(index) => {
-                        setAttachments(attachments.filter((_, i) => i !== index));
-                      }}
-                      multiple={true}
-                    />
-                    <p className="text-xs text-[#94a3b8] mt-2">Max 15 files, 5MB each</p>
-                  </div>
-
-                  <label className="inline-flex items-center gap-2 text-sm text-[#1f2937] cursor-pointer">
+                  <label className="inline-flex items-center gap-2 text-[13px] text-[#212121] cursor-pointer">
                     <input
                       type="checkbox"
-                      className="h-4 w-4 rounded-none border-gray-300 text-[#8B5CF6] focus:ring-[#8B5CF6] accent-[#8B5CF6]"
+                      className="h-4 w-4 rounded-[4px] border-gray-300 accent-[#9D43D6] cursor-pointer"
                       checked={enablePortal}
                       onChange={(e) => setEnablePortal(e.target.checked)}
                     />
                     <span>Enable Portal?</span>
                   </label>
                 </div>
-              )}
 
-              {activeTab === "Address" && (
-                <div className="mt-6 grid gap-8 md:grid-cols-2">
-                  {/* Billing Address */}
-                  <div>
-                    <h4 className="mb-3 text-xs font-bold uppercase tracking-wider text-gray-700">Billing Address</h4>
-                    <div className="space-y-3">
-                      <Input label="Attention" value={billingAttention} onChange={(e) => setBillingAttention(e.target.value)} />
-                      <CountryDropdown value={billingCountry} onChange={(value) => setBillingCountry(value)} />
-                      <Input
-                        label="Address"
-                        placeholder="Street 1"
-                        value={billingAddress}
-                        onChange={(e) => setBillingAddress(e.target.value)}
-                      />
-                      <Input label="" placeholder="Street 2" value={billingAddress2} onChange={(e) => setBillingAddress2(e.target.value)} />
-                      <Input label="City" value={billingCity} onChange={(e) => setBillingCity(e.target.value)} />
-                      <AddressStateDropdown value={billingState} onChange={(value) => setBillingState(value)} />
-                      <Input label="Pin Code" value={billingPinCode} onChange={(e) => setBillingPinCode(e.target.value)} />
-                      <Input label="Phone" value={billingPhone} onChange={(e) => setBillingPhone(e.target.value)} />
-                      <Input label="Fax Number" value={billingFax} onChange={(e) => setBillingFax(e.target.value)} />
-                    </div>
-                  </div>
+                {/* Documents UI */}
+                <div className="rounded-[14px] border border-dashed border-[#D4D4D8] bg-[#FAFAFA] p-5">
+                  <p className="rf-field-label mb-3">Documents</p>
+                  <ImageUpload
+                    onImagesSelect={(files) => setAttachments(files)}
+                    existingImages={attachments}
+                    onRemoveImage={(index) => {
+                      setAttachments(attachments.filter((_, i) => i !== index));
+                    }}
+                    multiple={true}
+                  />
+                  <p className="text-[11px] text-[#8A8A8A] mt-2">Max 15 files, 5MB each</p>
+                </div>
+              </div>
+            )}
 
-                  {/* Shipping Address */}
-                  <div>
-                    <div className="mb-3 flex items-center justify-between">
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-gray-700">Shipping Address</h4>
-                      <button
-                        type="button"
-                        className="text-xs font-bold uppercase tracking-wider text-[#8B5CF6] hover:text-[#7C3AED]"
-                        onClick={() => {
-                          setShippingAttention(billingAttention);
-                          setShippingCountry(billingCountry);
-                          setShippingAddress(billingAddress);
-                          setShippingAddress2(billingAddress2);
-                          setShippingCity(billingCity);
-                          setShippingState(billingState);
-                          setShippingPinCode(billingPinCode);
-                          setShippingPhone(billingPhone);
-                          setShippingFax(billingFax);
-                        }}
-                      >
-                        Copy billing address
-                      </button>
-                    </div>
-                    <div className="space-y-3">
-                      <Input label="Attention" value={shippingAttention} onChange={(e) => setShippingAttention(e.target.value)} />
-                      <CountryDropdown value={shippingCountry} onChange={(value) => setShippingCountry(value)} />
-                      <Input
-                        label="Address"
-                        placeholder="Street 1"
-                        value={shippingAddress}
-                        onChange={(e) => setShippingAddress(e.target.value)}
-                      />
-                      <Input label="" placeholder="Street 2" value={shippingAddress2} onChange={(e) => setShippingAddress2(e.target.value)} />
-                      <Input label="City" value={shippingCity} onChange={(e) => setShippingCity(e.target.value)} />
-                      <AddressStateDropdown value={shippingState} onChange={(value) => setShippingState(value)} />
-                      <Input label="Pin Code" value={shippingPinCode} onChange={(e) => setShippingPinCode(e.target.value)} />
-                      <Input label="Phone" value={shippingPhone} onChange={(e) => setShippingPhone(e.target.value)} />
-                      <Input label="Fax Number" value={shippingFax} onChange={(e) => setShippingFax(e.target.value)} />
-                    </div>
+            {activeTab === "Address" && (
+              <div className="mt-6 grid gap-8 md:grid-cols-2">
+                {/* Billing Address */}
+                <div>
+                  <h4 className="mb-4 text-[12px] font-bold uppercase tracking-wider text-[#9D43D6]">Billing Address</h4>
+                  <div className="space-y-3.5">
+                    <Input label="Attention" value={billingAttention} onChange={(e) => setBillingAttention(e.target.value)} />
+                    <CountryDropdown value={billingCountry} onChange={(value) => setBillingCountry(value)} />
+                    <Input
+                      label="Address"
+                      placeholder="Street 1"
+                      value={billingAddress}
+                      onChange={(e) => setBillingAddress(e.target.value)}
+                    />
+                    <Input label="" placeholder="Street 2" value={billingAddress2} onChange={(e) => setBillingAddress2(e.target.value)} />
+                    <Input label="City" value={billingCity} onChange={(e) => setBillingCity(e.target.value)} />
+                    <AddressStateDropdown value={billingState} onChange={(value) => setBillingState(value)} />
+                    <Input label="Pin Code" value={billingPinCode} onChange={(e) => setBillingPinCode(e.target.value)} />
+                    <Input label="Phone" value={billingPhone} onChange={(e) => setBillingPhone(e.target.value)} />
+                    <Input label="Fax Number" value={billingFax} onChange={(e) => setBillingFax(e.target.value)} />
                   </div>
                 </div>
-              )}
 
-              {activeTab === "Contact Persons" && (
-                <div ref={contactsRef} className="mt-6">
-                  <div className="overflow-x-auto rounded-none border border-gray-200 shadow-sm">
-                    <table className="w-full border-collapse min-w-full text-left text-xs">
-                      <thead>
-                        <tr className="bg-[#1e1e1e] text-white text-xs uppercase tracking-wide font-bold">
-                          <th className="px-3 py-3 border-r border-[#333333]">Salutation</th>
-                          <th className="px-3 py-3 border-r border-[#333333]">First Name</th>
-                          <th className="px-3 py-3 border-r border-[#333333]">Last Name</th>
-                          <th className="px-3 py-3 border-r border-[#333333]">Email Address</th>
-                          <th className="px-3 py-3 border-r border-[#333333]">Work Phone</th>
-                          <th className="px-3 py-3 border-r border-[#333333]">Mobile</th>
-                          <th className="px-3 py-3 w-16 text-center"></th>
+                {/* Shipping Address */}
+                <div>
+                  <div className="mb-4 flex items-center justify-between">
+                    <h4 className="text-[12px] font-bold uppercase tracking-wider text-[#9D43D6]">Shipping Address</h4>
+                    <button
+                      type="button"
+                      className="text-[12px] font-medium text-[#9D43D6] hover:text-[#7E22CE] hover:underline cursor-pointer"
+                      onClick={() => {
+                        setShippingAttention(billingAttention);
+                        setShippingCountry(billingCountry);
+                        setShippingAddress(billingAddress);
+                        setShippingAddress2(billingAddress2);
+                        setShippingCity(billingCity);
+                        setShippingState(billingState);
+                        setShippingPinCode(billingPinCode);
+                        setShippingPhone(billingPhone);
+                        setShippingFax(billingFax);
+                      }}
+                    >
+                      Copy billing address
+                    </button>
+                  </div>
+                  <div className="space-y-3.5">
+                    <Input label="Attention" value={shippingAttention} onChange={(e) => setShippingAttention(e.target.value)} />
+                    <CountryDropdown value={shippingCountry} onChange={(value) => setShippingCountry(value)} />
+                    <Input
+                      label="Address"
+                      placeholder="Street 1"
+                      value={shippingAddress}
+                      onChange={(e) => setShippingAddress(e.target.value)}
+                    />
+                    <Input label="" placeholder="Street 2" value={shippingAddress2} onChange={(e) => setShippingAddress2(e.target.value)} />
+                    <Input label="City" value={shippingCity} onChange={(e) => setShippingCity(e.target.value)} />
+                    <AddressStateDropdown value={shippingState} onChange={(value) => setShippingState(value)} />
+                    <Input label="Pin Code" value={shippingPinCode} onChange={(e) => setShippingPinCode(e.target.value)} />
+                    <Input label="Phone" value={shippingPhone} onChange={(e) => setShippingPhone(e.target.value)} />
+                    <Input label="Fax Number" value={shippingFax} onChange={(e) => setShippingFax(e.target.value)} />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "Contact Persons" && (
+              <div ref={contactsRef} className="mt-6">
+                <div className="overflow-x-auto rounded-[12px] border border-[#E5E5E5] overflow-hidden">
+                  <table className="w-full border-collapse min-w-full text-left">
+                    <thead>
+                      <tr className="bg-[#1B1B1B] text-white text-[11px] uppercase tracking-wider font-semibold">
+                        <th className="px-3 py-3.5">Salutation</th>
+                        <th className="px-3 py-3.5">First Name</th>
+                        <th className="px-3 py-3.5">Last Name</th>
+                        <th className="px-3 py-3.5">Email Address</th>
+                        <th className="px-3 py-3.5">Work Phone</th>
+                        <th className="px-3 py-3.5">Mobile</th>
+                        <th className="px-3 py-3.5 w-20 text-center"></th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#F0F0F0] text-[13px]">
+                      {contacts.map((c, idx) => (
+                        <tr key={c.id} className="hover:bg-[#FAFAFA]">
+                          <td className="p-2.5">
+                            <AppSelect
+                              value={c.salutation}
+                              onChange={(e) => {
+                                const updated = [...contacts];
+                                updated[idx].salutation = e.target.value;
+                                setContacts(updated);
+                              }}
+                            >
+                              <option value="">Select</option>
+                              <option value="Mr">Mr</option>
+                              <option value="Ms">Ms</option>
+                              <option value="Mrs">Mrs</option>
+                              <option value="Dr">Dr</option>
+                            </AppSelect>
+                          </td>
+                          <td className="p-2.5">
+                            <input
+                              className="rf-input !h-[38px]"
+                              value={c.firstName}
+                              onChange={(e) => {
+                                const updated = [...contacts];
+                                updated[idx].firstName = e.target.value;
+                                setContacts(updated);
+                              }}
+                            />
+                          </td>
+                          <td className="p-2.5">
+                            <input
+                              className="rf-input !h-[38px]"
+                              value={c.lastName}
+                              onChange={(e) => {
+                                const updated = [...contacts];
+                                updated[idx].lastName = e.target.value;
+                                setContacts(updated);
+                              }}
+                            />
+                          </td>
+                          <td className="p-2.5">
+                            <input
+                              className="rf-input !h-[38px]"
+                              type="email"
+                              value={c.email}
+                              onChange={(e) => {
+                                const updated = [...contacts];
+                                updated[idx].email = e.target.value;
+                                setContacts(updated);
+                              }}
+                            />
+                          </td>
+                          <td className="p-2.5">
+                            <input
+                              className="rf-input !h-[38px]"
+                              value={c.workPhone}
+                              onChange={(e) => {
+                                const updated = [...contacts];
+                                updated[idx].workPhone = e.target.value;
+                                setContacts(updated);
+                              }}
+                            />
+                          </td>
+                          <td className="p-2.5">
+                            <input
+                              className="rf-input !h-[38px]"
+                              value={c.mobile}
+                              onChange={(e) => {
+                                const updated = [...contacts];
+                                updated[idx].mobile = e.target.value;
+                                setContacts(updated);
+                              }}
+                            />
+                          </td>
+                          <td className="p-2.5 text-center">
+                            <button
+                              type="button"
+                              className="text-[12px] font-medium text-[#EF4444] hover:text-[#DC2626] cursor-pointer"
+                              onClick={() => setContacts((prev) => prev.filter((_, i) => i !== idx))}
+                            >
+                              Delete
+                            </button>
+                          </td>
                         </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-100 text-xs">
-                        {contacts.map((c, idx) => (
-                          <tr key={c.id} className="border-b border-gray-100 hover:bg-[#f8fafc]">
-                            <td className="p-2 border-r border-gray-100">
-                              <AppSelect
-                                className="w-full rounded-none border border-[#e2e8f0] px-2 py-1.5 text-xs text-[#111827] focus:outline-none focus:border-[#8B5CF6] bg-white"
-                                value={c.salutation}
-                                onChange={(e) => {
-                                  const updated = [...contacts];
-                                  updated[idx].salutation = e.target.value;
-                                  setContacts(updated);
-                                }}
-                              >
-                                <option value=""></option>
-                                <option value="Mr">Mr</option>
-                                <option value="Ms">Ms</option>
-                                <option value="Mrs">Mrs</option>
-                                <option value="Dr">Dr</option>
-                              </AppSelect>
-                            </td>
-                            <td className="p-2 border-r border-gray-100">
-                              <input
-                                className="w-full rounded-none border border-[#e2e8f0] px-2 py-1.5 text-xs text-[#111827] focus:outline-none focus:border-[#8B5CF6]"
-                                value={c.firstName}
-                                onChange={(e) => {
-                                  const updated = [...contacts];
-                                  updated[idx].firstName = e.target.value;
-                                  setContacts(updated);
-                                }}
-                              />
-                            </td>
-                            <td className="p-2 border-r border-gray-100">
-                              <input
-                                className="w-full rounded-none border border-[#e2e8f0] px-2 py-1.5 text-xs text-[#111827] focus:outline-none focus:border-[#8B5CF6]"
-                                value={c.lastName}
-                                onChange={(e) => {
-                                  const updated = [...contacts];
-                                  updated[idx].lastName = e.target.value;
-                                  setContacts(updated);
-                                }}
-                              />
-                            </td>
-                            <td className="p-2 border-r border-gray-100">
-                              <input
-                                className="w-full rounded-none border border-[#e2e8f0] px-2 py-1.5 text-xs text-[#111827] focus:outline-none focus:border-[#8B5CF6]"
-                                type="email"
-                                value={c.email}
-                                onChange={(e) => {
-                                  const updated = [...contacts];
-                                  updated[idx].email = e.target.value;
-                                  setContacts(updated);
-                                }}
-                              />
-                            </td>
-                            <td className="p-2 border-r border-gray-100">
-                              <input
-                                className="w-full rounded-none border border-[#e2e8f0] px-2 py-1.5 text-xs text-[#111827] focus:outline-none focus:border-[#8B5CF6]"
-                                value={c.workPhone}
-                                onChange={(e) => {
-                                  const updated = [...contacts];
-                                  updated[idx].workPhone = e.target.value;
-                                  setContacts(updated);
-                                }}
-                              />
-                            </td>
-                            <td className="p-2 border-r border-gray-100">
-                              <input
-                                className="w-full rounded-none border border-[#e2e8f0] px-2 py-1.5 text-xs text-[#111827] focus:outline-none focus:border-[#8B5CF6]"
-                                value={c.mobile}
-                                onChange={(e) => {
-                                  const updated = [...contacts];
-                                  updated[idx].mobile = e.target.value;
-                                  setContacts(updated);
-                                }}
-                              />
-                            </td>
-                            <td className="p-2 text-center">
-                              <button
-                                type="button"
-                                className="text-xs font-bold text-red-500 hover:text-red-700 uppercase"
-                                onClick={() => setContacts((prev) => prev.filter((_, i) => i !== idx))}
-                              >
-                                Delete
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setContacts((prev) => [...prev, { id: Date.now() }])}
-                    className="mt-3 text-xs font-bold uppercase tracking-wider text-[#8B5CF6] hover:text-[#7C3AED]"
-                  >
-                    + Add Contact Person
-                  </button>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-              )}
+                <button
+                  type="button"
+                  onClick={() => setContacts((prev) => [...prev, { id: Date.now() }])}
+                  className="mt-3 h-[36px] px-4 rounded-[10px] bg-[#F4F4F5] hover:bg-[#E5E5E5] text-[12px] font-medium text-[#212121] transition-colors cursor-pointer"
+                >
+                  + Add Contact Person
+                </button>
+              </div>
+            )}
 
-              {activeTab === "Bank Details" && (
-                <div ref={bankRef} className="mt-6 max-w-xl space-y-6">
-                  {bankAccounts.map((bank, idx) => (
-                    <div key={idx} className="border border-gray-200 rounded-none p-5 space-y-4 bg-white shadow-sm">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-gray-800">
-                          Bank Account {idx + 1}
-                        </h4>
-                        {bankAccounts.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => setBankAccounts(bankAccounts.filter((_, i) => i !== idx))}
-                            className="text-xs font-bold text-red-500 hover:text-red-700 uppercase"
-                          >
-                            Remove
-                          </button>
-                        )}
-                      </div>
+            {activeTab === "Bank Details" && (
+              <div ref={bankRef} className="mt-6 max-w-2xl space-y-5">
+                {bankAccounts.map((bank, idx) => (
+                  <div key={idx} className="border border-[#E5E5E5] rounded-[12px] p-5 space-y-4 bg-[#FAFAFA]/50">
+                    <div className="flex items-center justify-between mb-1">
+                      <h4 className="text-[12px] font-bold uppercase tracking-wider text-[#9D43D6]">
+                        Bank Account {idx + 1}
+                      </h4>
+                      {bankAccounts.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => setBankAccounts(bankAccounts.filter((_, i) => i !== idx))}
+                          className="text-[12px] font-medium text-[#EF4444] hover:text-[#DC2626] cursor-pointer"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <Input
                         label="Account Holder Name"
                         value={bank.accountHolderName || ""}
@@ -1126,65 +1169,63 @@ const PurchaseVendorCreate = () => {
                         }}
                       />
                     </div>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setBankAccounts([
-                        ...bankAccounts,
-                        { accountHolderName: "", bankName: "", accountNumber: "", reAccountNumber: "", ifsc: "" },
-                      ])
-                    }
-                    className="text-xs font-bold uppercase tracking-wider text-[#8B5CF6] hover:text-[#7C3AED]"
-                  >
-                    + Add New Bank
-                  </button>
-                </div>
-              )}
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() =>
+                    setBankAccounts([
+                      ...bankAccounts,
+                      { accountHolderName: "", bankName: "", accountNumber: "", reAccountNumber: "", ifsc: "" },
+                    ])
+                  }
+                  className="h-[36px] px-4 rounded-[10px] bg-[#F4F4F5] hover:bg-[#E5E5E5] text-[12px] font-medium text-[#212121] transition-colors cursor-pointer"
+                >
+                  + Add New Bank
+                </button>
+              </div>
+            )}
 
-              {activeTab === "Custom Fields" && (
-                <div className="mt-6 text-sm text-gray-500">No custom fields configured.</div>
-              )}
-              {activeTab === "Reporting Tags" && (
-                <div className="mt-6 text-sm text-gray-500">No reporting tags configured.</div>
-              )}
-              {activeTab === "Remarks" && (
-                <div className="mt-6 max-w-2xl">
-                  <label className="flex w-full flex-col gap-1 text-sm text-[#475569]">
-                    <span className="text-xs font-bold uppercase tracking-wider text-gray-600">
-                      Remarks (For Internal Use)
-                    </span>
-                    <textarea
-                      value={remarks}
-                      onChange={(e) => setRemarks(e.target.value)}
-                      rows={4}
-                      className="w-full rounded-none border border-[#e2e8f0] px-3 py-2 text-sm text-[#111827] focus:outline-none focus:border-[#8B5CF6] transition-colors"
-                    />
-                  </label>
-                </div>
-              )}
-            </div>
+            {activeTab === "Custom Fields" && (
+              <div className="mt-6 text-[13px] text-[#7A7A7A]">No custom fields configured.</div>
+            )}
+            {activeTab === "Reporting Tags" && (
+              <div className="mt-6 text-[13px] text-[#7A7A7A]">No reporting tags configured.</div>
+            )}
+            {activeTab === "Remarks" && (
+              <div className="mt-6 max-w-2xl">
+                <label className="flex w-full flex-col">
+                  <span className="rf-field-label">Remarks (For Internal Use)</span>
+                  <textarea
+                    value={remarks}
+                    onChange={(e) => setRemarks(e.target.value)}
+                    rows={4}
+                    className="w-full rounded-[10px] border border-[#E5E5E5] px-3.5 py-2.5 text-[13px] text-[#212121] placeholder:text-[#A1A1AA] focus:outline-none focus:border-[#9D43D6] transition-colors"
+                  />
+                </label>
+              </div>
+            )}
+          </div>
 
-            {/* Action Footer */}
-            <div className="flex items-center justify-end gap-3 border-t border-gray-200 bg-[#f8fafc] px-6 py-4">
-              <Link
-                to={isEditMode ? `/purchase/vendors/${id}` : "/purchase/vendors"}
-                className="rounded-none border border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
-              >
-                Cancel
-              </Link>
-              <button
-                type="submit"
-                disabled={saving}
-                className="rounded-none bg-[#8B5CF6] hover:bg-[#7C3AED] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors disabled:opacity-60 cursor-pointer"
-              >
-                {saving ? (isEditMode ? "Updating..." : "Saving...") : isEditMode ? "Update" : "Save"}
-              </button>
-            </div>
+          {/* Bottom Action Buttons (Left-Aligned per Screenshot) */}
+          <div className="flex items-center gap-3 pt-1">
+            <button
+              type="submit"
+              disabled={saving}
+              className="rf-btn-primary !h-[42px] !px-6 !text-[13px] disabled:opacity-60"
+            >
+              {saving ? (isEditMode ? "Updating..." : "Saving...") : isEditMode ? "Update Vendor" : "Save New Vendor"}
+            </button>
+            <Link
+              to={isEditMode ? `/purchase/vendors/${id}` : "/purchase/vendors"}
+              className="rf-btn-cancel !h-[42px] !px-6 !text-[13px] inline-flex items-center justify-center"
+            >
+              Cancel
+            </Link>
           </div>
         </form>
       </div>
-    </>
+    </div>
   );
 };
 

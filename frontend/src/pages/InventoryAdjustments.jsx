@@ -7,6 +7,7 @@ import { mapLocNameToWarehouse as mapWarehouse } from "../utils/warehouseMapping
 import useSidebar from "../hooks/useSidebar";
 import Select from "react-select";
 
+import { appSelectStyles } from "../components/AppSelect.jsx";
 const InventoryAdjustments = () => {
   const isSidebarOpen = useSidebar();
   const navigate = useNavigate();
@@ -410,19 +411,89 @@ const InventoryAdjustments = () => {
     })
   };
 
+  const renderFilterOptionLabel = (prefix) => (option, { context }) => {
+    if (context === "value") {
+      return (
+        <span className="inline-flex items-center gap-1 text-[13px]">
+          <span className="text-[#8A8A8A] font-normal">{prefix} :</span>
+          <span className="text-[#1B1B1B] font-medium">{option.value}</span>
+        </span>
+      );
+    }
+    return <span>{option.value}</span>;
+  };
+
   return (
-    <>
-      <Header title="Inventory Adjustments" />
-      <div className={`transition-all duration-300 min-h-screen bg-[#F9FAFB] flex flex-col ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-        
-        {/* ── Top Header Bar ── */}
-        <div className="px-6 pt-5 pb-4 border-b border-[#E5E7EB] bg-white">
-          <div className="flex flex-wrap items-center justify-end gap-4">
+    <div className="min-h-screen bg-[#FAFAFA] text-[#212121]">
+      <Header title="Inventory Adjustment" />
+      <div className={`transition-all duration-300 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
+        {/* Clean Page Title Header */}
+        <div className="bg-white px-6 md:px-8 py-4 border-b border-[#E5E5E5] flex items-center justify-between">
+          <h1 className="text-[18px] font-semibold text-[#212121]">Inventory Adjustment</h1>
+        </div>
+        <div className="p-5 md:p-6">
+          {/* ── Row 1: Filter By Dropdowns + New Adjustment Button ── */}
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="text-[13px] font-medium text-[#212121] whitespace-nowrap">
+                Filter By :
+              </span>
+
+              <div className="min-w-[132px]">
+                <Select
+                  classNamePrefix="rf-select"
+                  value={{ value: filters.type, label: filters.type }}
+                  onChange={(opt) => setFilters({ ...filters, type: opt.value })}
+                  options={[
+                    { value: "All", label: "All" },
+                    { value: "Quantity", label: "Quantity" },
+                    { value: "Value", label: "Value" }
+                  ]}
+                  formatOptionLabel={renderFilterOptionLabel("Type")}
+                  styles={appSelectStyles}
+                  isSearchable={false}
+                />
+              </div>
+
+              <div className="min-w-[138px]">
+                <Select
+                  classNamePrefix="rf-select"
+                  value={{ value: filters.status, label: filters.status }}
+                  onChange={(opt) => setFilters({ ...filters, status: opt.value })}
+                  options={[
+                    { value: "All", label: "All" },
+                    { value: "Draft", label: "Draft" },
+                    { value: "Adjusted", label: "Adjusted" }
+                  ]}
+                  formatOptionLabel={renderFilterOptionLabel("Status")}
+                  styles={appSelectStyles}
+                  isSearchable={false}
+                />
+              </div>
+
+              <div className="min-w-[142px]">
+                <Select
+                  classNamePrefix="rf-select"
+                  value={{ value: filters.period, label: filters.period }}
+                  onChange={(opt) => setFilters({ ...filters, period: opt.value })}
+                  options={[
+                    { value: "All", label: "All" },
+                    { value: "This Month", label: "This Month" },
+                    { value: "Last Month", label: "Last Month" },
+                    { value: "This Year", label: "This Year" }
+                  ]}
+                  formatOptionLabel={renderFilterOptionLabel("Period")}
+                  styles={appSelectStyles}
+                  isSearchable={false}
+                />
+              </div>
+            </div>
+
             <div className="flex items-center gap-2.5">
               {selectedAdjustments.size > 0 && (
                 <button
                   onClick={handleDeleteClick}
-                  className="inline-flex h-9 items-center gap-2 rounded-none border border-[#dc2626] bg-[#fef2f2] hover:bg-[#fee2e2] px-3.5 text-xs font-semibold text-[#dc2626] shadow-sm transition-colors cursor-pointer"
+                  className="inline-flex h-[40px] items-center gap-2 rounded-[10px] border border-[#FECACA] bg-[#FEF2F2] hover:bg-[#FEE2E2] px-4 text-[13px] font-semibold text-[#DC2626] transition-colors cursor-pointer"
                 >
                   <Trash2 size={14} />
                   <span>Delete ({selectedAdjustments.size})</span>
@@ -430,116 +501,87 @@ const InventoryAdjustments = () => {
               )}
               <Link
                 to="/inventory/adjustments/new"
-                className="inline-flex h-9 items-center gap-1.5 rounded-none bg-[#8B5CF6] hover:bg-[#7C3AED] px-4 text-xs font-bold uppercase tracking-wider text-white shadow-sm transition-colors cursor-pointer"
+                className="rf-btn-primary inline-flex items-center gap-2 !h-[40px] !px-5 !text-[13px]"
               >
                 <Plus size={15} className="text-white" />
                 <span>New Adjustment</span>
               </Link>
             </div>
           </div>
-        </div>
 
-        {/* ── Controls Row: Search, Filters, Badges ── */}
-        <div className="px-6 pt-4 pb-2">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            {/* Search Box & Filters */}
-            <div className="flex items-center gap-2.5 flex-1 max-w-2xl">
-              <div className="relative flex-1">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search size={14} className="text-[#9CA3AF]" />
-                </div>
-                <input
-                  type="text"
-                  placeholder="Search by reference number, reason, description, or warehouse..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full h-9 pl-9 pr-3 rounded-none border border-[#E5E7EB] bg-white text-xs text-[#111827] placeholder:text-[#9CA3AF] focus:border-[#8B5CF6] focus:outline-none transition-colors"
-                />
-              </div>
-
-              <Select classNamePrefix="rf-select"
-                value={{ value: filters.type, label: filters.type === 'All' ? 'Type: All' : filters.type }}
-                onChange={(opt) => setFilters({ ...filters, type: opt.value })}
-                options={[
-                  { value: "All", label: "Type: All" },
-                  { value: "Quantity", label: "Quantity" },
-                  { value: "Value", label: "Value" }
-                ]}
-                styles={appSelectStyles}
-                isSearchable={false}
-              />
-              <Select classNamePrefix="rf-select"
-                value={{ value: filters.status, label: filters.status === 'All' ? 'Status: All' : filters.status }}
-                onChange={(opt) => setFilters({ ...filters, status: opt.value })}
-                options={[
-                  { value: "All", label: "Status: All" },
-                  { value: "Draft", label: "Draft" },
-                  { value: "Adjusted", label: "Adjusted" }
-                ]}
-                styles={appSelectStyles}
-                isSearchable={false}
-              />
-              <Select classNamePrefix="rf-select"
-                value={{ value: filters.period, label: filters.period === 'All' ? 'Period: All' : filters.period }}
-                onChange={(opt) => setFilters({ ...filters, period: opt.value })}
-                options={[
-                  { value: "All", label: "Period: All" },
-                  { value: "This Month", label: "This Month" },
-                  { value: "Last Month", label: "Last Month" },
-                  { value: "This Year", label: "This Year" }
-                ]}
-                styles={appSelectStyles}
-                isSearchable={false}
+          {/* ── Row 2: Search Input + Adjustments Count Pill ── */}
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div className="relative w-full sm:w-[360px]">
+              <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#525252] pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Search by reference number, reasons, or description"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="rf-input !pl-10 !h-[42px] bg-white"
               />
             </div>
 
-            {/* Badges / Metrics */}
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-none bg-[#F5F3FF] border border-[#DDD6FE] px-3 py-1 text-xs font-bold text-[#7C3AED]">
-                Total: {filteredAdjustments.length} {filteredAdjustments.length === 1 ? 'Adjustment' : 'Adjustments'}
-              </span>
-            </div>
+            <span className="inline-flex items-center rounded-full bg-[#F3E8FF]/70 px-3.5 py-1.5 text-[12px] font-semibold text-[#9D43D6]">
+              {filteredAdjustments.length} {filteredAdjustments.length === 1 ? "Adjustment" : "Adjustments"}
+            </span>
           </div>
-        </div>
 
-        {/* ── Main Table Card ── */}
-        <div className="px-6 pb-8 pt-2">
-          <section className="rounded-none border border-[#E5E7EB] bg-white shadow-sm overflow-hidden">
+          {/* ── Main Content Card ── */}
+          <section className="rounded-[12px] border border-[#E5E5E5] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.02)] overflow-hidden">
             <div className="overflow-x-auto">
               {loading ? (
-                <div className="px-8 py-16 text-center flex flex-col items-center justify-center">
-                  <div className="inline-block animate-spin h-6 w-6 border-2 border-[#8B5CF6] border-t-transparent mb-2" />
-                  <p className="text-xs font-medium text-[#6B7280]">Loading adjustments...</p>
+                <div className="px-8 py-20 text-center flex flex-col items-center justify-center">
+                  <div className="inline-block animate-spin h-6 w-6 rounded-full border-2 border-[#9D43D6] border-t-transparent mb-3" />
+                  <p className="text-[13px] font-medium text-[#7A7A7A]">Loading adjustments...</p>
                 </div>
               ) : filteredAdjustments.length === 0 ? (
-                <div className="px-8 py-16 text-center flex flex-col items-center justify-center">
-                  <div className="w-12 h-12 rounded-none bg-[#F5F3FF] border border-[#DDD6FE] flex items-center justify-center mb-3">
-                    <Search className="text-[#8B5CF6]" size={24} />
+                <div className="px-8 py-16 text-center flex flex-col items-center justify-center min-h-[290px]">
+                  {/* Empty State Illustration */}
+                  <div className="mb-4 select-none">
+                    <svg width="160" height="116" viewBox="0 0 160 116" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <ellipse cx="82" cy="104" rx="58" ry="6" fill="#F3E8FF" />
+                      {/* Clipboard */}
+                      <rect x="64" y="16" width="56" height="78" rx="8" fill="#FAF5FF" stroke="#C084FC" strokeWidth="2" />
+                      <rect x="78" y="10" width="28" height="12" rx="4" fill="#A855F7" />
+                      <circle cx="92" cy="16" r="2" fill="#FFFFFF" />
+                      {/* Sad document icon inside clipboard */}
+                      <rect x="76" y="38" width="32" height="36" rx="5" fill="#FFFFFF" stroke="#D8B4FE" strokeWidth="1.5" />
+                      <circle cx="87" cy="52" r="1.8" fill="#9D43D6" />
+                      <circle cx="97" cy="52" r="1.8" fill="#9D43D6" />
+                      <path d="M87 62C89 59.5 95 59.5 97 62" stroke="#9D43D6" strokeWidth="1.8" strokeLinecap="round" />
+                      {/* X badge */}
+                      <circle cx="107" cy="70" r="8" fill="#9D43D6" />
+                      <path d="M104 67L110 73M110 67L104 73" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" />
+                      {/* Decorative leaves */}
+                      <path d="M128 94V66" stroke="#C084FC" strokeWidth="2" strokeLinecap="round" />
+                      <ellipse cx="135" cy="74" rx="6" ry="3.5" transform="rotate(-30 135 74)" fill="#D8B4FE" />
+                      <ellipse cx="123" cy="80" rx="5.5" ry="3" transform="rotate(28 123 80)" fill="#E9D5FF" />
+                      {/* Magnifying glass */}
+                      <circle cx="52" cy="50" r="13" fill="#FFFFFF" stroke="#9D43D6" strokeWidth="2.5" />
+                      <circle cx="52" cy="50" r="8" fill="#F3E8FF" />
+                      <path d="M43 60L33 72" stroke="#6D2898" strokeWidth="3.5" strokeLinecap="round" />
+                      {/* Sparkles */}
+                      <circle cx="32" cy="34" r="3" fill="#E9D5FF" />
+                      <circle cx="134" cy="40" r="2.5" fill="#DDD6FE" />
+                      <circle cx="142" cy="52" r="4" fill="#F3E8FF" />
+                    </svg>
                   </div>
-                  <h3 className="text-sm font-bold text-[#111827] uppercase tracking-wide mb-1">
+                  <h3 className="text-[15px] font-semibold text-[#1B1B1B] mb-1">
                     {searchTerm ? "No adjustments found" : "No adjustments yet"}
                   </h3>
-                  <p className="text-xs text-[#6B7280] max-w-sm mb-4">
+                  <p className="text-[13px] text-[#7A7A7A] max-w-sm">
                     {searchTerm ? "Try adjusting your search or filters" : "Create your first inventory adjustment to get started"}
                   </p>
-                  {!searchTerm && (
-                    <Link
-                      to="/inventory/adjustments/new"
-                      className="inline-flex items-center gap-2 rounded-none bg-[#8B5CF6] hover:bg-[#7C3AED] px-4 py-2 text-xs font-bold uppercase tracking-wider text-white shadow-sm transition-colors cursor-pointer"
-                    >
-                      <Plus size={14} className="text-white" />
-                      Create Adjustment
-                    </Link>
-                  )}
                 </div>
               ) : (
                 <table className="min-w-full border-collapse">
                   <thead className="sticky top-0 z-10">
-                    <tr className="bg-[#1e1e1e] text-white text-xs uppercase tracking-wide font-bold">
-                      <th className="w-10 px-3 py-3 text-center border-r border-[#333333] whitespace-nowrap">
-                        <input 
-                          type="checkbox" 
-                          className="h-3.5 w-3.5 rounded-none border-gray-600 bg-[#2d2d2d] accent-[#8B5CF6] cursor-pointer" 
+                    <tr className="bg-[#1B1B1B] text-white text-[11px] uppercase tracking-wider font-semibold">
+                      <th className="w-11 px-3 py-3.5 text-center border-r border-[#2E2E2E] whitespace-nowrap">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 rounded-[4px] border-gray-500 accent-[#9D43D6] cursor-pointer align-middle"
                           checked={filteredAdjustments.length > 0 && filteredAdjustments.every(adj => {
                             const id = adj.id || adj._id;
                             return id && selectedAdjustments.has(id);
@@ -547,43 +589,43 @@ const InventoryAdjustments = () => {
                           onChange={(e) => handleSelectAll(e.target.checked)}
                         />
                       </th>
-                      <th className="px-3 py-3 text-left border-r border-[#333333] whitespace-nowrap">Date</th>
-                      <th className="px-3 py-3 text-left border-r border-[#333333] whitespace-nowrap">Reference Number</th>
-                      <th className="px-3 py-3 text-left border-r border-[#333333] whitespace-nowrap">Reason</th>
-                      <th className="px-3 py-3 text-left border-r border-[#333333] whitespace-nowrap">Type</th>
-                      <th className="px-3 py-3 text-left border-r border-[#333333] whitespace-nowrap">Status</th>
-                      <th className="px-3 py-3 text-left border-r border-[#333333] whitespace-nowrap">Warehouse</th>
-                      <th className="px-3 py-3 text-left border-r border-[#333333] whitespace-nowrap">Created By</th>
-                      <th className="px-3 py-3 text-left border-r border-[#333333] whitespace-nowrap">Created Time</th>
-                      <th className="px-3 py-3 text-left whitespace-nowrap">Description</th>
+                      <th className="px-3.5 py-3.5 text-left border-r border-[#2E2E2E] whitespace-nowrap">Date</th>
+                      <th className="px-3.5 py-3.5 text-left border-r border-[#2E2E2E] whitespace-nowrap">Reference Number</th>
+                      <th className="px-3.5 py-3.5 text-left border-r border-[#2E2E2E] whitespace-nowrap">Reason</th>
+                      <th className="px-3.5 py-3.5 text-left border-r border-[#2E2E2E] whitespace-nowrap">Type</th>
+                      <th className="px-3.5 py-3.5 text-left border-r border-[#2E2E2E] whitespace-nowrap">Status</th>
+                      <th className="px-3.5 py-3.5 text-left border-r border-[#2E2E2E] whitespace-nowrap">Warehouse</th>
+                      <th className="px-3.5 py-3.5 text-left border-r border-[#2E2E2E] whitespace-nowrap">Created By</th>
+                      <th className="px-3.5 py-3.5 text-left border-r border-[#2E2E2E] whitespace-nowrap">Created Time</th>
+                      <th className="px-3.5 py-3.5 text-left whitespace-nowrap">Description</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#F3F4F6] text-xs text-[#1F2937]">
+                  <tbody className="divide-y divide-[#F0F0F0] text-[13px] text-[#212121]">
                     {filteredAdjustments.map((adjustment, index) => {
                       const adjustmentId = adjustment.id || adjustment._id;
                       if (!adjustmentId) return null;
                       return (
                         <tr
                           key={adjustmentId}
-                          className={`${index % 2 === 0 ? "bg-white" : "bg-[#F9FAFB]/40"} hover:bg-purple-50/25 transition-colors cursor-pointer group`}
+                          className={`${index % 2 === 0 ? "bg-white" : "bg-[#FAFAFA]/60"} hover:bg-[#F3E8FF]/25 transition-colors cursor-pointer group`}
                           onClick={() => handleAdjustmentClick(adjustment)}
                         >
-                          <td className="px-3 py-2.5 text-center border-r border-[#E5E7EB]" onClick={(e) => e.stopPropagation()}>
+                          <td className="px-3 py-3 text-center border-r border-[#F0F0F0]" onClick={(e) => e.stopPropagation()}>
                             <div className="flex items-center justify-center gap-2">
-                              <input 
-                                type="checkbox" 
-                                className="h-3.5 w-3.5 rounded-none border-[#D1D5DB] accent-[#8B5CF6] cursor-pointer" 
+                              <input
+                                type="checkbox"
+                                className="h-4 w-4 rounded-[4px] border-[#D4D4D8] accent-[#9D43D6] cursor-pointer align-middle"
                                 checked={selectedAdjustments.has(adjustmentId)}
                                 onChange={(e) => handleCheckboxChange(adjustmentId, e.target.checked)}
                               />
                             </div>
                           </td>
-                          <td className="px-3 py-2.5 whitespace-nowrap text-[#4B5563] border-r border-[#E5E7EB]">
+                          <td className="px-3.5 py-3 whitespace-nowrap text-[#525252] border-r border-[#F0F0F0]">
                             {formatDate(adjustment.date)}
                           </td>
-                          <td className="px-3 py-2.5 whitespace-nowrap font-semibold border-r border-[#E5E7EB]">
+                          <td className="px-3.5 py-3 whitespace-nowrap font-semibold border-r border-[#F0F0F0]">
                             <span
-                              className="text-[#8B5CF6] hover:text-[#7C3AED] hover:underline cursor-pointer"
+                              className="text-[#9D43D6] hover:text-[#7E2BB3] hover:underline cursor-pointer"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleAdjustmentClick(adjustment);
@@ -592,33 +634,33 @@ const InventoryAdjustments = () => {
                               {adjustment.referenceNumber || (adjustmentId && String(adjustmentId).slice(-8)) || "-"}
                             </span>
                           </td>
-                          <td className="px-3 py-2.5 text-[#111827] font-medium border-r border-[#E5E7EB]">
+                          <td className="px-3.5 py-3 text-[#1B1B1B] font-medium border-r border-[#F0F0F0]">
                             {adjustment.reason || "-"}
                           </td>
-                          <td className="px-3 py-2.5 text-[#4B5563] border-r border-[#E5E7EB]">
-                            <span className="inline-flex items-center rounded-none bg-gray-100 border border-gray-200 px-2 py-0.5 text-[10px] font-bold text-gray-700">
+                          <td className="px-3.5 py-3 text-[#525252] border-r border-[#F0F0F0]">
+                            <span className="inline-flex items-center rounded-[6px] bg-[#F4F4F5] border border-[#E5E5E5] px-2 py-0.5 text-[11px] font-semibold text-[#525252]">
                               {adjustment.adjustmentType === "quantity" ? "QUANTITY" : "VALUE"}
                             </span>
                           </td>
-                          <td className="px-3 py-2.5 border-r border-[#E5E7EB]">
-                            <span className={`inline-flex items-center px-2 py-0.5 text-[10px] font-bold rounded-none ${
+                          <td className="px-3.5 py-3 border-r border-[#F0F0F0]">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 text-[11px] font-semibold rounded-[6px] ${
                               adjustment.status === "adjusted"
-                                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                                : "bg-gray-100 text-gray-700 border border-gray-200"
+                                ? "bg-[#DCFCE7] text-[#16A34A]"
+                                : "bg-[#F4F4F5] text-[#525252]"
                             }`}>
                               {adjustment.status === "adjusted" ? "ADJUSTED" : "DRAFT"}
                             </span>
                           </td>
-                          <td className="px-3 py-2.5 text-[#4B5563] border-r border-[#E5E7EB]">
+                          <td className="px-3.5 py-3 text-[#525252] border-r border-[#F0F0F0]">
                             {adjustment.warehouse || "-"}
                           </td>
-                          <td className="px-3 py-2.5 text-[#4B5563] border-r border-[#E5E7EB]">
+                          <td className="px-3.5 py-3 text-[#525252] border-r border-[#F0F0F0]">
                             {adjustment.createdBy || "-"}
                           </td>
-                          <td className="px-3 py-2.5 text-[#6B7280] border-r border-[#E5E7EB]">
+                          <td className="px-3.5 py-3 text-[#7A7A7A] border-r border-[#F0F0F0] whitespace-nowrap">
                             {formatDateTime(adjustment.createdAt)}
                           </td>
-                          <td className="px-3 py-2.5 text-[#4B5563] max-w-xs truncate">
+                          <td className="px-3.5 py-3 text-[#525252] max-w-xs truncate">
                             {adjustment.description || "-"}
                           </td>
                         </tr>
@@ -631,100 +673,100 @@ const InventoryAdjustments = () => {
           </section>
         </div>
 
-      {/* 2-Step Delete Confirmation Modal */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-none shadow-xl max-w-md w-full mx-4 border border-[#E5E7EB]">
-            <div className="p-6">
-              {deleteStep === 1 ? (
-                <>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-none bg-red-100 flex items-center justify-center border border-red-200">
-                      <AlertTriangle className="text-red-600" size={20} />
+        {/* 2-Step Delete Confirmation Modal */}
+        {showDeleteModal && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-[1px] flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-[16px] shadow-2xl max-w-md w-full border border-[#E5E5E5] overflow-hidden">
+              <div className="p-6">
+                {deleteStep === 1 ? (
+                  <>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="flex-shrink-0 w-10 h-10 rounded-[10px] bg-[#FEE2E2] flex items-center justify-center">
+                        <AlertTriangle className="text-[#DC2626]" size={20} />
+                      </div>
+                      <h3 className="text-[16px] font-semibold text-[#1B1B1B]">
+                        Delete {itemsToDelete.length === 1 ? 'Adjustment' : `${itemsToDelete.length} Adjustments`}?
+                      </h3>
                     </div>
-                    <h3 className="text-lg font-bold text-[#111827] uppercase">
-                      Delete {itemsToDelete.length === 1 ? 'Adjustment' : `${itemsToDelete.length} Adjustments`}?
-                    </h3>
-                  </div>
-                  <p className="text-xs text-[#6B7280] mb-6 font-medium">
-                    Are you sure you want to delete {itemsToDelete.length === 1 ? 'this adjustment' : `these ${itemsToDelete.length} adjustments`}? 
-                    {itemsToDelete.some(item => item.status === 'adjusted') && (
-                      <span className="block mt-2 text-red-600 font-bold">
-                        ⚠️ Some adjustments are already applied. Stock will be reversed before deletion.
-                      </span>
-                    )}
-                  </p>
-                  <div className="flex gap-3 justify-end">
-                    <button
-                      onClick={handleCancelDelete}
-                      className="px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#6B7280] bg-[#EEEEEE] border border-[#E5E7EB] rounded-none hover:bg-[#E2E2E2] transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleConfirmDeleteStep1}
-                      className="px-4 py-2 text-xs font-bold uppercase tracking-wider text-white bg-[#dc2626] rounded-none hover:bg-[#b91c1c] transition-colors"
-                    >
-                      Continue
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-none bg-red-100 flex items-center justify-center border border-red-200">
-                      <AlertTriangle className="text-red-600" size={20} />
-                    </div>
-                    <h3 className="text-lg font-bold text-[#111827] uppercase">
-                      Final Confirmation
-                    </h3>
-                  </div>
-                  <p className="text-xs text-[#6B7280] mb-4 font-medium">
-                    This action cannot be undone. Are you absolutely sure you want to delete {itemsToDelete.length === 1 ? 'this adjustment' : `these ${itemsToDelete.length} adjustments`}?
-                  </p>
-                  {itemsToDelete.length > 0 && (
-                    <div className="mb-4 p-3 bg-[#F9FAFB] rounded-none max-h-40 overflow-y-auto border border-[#E5E7EB]">
-                      <p className="text-xs font-bold uppercase tracking-wider text-[#4B5563] mb-2">Items to be deleted:</p>
-                      <ul className="text-xs text-[#4B5563] space-y-1">
-                        {itemsToDelete.map((item, idx) => (
-                          <li key={item.id || item._id || idx} className="font-medium">
-                            • {item.referenceNumber || `Ref-${String(item.id || item._id).slice(-8)}`} - {item.reason || 'No reason'}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  <div className="flex gap-3 justify-end">
-                    <button
-                      onClick={() => setDeleteStep(1)}
-                      className="px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#6B7280] bg-[#EEEEEE] border border-[#E5E7EB] rounded-none hover:bg-[#E2E2E2] transition-colors"
-                      disabled={deleting}
-                    >
-                      Back
-                    </button>
-                    <button
-                      onClick={handleConfirmDeleteStep2}
-                      disabled={deleting}
-                      className="px-4 py-2 text-xs font-bold uppercase tracking-wider text-white bg-[#dc2626] rounded-none hover:bg-[#b91c1c] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                    >
-                      {deleting ? (
-                        <>
-                          <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                          DELETING...
-                        </>
-                      ) : (
-                        'CONFIRM DELETE'
+                    <p className="text-[13px] text-[#525252] mb-6 leading-relaxed">
+                      Are you sure you want to delete {itemsToDelete.length === 1 ? 'this adjustment' : `these ${itemsToDelete.length} adjustments`}? 
+                      {itemsToDelete.some(item => item.status === 'adjusted') && (
+                        <span className="block mt-2 text-[#DC2626] font-semibold">
+                          Some adjustments are already applied. Stock will be reversed before deletion.
+                        </span>
                       )}
-                    </button>
-                  </div>
-                </>
-              )}
+                    </p>
+                    <div className="flex gap-2.5 justify-end">
+                      <button
+                        onClick={handleCancelDelete}
+                        className="rf-btn-cancel !h-[38px] !px-4 !text-[13px]"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleConfirmDeleteStep1}
+                        className="inline-flex items-center justify-center h-[38px] px-4 text-[13px] font-semibold text-white bg-[#DC2626] rounded-[10px] hover:bg-[#B91C1C] transition-colors cursor-pointer"
+                      >
+                        Continue
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="flex-shrink-0 w-10 h-10 rounded-[10px] bg-[#FEE2E2] flex items-center justify-center">
+                        <AlertTriangle className="text-[#DC2626]" size={20} />
+                      </div>
+                      <h3 className="text-[16px] font-semibold text-[#1B1B1B]">
+                        Final Confirmation
+                      </h3>
+                    </div>
+                    <p className="text-[13px] text-[#525252] mb-4 leading-relaxed">
+                      This action cannot be undone. Are you absolutely sure you want to delete {itemsToDelete.length === 1 ? 'this adjustment' : `these ${itemsToDelete.length} adjustments`}?
+                    </p>
+                    {itemsToDelete.length > 0 && (
+                      <div className="mb-5 p-3 bg-[#FAFAFA] rounded-[10px] max-h-40 overflow-y-auto border border-[#E5E5E5]">
+                        <p className="text-[11px] font-semibold uppercase tracking-wider text-[#7A7A7A] mb-2">Items to be deleted:</p>
+                        <ul className="text-[12px] text-[#212121] space-y-1">
+                          {itemsToDelete.map((item, idx) => (
+                            <li key={item.id || item._id || idx} className="font-medium">
+                              • {item.referenceNumber || `Ref-${String(item.id || item._id).slice(-8)}`} - {item.reason || 'No reason'}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    <div className="flex gap-2.5 justify-end">
+                      <button
+                        onClick={() => setDeleteStep(1)}
+                        className="rf-btn-cancel !h-[38px] !px-4 !text-[13px]"
+                        disabled={deleting}
+                      >
+                        Back
+                      </button>
+                      <button
+                        onClick={handleConfirmDeleteStep2}
+                        disabled={deleting}
+                        className="inline-flex items-center justify-center gap-2 h-[38px] px-4 text-[13px] font-semibold text-white bg-[#DC2626] rounded-[10px] hover:bg-[#B91C1C] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                      >
+                        {deleting ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            Deleting...
+                          </>
+                        ) : (
+                          'Confirm Delete'
+                        )}
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
       </div>
-    </>
+    </div>
   );
 };
 

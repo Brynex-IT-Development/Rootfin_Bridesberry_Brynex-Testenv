@@ -2,7 +2,7 @@
 // import { useEnterToSave } from "../hooks/useEnterToSave";
 // import { createPortal } from "react-dom";
 // import { Link, useNavigate, useParams } from "react-router-dom";
-// import { Search, X, Plus, Trash2, ArrowLeftRight, Package } from "lucide-react";
+// import { Search, X, Plus, Trash2, ArrowLeftRight, Package, FileText, ChevronDown } from "lucide-react";
 // import Head from "../components/Head";
 // import Header from "../components/Header";
 // import baseUrl from "../api/api";
@@ -2349,7 +2349,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { useEnterToSave } from "../hooks/useEnterToSave";
 import { createPortal } from "react-dom";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { Search, X, Plus, Trash2, ArrowLeftRight, Package } from "lucide-react";
+import { Search, X, Plus, Trash2, ArrowLeftRight, Package, FileText, ChevronDown } from "lucide-react";
 import Head from "../components/Head";
 import Header from "../components/Header";
 import baseUrl from "../api/api";
@@ -2460,22 +2460,22 @@ const WarehouseDropdown = ({ value, onChange, options, placeholder = "Select war
         zIndex: 999999,
       }}
     >
-      <div className="rounded-lg shadow-lg bg-white border border-[#d7dcf5] overflow-hidden">
-        <div className="flex items-center gap-2 border-b border-[#e2e8f0] px-2 py-1.5 bg-[#fafbff]">
-          <Search size={12} className="text-[#94a3b8]" />
+      <div className="rounded-[10px] shadow-xl bg-white border border-[#E5E5E5] overflow-hidden">
+        <div className="flex items-center gap-2 border-b border-[#F0F0F0] px-3 py-2 bg-[#FAFAFA]">
+          <Search size={13} className="text-[#7A7A7A]" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search..."
-            className="h-7 w-full border-none bg-transparent text-xs text-[#1f2937] outline-none placeholder:text-[#94a3b8]"
+            className="h-7 w-full border-none bg-transparent text-[13px] text-[#212121] outline-none placeholder:text-[#A1A1AA]"
             onClick={(e) => e.stopPropagation()}
             autoFocus
           />
         </div>
-        <div className="py-1 max-h-[200px] overflow-y-auto" style={{ scrollbarWidth: 'thin', scrollbarColor: '#d3d3d3 #f5f5f5' }}>
+        <div className="py-1 max-h-[220px] overflow-y-auto rf-select__menu-list" style={{ scrollbarWidth: 'thin' }}>
           {filteredOptions.length === 0 ? (
-            <div className="px-3 py-2 text-xs text-[#64748b] text-center">No options found</div>
+            <div className="px-3 py-2.5 text-[12px] text-[#7A7A7A] text-center">No options found</div>
           ) : (
             filteredOptions.map((option) => {
               const isSelected = option === value;
@@ -2496,9 +2496,9 @@ const WarehouseDropdown = ({ value, onChange, options, placeholder = "Select war
                     setIsOpen(false);
                     setSearchTerm("");
                   }}
-                  className={`px-3 py-1.5 text-sm cursor-pointer transition-colors ${isSelected
-                    ? "bg-[#2563eb] text-white"
-                    : "text-[#1f2937] hover:bg-[#f1f5f9]"
+                  className={`px-3.5 py-2 text-[13px] cursor-pointer transition-colors ${isSelected
+                    ? "bg-[#9D43D6] text-white font-medium"
+                    : "text-[#212121] hover:bg-[#F3E8FF] hover:text-[#9D43D6]"
                     }`}
                 >
                   {option}
@@ -2514,16 +2514,20 @@ const WarehouseDropdown = ({ value, onChange, options, placeholder = "Select war
   return (
     <>
       <div className="relative w-full">
-        <input
+        <div
           ref={buttonRef}
           onClick={toggleDropdown}
-          type="text"
-          readOnly
-          value={selectedLabel}
-          placeholder={placeholder}
-          required={required}
-          className="w-full h-10 rounded-md border border-[#d7dcf5] bg-white text-sm text-[#1f2937] placeholder:text-[#9ca3af] focus:border-[#2563eb] focus:outline-none focus:ring-1 focus:ring-[#2563eb] transition-colors cursor-pointer px-3 py-2.5 pr-8 appearance-none bg-[url('data:image/svg+xml;charset=UTF-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23666%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpolyline points=%226 9 12 15 18 9%22%3E%3C/polyline%3E%3C/svg%3E')] bg-[length:16px_16px] bg-[right_0.5rem_center] bg-no-repeat"
-        />
+          className={`w-full h-[42px] rounded-[10px] border bg-white text-[13px] transition-colors cursor-pointer pl-3.5 pr-2.5 flex items-center justify-between ${
+            isOpen ? "border-[#9D43D6] ring-2 ring-[#9D43D6]/15" : "border-[#E5E5E5] hover:border-[#D4D4D8]"
+          }`}
+        >
+          <span className={`truncate pr-2 ${!value ? "text-[#A1A1AA]" : "text-[#212121] font-medium"}`}>
+            {selectedLabel}
+          </span>
+          <div className="flex items-center pl-2.5 border-l border-[#E5E5E5] h-[22px] shrink-0">
+            <ChevronDown size={15} className={`text-[#525252] transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
+          </div>
+        </div>
       </div>
       {typeof document !== "undefined" && document.body && createPortal(dropdownPortal, document.body)}
     </>
@@ -3520,10 +3524,10 @@ const ItemDropdown = ({
             }, 150);
           }}
           type="text"
-          placeholder="Type or scan barcode to select item..."
+          placeholder="Type or scan to select an item"
           value={selectedItem ? selectedItem.itemName : inputValue}
           data-handle-enter="true"
-          className="w-full h-[36px] rounded-md border border-[#d7dcf5] bg-white text-sm text-[#1f2937] placeholder:text-[#9ca3af] focus:border-[#2563eb] focus:outline-none focus:ring-1 focus:ring-[#2563eb] transition-colors cursor-text px-[10px] py-[6px]"
+          className="rf-input !h-[40px] bg-white cursor-text"
         />
       </div>
       {typeof document !== "undefined" && document.body && createPortal(dropdownPortal, document.body)}
@@ -4266,51 +4270,51 @@ const TransferOrderCreate = () => {
 
   if (loading) {
     return (
-      <div className={`transition-all duration-300 p-6 bg-[#f8f9fa] min-h-screen flex items-center justify-center ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-        <div className="text-[#64748b] text-sm">Loading transfer order...</div>
+      <div className="min-h-screen bg-[#FAFAFA]">
+        <Header title={isEditMode ? "Edit Transfer Order" : "New Transfer Order"} />
+        <div className={`transition-all duration-300 p-6 min-h-screen flex items-center justify-center ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
+          <div className="text-[#7A7A7A] text-[13px]">Loading transfer order...</div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className={`transition-all duration-300 min-h-screen bg-[#f8f9fa] ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-
-      <div className="px-8 py-6">
-
-        {/* ── Top header bar ── */}
-        <div className="flex items-start justify-between mb-5">
-          <div>
-            <h1 className="text-[15px] font-bold text-[#111827] uppercase tracking-wide">
-              {isEditMode ? "EDIT TRANSFER ORDER" : "NEW TRANSFER ORDER"}
-            </h1>
-            <p className="text-xs text-[#9ca3af] mt-0.5">
-              Populate the required fields to initiate a warehouse transfer.
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
+    <div className="min-h-screen bg-[#FAFAFA] text-[#212121]">
+      <Header title={isEditMode ? "Edit Transfer Order" : "New Transfer Order"} />
+      <div className={`transition-all duration-300 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
+        {/* Clean Page Title Header */}
+        <div className="bg-white px-6 md:px-8 py-4 border-b border-[#E5E5E5] flex flex-wrap items-center justify-between gap-4">
+          <h1 className="text-[18px] font-semibold text-[#212121]">
+            {isEditMode ? "Edit Transfer Order" : "New Transfer Order"}
+          </h1>
+          <div className="flex flex-wrap items-center gap-2.5">
             {/* Cancel */}
             <button
+              type="button"
               onClick={() => navigate("/inventory/transfer-orders")}
               disabled={saving}
-              className="h-8 px-4 text-xs font-medium text-[#374151] bg-white border border-[#d1d5db] rounded-md disabled:opacity-50 cursor-pointer"
+              className="rf-btn-cancel !h-[38px] !px-4 !text-[13px] disabled:opacity-50"
             >
               Cancel
             </button>
             {/* Save as Draft */}
             <button
+              type="button"
               onClick={() => handleSave("draft")}
               disabled={saving}
-              className="h-8 px-4 text-xs font-medium text-[#374151] bg-white border border-[#d1d5db] rounded-md disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+              className="h-[38px] px-4 rounded-[10px] border border-[#E5E5E5] bg-white hover:bg-[#FAFAFA] text-[#212121] text-[13px] font-medium inline-flex items-center gap-2 disabled:opacity-50 cursor-pointer transition-colors"
             >
-              <span className="text-[#9B48D7]">✦</span>
-              Save as Draft
+              <FileText size={15} className="text-[#9D43D6]" />
+              <span>Save as Draft</span>
             </button>
             {/* Complete Transfer (admin only) */}
             {isAdmin && (
               <button
+                type="button"
                 onClick={() => handleSave("transferred")}
                 disabled={saving || !transferOrderNumber || !date || !sourceWarehouse || !destinationWarehouse || hasInsufficientStock()}
-                className="h-8 px-4 text-xs font-medium text-[#374151] bg-white border border-[#d1d5db] rounded-md disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="h-[38px] px-4 rounded-[10px] border border-[#E5E5E5] bg-white hover:bg-[#FAFAFA] text-[#212121] text-[13px] font-medium disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-colors"
                 title={hasInsufficientStock() ? "Transfer quantity exceeds source stock" : ""}
               >
                 Complete Transfer
@@ -4318,322 +4322,335 @@ const TransferOrderCreate = () => {
             )}
             {/* Initiate Transfer */}
             <button
+              type="button"
               onClick={() => handleSave("in_transit")}
               disabled={saving || !transferOrderNumber || !date || !sourceWarehouse || !destinationWarehouse || hasInsufficientStock()}
-              className="h-8 px-5 text-xs font-semibold text-white bg-[#9B48D7] border border-[#8637c3] rounded-md disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              className="rf-btn-primary !h-[38px] !px-5 !text-[13px] disabled:opacity-50 disabled:cursor-not-allowed"
               title={hasInsufficientStock() ? "Transfer quantity exceeds source stock" : ""}
             >
               {saving ? "Saving…" : "Initiate Transfer"}
             </button>
           </div>
         </div>
+        <div className="p-5 md:p-6">
 
-        {/* ── Form card ── */}
-        <div className="bg-white border border-[#e5e7eb] rounded-md p-6 mb-4">
+          {/* ── Form card ── */}
+          <div className="bg-white border border-[#E5E5E5] rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.03)] p-6 mb-5">
 
-          {/* Row 1: Transfer Order # + Date */}
-          <div className="grid grid-cols-2 gap-6 mb-5">
-            {/* Transfer Order Number */}
-            <div>
-              <label className="block text-xs font-medium text-[#374151] mb-1.5">
-                Transfer Order Number <span className="text-[#ef4444]">*</span>
-              </label>
-              <div className="flex items-center h-10 border border-[#e5e7eb] rounded-md overflow-hidden bg-white focus-within:ring-1 focus-within:ring-[#9B48D7] focus-within:border-[#9B48D7]">
-                <input
-                  value={transferOrderNumber}
-                  onChange={(e) => setTransferOrderNumber(e.target.value)}
-                  placeholder="Enter order reference"
-                  className="flex-1 h-full px-3 text-sm text-[#111827] placeholder:text-[#9ca3af] border-0 outline-none bg-transparent"
-                />
-                <button
-                  type="button"
-                  onClick={() => setTransferOrderNumber(`TO-${Math.floor(Math.random() * 9000 + 1000)}`)}
-                  className="h-full px-4 text-xs font-semibold text-white bg-[#9B48D7] hover:bg-[#8637c3] transition shrink-0"
-                >
-                  Auto
-                </button>
+            {/* Row 1: Transfer Order # + Date */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
+              {/* Transfer Order Number */}
+              <div>
+                <label className="rf-field-label">
+                  Transfer Order Number <span className="text-[#EF4444]">*</span>
+                </label>
+                <div className="flex items-center h-[42px] border border-[#E5E5E5] rounded-[10px] pl-3.5 pr-1.5 bg-white focus-within:ring-2 focus-within:ring-[#9D43D6]/15 focus-within:border-[#9D43D6] transition-colors">
+                  <input
+                    value={transferOrderNumber}
+                    onChange={(e) => setTransferOrderNumber(e.target.value)}
+                    placeholder="Enter order reference"
+                    className="flex-1 h-full text-[13px] text-[#212121] placeholder:text-[#A1A1AA] border-0 outline-none bg-transparent min-w-0"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setTransferOrderNumber(`TO-${Math.floor(Math.random() * 9000 + 1000)}`)}
+                    className="h-[30px] px-3.5 rounded-[7px] text-[12px] font-semibold text-white bg-[#9D43D6] hover:bg-[#8732BE] transition-colors shrink-0 cursor-pointer"
+                  >
+                    Auto
+                  </button>
+                </div>
               </div>
-            </div>
 
-            {/* Date */}
-            <div>
-              <label className="block text-xs font-medium text-[#374151] mb-1.5">
-                Date <span className="text-[#ef4444]">*</span>
-              </label>
-              <div className="flex items-center h-10 border border-[#e5e7eb] rounded-md overflow-hidden bg-white focus-within:ring-1 focus-within:ring-[#9B48D7] focus-within:border-[#9B48D7]">
+              {/* Date */}
+              <div>
+                <label className="rf-field-label">
+                  Date <span className="text-[#EF4444]">*</span>
+                </label>
                 <input
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className="flex-1 h-full px-3 text-sm text-[#111827] border-0 outline-none bg-transparent"
+                  className="rf-input !h-[42px] cursor-pointer"
                 />
               </div>
             </div>
-          </div>
 
-          {/* Row 2: Source Warehouse + Swap + Destination Warehouse */}
-          <div className="grid grid-cols-[1fr_40px_1fr] items-end gap-3 mb-5">
-            {/* Source Warehouse */}
-            <div>
-              <label className="block text-xs font-medium text-[#374151] mb-1.5">
-                Source Warehouse <span className="text-[#ef4444]">*</span>
-              </label>
-              {!isAdmin ? (
-                <div className="h-10 flex items-center px-3 border border-[#e5e7eb] rounded-md bg-[#f9fafb] text-sm text-[#374151]">
-                  {sourceWarehouse || "—"}
-                </div>
-              ) : (
+            {/* Row 2: Source Warehouse + Swap + Destination Warehouse */}
+            <div className="grid grid-cols-1 md:grid-cols-[1fr_44px_1fr] items-end gap-3 mb-5">
+              {/* Source Warehouse */}
+              <div>
+                <label className="rf-field-label">
+                  Source Warehouse <span className="text-[#EF4444]">*</span>
+                </label>
+                {!isAdmin ? (
+                  <div className="h-[42px] flex items-center px-3.5 border border-[#E5E5E5] rounded-[10px] bg-[#FAFAFA] text-[13px] font-medium text-[#212121]">
+                    {sourceWarehouse || "—"}
+                  </div>
+                ) : (
+                  <WarehouseDropdown
+                    value={sourceWarehouse}
+                    onChange={(e) => setSourceWarehouse(e.target.value)}
+                    options={warehouseOptions}
+                    placeholder="Select Source Warehouse"
+                    required
+                  />
+                )}
+              </div>
+
+              {/* Swap button */}
+              <div className="flex items-end justify-center pb-0.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSourceWarehouse(destinationWarehouse);
+                    setDestinationWarehouse(sourceWarehouse);
+                  }}
+                  title="Swap warehouses"
+                  className="w-[38px] h-[38px] flex items-center justify-center rounded-[10px] bg-[#9D43D6] hover:bg-[#8732BE] text-white cursor-pointer transition-colors shadow-xs"
+                >
+                  <ArrowLeftRight size={15} strokeWidth={2.2} />
+                </button>
+              </div>
+
+              {/* Destination Warehouse */}
+              <div>
+                <label className="rf-field-label">
+                  Destination Warehouse <span className="text-[#EF4444]">*</span>
+                </label>
                 <WarehouseDropdown
-                  value={sourceWarehouse}
-                  onChange={(e) => setSourceWarehouse(e.target.value)}
+                  value={destinationWarehouse}
+                  onChange={(e) => setDestinationWarehouse(e.target.value)}
                   options={warehouseOptions}
-                  placeholder="Select Source Warehouse"
+                  placeholder="Select Destination Warehouse"
                   required
                 />
-              )}
+              </div>
             </div>
 
-            {/* Swap button */}
-            <div className="flex items-end justify-center pb-0.5">
+            {/* Row 3: Description */}
+            <div>
+              <label className="rf-field-label">Description</label>
+              <textarea
+                rows={4}
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder="Describe the transfer reason"
+                maxLength={500}
+                className="w-full border border-[#E5E5E5] rounded-[10px] p-3.5 text-[13px] text-[#212121] placeholder:text-[#A1A1AA] resize-none focus:outline-none focus:ring-2 focus:ring-[#9D43D6]/15 focus:border-[#9D43D6] transition-colors"
+              />
+              <div className="text-right text-[11px] text-[#7A7A7A] mt-1">Maximum 500 characters</div>
+            </div>
+          </div>
+
+          {/* ── Store Order Request Banner ── */}
+          {storeOrderPrefillInfo && (
+            <div className="mb-5 rounded-[12px] border border-[#E9D5FF] bg-[#FBF7FF] p-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-[10px] bg-[#9D43D6] text-white flex items-center justify-center shrink-0">
+                  <Package size={18} />
+                </div>
+                <div>
+                  <div className="text-[12px] font-bold uppercase tracking-wider text-[#9D43D6]">
+                    Store Order {storeOrderPrefillInfo.orderNumber ? `#${storeOrderPrefillInfo.orderNumber}` : ''} Requested Groups
+                  </div>
+                  <div className="text-[12px] text-[#525252] mt-0.5">
+                    Select the specific item/variant from each requested group below:
+                  </div>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                {(storeOrderPrefillInfo.requestedItems || []).map((req, idx) => (
+                  <span key={idx} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium bg-white text-[#6D2898] border border-[#D8B4FE]">
+                    <span className="font-semibold">{req.itemName || "Item Group"}</span>
+                    <span className="text-[#9D43D6] bg-[#F3E8FF] px-1.5 py-0.5 rounded font-bold">Qty: {req.quantity || 1}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ── Item table card ── */}
+          <div className="bg-white border border-[#E5E5E5] rounded-[12px] shadow-[0_1px_2px_rgba(0,0,0,0.02)] overflow-hidden">
+            <div className="overflow-x-auto">
+              <div className="min-w-[860px]">
+                {/* Table header */}
+                <div className="bg-[#1B1B1B] text-white grid grid-cols-[44px_1fr_290px_240px_54px] items-center px-4 py-3.5 gap-3">
+                  <div className="flex justify-center">
+                    <input type="checkbox" className="h-4 w-4 rounded-[4px] border-gray-500 accent-[#9D43D6] cursor-pointer" />
+                  </div>
+                  <div className="text-[11px] font-semibold tracking-wider text-white uppercase">ITEM DETAILS</div>
+                  <div className="text-[11px] font-semibold tracking-wider text-white uppercase">CURRENT AVAILABLE</div>
+                  <div className="text-[11px] font-semibold tracking-wider text-white uppercase">TRANSFER QUANTITY</div>
+                  <div />
+                </div>
+
+                {/* Table rows */}
+                {tableRows.map((row) => {
+                  const transferQty = parseFloat(row.quantity) || 0;
+                  const sourceStock = parseFloat(row.sourceQuantity) || 0;
+                  const exceedsStock = transferQty > 0 && transferQty > sourceStock;
+
+                  return (
+                    <div key={row.id} className="grid grid-cols-[44px_1fr_290px_240px_54px] items-center px-4 py-3.5 gap-3 border-t border-[#F0F0F0] hover:bg-[#FAFAFA]/70 transition-colors">
+                      {/* Checkbox */}
+                      <div className="flex justify-center">
+                        <input type="checkbox" className="h-4 w-4 rounded-[4px] border-[#D4D4D8] accent-[#9D43D6] cursor-pointer" />
+                      </div>
+
+                      {/* Item dropdown */}
+                      <div>
+                        <ItemDropdown
+                          rowId={row.id}
+                          value={row.item}
+                          onChange={(item) => handleItemSelect(row.id, item)}
+                          sourceWarehouse={sourceWarehouse}
+                          destinationWarehouse={destinationWarehouse}
+                          onSourceStockFetched={handleSourceStockFetched(row.id)}
+                          onDestStockFetched={handleDestStockFetched(row.id)}
+                          isStoreUser={!isAdmin}
+                          userWarehouse={userWarehouse}
+                          onFocusChange={setIsItemInputFocused}
+                          isEditMode={isEditMode}
+                          orderId={id}
+                          requestedHint={row.requestedGroupName}
+                          requestedGroupId={row.itemGroupId}
+                          selectedItems={tableRows
+                            .filter(r => r.id !== row.id && (r.itemId || r.itemName || r.itemSku || r.item))
+                            .map(r => ({
+                              _id: r.itemId || r.item?._id || r.item?.id,
+                              id: r.itemId || r.item?._id || r.item?.id,
+                              itemId: r.itemId || r.item?._id || r.item?.id,
+                              sku: r.itemSku || r.item?.sku,
+                              itemSku: r.itemSku || r.item?.sku,
+                              itemName: r.itemName || r.item?.itemName,
+                              name: r.itemName || r.item?.itemName,
+                              itemGroupId: r.itemGroupId || r.item?.itemGroupId,
+                            }))}
+                        />
+                        {row.requestedGroupName && !row.item && (
+                          <div className="mt-1.5 items-center gap-1.5 text-[11px] text-[#6D2898] font-medium bg-[#F3E8FF] px-2.5 py-0.5 rounded-[6px] inline-flex">
+                            <span>Requested: <strong>{row.requestedGroupName}</strong></span>
+                            {row.requestedQuantity && <span className="text-[#9D43D6] font-bold">({row.requestedQuantity} pcs)</span>}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Stock availability (2 boxed mini cards matching screenshot) */}
+                      <div className="grid grid-cols-2 gap-2.5">
+                        <div className="rounded-[8px] border border-[#EBEBEB] bg-white px-3 py-1.5">
+                          <div className="text-[9px] font-semibold uppercase tracking-wider text-[#8A8A8A]">
+                            SOURCE STOCK
+                          </div>
+                          <div className={`text-[13px] font-semibold mt-0.5 tabular-nums ${row.sourceQuantity === 0 ? 'text-[#EF4444]' : 'text-[#1B1B1B]'}`}>
+                            {Math.round(row.sourceQuantity)} Units
+                          </div>
+                        </div>
+                        <div className="rounded-[8px] border border-[#EBEBEB] bg-white px-3 py-1.5">
+                          <div className="text-[9px] font-semibold uppercase tracking-wider text-[#8A8A8A]">
+                            DESTINATION STOCK
+                          </div>
+                          <div className="text-[13px] font-semibold text-[#1B1B1B] mt-0.5 tabular-nums">
+                            {Math.round(row.destQuantity)} Units
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Transfer quantity */}
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            value={row.quantity}
+                            onChange={(e) => handleQuantityChange(row.id, e.target.value)}
+                            placeholder="0"
+                            min="0"
+                            step="1"
+                            className={`rf-input !h-[40px] flex-1 text-center font-medium tabular-nums ${
+                              exceedsStock ? '!border-[#EF4444] !bg-[#FEF2F2] !text-[#EF4444]' : ''
+                            }`}
+                          />
+                          <span className={`text-[12px] font-medium shrink-0 ${exceedsStock ? 'text-[#EF4444]' : 'text-[#7A7A7A]'}`}>
+                            Units
+                          </span>
+                        </div>
+                        {exceedsStock && (
+                          <p className="text-[10px] text-[#EF4444] mt-1">Exceeds stock ({Math.round(sourceStock)} avail.)</p>
+                        )}
+                      </div>
+
+                      {/* Delete */}
+                      <div className="flex justify-center">
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveRow(row.id)}
+                          className="w-[36px] h-[36px] flex items-center justify-center rounded-[8px] bg-[#FEF2F2] hover:bg-[#FEE2E2] border border-[#FECACA]/60 text-[#EF4444] transition-colors cursor-pointer"
+                          title="Delete Row"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Add row / Bulk Add */}
+            <div className="flex flex-wrap items-center gap-3 px-4 py-3.5 border-t border-[#F0F0F0] bg-white">
+              <button
+                type="button"
+                onClick={handleAddRow}
+                className="inline-flex items-center gap-1.5 h-[38px] px-4 text-[13px] font-medium text-[#212121] bg-[#F3F4F6] hover:bg-[#E5E7EB] rounded-[10px] transition-colors cursor-pointer"
+              >
+                <Plus size={14} className="text-[#525252]" />
+                <span>New Row</span>
+              </button>
               <button
                 type="button"
                 onClick={() => {
-                  setSourceWarehouse(destinationWarehouse);
-                  setDestinationWarehouse(sourceWarehouse);
+                  if (!sourceWarehouse) { alert("Please select a source warehouse first"); return; }
+                  setShowBulkAddModal(true);
+                  fetchBulkItems();
                 }}
-                title="Swap warehouses"
-                style={{ width: 32, height: 32, minWidth: 32, minHeight: 32, maxWidth: 32, maxHeight: 32 }}
-                className="flex items-center justify-center rounded bg-[#9B48D7] text-white cursor-pointer"
+                className="inline-flex items-center gap-1.5 h-[38px] px-4 text-[13px] font-medium text-[#212121] bg-[#F3F4F6] hover:bg-[#E5E7EB] rounded-[10px] transition-colors cursor-pointer"
               >
-                <ArrowLeftRight size={13} strokeWidth={2.5} />
+                <Plus size={14} className="text-[#525252]" />
+                <span>Bulk Add Items</span>
               </button>
             </div>
-
-            {/* Destination Warehouse */}
-            <div>
-              <label className="block text-xs font-medium text-[#374151] mb-1.5">
-                Destination Warehouse <span className="text-[#ef4444]">*</span>
-              </label>
-              <WarehouseDropdown
-                value={destinationWarehouse}
-                onChange={(e) => setDestinationWarehouse(e.target.value)}
-                options={warehouseOptions}
-                placeholder="Select Destination Warehouse"
-                required
-              />
-            </div>
           </div>
 
-          {/* Row 3: Description */}
-          <div>
-            <label className="block text-xs font-medium text-[#374151] mb-1.5">Description</label>
-            <textarea
-              rows={4}
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              placeholder="Describe the transfer reason"
-              maxLength={500}
-              className="w-full border border-[#e5e7eb] rounded-md px-3 py-2.5 text-sm text-[#111827] placeholder:text-[#9ca3af] resize-none focus:outline-none focus:ring-1 focus:ring-[#9B48D7] focus:border-[#9B48D7]"
-            />
-            <div className="text-right text-[10px] text-[#9ca3af] mt-1">Maximum 500 characters</div>
-          </div>
         </div>
-
-        {/* ── Store Order Request Banner ── */}
-        {storeOrderPrefillInfo && (
-          <div className="mb-4 rounded-xl border border-[#e9d5ff] bg-[#fbf7ff] p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-xs">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-[#9B48D7] text-white flex items-center justify-center shrink-0 shadow-xs">
-                <Package size={18} />
-              </div>
-              <div>
-                <div className="text-xs font-bold uppercase tracking-wider text-[#9B48D7]">
-                  Store Order {storeOrderPrefillInfo.orderNumber ? `#${storeOrderPrefillInfo.orderNumber}` : ''} Requested Groups
-                </div>
-                <div className="text-xs text-[#4b5563] mt-0.5">
-                  Select the specific item/variant from each requested group below:
-                </div>
-              </div>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              {(storeOrderPrefillInfo.requestedItems || []).map((req, idx) => (
-                <span key={idx} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-white text-[#7e22ce] border border-[#d8b4fe] shadow-xs">
-                  <span className="font-semibold">{req.itemName || "Item Group"}</span>
-                  <span className="text-[#9333ea] bg-[#f3e8ff] px-1.5 py-0.5 rounded font-bold">Qty: {req.quantity || 1}</span>
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ── Item table card ── */}
-        <div className="bg-white border border-[#e5e7eb] rounded-md overflow-hidden">
-          {/* Table header */}
-          <div className="bg-[#111827] grid grid-cols-[40px_1fr_260px_220px_48px] items-center px-4 py-3 gap-3">
-            <div>
-              <input type="checkbox" className="h-4 w-4 rounded accent-[#9B48D7] cursor-pointer" />
-            </div>
-            <div className="text-[10px] font-semibold tracking-widest text-[#9ca3af] uppercase">Item Details</div>
-            <div className="text-[10px] font-semibold tracking-widest text-[#9ca3af] uppercase">Current Available</div>
-            <div className="text-[10px] font-semibold tracking-widest text-[#9ca3af] uppercase">Transfer Quantity</div>
-            <div />
-          </div>
-
-          {/* Table rows */}
-          {tableRows.map((row) => {
-            const transferQty = parseFloat(row.quantity) || 0;
-            const sourceStock = parseFloat(row.sourceQuantity) || 0;
-            const exceedsStock = transferQty > 0 && transferQty > sourceStock;
-
-            return (
-              <div key={row.id} className="grid grid-cols-[40px_1fr_260px_220px_48px] items-center px-4 py-3 gap-3 border-t border-[#f3f4f6] hover:bg-[#fafafa]">
-                {/* Checkbox */}
-                <div>
-                  <input type="checkbox" className="h-4 w-4 rounded accent-[#9B48D7] cursor-pointer" />
-                </div>
-
-                {/* Item dropdown */}
-                <div>
-                  <ItemDropdown
-                    rowId={row.id}
-                    value={row.item}
-                    onChange={(item) => handleItemSelect(row.id, item)}
-                    sourceWarehouse={sourceWarehouse}
-                    destinationWarehouse={destinationWarehouse}
-                    onSourceStockFetched={handleSourceStockFetched(row.id)}
-                    onDestStockFetched={handleDestStockFetched(row.id)}
-                    isStoreUser={!isAdmin}
-                    userWarehouse={userWarehouse}
-                    onFocusChange={setIsItemInputFocused}
-                    isEditMode={isEditMode}
-                    orderId={id}
-                    requestedHint={row.requestedGroupName}
-                    requestedGroupId={row.itemGroupId}
-                    selectedItems={tableRows
-                      .filter(r => r.id !== row.id && (r.itemId || r.itemName || r.itemSku || r.item))
-                      .map(r => ({
-                        _id: r.itemId || r.item?._id || r.item?.id,
-                        id: r.itemId || r.item?._id || r.item?.id,
-                        itemId: r.itemId || r.item?._id || r.item?.id,
-                        sku: r.itemSku || r.item?.sku,
-                        itemSku: r.itemSku || r.item?.sku,
-                        itemName: r.itemName || r.item?.itemName,
-                        name: r.itemName || r.item?.itemName,
-                        itemGroupId: r.itemGroupId || r.item?.itemGroupId,
-                      }))}
-                  />
-                  {row.requestedGroupName && !row.item && (
-                    <div className="mt-1 flex items-center gap-1.5 text-[11px] text-[#7c3aed] font-medium bg-[#f5f3ff] px-2 py-0.5 rounded border border-[#ddd6fe] inline-flex">
-                      <span>Requested: <strong>{row.requestedGroupName}</strong></span>
-                      {row.requestedQuantity && <span className="text-[#9333ea] font-bold">({row.requestedQuantity} pcs)</span>}
-                    </div>
-                  )}
-                </div>
-
-                {/* Stock availability */}
-                <div className="flex gap-4">
-                  <div>
-                    <div className="text-[9px] font-semibold uppercase tracking-wider text-[#9ca3af] mb-0.5">Source Stock</div>
-                    <div className={`text-sm font-semibold ${row.sourceQuantity === 0 ? 'text-[#ef4444]' : 'text-[#111827]'}`}>
-                      {Math.round(row.sourceQuantity)} Units
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-[9px] font-semibold uppercase tracking-wider text-[#9ca3af] mb-0.5">Destination Stock</div>
-                    <div className="text-sm font-semibold text-[#111827]">
-                      {Math.round(row.destQuantity)} Units
-                    </div>
-                  </div>
-                </div>
-
-                {/* Transfer quantity */}
-                <div>
-                  <div className={`flex items-center gap-1.5 h-9 border rounded-md px-2 ${exceedsStock ? 'border-[#ef4444] bg-[#fef2f2]' : 'border-[#e5e7eb] bg-white'}`}>
-                    <input
-                      type="number"
-                      value={row.quantity}
-                      onChange={(e) => handleQuantityChange(row.id, e.target.value)}
-                      placeholder="0"
-                      min="0"
-                      step="1"
-                      className={`flex-1 border-0 outline-none text-sm text-right bg-transparent ${exceedsStock ? 'text-[#ef4444]' : 'text-[#111827]'}`}
-                    />
-                    <span className={`text-xs shrink-0 ${exceedsStock ? 'text-[#ef4444]' : 'text-[#9ca3af]'}`}>Units</span>
-                  </div>
-                  {exceedsStock && (
-                    <p className="text-[10px] text-[#ef4444] mt-0.5">Exceeds stock ({Math.round(sourceStock)} avail.)</p>
-                  )}
-                </div>
-
-                {/* Delete */}
-                <div className="flex justify-center">
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveRow(row.id)}
-                    className="w-8 h-8 flex items-center justify-center rounded-md bg-[#fef2f2] text-[#ef4444] hover:bg-[#fee2e2] transition"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-
-          {/* Add row / Bulk Add */}
-          <div className="flex items-center gap-3 px-4 py-3 border-t border-[#f3f4f6]">
-            <button
-              type="button"
-              onClick={handleAddRow}
-              className="inline-flex items-center gap-1.5 h-8 px-4 text-xs font-medium text-[#374151] bg-white border border-[#e5e7eb] rounded-md hover:bg-[#f9fafb] transition cursor-pointer"
-            >
-              <Plus size={13} />
-              New Row
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                if (!sourceWarehouse) { alert("Please select a source warehouse first"); return; }
-                setShowBulkAddModal(true);
-                fetchBulkItems();
-              }}
-              className="inline-flex items-center gap-1.5 h-8 px-4 text-xs font-medium text-[#374151] bg-white border border-[#e5e7eb] rounded-md hover:bg-[#f9fafb] transition cursor-pointer"
-            >
-              <Plus size={13} />
-              Bulk Add Items
-            </button>
-          </div>
-        </div>
-
       </div>
 
       {/* Bulk Add Modal */}
       {showBulkAddModal && createPortal(
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
-          <div className="relative w-full max-w-5xl rounded-2xl bg-white shadow-2xl border border-[#e5e7eb] max-h-[90vh] overflow-hidden flex flex-col">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-[1px] px-4">
+          <div className="relative w-full max-w-5xl rounded-[16px] bg-white shadow-2xl border border-[#E5E5E5] max-h-[90vh] overflow-hidden flex flex-col">
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-[#e5e7eb] px-6 py-4 bg-white">
-              <h2 className="text-lg font-semibold text-[#1f2937]">Add Items in Bulk</h2>
+            <div className="flex items-center justify-between border-b border-[#E5E5E5] px-6 py-4 bg-white">
+              <h2 className="text-[16px] font-semibold text-[#1B1B1B]">Add Items in Bulk</h2>
               <button
                 onClick={handleBulkAddClose}
-                className="text-[#6b7280] hover:text-[#1f2937] hover:bg-[#f3f4f6] p-1 rounded-md transition-colors"
+                className="text-[#7A7A7A] hover:text-[#1B1B1B] hover:bg-[#F4F4F5] p-1.5 rounded-[8px] transition-colors cursor-pointer"
               >
-                <X size={20} />
+                <X size={18} />
               </button>
             </div>
 
             {/* Content - Two Column Layout */}
             <div className="flex-1 overflow-hidden flex">
               {/* Left Column - Items List */}
-              <div className="flex-1 flex flex-col border-r border-[#e5e7eb]">
+              <div className="flex-1 flex flex-col border-r border-[#E5E5E5]">
                 {/* Search/Scan Input */}
-                <div className="border-b border-[#e5e7eb] p-4 bg-[#f9fafb]">
+                <div className="border-b border-[#E5E5E5] p-4 bg-[#FAFAFA]">
                   <input
                     ref={bulkScanInputRef}
                     type="text"
                     value={bulkScanInput}
                     onKeyDown={handleBulkScanKeyDown}
                     placeholder="Type to search or scan the barcode of the item"
-                    className="w-full rounded-lg border border-[#d1d5db] bg-white px-4 py-2.5 text-sm focus:border-[#2563eb] focus:outline-none focus:ring-2 focus:ring-[#2563eb]/20"
+                    className="rf-input !h-[42px] bg-white"
                     autoFocus
                   />
                 </div>
@@ -4641,9 +4658,9 @@ const TransferOrderCreate = () => {
                 {/* Items List */}
                 <div className="flex-1 overflow-y-auto">
                   {bulkItemsLoading ? (
-                    <div className="text-center py-8 text-[#6b7280]">Loading items...</div>
+                    <div className="text-center py-8 text-[13px] text-[#7A7A7A]">Loading items...</div>
                   ) : bulkItems.length === 0 ? (
-                    <div className="text-center py-8 text-[#6b7280]">No items available in {sourceWarehouse}</div>
+                    <div className="text-center py-8 text-[13px] text-[#7A7A7A]">No items available in {sourceWarehouse}</div>
                   ) : (
                     <div className="p-3 space-y-2">
                       {bulkItems.map((item) => {
@@ -4660,35 +4677,35 @@ const TransferOrderCreate = () => {
                           <div
                             key={item._id}
                             onClick={() => !isOutOfStock && processBulkScan(item.sku)}
-                            className={`p-3 rounded-lg border transition-all ${isOutOfStock
-                              ? 'border-[#fecaca] bg-[#fef2f2] cursor-not-allowed opacity-75'
+                            className={`p-3 rounded-[10px] border transition-all ${isOutOfStock
+                              ? 'border-[#FECACA] bg-[#FEF2F2] cursor-not-allowed opacity-75'
                               : isSelected
-                                ? 'border-[#2563eb] bg-[#eff6ff] cursor-pointer'
-                                : 'border-[#e5e7eb] bg-white hover:border-[#2563eb] hover:bg-[#f0f9ff] cursor-pointer'
+                                ? 'border-[#9D43D6] bg-[#F3E8FF]/60 cursor-pointer'
+                                : 'border-[#E5E5E5] bg-white hover:border-[#9D43D6] hover:bg-[#FAF5FF] cursor-pointer'
                               }`}
                           >
                             <div className="flex items-start justify-between">
                               <div className="flex-1 min-w-0">
-                                <div className={`font-medium text-sm ${isOutOfStock
-                                  ? 'text-[#991b1b]'
+                                <div className={`font-medium text-[13px] ${isOutOfStock
+                                  ? 'text-[#DC2626]'
                                   : isSelected
-                                    ? 'text-[#1e40af]'
-                                    : 'text-[#1f2937]'
+                                    ? 'text-[#6D2898]'
+                                    : 'text-[#1B1B1B]'
                                   }`}>
                                   {item.itemName}
                                 </div>
-                                <div className="text-xs text-[#6b7280] mt-0.5">
+                                <div className="text-[11px] text-[#7A7A7A] mt-0.5">
                                   SKU: {item.sku || 'N/A'}
                                 </div>
                               </div>
                               <div className="text-right ml-2 flex-shrink-0">
-                                <div className="text-xs text-[#6b7280]">Stock on Hand</div>
+                                <div className="text-[11px] text-[#7A7A7A]">Stock on Hand</div>
                                 {isOutOfStock ? (
-                                  <div className="text-sm font-semibold text-[#ef4444]">
+                                  <div className="text-[13px] font-semibold text-[#EF4444]">
                                     No Stock
                                   </div>
                                 ) : (
-                                  <div className="text-sm font-semibold text-[#10b981]">
+                                  <div className="text-[13px] font-semibold text-[#16A34A]">
                                     {availableStock.toFixed(2)} pcs
                                   </div>
                                 )}
@@ -4703,18 +4720,18 @@ const TransferOrderCreate = () => {
               </div>
 
               {/* Right Column - Selected Items */}
-              <div className="w-80 flex flex-col bg-[#f9fafb]">
+              <div className="w-80 flex flex-col bg-[#FAFAFA]">
                 {/* Header */}
-                <div className="border-b border-[#e5e7eb] px-4 py-3 bg-white">
+                <div className="border-b border-[#E5E5E5] px-4 py-3 bg-white">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-semibold text-[#1f2937]">Selected Items</span>
-                    <span className="inline-flex items-center justify-center min-w-[24px] h-6 px-2 bg-[#e5e7eb] text-xs font-semibold text-[#374151] rounded-full">
+                    <span className="text-[13px] font-semibold text-[#1B1B1B]">Selected Items</span>
+                    <span className="inline-flex items-center justify-center min-w-[24px] h-6 px-2 bg-[#F3E8FF] text-[12px] font-semibold text-[#9D43D6] rounded-full">
                       {bulkScannedItems.length}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-[#6b7280]">Total Quantity</span>
-                    <span className="text-sm font-semibold text-[#1f2937]">{bulkScannedItems.reduce((sum, item) => sum + item.quantity, 0)}</span>
+                    <span className="text-[12px] text-[#7A7A7A]">Total Quantity</span>
+                    <span className="text-[13px] font-semibold text-[#1B1B1B]">{bulkScannedItems.reduce((sum, item) => sum + item.quantity, 0)}</span>
                   </div>
                 </div>
 
@@ -4723,8 +4740,7 @@ const TransferOrderCreate = () => {
                   {bulkScannedItems.length === 0 ? (
                     <div className="flex items-center justify-center h-full text-center">
                       <div>
-                        <div className="text-4xl mb-2">📋</div>
-                        <div className="text-sm text-[#6b7280]">No items selected yet</div>
+                        <div className="text-[13px] text-[#7A7A7A]">No items selected yet</div>
                       </div>
                     </div>
                   ) : (
@@ -4733,23 +4749,23 @@ const TransferOrderCreate = () => {
                         const maxStock = sourceWarehouse ? getStockOnHand(scanned.item, sourceWarehouse) : (scanned.quantity || 1);
 
                         return (
-                          <div key={idx} className="bg-white border border-[#e5e7eb] rounded-lg p-3">
+                          <div key={idx} className="bg-white border border-[#E5E5E5] rounded-[10px] p-3">
                             <div className="flex items-start justify-between mb-2">
                               <div className="flex-1 min-w-0">
-                                <div className="font-medium text-sm text-[#1f2937] truncate">
+                                <div className="font-medium text-[13px] text-[#1B1B1B] truncate">
                                   {scanned.item.itemName}
                                 </div>
-                                <div className="text-xs text-[#6b7280] mt-0.5">
-                                  SKU: {scanned.item.sku || 'N/A'} • <span className="text-[#059669] font-medium">Max: {maxStock} pcs</span>
+                                <div className="text-[11px] text-[#7A7A7A] mt-0.5">
+                                  SKU: {scanned.item.sku || 'N/A'} • <span className="text-[#16A34A] font-medium">Max: {maxStock} pcs</span>
                                 </div>
                               </div>
                               <button
                                 onClick={() => {
                                   setBulkScannedItems(prev => prev.filter((_, i) => i !== idx));
                                 }}
-                                className="text-[#ef4444] hover:bg-[#fef2f2] p-1 rounded transition-colors flex-shrink-0"
+                                className="text-[#EF4444] hover:bg-[#FEF2F2] p-1 rounded-[6px] transition-colors flex-shrink-0 cursor-pointer"
                               >
-                                <X size={16} />
+                                <X size={15} />
                               </button>
                             </div>
 
@@ -4767,7 +4783,7 @@ const TransferOrderCreate = () => {
                                     })
                                   );
                                 }}
-                                className="w-6 h-6 rounded border border-[#d1d5db] flex items-center justify-center text-[#6b7280] hover:bg-[#f3f4f6] transition-colors text-sm disabled:opacity-40"
+                                className="w-7 h-7 rounded-[6px] border border-[#E5E5E5] flex items-center justify-center text-[#525252] hover:bg-[#F4F4F5] transition-colors text-sm disabled:opacity-40 cursor-pointer"
                                 disabled={scanned.quantity <= 1}
                               >
                                 −
@@ -4791,7 +4807,7 @@ const TransferOrderCreate = () => {
                                     })
                                   );
                                 }}
-                                className="w-12 h-6 text-center text-sm border border-[#d1d5db] rounded focus:border-[#2563eb] focus:outline-none focus:ring-1 focus:ring-[#2563eb]/20"
+                                className="w-12 h-7 text-center text-[13px] border border-[#E5E5E5] rounded-[6px] focus:border-[#9D43D6] focus:outline-none focus:ring-2 focus:ring-[#9D43D6]/15"
                                 min="1"
                                 max={maxStock}
                               />
@@ -4817,7 +4833,7 @@ const TransferOrderCreate = () => {
                                     });
                                   });
                                 }}
-                                className="w-6 h-6 rounded border border-[#d1d5db] flex items-center justify-center text-[#6b7280] hover:bg-[#f3f4f6] transition-colors text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                                className="w-7 h-7 rounded-[6px] border border-[#E5E5E5] flex items-center justify-center text-[#525252] hover:bg-[#F4F4F5] transition-colors text-sm disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                                 disabled={scanned.quantity >= maxStock}
                               >
                                 +
@@ -4833,17 +4849,17 @@ const TransferOrderCreate = () => {
             </div>
 
             {/* Footer */}
-            <div className="border-t border-[#e5e7eb] bg-white px-6 py-4 flex items-center justify-end gap-3">
+            <div className="border-t border-[#E5E5E5] bg-white px-6 py-4 flex items-center justify-end gap-2.5">
               <button
                 onClick={handleBulkAddClose}
-                className="rounded-lg border border-[#d1d5db] bg-white px-4 py-2 text-sm font-medium text-[#6b7280] hover:bg-[#f3f4f6] transition-colors"
+                className="rf-btn-cancel !h-[38px] !px-4 !text-[13px]"
               >
                 Cancel
               </button>
               <button
                 onClick={handleBulkAddItems}
                 disabled={bulkScannedItems.length === 0}
-                className="rounded-lg bg-gradient-to-r from-[#2563eb] to-[#1d4ed8] px-6 py-2 text-sm font-medium text-white hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="rf-btn-primary !h-[38px] !px-5 !text-[13px] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Add Items
               </button>

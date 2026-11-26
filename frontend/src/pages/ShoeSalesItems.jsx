@@ -310,164 +310,172 @@ const ShoeSalesItems = () => {
   };
 
   return (
-    <>
+    <div className="min-h-screen bg-[#FAFAFA] text-[#212121]">
       <Header title="Items" />
-      <div className={`transition-all duration-300 p-6 bg-[#f8fafc] min-h-screen ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-        <div className="flex items-center justify-end mb-6">
-          <div className="flex items-center gap-3">
-            {selectedItems.size > 0 && (
-              <button
-                onClick={handleOpenAddToGroupModal}
-                className="inline-flex h-10 items-center gap-2 rounded-none bg-[#7C3AED] hover:bg-[#6D28D9] px-4 text-sm font-semibold text-white shadow-sm transition-colors cursor-pointer"
-              >
-                <FolderPlus size={16} />
-                <span>Add to Group ({selectedItems.size})</span>
-              </button>
-            )}
-            {isAdmin && selectedItems.size > 0 && (
-              <button
-                onClick={handleDeleteClick}
-                className="inline-flex h-10 items-center gap-2 rounded-none bg-[#dc2626] px-4 text-sm font-semibold text-white transition hover:bg-[#b91c1c] shadow-sm cursor-pointer"
-              >
-                <Trash2 size={16} />
-                <span>Delete ({selectedItems.size})</span>
-              </button>
-            )}
-            {isAdmin && (
-              <Link
-                to="/shoe-sales/items/new"
-                className="inline-flex h-10 items-center gap-2 rounded-none bg-[#9B48D7] px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#8637c3]"
-              >
-                <Plus size={16} />
-                <span>New Item</span>
-              </Link>
-            )}
-          </div>
+      <div className={`transition-all duration-300 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
+        {/* Clean Page Title Header */}
+        <div className="bg-white px-6 md:px-8 py-4 border-b border-[#E5E5E5] flex items-center justify-between">
+          <h1 className="text-[18px] font-semibold text-[#212121]">Items</h1>
         </div>
+        <div className="p-5 md:p-6">
+          {/* Top Bar: Search on Left, Action Buttons on Right */}
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+            <div className="relative w-full sm:w-[290px]">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#525252] h-4 w-4 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Search by name or sku"
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="rf-input !pl-10 !h-[42px] bg-white"
+              />
+            </div>
 
-        <div className="flex items-center justify-between gap-4 mb-4">
-          <div className="relative w-[279px] h-[44px]">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <input
-              type="text"
-              placeholder="Search by name or sku"
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="w-full h-full pl-10 pr-4 rounded-none border border-gray-200 bg-white text-sm text-gray-800 placeholder:text-gray-400 focus:border-gray-400 focus:outline-none shadow-sm transition-all"
-            />
+            <div className="flex flex-wrap items-center gap-2.5">
+              {selectedItems.size > 0 && (
+                <button
+                  onClick={handleOpenAddToGroupModal}
+                  className="inline-flex h-[40px] items-center gap-2 rounded-[10px] bg-[#6D2898] hover:bg-[#5B1F82] px-4 text-[13px] font-semibold text-white shadow-xs transition-colors cursor-pointer"
+                >
+                  <FolderPlus size={15} />
+                  <span>Add to Group ({selectedItems.size})</span>
+                </button>
+              )}
+              {isAdmin && selectedItems.size > 0 && (
+                <button
+                  onClick={handleDeleteClick}
+                  className="inline-flex h-[40px] items-center gap-2 rounded-[10px] bg-[#DC2626] px-4 text-[13px] font-semibold text-white transition hover:bg-[#B91C1C] shadow-xs cursor-pointer"
+                >
+                  <Trash2 size={15} />
+                  <span>Delete ({selectedItems.size})</span>
+                </button>
+              )}
+              {isAdmin && (
+                <Link
+                  to="/shoe-sales/items/new"
+                  className="rf-btn-primary inline-flex items-center gap-2 !h-[40px] !px-5 !text-[13px]"
+                >
+                  <Plus size={15} />
+                  <span>New Item</span>
+                </Link>
+              )}
+            </div>
           </div>
 
-          <div className="text-xs font-medium text-[#475569]">
+          {/* Count Subtitle */}
+          <div className="text-[13px] font-medium text-[#525252] mb-3">
             {totalItems} items | Showing newest first
           </div>
-        </div>
 
-        {error && (
-          <div className="mb-4 border-l-4 border-red-500 bg-red-50 p-4 text-sm text-red-700 flex items-center gap-2 rounded-none shadow-sm">
-            <AlertTriangle size={16} />
-            {error}
-          </div>
-        )}
+          {error && (
+            <div className="mb-4 rounded-[10px] border border-[#FECACA] bg-[#FEF2F2] p-3.5 text-[13px] text-[#DC2626] flex items-center gap-2">
+              <AlertTriangle size={16} />
+              {error}
+            </div>
+          )}
 
-        <div className="w-full bg-white rounded-none border border-gray-200 shadow-sm overflow-hidden flex flex-col">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead className="bg-[#18181b] text-white">
-                <tr>
-                  <th scope="col" className="py-3.5 px-4 w-12 text-center">
-                    <input
-                      type="checkbox"
-                      className="h-4 w-4 rounded-none border-gray-600 text-[#9B48D7] focus:ring-[#9B48D7] cursor-pointer"
-                      checked={items.length > 0 && items.every(item => !item._id || selectedItems.has(item._id))}
-                      onChange={(e) => handleSelectAll(e.target.checked)}
-                    />
-                  </th>
-                  <th scope="col" className="py-3.5 px-4 text-[11px] font-bold tracking-wider text-white uppercase">
-                    NAME
-                  </th>
-                  <th scope="col" className="py-3.5 px-4 text-right text-[11px] font-bold tracking-wider text-white uppercase">
-                    SKU
-                  </th>
-                  <th scope="col" className="py-3.5 px-4 text-right text-[11px] font-bold tracking-wider text-white uppercase">
-                    STOCK ON HAND
-                  </th>
-                  <th scope="col" className="py-3.5 px-4 text-right text-[11px] font-bold tracking-wider text-white uppercase">
-                    REORDER LEVEL
-                  </th>
-                </tr>
-              </thead>
+          {/* Table Card */}
+          <div className="w-full bg-white rounded-[12px] border border-[#E5E5E5] shadow-[0_1px_2px_rgba(0,0,0,0.02)] overflow-hidden flex flex-col">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead className="bg-[#1B1B1B] text-white">
+                  <tr>
+                    <th scope="col" className="py-3.5 px-4 w-12 text-center">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 rounded-[4px] border-gray-500 accent-[#9D43D6] cursor-pointer align-middle"
+                        checked={items.length > 0 && items.every(item => !item._id || selectedItems.has(item._id))}
+                        onChange={(e) => handleSelectAll(e.target.checked)}
+                      />
+                    </th>
+                    <th scope="col" className="py-3.5 px-4 text-[11px] font-semibold tracking-wider text-white uppercase">
+                      NAME
+                    </th>
+                    <th scope="col" className="py-3.5 px-4 text-center text-[11px] font-semibold tracking-wider text-white uppercase w-[18%]">
+                      SKU
+                    </th>
+                    <th scope="col" className="py-3.5 px-4 text-center text-[11px] font-semibold tracking-wider text-white uppercase w-[18%]">
+                      STOCK ON HAND
+                    </th>
+                    <th scope="col" className="py-3.5 px-4 text-center text-[11px] font-semibold tracking-wider text-white uppercase w-[18%]">
+                      REORDER LEVEL
+                    </th>
+                  </tr>
+                </thead>
 
-              <tbody className="divide-y divide-gray-100 bg-white">
-                {loading
-                  ? skeletonRows.map((_, idx) => (
-                      <tr key={idx} className="h-[60px]">
-                        <td className="py-2.5 px-4 text-center">
-                          <span className="inline-block h-4 w-4 rounded-none border border-gray-200 bg-gray-50" />
-                        </td>
-                        <td className="py-2.5 px-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-none bg-gray-200 animate-pulse shrink-0" />
-                            <div className="space-y-1.5">
-                              <div className="h-4 w-40 bg-gray-200 rounded-none animate-pulse" />
-                              <div className="h-3 w-20 bg-gray-100 rounded-none animate-pulse" />
+                <tbody className="divide-y divide-[#F0F0F0] bg-white">
+                  {loading
+                    ? skeletonRows.map((_, idx) => (
+                        <tr key={idx} className="h-[64px]">
+                          <td className="py-3 px-4 text-center border-r border-[#F5F5F5]">
+                            <span className="inline-block h-4 w-4 rounded-[4px] bg-[#F4F4F5] animate-pulse" />
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-[8px] bg-[#ECECEF] animate-pulse shrink-0" />
+                              <div className="space-y-1.5">
+                                <div className="h-3.5 w-40 bg-[#ECECEF] rounded animate-pulse" />
+                                <div className="h-3 w-20 bg-[#F4F4F5] rounded animate-pulse" />
+                              </div>
                             </div>
-                          </div>
-                        </td>
-                        <td className="py-2.5 px-4">
-                          <div className="h-4 w-12 bg-gray-200 rounded-none animate-pulse ml-auto" />
-                        </td>
-                        <td className="py-2.5 px-4">
-                          <div className="h-4 w-10 bg-gray-200 rounded-none animate-pulse ml-auto" />
-                        </td>
-                        <td className="py-2.5 px-4">
-                          <div className="h-4 w-12 bg-gray-200 rounded-none animate-pulse ml-auto" />
-                        </td>
-                      </tr>
-                    ))
-                  : items.length === 0 ? (
-                      <tr>
-                        <td colSpan={5} className="py-12 text-center">
-                          <div className="flex flex-col items-center gap-3">
-                            <span className="text-4xl">📦</span>
-                            <p className="text-sm font-semibold text-gray-700">
-                              {searchTerm ? "No items found" : "No items yet"}
-                            </p>
-                            <p className="text-xs text-gray-400">
-                              {searchTerm ? "Try a different search term" : "Create a new item to get started"}
-                            </p>
-                          </div>
-                        </td>
-                      </tr>
-                    ) : (
-                      items.map((item) => {
-                        const itemPath = item.isFromGroup && item.itemGroupId
-                          ? `/shoe-sales/item-groups/${item.itemGroupId}/items/${item._id}`
-                          : `/shoe-sales/items/${item._id}`;
-                        
-                        let stockVal = 0;
-                        if (typeof item.stockOnHand === "number") {
-                          stockVal = item.stockOnHand;
-                        } else if (Array.isArray(item.warehouseStocks) && item.warehouseStocks.length > 0) {
-                          if (userWarehouse && userWarehouse !== "Warehouse") {
-                            const ws = item.warehouseStocks.find(w => (w.warehouse || "").toLowerCase().includes(userWarehouse.toLowerCase()));
-                            stockVal = ws ? (Number(ws.stockOnHand) || 0) : 0;
-                          } else {
-                            stockVal = item.warehouseStocks.reduce((sum, ws) => sum + (Number(ws.stockOnHand) || 0), 0);
-                          }
-                        } else if (typeof item.stock === "number") {
-                          stockVal = item.stock;
-                        }
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="h-3.5 w-14 bg-[#F4F4F5] rounded animate-pulse mx-auto" />
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="h-3.5 w-10 bg-[#F4F4F5] rounded animate-pulse mx-auto" />
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="h-3.5 w-12 bg-[#F4F4F5] rounded animate-pulse mx-auto" />
+                          </td>
+                        </tr>
+                      ))
+                    : items.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="py-14 text-center">
+                            <div className="flex flex-col items-center gap-3">
+                              <div className="w-12 h-12 rounded-[12px] bg-[#F3E8FF] flex items-center justify-center text-[#9D43D6]">
+                                <Layers size={22} />
+                              </div>
+                              <p className="text-[14px] font-semibold text-[#1B1B1B]">
+                                {searchTerm ? "No items found" : "No items yet"}
+                              </p>
+                              <p className="text-[12px] text-[#7A7A7A]">
+                                {searchTerm ? "Try a different search term" : "Create a new item to get started"}
+                              </p>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : (
+                        items.map((item) => {
+                          const itemPath = item.isFromGroup && item.itemGroupId
+                            ? `/shoe-sales/item-groups/${item.itemGroupId}/items/${item._id}`
+                            : `/shoe-sales/items/${item._id}`;
 
-                        return (
-                          <tr key={item._id} className="h-[60px] hover:bg-gray-50/80 transition-colors">
-                              <td className="py-2.5 px-4 text-center">
-                                <div className="flex items-center justify-center gap-1">
+                          let stockVal = 0;
+                          if (typeof item.stockOnHand === "number") {
+                            stockVal = item.stockOnHand;
+                          } else if (Array.isArray(item.warehouseStocks) && item.warehouseStocks.length > 0) {
+                            if (userWarehouse && userWarehouse !== "Warehouse") {
+                              const ws = item.warehouseStocks.find(w => (w.warehouse || "").toLowerCase().includes(userWarehouse.toLowerCase()));
+                              stockVal = ws ? (Number(ws.stockOnHand) || 0) : 0;
+                            } else {
+                              stockVal = item.warehouseStocks.reduce((sum, ws) => sum + (Number(ws.stockOnHand) || 0), 0);
+                            }
+                          } else if (typeof item.stock === "number") {
+                            stockVal = item.stock;
+                          }
+
+                          return (
+                            <tr key={item._id} className="h-[64px] hover:bg-[#FAFAFA] transition-colors">
+                              <td className="py-3 px-4 text-center border-r border-[#F5F5F5]">
+                                <div className="flex items-center justify-center gap-1.5">
                                   <input
                                     type="checkbox"
-                                    className="h-4 w-4 rounded-none border-gray-300 text-[#9B48D7] focus:ring-[#9B48D7] cursor-pointer"
+                                    className="h-4 w-4 rounded-[4px] border-[#D4D4D8] accent-[#9D43D6] cursor-pointer align-middle"
                                     checked={selectedItems.has(item._id)}
                                     onChange={(e) => handleCheckboxChange(item._id, e.target.checked)}
                                   />
@@ -477,7 +485,7 @@ const ShoeSalesItems = () => {
                                         e.stopPropagation();
                                         handleSingleDelete(item);
                                       }}
-                                      className="p-1 rounded-none hover:bg-red-50 text-red-600 transition-colors cursor-pointer"
+                                      className="p-1 rounded-[6px] hover:bg-[#FEF2F2] text-[#DC2626] transition-colors cursor-pointer"
                                       title="Delete this item"
                                     >
                                       <Trash2 size={14} />
@@ -486,160 +494,164 @@ const ShoeSalesItems = () => {
                                 </div>
                               </td>
 
-                              <td className="py-2.5 px-4">
+                              <td className="py-3 px-4">
                                 <Link
                                   to={itemPath}
-                                  className="flex items-center gap-3 group cursor-pointer"
+                                  className="flex items-center gap-3.5 group cursor-pointer"
                                 >
                                   {(() => {
                                     const itemImg = item.image || (item.images && item.images[0]?.data) || (item.images && typeof item.images[0] === 'string' && item.images[0]) || "";
                                     if (itemImg) {
                                       return (
-                                        <div className="w-10 h-10 rounded-none bg-white border border-gray-200 flex-shrink-0 flex items-center justify-center overflow-hidden p-0.5 shadow-sm">
+                                        <div className="w-10 h-10 rounded-[8px] bg-[#F4F4F5] border border-[#E5E5E5] flex-shrink-0 flex items-center justify-center overflow-hidden p-0.5">
                                           <img
                                             src={itemImg}
                                             alt={item.itemName || item.name}
-                                            className="w-full h-full object-contain"
+                                            className="w-full h-full object-contain rounded-[6px]"
                                           />
                                         </div>
                                       );
                                     }
                                     return (
-                                      <div className="w-10 h-10 rounded-none bg-[#e2e8f0] flex-shrink-0 flex items-center justify-center text-gray-700 font-bold text-sm group-hover:bg-[#f1e6fa] group-hover:text-[#9B48D7] transition-colors uppercase">
+                                      <div className="w-10 h-10 rounded-[8px] bg-[#D4D4D8]/80 flex-shrink-0 flex items-center justify-center text-[#525252] font-semibold text-[13px] group-hover:bg-[#F3E8FF] group-hover:text-[#9D43D6] transition-colors uppercase">
                                         {(item.itemName || item.name || "?")[0]}
                                       </div>
                                     );
                                   })()}
-                                  <div>
+                                  <div className="min-w-0">
                                     <div className="flex items-center gap-2">
-                                      <p className="text-sm font-semibold text-gray-900 group-hover:text-[#9B48D7] transition-colors">
+                                      <p className="text-[13px] font-semibold text-[#1B1B1B] group-hover:text-[#9D43D6] transition-colors truncate">
                                         {item.itemName || item.name}
                                       </p>
                                       {item.isFromGroup && (
-                                        <span className="inline-flex items-center rounded-none bg-purple-50 px-1.5 py-0.5 text-[10px] font-bold text-[#9B48D7] border border-purple-200">
+                                        <span className="inline-flex items-center rounded-[6px] bg-[#F3E8FF] px-1.5 py-0.5 text-[10px] font-semibold text-[#9D43D6]">
                                           GROUP
                                         </span>
                                       )}
                                     </div>
-                                    <p className="text-xs text-gray-400">
+                                    <p className="text-[11px] text-[#7A7A7A] mt-0.5 truncate">
                                       {item.brand || item.itemGroupName || "Unbranded"}
                                     </p>
                                   </div>
                                 </Link>
                               </td>
 
-                              <td className="py-2.5 px-4 text-right text-sm font-mono text-gray-800">
+                              <td className="py-3 px-4 text-center text-[13px] font-mono text-[#525252]">
                                 {item.sku || "-"}
                               </td>
 
-                              <td className="py-2.5 px-4 text-right text-sm font-semibold text-gray-800">
+                              <td className="py-3 px-4 text-center text-[13px] font-medium text-[#1B1B1B] tabular-nums">
                                 {stockVal}
                               </td>
 
-                              <td className="py-2.5 px-4 text-right text-sm text-gray-500">
+                              <td className="py-3 px-4 text-center text-[13px] text-[#525252] tabular-nums">
                                 {item.reorderPoint || "-"}
                               </td>
                             </tr>
                           );
                         })
-                    )}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-white">
-            <div className="text-xs text-gray-400">
-              Showing {items.length > 0 ? ((currentPage - 1) * itemsPerPage + 1) : 0} to {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} items
+                      )}
+                </tbody>
+              </table>
             </div>
 
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                disabled={currentPage === 1 || loading}
-                className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:text-black transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-              >
-                ← Previous
-              </button>
-
-              <div className="flex items-center gap-1">
-                {(() => {
-                  const pages = [];
-                  if (totalPages <= 7) {
-                    for (let i = 1; i <= totalPages; i++) pages.push(i);
-                  } else {
-                    pages.push(1);
-                    if (currentPage > 3) pages.push("...");
-                    const start = Math.max(2, currentPage - 1);
-                    const end = Math.min(totalPages - 1, currentPage + 1);
-                    for (let i = start; i <= end; i++) {
-                      if (!pages.includes(i)) pages.push(i);
-                    }
-                    if (currentPage < totalPages - 2) pages.push("...");
-                    pages.push(totalPages);
-                  }
-                  return pages.map((page, idx) => {
-                    if (page === "...") {
-                      return <span key={`dots-${idx}`} className="px-1 text-xs text-gray-400">...</span>;
-                    }
-                    const isActive = currentPage === page;
-                    return (
-                      <button
-                        key={page}
-                        onClick={() => setCurrentPage(page)}
-                        disabled={loading}
-                        className={`w-8 h-8 rounded-none text-xs font-bold transition-all cursor-pointer flex items-center justify-center ${
-                          isActive
-                            ? "bg-[#18181b] text-white shadow-sm"
-                            : "text-gray-600 hover:text-black hover:bg-gray-100"
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    );
-                  });
-                })()}
+            {/* Pagination Footer */}
+            <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3.5 border-t border-[#F0F0F0] bg-white">
+              <div className="text-[12px] text-[#7A7A7A]">
+                Showing {items.length > 0 ? ((currentPage - 1) * itemsPerPage + 1) : 0} to {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} items
               </div>
 
-              <button
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages || loading}
-                className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:text-black transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-              >
-                Next →
-              </button>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1 || loading}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-[13px] font-medium text-[#525252] hover:text-[#1B1B1B] hover:bg-[#F4F4F5] transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  <span>←</span>
+                  <span>Previous</span>
+                </button>
+
+                <div className="flex items-center gap-1">
+                  {(() => {
+                    const pages = [];
+                    if (totalPages <= 7) {
+                      for (let i = 1; i <= totalPages; i++) pages.push(i);
+                    } else {
+                      pages.push(1);
+                      if (currentPage > 3) pages.push("...");
+                      const start = Math.max(2, currentPage - 1);
+                      const end = Math.min(totalPages - 1, currentPage + 1);
+                      for (let i = start; i <= end; i++) {
+                        if (!pages.includes(i)) pages.push(i);
+                      }
+                      if (currentPage < totalPages - 2) pages.push("...");
+                      pages.push(totalPages);
+                    }
+                    return pages.map((page, idx) => {
+                      if (page === "...") {
+                        return <span key={`dots-${idx}`} className="px-1.5 text-[13px] text-[#7A7A7A]">...</span>;
+                      }
+                      const isActive = currentPage === page;
+                      return (
+                        <button
+                          key={page}
+                          onClick={() => setCurrentPage(page)}
+                          disabled={loading}
+                          className={`w-8 h-8 rounded-[8px] text-[13px] font-semibold transition-all cursor-pointer flex items-center justify-center ${
+                            isActive
+                              ? "bg-[#1B1B1B] text-white shadow-xs"
+                              : "text-[#525252] hover:text-[#1B1B1B] hover:bg-[#F4F4F5]"
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      );
+                    });
+                  })()}
+                </div>
+
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages || loading}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-[13px] font-medium text-[#1B1B1B] hover:bg-[#F4F4F5] transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  <span>Next</span>
+                  <span>→</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-none shadow-xl max-w-md w-full mx-4">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-[1px] flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-[16px] border border-[#E5E5E5] shadow-2xl max-w-md w-full overflow-hidden">
             <div className="p-6">
               {deleteStep === 1 ? (
                 <>
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-                      <AlertTriangle className="text-red-600" size={20} />
+                    <div className="flex-shrink-0 w-10 h-10 rounded-[10px] bg-[#FEE2E2] flex items-center justify-center">
+                      <AlertTriangle className="text-[#DC2626]" size={20} />
                     </div>
-                    <h3 className="text-lg font-semibold text-[#1e293b]">
+                    <h3 className="text-[16px] font-semibold text-[#1B1B1B]">
                       Delete {itemsToDelete.length === 1 ? 'Item' : `${itemsToDelete.length} Items`}?
                     </h3>
                   </div>
-                  <p className="text-sm text-[#64748b] mb-6">
-                    Are you sure you want to delete {itemsToDelete.length === 1 ? 'this item' : `these ${itemsToDelete.length} items`}? 
+                  <p className="text-[13px] text-[#525252] mb-6 leading-relaxed">
+                    Are you sure you want to delete {itemsToDelete.length === 1 ? 'this item' : `these ${itemsToDelete.length} items`}?
                     This action cannot be undone.
                   </p>
-                  <div className="flex gap-3 justify-end">
+                  <div className="flex gap-2.5 justify-end">
                     <button
                       onClick={handleCancelDelete}
-                      className="px-4 py-2 text-sm font-medium text-[#64748b] bg-white border border-[#e2e8f0] rounded-lg hover:bg-[#f8fafc] transition-colors"
+                      className="rf-btn-cancel !h-[38px] !px-4 !text-[13px]"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleConfirmDeleteStep1}
-                      className="px-4 py-2 text-sm font-medium text-white bg-[#dc2626] rounded-lg hover:bg-[#b91c1c] transition-colors"
+                      className="inline-flex items-center justify-center h-[38px] px-4 text-[13px] font-semibold text-white bg-[#DC2626] rounded-[10px] hover:bg-[#B91C1C] transition-colors cursor-pointer"
                     >
                       Continue
                     </button>
@@ -648,20 +660,20 @@ const ShoeSalesItems = () => {
               ) : (
                 <>
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-                      <AlertTriangle className="text-red-600" size={20} />
+                    <div className="flex-shrink-0 w-10 h-10 rounded-[10px] bg-[#FEE2E2] flex items-center justify-center">
+                      <AlertTriangle className="text-[#DC2626]" size={20} />
                     </div>
-                    <h3 className="text-lg font-semibold text-[#1e293b]">
+                    <h3 className="text-[16px] font-semibold text-[#1B1B1B]">
                       Final Confirmation
                     </h3>
                   </div>
-                  <p className="text-sm text-[#64748b] mb-4">
+                  <p className="text-[13px] text-[#525252] mb-4 leading-relaxed">
                     This action cannot be undone. Are you absolutely sure you want to delete {itemsToDelete.length === 1 ? 'this item' : `these ${itemsToDelete.length} items`}?
                   </p>
                   {itemsToDelete.length > 0 && (
-                    <div className="mb-4 p-3 bg-[#f8fafc] rounded-lg max-h-40 overflow-y-auto">
-                      <p className="text-xs font-semibold text-[#64748b] mb-2">Items to be deleted:</p>
-                      <ul className="text-xs text-[#475569] space-y-1">
+                    <div className="mb-5 p-3 bg-[#FAFAFA] border border-[#E5E5E5] rounded-[10px] max-h-40 overflow-y-auto">
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-[#7A7A7A] mb-2">Items to be deleted:</p>
+                      <ul className="text-[12px] text-[#212121] space-y-1">
                         {itemsToDelete.map((item, idx) => (
                           <li key={item._id || idx}>
                             • {item.itemName || item.name} {item.sku ? `(${item.sku})` : ''}
@@ -670,10 +682,10 @@ const ShoeSalesItems = () => {
                       </ul>
                     </div>
                   )}
-                  <div className="flex gap-3 justify-end">
+                  <div className="flex gap-2.5 justify-end">
                     <button
                       onClick={() => setDeleteStep(1)}
-                      className="px-4 py-2 text-sm font-medium text-[#64748b] bg-white border border-[#e2e8f0] rounded-lg hover:bg-[#f8fafc] transition-colors"
+                      className="rf-btn-cancel !h-[38px] !px-4 !text-[13px]"
                       disabled={deleting}
                     >
                       Back
@@ -681,7 +693,7 @@ const ShoeSalesItems = () => {
                     <button
                       onClick={handleConfirmDeleteStep2}
                       disabled={deleting}
-                      className="px-4 py-2 text-sm font-medium text-white bg-[#dc2626] rounded-lg hover:bg-[#b91c1c] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                      className="inline-flex items-center justify-center gap-2 h-[38px] px-4 text-[13px] font-semibold text-white bg-[#DC2626] rounded-[10px] hover:bg-[#B91C1C] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                     >
                       {deleting ? (
                         <>
@@ -702,17 +714,17 @@ const ShoeSalesItems = () => {
 
       {/* Add to Group Modal */}
       {showAddToGroupModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-          <div className="w-full max-w-lg bg-white rounded-none border border-gray-200 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-[1px] p-4">
+          <div className="w-full max-w-lg bg-white rounded-[16px] border border-[#E5E5E5] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/70">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[#F0F0F0] bg-white">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-none bg-purple-100 flex items-center justify-center text-purple-700">
+                <div className="w-9 h-9 rounded-[10px] bg-[#F3E8FF] flex items-center justify-center text-[#9D43D6]">
                   <FolderPlus size={18} />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-gray-900 leading-tight">Add Items to Group</h3>
-                  <p className="text-xs text-gray-500 mt-0.5">
+                  <h3 className="text-[15px] font-semibold text-[#1B1B1B] leading-tight">Add Items to Group</h3>
+                  <p className="text-[12px] text-[#7A7A7A] mt-0.5">
                     {selectedItems.size} item{selectedItems.size > 1 ? "s" : ""} selected
                   </p>
                 </div>
@@ -720,7 +732,7 @@ const ShoeSalesItems = () => {
               <button
                 type="button"
                 onClick={() => setShowAddToGroupModal(false)}
-                className="text-gray-400 hover:text-gray-600 p-1.5 hover:bg-gray-200/60 rounded-none transition-colors cursor-pointer"
+                className="text-[#7A7A7A] hover:text-[#1B1B1B] p-1.5 hover:bg-[#F4F4F5] rounded-[8px] transition-colors cursor-pointer"
               >
                 <X size={18} />
               </button>
@@ -730,20 +742,20 @@ const ShoeSalesItems = () => {
             <div className="p-6 overflow-y-auto space-y-4 flex-1">
               {/* Selected Items Mini Preview */}
               <div>
-                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2 block">
+                <label className="rf-field-label">
                   Items to Add ({selectedItems.size})
                 </label>
-                <div className="max-h-24 overflow-y-auto flex flex-wrap gap-1.5 p-2 bg-gray-50 border border-gray-200 rounded-none">
+                <div className="max-h-24 overflow-y-auto flex flex-wrap gap-1.5 p-2.5 bg-[#FAFAFA] border border-[#E5E5E5] rounded-[10px]">
                   {items
                     .filter((it) => it._id && selectedItems.has(it._id))
                     .map((it) => (
                       <span
                         key={it._id}
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-gray-800 bg-white border border-gray-200 rounded-none shadow-2xs"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[12px] font-medium text-[#1B1B1B] bg-white border border-[#E5E5E5] rounded-[8px]"
                       >
                         <span className="truncate max-w-[170px] font-semibold">{it.itemName || it.name}</span>
                         {it.sku && (
-                          <span className="text-[10px] font-mono text-purple-700 bg-purple-50 px-1 py-0.2 border border-purple-100">
+                          <span className="text-[10px] font-mono text-[#9D43D6] bg-[#F3E8FF] px-1.5 py-0.5 rounded-[4px]">
                             {it.sku}
                           </span>
                         )}
@@ -754,17 +766,15 @@ const ShoeSalesItems = () => {
 
               {/* Option Tabs */}
               <div>
-                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2 block">
-                  Group Destination
-                </label>
-                <div className={`grid ${isAdmin ? "grid-cols-2" : "grid-cols-1"} gap-2 p-1 bg-gray-100 rounded-none border border-gray-200`}>
+                <label className="rf-field-label">Group Destination</label>
+                <div className={`grid ${isAdmin ? "grid-cols-2" : "grid-cols-1"} gap-1.5 p-1 bg-[#F4F4F5] rounded-[10px]`}>
                   <button
                     type="button"
                     onClick={() => setGroupOption("existing")}
-                    className={`flex items-center justify-center gap-2 py-2 text-xs font-bold rounded-none transition-all cursor-pointer ${
+                    className={`flex items-center justify-center gap-2 py-2 text-[12px] font-semibold rounded-[8px] transition-all cursor-pointer ${
                       groupOption === "existing"
-                        ? "bg-white text-purple-700 shadow-xs border border-gray-200"
-                        : "text-gray-600 hover:text-gray-900"
+                        ? "bg-white text-[#9D43D6] shadow-xs"
+                        : "text-[#525252] hover:text-[#1B1B1B]"
                     }`}
                   >
                     <Layers size={14} />
@@ -774,10 +784,10 @@ const ShoeSalesItems = () => {
                     <button
                       type="button"
                       onClick={() => setGroupOption("new")}
-                      className={`flex items-center justify-center gap-2 py-2 text-xs font-bold rounded-none transition-all cursor-pointer ${
+                      className={`flex items-center justify-center gap-2 py-2 text-[12px] font-semibold rounded-[8px] transition-all cursor-pointer ${
                         groupOption === "new"
-                          ? "bg-white text-purple-700 shadow-xs border border-gray-200"
-                          : "text-gray-600 hover:text-gray-900"
+                          ? "bg-white text-[#9D43D6] shadow-xs"
+                          : "text-[#525252] hover:text-[#1B1B1B]"
                       }`}
                     >
                       <Plus size={14} />
@@ -791,21 +801,21 @@ const ShoeSalesItems = () => {
               {groupOption === "existing" && (
                 <div className="space-y-3">
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-3.5 w-3.5" />
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#7A7A7A] h-3.5 w-3.5 pointer-events-none" />
                     <input
                       type="text"
                       placeholder="Search existing groups by name..."
                       value={groupSearchTerm}
                       onChange={(e) => setGroupSearchTerm(e.target.value)}
-                      className="w-full pl-9 pr-3 py-2 text-xs rounded-none border border-gray-200 bg-white focus:outline-none focus:border-purple-600 focus:ring-1 focus:ring-purple-600"
+                      className="rf-input !pl-9 !h-[38px] !text-[13px]"
                     />
                   </div>
 
-                  <div className="max-h-44 overflow-y-auto space-y-1.5 border border-gray-200 rounded-none p-2 bg-gray-50">
+                  <div className="max-h-44 overflow-y-auto space-y-1.5 border border-[#E5E5E5] rounded-[10px] p-2 bg-[#FAFAFA]">
                     {loadingGroups ? (
-                      <div className="py-8 text-center text-xs text-gray-400">Loading groups...</div>
+                      <div className="py-8 text-center text-[12px] text-[#7A7A7A]">Loading groups...</div>
                     ) : existingGroups.length === 0 ? (
-                      <div className="py-8 text-center text-xs text-gray-400">No item groups found</div>
+                      <div className="py-8 text-center text-[12px] text-[#7A7A7A]">No item groups found</div>
                     ) : (
                       existingGroups
                         .filter((g) => {
@@ -829,23 +839,23 @@ const ShoeSalesItems = () => {
                             <div
                               key={grp._id || grp.id}
                               onClick={() => setSelectedGroupId(grp._id || grp.id)}
-                              className={`p-2.5 rounded-none border flex items-center justify-between cursor-pointer transition-all ${
+                              className={`p-2.5 rounded-[8px] border flex items-center justify-between cursor-pointer transition-all ${
                                 isSelected
-                                  ? "bg-purple-50 border-purple-400 shadow-2xs"
-                                  : "bg-white border-gray-200 hover:border-gray-300 hover:bg-gray-100/60"
+                                  ? "bg-[#F3E8FF]/60 border-[#9D43D6]"
+                                  : "bg-white border-[#E5E5E5] hover:border-[#D4D4D8]"
                               }`}
                             >
                               <div className="min-w-0 flex-1">
                                 <div className="flex items-center gap-2">
-                                  <span className="text-xs font-bold text-gray-900 truncate">{grp.name}</span>
-                                  <span className="text-[10px] font-semibold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-none">
+                                  <span className="text-[13px] font-semibold text-[#1B1B1B] truncate">{grp.name}</span>
+                                  <span className="text-[10px] font-semibold text-[#525252] bg-[#F4F4F5] px-1.5 py-0.5 rounded-[4px]">
                                     {count} items
                                   </span>
                                 </div>
-                                {grp.sku && <p className="text-[11px] text-gray-400 font-mono mt-0.5">SKU: {grp.sku}</p>}
+                                {grp.sku && <p className="text-[11px] text-[#7A7A7A] font-mono mt-0.5">SKU: {grp.sku}</p>}
                               </div>
                               {isSelected && (
-                                <div className="w-5 h-5 rounded-none bg-purple-600 text-white flex items-center justify-center shrink-0">
+                                <div className="w-5 h-5 rounded-[6px] bg-[#9D43D6] text-white flex items-center justify-center shrink-0">
                                   <Check size={12} strokeWidth={3} />
                                 </div>
                               )}
@@ -861,24 +871,23 @@ const ShoeSalesItems = () => {
               {groupOption === "new" && (
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">
-                      New Item Group Name <span className="text-red-500">*</span>
+                    <label className="rf-field-label">
+                      New Item Group Name <span className="text-[#EF4444]">*</span>
                     </label>
                     <input
                       type="text"
                       placeholder="e.g. Ring Set Gold, Diamond Bangles"
                       value={newGroupName}
                       onChange={(e) => setNewGroupName(e.target.value)}
-                      className="w-full px-3 py-2 text-xs rounded-none border border-gray-200 bg-white focus:outline-none focus:border-purple-600 focus:ring-1 focus:ring-purple-600"
+                      className="rf-input !h-[40px]"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">Unit</label>
+                    <label className="rf-field-label">Unit</label>
                     <AppSelect
                       value={newGroupUnit}
                       onChange={(e) => setNewGroupUnit(e.target.value)}
-                      className="w-full px-3 py-2 text-xs rounded-none border border-gray-200 bg-white focus:outline-none focus:border-purple-600 focus:ring-1 focus:ring-purple-600 cursor-pointer"
                     >
                       <option value="PCS">PCS (Pieces)</option>
                       <option value="GMS">GMS (Grams)</option>
@@ -893,12 +902,12 @@ const ShoeSalesItems = () => {
             </div>
 
             {/* Modal Footer */}
-            <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-3">
+            <div className="px-6 py-4 bg-[#FAFAFA] border-t border-[#F0F0F0] flex items-center justify-end gap-2.5">
               <button
                 type="button"
                 onClick={() => setShowAddToGroupModal(false)}
                 disabled={addingToGroup}
-                className="px-4 py-2 text-xs font-bold text-gray-700 bg-white border border-gray-300 rounded-none hover:bg-gray-100 transition-colors cursor-pointer"
+                className="rf-btn-cancel !h-[38px] !px-4 !text-[13px]"
               >
                 Cancel
               </button>
@@ -910,7 +919,7 @@ const ShoeSalesItems = () => {
                   (groupOption === "existing" && !selectedGroupId) ||
                   (groupOption === "new" && !newGroupName.trim())
                 }
-                className="inline-flex items-center gap-2 px-5 py-2 text-xs font-bold text-white bg-[#7C3AED] hover:bg-[#6D28D9] rounded-none shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="rf-btn-primary inline-flex items-center gap-2 !h-[38px] !px-5 !text-[13px] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {addingToGroup ? (
                   <>
@@ -931,12 +940,12 @@ const ShoeSalesItems = () => {
 
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-gray-900 text-white px-4 py-3 rounded-none shadow-2xl flex items-center gap-3 border border-gray-700 animate-in slide-in-from-bottom-5 duration-300">
-          <CheckCircle2 size={18} className="text-green-400 shrink-0" />
-          <span className="text-xs font-medium">{toastMessage.text}</span>
+        <div className="fixed bottom-6 right-6 z-50 bg-[#1B1B1B] text-white px-4 py-3 rounded-[10px] shadow-2xl flex items-center gap-3 border border-[#2E2E2E]">
+          <CheckCircle2 size={18} className="text-[#22C55E] shrink-0" />
+          <span className="text-[13px] font-medium">{toastMessage.text}</span>
         </div>
       )}
-    </>
+    </div>
   );
 };
 

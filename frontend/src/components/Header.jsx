@@ -572,6 +572,7 @@ const Header = (prop) => {
                     </div>
 
                     {/* Store Selection Pill */}
+                    {!prop.hideStoreSelector && (
                     <div className="relative" ref={dropdownRef}>
                         <button
                             type="button"
@@ -622,6 +623,7 @@ const Header = (prop) => {
                             </div>
                         )}
                     </div>
+                    )}
                 </div>
             </div>
         </header>

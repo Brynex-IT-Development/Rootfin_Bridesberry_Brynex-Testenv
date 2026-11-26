@@ -58,9 +58,11 @@ const ShoeSalesItemGroups = () => {
   ];
   const isAdminEmail = adminEmails.includes(userEmail);
   const isAdmin = isAdminEmail ||
-                  userPower === "admin" || 
-                  userPower === "super_admin" || 
-                  userRole === "admin" || 
+                  userPower === "admin" ||
+                  userPower === "super_admin" ||
+                  userPower === "superadmin" ||
+                  userRole === "admin" ||
+                  userRole === "super_admin" ||
                   userRole === "superadmin" ||
                   (user?.locCode && (String(user.locCode) === '858' || String(user.locCode) === '103'));
 
@@ -73,8 +75,12 @@ const ShoeSalesItemGroups = () => {
       const adminEmails = ['officerootments@gmail.com'];
       const isAdminEmail = userEmail && adminEmails.some(email => userEmail.toLowerCase() === email.toLowerCase());
       const isAdmin = isAdminEmail ||
-                      user?.power === "admin" || 
-                      (user?.locCode && (user.locCode === '858' || user.locCode === '103'));
+                      user?.power === "admin" ||
+                      (user?.power || "").toLowerCase() === "super_admin" ||
+                      (user?.role || "").toLowerCase() === "admin" ||
+                      (user?.role || "").toLowerCase() === "super_admin" ||
+                      (user?.role || "").toLowerCase() === "superadmin" ||
+                      (user?.locCode && (String(user.locCode) === '858' || String(user.locCode) === '103'));
       
       const fallbackLocations = [];
       
@@ -233,349 +239,389 @@ const ShoeSalesItemGroups = () => {
   };
 
   return (
-    <>
+    <div className="min-h-screen bg-[#FAFAFA] text-[#212121]">
       <Header title="Item Groups" />
-      <div className={`transition-all duration-300 p-6 bg-[#f8fafc] min-h-screen ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-        <div className="flex items-center justify-end mb-6">
-          <div className="flex items-center gap-3">
-            {isAdmin && selectedGroups.size > 0 && (
-              <button
-                onClick={handleDeleteClick}
-                className="inline-flex h-10 items-center gap-2 rounded-none bg-[#dc2626] px-4 text-sm font-semibold text-white transition hover:bg-[#b91c1c] shadow-sm cursor-pointer"
-              >
-                <Trash2 size={16} />
-                <span>Delete ({selectedGroups.size})</span>
-              </button>
-            )}
-            {isAdmin && (
-              <Link
-                to="/shoe-sales/item-groups/new"
-                className="inline-flex h-10 items-center gap-2 rounded-none bg-[#9B48D7] px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#8637c3]"
-              >
-                <Plus size={16} />
-                <span>New Item Group</span>
-              </Link>
-            )}
-          </div>
+      <div className={`transition-all duration-300 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
+        {/* Clean Page Title Header */}
+        <div className="bg-white px-6 md:px-8 py-4 border-b border-[#E5E5E5] flex items-center justify-between">
+          <h1 className="text-[18px] font-semibold text-[#212121]">Item Groups</h1>
         </div>
+        <div className="p-5 md:p-6">
+          {/* Top Bar: Search on Left, Action Buttons on Right */}
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+            <div className="relative w-full sm:w-[290px]">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#7A7A7A] h-4 w-4 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Search by name or sku"
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="rf-input !pl-10 !h-[42px] bg-white"
+              />
+            </div>
 
-        <div className="flex items-center justify-between gap-4 mb-4">
-          <div className="relative w-[279px] h-[44px]">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <input
-              type="text"
-              placeholder="Search by name or sku"
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="w-full h-full pl-10 pr-4 rounded-none border border-gray-200 bg-white text-sm text-gray-800 placeholder:text-gray-400 focus:border-gray-400 focus:outline-none shadow-sm transition-all"
-            />
+            <div className="flex items-center gap-3">
+              {isAdmin && selectedGroups.size > 0 && (
+                <button
+                  onClick={handleDeleteClick}
+                  className="inline-flex h-[40px] items-center gap-2 rounded-[10px] bg-[#DC2626] px-4 text-[13px] font-semibold text-white transition hover:bg-[#B91C1C] shadow-xs cursor-pointer"
+                >
+                  <Trash2 size={15} />
+                  <span>Delete ({selectedGroups.size})</span>
+                </button>
+              )}
+              {isAdmin && (
+                <Link
+                  to="/shoe-sales/item-groups/new"
+                  className="rf-btn-primary inline-flex items-center gap-2 !h-[40px] !px-5 !text-[13px]"
+                >
+                  <Plus size={15} />
+                  <span>New Item Group</span>
+                </Link>
+              )}
+            </div>
           </div>
 
-          <div className="text-xs font-medium text-[#475569]">
+          {/* Subtitle Count Row */}
+          <div className="text-[13px] font-medium text-[#525252] mb-3">
             {totalItems} groups | Showing newest first
           </div>
-        </div>
 
-        <div className="w-full bg-white rounded-none border border-gray-200 shadow-sm overflow-hidden flex flex-col">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead className="bg-[#18181b] text-white">
-                <tr>
-                  <th scope="col" className="py-3.5 px-4 w-12 text-center">
-                    <input
-                      type="checkbox"
-                      className="h-4 w-4 rounded-none border-gray-600 text-[#9B48D7] focus:ring-[#9B48D7] cursor-pointer"
-                      checked={rows.length > 0 && rows.filter(row => row.id && !row.id.startsWith('skeleton-')).every(row => selectedGroups.has(row.id))}
-                      onChange={(e) => handleSelectAll(e.target.checked)}
-                    />
-                  </th>
-                  <th scope="col" className="py-3.5 px-4 text-[11px] font-bold tracking-wider text-white uppercase">
-                    NAME
-                  </th>
-                  <th scope="col" className="py-3.5 px-4 text-right text-[11px] font-bold tracking-wider text-white uppercase">
-                    SKU
-                  </th>
-                  <th scope="col" className="py-3.5 px-4 text-right text-[11px] font-bold tracking-wider text-white uppercase">
-                    STOCK IN HAND
-                  </th>
-                  <th scope="col" className="py-3.5 px-4 text-right text-[11px] font-bold tracking-wider text-white uppercase">
-                    REORDER POINT
-                  </th>
-                </tr>
-              </thead>
-
-              <tbody className="divide-y divide-gray-100 bg-white">
-                {rows.length === 0 && !loading ? (
+          {/* Table Card */}
+          <div className="w-full bg-white rounded-[12px] border border-[#E5E5E5] shadow-[0_1px_2px_rgba(0,0,0,0.02)] overflow-hidden flex flex-col">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead className="bg-[#1B1B1B] text-white">
                   <tr>
-                    <td colSpan={5} className="py-12 text-center">
-                      <div className="flex flex-col items-center gap-3">
-                        <Folder size={48} className="text-gray-300" />
-                        {accessMessage ? (
-                          <>
-                            <p className="text-sm font-medium text-gray-700">Access Restricted</p>
-                            <p className="text-xs text-gray-500 max-w-md">{accessMessage}</p>
-                            <button
-                              onClick={() => navigate("/shoe-sales/items")}
-                              className="mt-2 px-4 py-2 text-sm font-semibold text-white bg-[#9B48D7] rounded-none hover:bg-[#8637c3] transition-colors cursor-pointer"
-                            >
-                              Go to Items Page
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <p className="text-sm font-semibold text-gray-700">
-                              No item groups found
-                            </p>
-                            <p className="text-xs text-gray-400">
-                              {searchTerm ? "Try a different search term" : "Create your first item group to get started"}
-                            </p>
-                          </>
-                        )}
-                      </div>
-                    </td>
+                    <th scope="col" className="py-3.5 px-4 w-12 text-center">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 rounded-[4px] border-gray-500 accent-[#9D43D6] cursor-pointer align-middle"
+                        checked={rows.length > 0 && rows.filter(row => row.id && !row.id.startsWith('skeleton-')).every(row => selectedGroups.has(row.id))}
+                        onChange={(e) => handleSelectAll(e.target.checked)}
+                      />
+                    </th>
+                    <th scope="col" className="py-3.5 px-4 text-[11px] font-semibold tracking-wider text-white uppercase">
+                      NAME
+                    </th>
+                    <th scope="col" className="py-3.5 px-4 text-center text-[11px] font-semibold tracking-wider text-white uppercase w-[18%]">
+                      SKU
+                    </th>
+                    <th scope="col" className="py-3.5 px-4 text-center text-[11px] font-semibold tracking-wider text-white uppercase w-[18%]">
+                      STOCK IN HAND
+                    </th>
+                    <th scope="col" className="py-3.5 px-4 text-center text-[11px] font-semibold tracking-wider text-white uppercase w-[18%]">
+                      REORDER POINT
+                    </th>
                   </tr>
-                ) : (
-                  rows.map((row) => (
-                    <tr key={row.id || row.name} className="h-[60px] hover:bg-gray-50/80 transition-colors">
-                      <td className="py-2.5 px-4 text-center">
-                        {row.id && !row.id.startsWith('skeleton-') ? (
-                          <div className="flex items-center justify-center gap-1">
-                            <input
-                              type="checkbox"
-                              className="h-4 w-4 rounded-none border-gray-300 text-[#9B48D7] focus:ring-[#9B48D7] cursor-pointer"
-                              checked={selectedGroups.has(row.id)}
-                              onChange={(e) => handleCheckboxChange(row.id, e.target.checked)}
-                            />
-                            {isAdmin && selectedGroups.has(row.id) && (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleSingleDelete(row);
-                                }}
-                                className="p-1 rounded-none hover:bg-red-50 text-red-600 transition-colors cursor-pointer"
-                                title="Delete this group"
-                              >
-                                <Trash2 size={14} />
-                              </button>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="inline-block h-4 w-4 rounded-none border border-gray-200 bg-gray-50" />
-                        )}
-                      </td>
-                      <td className="py-2.5 px-4">
-                        {row.isSkeleton ? (
+                </thead>
+
+                <tbody className="divide-y divide-[#F0F0F0] bg-white">
+                  {loading && rows.length === 0 ? (
+                    generateSkeletonRows(6).map((row) => (
+                      <tr key={row.id} className="h-[64px]">
+                        <td className="py-3 px-4 text-center border-r border-[#F5F5F5]">
+                          <span className="inline-block h-4 w-4 rounded-[4px] bg-[#F4F4F5] animate-pulse" />
+                        </td>
+                        <td className="py-3 px-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-none bg-gray-200 animate-pulse shrink-0" />
+                            <div className="w-10 h-10 rounded-[8px] bg-[#ECECEF] animate-pulse shrink-0" />
                             <div className="space-y-1.5">
-                              <div className="h-4 w-32 bg-gray-200 rounded-none animate-pulse" />
-                              <div className="h-3 w-16 bg-gray-100 rounded-none animate-pulse" />
+                              <div className="h-3.5 w-32 bg-[#ECECEF] rounded animate-pulse" />
+                              <div className="h-3 w-16 bg-[#F4F4F5] rounded animate-pulse" />
                             </div>
                           </div>
-                        ) : (
-                          <Link
-                            to={`/shoe-sales/item-groups/${row.id}`}
-                            className="flex items-center gap-3 group cursor-pointer"
-                          >
-                            {row.image ? (
-                              <div className="w-10 h-10 rounded-none bg-white border border-gray-200 flex-shrink-0 flex items-center justify-center overflow-hidden p-0.5 shadow-sm">
-                                <img src={row.image} alt={row.name} className="w-full h-full object-contain" />
-                              </div>
-                            ) : (
-                              <div className="w-10 h-10 rounded-none bg-[#e2e8f0] flex-shrink-0 flex items-center justify-center text-gray-500 group-hover:bg-[#f1e6fa] group-hover:text-[#9B48D7] transition-colors">
-                                <Folder size={18} />
-                              </div>
-                            )}
-                            <div>
-                              <p className="text-sm font-semibold text-gray-900 group-hover:text-[#9B48D7] transition-colors">
-                                {row.name}
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <div className="h-3.5 w-10 bg-[#F4F4F5] rounded animate-pulse mx-auto" />
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <div className="h-3.5 w-10 bg-[#F4F4F5] rounded animate-pulse mx-auto" />
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <div className="h-3.5 w-10 bg-[#F4F4F5] rounded animate-pulse mx-auto" />
+                        </td>
+                      </tr>
+                    ))
+                  ) : rows.length === 0 && !loading ? (
+                    <tr>
+                      <td colSpan={5} className="py-14 text-center">
+                        <div className="flex flex-col items-center gap-3">
+                          <div className="w-12 h-12 rounded-[12px] bg-[#F4F4F5] flex items-center justify-center text-[#A1A1AA]">
+                            <Folder size={24} />
+                          </div>
+                          {accessMessage ? (
+                            <>
+                              <p className="text-[14px] font-semibold text-[#1B1B1B]">Access Restricted</p>
+                              <p className="text-[12px] text-[#7A7A7A] max-w-md">{accessMessage}</p>
+                              <button
+                                onClick={() => navigate("/shoe-sales/items")}
+                                className="rf-btn-primary mt-1 !h-[36px] !px-4 !text-[13px]"
+                              >
+                                Go to Items Page
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <p className="text-[14px] font-semibold text-[#1B1B1B]">
+                                No item groups found
                               </p>
-                              <p className="text-xs text-gray-400">
-                                {row.items || 0} items
+                              <p className="text-[12px] text-[#7A7A7A]">
+                                {searchTerm ? "Try a different search term" : "Create your first item group to get started"}
                               </p>
-                            </div>
-                          </Link>
-                        )}
-                      </td>
-                      <td className="py-2.5 px-4 text-right text-sm text-gray-500">
-                        {row.isSkeleton ? (
-                          <div className="h-4 w-12 bg-gray-200 rounded-none animate-pulse ml-auto" />
-                        ) : (
-                          row.sku || "-"
-                        )}
-                      </td>
-                      <td className="py-2.5 px-4 text-right text-sm font-semibold text-gray-800">
-                        {row.isSkeleton ? (
-                          <div className="h-4 w-10 bg-gray-200 rounded-none animate-pulse ml-auto" />
-                        ) : (
-                          row.stock ?? "-"
-                        )}
-                      </td>
-                      <td className="py-2.5 px-4 text-right text-sm text-gray-500">
-                        {row.isSkeleton ? (
-                          <div className="h-4 w-12 bg-gray-200 rounded-none animate-pulse ml-auto" />
-                        ) : (
-                          row.reorder || "-"
-                        )}
+                            </>
+                          )}
+                        </div>
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-          <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-white">
-            <div className="text-xs text-gray-400">
-              Showing {rows.length > 0 ? ((currentPage - 1) * itemsPerPage + 1) : 0} to {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} groups
+                  ) : (
+                    rows.map((row) => (
+                      <tr key={row.id || row.name} className="h-[64px] hover:bg-[#FAFAFA] transition-colors">
+                        <td className="py-3 px-4 text-center border-r border-[#F5F5F5]">
+                          {row.id && !row.id.startsWith('skeleton-') ? (
+                            <div className="flex items-center justify-center gap-1.5">
+                              <input
+                                type="checkbox"
+                                className="h-4 w-4 rounded-[4px] border-[#D4D4D8] accent-[#9D43D6] cursor-pointer align-middle"
+                                checked={selectedGroups.has(row.id)}
+                                onChange={(e) => handleCheckboxChange(row.id, e.target.checked)}
+                              />
+                              {isAdmin && selectedGroups.has(row.id) && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleSingleDelete(row);
+                                  }}
+                                  className="p-1 rounded-[6px] hover:bg-[#FEF2F2] text-[#DC2626] transition-colors cursor-pointer"
+                                  title="Delete this group"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="inline-block h-4 w-4 rounded-[4px] border border-[#E5E5E5] bg-[#FAFAFA]" />
+                          )}
+                        </td>
+                        <td className="py-3 px-4">
+                          {row.isSkeleton ? (
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-[8px] bg-[#E5E5E5] animate-pulse shrink-0" />
+                              <div className="space-y-1.5">
+                                <div className="h-3.5 w-32 bg-[#E5E5E5] rounded animate-pulse" />
+                                <div className="h-3 w-16 bg-[#F4F4F5] rounded animate-pulse" />
+                              </div>
+                            </div>
+                          ) : (
+                            <Link
+                              to={`/shoe-sales/item-groups/${row.id}`}
+                              className="flex items-center gap-3.5 group cursor-pointer"
+                            >
+                              {row.image ? (
+                                <div className="w-10 h-10 rounded-[8px] bg-[#F4F4F5] border border-[#E5E5E5] flex-shrink-0 flex items-center justify-center overflow-hidden p-0.5">
+                                  <img src={row.image} alt={row.name} className="w-full h-full object-contain rounded-[6px]" />
+                                </div>
+                              ) : (
+                                <div className="w-10 h-10 rounded-[8px] bg-[#D4D4D8]/80 flex-shrink-0 flex items-center justify-center text-[#71717A] group-hover:bg-[#F3E8FF] group-hover:text-[#9D43D6] transition-colors">
+                                  <Folder size={16} className="opacity-60" />
+                                </div>
+                              )}
+                              <div className="min-w-0">
+                                <p className="text-[13px] font-semibold text-[#1B1B1B] group-hover:text-[#9D43D6] transition-colors truncate">
+                                  {row.name}
+                                </p>
+                                <p className="text-[11px] text-[#7A7A7A] mt-0.5">
+                                  {row.items || 0} Items
+                                </p>
+                              </div>
+                            </Link>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-center text-[13px] text-[#525252]">
+                          {row.isSkeleton ? (
+                            <div className="h-3.5 w-12 bg-[#ECECEF] rounded animate-pulse mx-auto" />
+                          ) : (
+                            row.sku || "-"
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-center text-[13px] font-medium text-[#1B1B1B] tabular-nums">
+                          {row.isSkeleton ? (
+                            <div className="h-3.5 w-10 bg-[#ECECEF] rounded animate-pulse mx-auto" />
+                          ) : (
+                            row.stock ?? "-"
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-center text-[13px] text-[#525252]">
+                          {row.isSkeleton ? (
+                            <div className="h-3.5 w-12 bg-[#ECECEF] rounded animate-pulse mx-auto" />
+                          ) : (
+                            row.reorder || "-"
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                disabled={currentPage === 1 || loading}
-                className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:text-black transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-              >
-                ← Previous
-              </button>
-              <div className="flex items-center gap-1">
-                {(() => {
-                  const pages = [];
-                  if (totalPages <= 7) {
-                    for (let i = 1; i <= totalPages; i++) pages.push(i);
-                  } else {
-                    pages.push(1);
-                    if (currentPage > 3) pages.push("...");
-                    const start = Math.max(2, currentPage - 1);
-                    const end = Math.min(totalPages - 1, currentPage + 1);
-                    for (let i = start; i <= end; i++) {
-                      if (!pages.includes(i)) pages.push(i);
-                    }
-                    if (currentPage < totalPages - 2) pages.push("...");
-                    pages.push(totalPages);
-                  }
-                  return pages.map((page, idx) => {
-                    if (page === "...") {
-                      return <span key={`dots-${idx}`} className="px-1 text-xs text-gray-400">...</span>;
-                    }
-                    const isActive = currentPage === page;
-                    return (
-                      <button
-                        key={page}
-                        onClick={() => setCurrentPage(page)}
-                        disabled={loading}
-                        className={`w-8 h-8 rounded-none text-xs font-bold transition-all cursor-pointer flex items-center justify-center ${
-                          isActive
-                            ? "bg-[#18181b] text-white shadow-sm"
-                            : "text-gray-600 hover:text-black hover:bg-gray-100"
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    );
-                  });
-                })()}
+
+            {/* Pagination Footer */}
+            <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3.5 border-t border-[#F0F0F0] bg-white">
+              <div className="text-[12px] text-[#7A7A7A]">
+                Showing {rows.length > 0 ? ((currentPage - 1) * itemsPerPage + 1) : 0} to {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} groups
               </div>
-              <button
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages || loading}
-                className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:text-black transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-              >
-                Next →
-              </button>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1 || loading}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-[13px] font-medium text-[#525252] hover:text-[#1B1B1B] hover:bg-[#F4F4F5] transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  <span>←</span>
+                  <span>Previous</span>
+                </button>
+                <div className="flex items-center gap-1">
+                  {(() => {
+                    const pages = [];
+                    if (totalPages <= 7) {
+                      for (let i = 1; i <= totalPages; i++) pages.push(i);
+                    } else {
+                      pages.push(1);
+                      if (currentPage > 3) pages.push("...");
+                      const start = Math.max(2, currentPage - 1);
+                      const end = Math.min(totalPages - 1, currentPage + 1);
+                      for (let i = start; i <= end; i++) {
+                        if (!pages.includes(i)) pages.push(i);
+                      }
+                      if (currentPage < totalPages - 2) pages.push("...");
+                      pages.push(totalPages);
+                    }
+                    return pages.map((page, idx) => {
+                      if (page === "...") {
+                        return <span key={`dots-${idx}`} className="px-1.5 text-[13px] text-[#7A7A7A]">...</span>;
+                      }
+                      const isActive = currentPage === page;
+                      return (
+                        <button
+                          key={page}
+                          onClick={() => setCurrentPage(page)}
+                          disabled={loading}
+                          className={`w-8 h-8 rounded-[8px] text-[13px] font-semibold transition-all cursor-pointer flex items-center justify-center ${
+                            isActive
+                              ? "bg-[#1B1B1B] text-white shadow-xs"
+                              : "text-[#525252] hover:text-[#1B1B1B] hover:bg-[#F4F4F5]"
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      );
+                    });
+                  })()}
+                </div>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages || loading}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-[13px] font-medium text-[#1B1B1B] hover:bg-[#F4F4F5] transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  <span>Next</span>
+                  <span>→</span>
+                </button>
+              </div>
             </div>
           </div>
+
+          {showDeleteModal && (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-[1px] flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-[16px] border border-[#E5E5E5] shadow-2xl max-w-md w-full overflow-hidden">
+                <div className="p-6">
+                  {deleteStep === 1 ? (
+                    <>
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="flex-shrink-0 w-10 h-10 rounded-[10px] bg-[#FEE2E2] flex items-center justify-center">
+                          <AlertTriangle className="text-[#DC2626]" size={20} />
+                        </div>
+                        <h3 className="text-[16px] font-semibold text-[#1B1B1B]">
+                          Delete {groupsToDelete.length === 1 ? 'Item Group' : `${groupsToDelete.length} Item Groups`}?
+                        </h3>
+                      </div>
+                      <p className="text-[13px] text-[#525252] mb-6 leading-relaxed">
+                        Are you sure you want to delete {groupsToDelete.length === 1 ? 'this item group' : `these ${groupsToDelete.length} item groups`}? 
+                        This action cannot be undone and will also delete all items within {groupsToDelete.length === 1 ? 'this group' : 'these groups'}.
+                      </p>
+                      <div className="flex gap-2.5 justify-end">
+                        <button
+                          onClick={handleCancelDelete}
+                          className="rf-btn-cancel !h-[38px] !px-4 !text-[13px]"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={handleConfirmDeleteStep1}
+                          className="inline-flex items-center justify-center h-[38px] px-4 text-[13px] font-semibold text-white bg-[#DC2626] rounded-[10px] hover:bg-[#B91C1C] transition-colors cursor-pointer"
+                        >
+                          Continue
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="flex-shrink-0 w-10 h-10 rounded-[10px] bg-[#FEE2E2] flex items-center justify-center">
+                          <AlertTriangle className="text-[#DC2626]" size={20} />
+                        </div>
+                        <h3 className="text-[16px] font-semibold text-[#1B1B1B]">
+                          Final Confirmation
+                        </h3>
+                      </div>
+                      <p className="text-[13px] text-[#525252] mb-4 leading-relaxed">
+                        This action cannot be undone. Are you absolutely sure you want to delete {groupsToDelete.length === 1 ? 'this item group' : `these ${groupsToDelete.length} item groups`}?
+                      </p>
+                      {groupsToDelete.length > 0 && (
+                        <div className="mb-5 p-3 bg-[#FAFAFA] border border-[#E5E5E5] rounded-[10px] max-h-40 overflow-y-auto">
+                          <p className="text-[11px] font-semibold text-[#7A7A7A] uppercase tracking-wider mb-2">Item groups to be deleted:</p>
+                          <ul className="text-[12px] text-[#212121] space-y-1">
+                            {groupsToDelete.map((group, idx) => (
+                              <li key={group.id || idx}>
+                                • {group.name} {group.sku ? `(${group.sku})` : ''} - {group.items} items
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      <div className="flex gap-2.5 justify-end">
+                        <button
+                          onClick={() => setDeleteStep(1)}
+                          className="rf-btn-cancel !h-[38px] !px-4 !text-[13px]"
+                          disabled={deleting}
+                        >
+                          Back
+                        </button>
+                        <button
+                          onClick={handleConfirmDeleteStep2}
+                          disabled={deleting}
+                          className="inline-flex items-center justify-center gap-2 h-[38px] px-4 text-[13px] font-semibold text-white bg-[#DC2626] rounded-[10px] hover:bg-[#B91C1C] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                        >
+                          {deleting ? (
+                            <>
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                              Deleting...
+                            </>
+                          ) : (
+                            'Confirm Delete'
+                          )}
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-        {showDeleteModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-none shadow-xl max-w-md w-full mx-4">
-              <div className="p-6">
-                {deleteStep === 1 ? (
-                  <>
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="flex-shrink-0 w-10 h-10 rounded-none bg-red-100 flex items-center justify-center">
-                        <AlertTriangle className="text-red-600" size={20} />
-                      </div>
-                      <h3 className="text-lg font-semibold text-[#1e293b]">
-                        Delete {groupsToDelete.length === 1 ? 'Item Group' : `${groupsToDelete.length} Item Groups`}?
-                      </h3>
-                    </div>
-                    <p className="text-sm text-[#64748b] mb-6">
-                      Are you sure you want to delete {groupsToDelete.length === 1 ? 'this item group' : `these ${groupsToDelete.length} item groups`}? 
-                      This action cannot be undone and will also delete all items within {groupsToDelete.length === 1 ? 'this group' : 'these groups'}.
-                    </p>
-                    <div className="flex gap-3 justify-end">
-                      <button
-                        onClick={handleCancelDelete}
-                        className="px-4 py-2 text-sm font-medium text-[#64748b] bg-white border border-[#e2e8f0] rounded-none hover:bg-[#f8fafc] transition-colors"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={handleConfirmDeleteStep1}
-                        className="px-4 py-2 text-sm font-medium text-white bg-[#dc2626] rounded-none hover:bg-[#b91c1c] transition-colors"
-                      >
-                        Continue
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="flex-shrink-0 w-10 h-10 rounded-none bg-red-100 flex items-center justify-center">
-                        <AlertTriangle className="text-red-600" size={20} />
-                      </div>
-                      <h3 className="text-lg font-semibold text-[#1e293b]">
-                        Final Confirmation
-                      </h3>
-                    </div>
-                    <p className="text-sm text-[#64748b] mb-4">
-                      This action cannot be undone. Are you absolutely sure you want to delete {groupsToDelete.length === 1 ? 'this item group' : `these ${groupsToDelete.length} item groups`}?
-                    </p>
-                    {groupsToDelete.length > 0 && (
-                      <div className="mb-4 p-3 bg-[#f8fafc] rounded-none max-h-40 overflow-y-auto">
-                        <p className="text-xs font-semibold text-[#64748b] mb-2">Item groups to be deleted:</p>
-                        <ul className="text-xs text-[#475569] space-y-1">
-                          {groupsToDelete.map((group, idx) => (
-                            <li key={group.id || idx}>
-                              • {group.name} {group.sku ? `(${group.sku})` : ''} - {group.items} items
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    <div className="flex gap-3 justify-end">
-                      <button
-                        onClick={() => setDeleteStep(1)}
-                        className="px-4 py-2 text-sm font-medium text-[#64748b] bg-white border border-[#e2e8f0] rounded-none hover:bg-[#f8fafc] transition-colors"
-                        disabled={deleting}
-                      >
-                        Back
-                      </button>
-                      <button
-                        onClick={handleConfirmDeleteStep2}
-                        disabled={deleting}
-                        className="px-4 py-2 text-sm font-medium text-white bg-[#dc2626] rounded-none hover:bg-[#b91c1c] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                      >
-                        {deleting ? (
-                          <>
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                            Deleting...
-                          </>
-                        ) : (
-                          'Confirm Delete'
-                        )}
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
       </div>
-    </>
+    </div>
   );
 
 };

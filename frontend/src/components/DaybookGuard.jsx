@@ -9,7 +9,7 @@ const DaybookGuard = ({ user, admin = false, children }) => {
   const role = (user?.role || "").toLowerCase();
   const exempt = !user || admin || power === "admin" || power === "super_admin" || power === "superadmin" ||
     ["admin", "superadmin", "super_admin", "super admin", "cluster_manager", "cluster_admin", "financial_head", "financial_admin"].includes(role);
-  const needsCheck = !exempt && pathname !== "/" && pathname !== "/login";
+  const needsCheck = !exempt && pathname !== "/" && pathname !== "/daybook" && pathname !== "/login";
   const date = previousDaybookDate(daybookToday());
   // The closure status is location/date specific, not page specific. Keeping the
   // pathname out of the key avoids re-checking (and showing the verification
@@ -66,7 +66,7 @@ const DaybookGuard = ({ user, admin = false, children }) => {
         <div className="mt-6 flex justify-center gap-3">
           {state.reason === "missing_yesterday" && (
             // Opens the page in late-close mode for yesterday (see BillWiseIncome `closeDate`).
-            <Link to={`/?closeDate=${date}`} className="rounded-lg bg-purple-600 px-4 py-2 text-white">Close Yesterday's Day Book</Link>
+            <Link to={`/daybook?closeDate=${date}`} className="rounded-lg bg-purple-600 px-4 py-2 text-white">Close Yesterday's Day Book</Link>
           )}
           <button type="button" onClick={checkClosure} className="rounded-lg border px-4 py-2 text-gray-800">
             Check Status Again

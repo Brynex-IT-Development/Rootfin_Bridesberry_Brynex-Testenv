@@ -27,7 +27,7 @@ import { useSidebar } from "../hooks/useSidebar.js";
 import { useActiveStores } from "../utils/storeService.js";
 import { mapLocNameToWarehouse } from "../utils/warehouseMapping.js";
 
-import AppSelect from "../components/AppSelect.jsx";
+import AppSelect, { appSelectStyles } from "../components/AppSelect.jsx";
 // Helper to format currency
 const formatCurrency = (amount) => {
   if (amount === undefined || amount === null || isNaN(amount)) return "₹0.00";

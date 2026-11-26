@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Edit, Printer, ChevronDown, MoreVertical } from "lucide-react";
+import Header from "../components/Header";
 import baseUrl from "../api/api";
 import useSidebar from "../hooks/useSidebar";
 
@@ -110,55 +111,62 @@ const InventoryAdjustmentDetail = () => {
     : adjustment.adjustmentType || "-";
   
   return (
-    <div className={`transition-all duration-300 min-h-screen bg-[#f5f7fb] p-6 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+    <div className="min-h-screen bg-[#FAFAFA] text-[#212121]">
+      <Header title="Adjustment Details" />
+      <div className={`transition-all duration-300 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
+        {/* Clean Page Title Header */}
+        <div className="bg-white px-6 md:px-8 py-4 border-b border-[#E5E5E5] flex items-center justify-between">
+          <h1 className="text-[18px] font-semibold text-[#212121]">Adjustment Details</h1>
+        </div>
+        <div className="p-5 md:p-6">
       {/* Top Bar with Actions */}
-      <div className="mb-4 flex items-center justify-between bg-white rounded-lg border border-[#e2e8f0] px-4 py-3 shadow-sm">
-        <div className="flex items-center gap-3">
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3 bg-white rounded-[12px] border border-[#E5E5E5] px-4 py-3 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+        <div className="flex flex-wrap items-center gap-2.5">
           <Link
             to="/inventory/adjustments"
-            className="inline-flex items-center gap-2 rounded-md border border-[#d4dcf4] bg-white px-3 py-1.5 text-sm font-medium text-[#111827] hover:bg-[#f3f4f6]"
+            className="inline-flex h-[38px] items-center gap-2 rounded-[10px] border border-[#E5E5E5] bg-white px-3.5 text-[13px] font-medium text-[#212121] hover:bg-[#FAFAFA] transition-colors"
           >
-            <ArrowLeft size={16} />
+            <ArrowLeft size={15} />
+            <span>Back</span>
           </Link>
           <Link
             to={`/inventory/adjustments/${id}/edit`}
-            className="inline-flex items-center gap-2 rounded-md border border-[#d4dcf4] bg-white px-3 py-1.5 text-sm font-medium text-[#111827] hover:bg-[#f3f4f6]"
+            className="inline-flex h-[38px] items-center gap-2 rounded-[10px] border border-[#E5E5E5] bg-white px-3.5 text-[13px] font-medium text-[#212121] hover:bg-[#FAFAFA] transition-colors"
           >
-            <Edit size={16} />
-            Edit
+            <Edit size={15} className="text-[#9D43D6]" />
+            <span>Edit</span>
           </Link>
           <button
             onClick={handlePrint}
-            className="inline-flex items-center gap-2 rounded-md border border-[#d4dcf4] bg-white px-3 py-1.5 text-sm font-medium text-[#111827] hover:bg-[#f3f4f6]"
+            className="rf-btn-primary inline-flex items-center gap-2 !h-[38px] !px-4 !text-[13px]"
           >
-            <Printer size={16} />
-            PDF/Print
-            <ChevronDown size={14} />
+            <Printer size={15} />
+            <span>PDF / Print</span>
           </button>
         </div>
         <div className="flex items-center gap-3">
-          <label className="flex items-center gap-2 text-sm text-[#4b5563] cursor-pointer">
+          <label className="flex items-center gap-2 text-[13px] font-medium text-[#525252] cursor-pointer">
             <input
               type="checkbox"
               checked={showPdfView}
               onChange={(e) => setShowPdfView(e.target.checked)}
-              className="h-4 w-4 rounded border-[#d1d5db] text-[#4f46e5] focus:ring-[#4338ca]"
+              className="h-4 w-4 rounded-[4px] border-[#D4D4D8] accent-[#9D43D6] cursor-pointer"
             />
             Show PDF View
           </label>
-          <button className="p-1.5 rounded hover:bg-[#f1f5f9]">
-            <MoreVertical size={16} className="text-[#64748b]" />
+          <button className="p-1.5 rounded-[8px] hover:bg-[#F4F4F5] transition-colors">
+            <MoreVertical size={16} className="text-[#7A7A7A]" />
           </button>
         </div>
       </div>
       
       {/* Document View */}
       {showPdfView && (
-        <div className="bg-white rounded-lg shadow-lg border border-[#e2e8f0] overflow-hidden print:shadow-none print:border-0" style={{ maxWidth: '210mm', margin: '0 auto', position: 'relative' }}>
+        <div className="bg-white rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-[#E5E5E5] overflow-hidden print:shadow-none print:border-0" style={{ maxWidth: '210mm', margin: '0 auto', position: 'relative' }}>
           {/* Status Banner - Diagonal Overlay (Top Left) */}
           {adjustment.status === "adjusted" && (
             <div 
-              className="absolute top-0 left-0 bg-[#2563eb] text-white px-16 py-2 text-xs font-bold uppercase tracking-wider shadow-lg z-10"
+              className="absolute top-0 left-0 bg-[#9D43D6] text-white px-16 py-2 text-xs font-bold uppercase tracking-wider shadow-lg z-10"
               style={{
                 transform: 'rotate(-45deg)',
                 transformOrigin: 'top left',
@@ -171,17 +179,17 @@ const InventoryAdjustmentDetail = () => {
             </div>
           )}
           
-          <div className="p-10 print:p-8" style={{ paddingTop: adjustment.status === "adjusted" ? '60px' : '20px' }}>
+          <div className="p-10 print:p-8" style={{ paddingTop: adjustment.status === "adjusted" ? '60px' : '24px' }}>
             {/* Header with Company Info and Document Title */}
             <div className="mb-8 flex justify-between items-start">
               {/* Company Information (Left) */}
-              <div className="text-sm text-[#111827] space-y-1">
+              <div className="text-[13px] text-[#212121] space-y-1">
                 <div>
-                  <span className="font-semibold">Branch Name: </span>
+                  <span className="font-semibold text-[#525252]">Branch Name: </span>
                   <span>{branchName}</span>
                 </div>
                 <div>
-                  <span className="font-semibold">Created By: </span>
+                  <span className="font-semibold text-[#525252]">Created By: </span>
                   <span>{createdBy}</span>
                 </div>
                 <div className="mt-2">{companyCountry}</div>
@@ -190,68 +198,68 @@ const InventoryAdjustmentDetail = () => {
 
               {/* Document Title (Center) */}
               <div className="flex-1 text-center">
-                <h1 className="text-3xl font-bold text-[#111827]">INVENTORY ADJUSTMENT</h1>
+                <h1 className="text-[24px] font-bold text-[#1B1B1B] tracking-tight">INVENTORY ADJUSTMENT</h1>
               </div>
 
               {/* Adjustment Details (Right) */}
-              <div className="text-sm text-[#111827] space-y-1 text-right">
+              <div className="text-[13px] text-[#212121] space-y-1 text-right">
                 <div>
-                  <span className="font-semibold">Date: </span>
+                  <span className="font-semibold text-[#525252]">Date: </span>
                   <span>{formatDate(adjustment.date)}</span>
                 </div>
                 <div>
-                  <span className="font-semibold">Ref#: </span>
-                  <span>{adjustment.referenceNumber || "-"}</span>
+                  <span className="font-semibold text-[#525252]">Ref#: </span>
+                  <span className="font-semibold text-[#9D43D6]">{adjustment.referenceNumber || "-"}</span>
                 </div>
                 <div>
-                  <span className="font-semibold">Reason: </span>
+                  <span className="font-semibold text-[#525252]">Reason: </span>
                   <span>{adjustment.reason || "-"}</span>
                 </div>
                 <div>
-                  <span className="font-semibold">Account: </span>
+                  <span className="font-semibold text-[#525252]">Account: </span>
                   <span>{adjustment.account || "-"}</span>
                 </div>
                 <div>
-                  <span className="font-semibold">Adjustment Type: </span>
+                  <span className="font-semibold text-[#525252]">Adjustment Type: </span>
                   <span>{adjustmentType}</span>
                 </div>
               </div>
             </div>
 
             {/* Items Table */}
-            <div className="mt-8">
+            <div className="mt-8 rounded-[10px] border border-[#E5E5E5] overflow-hidden">
               <table className="w-full border-collapse">
                 <thead>
-                  <tr className="bg-[#4b5563]">
-                    <th className="border border-[#d1d5db] px-4 py-3 text-left text-xs font-semibold text-white">#</th>
-                    <th className="border border-[#d1d5db] px-4 py-3 text-left text-xs font-semibold text-white">SKU</th>
-                    <th className="border border-[#d1d5db] px-4 py-3 text-left text-xs font-semibold text-white">Item & Description</th>
-                    <th className="border border-[#d1d5db] px-4 py-3 text-right text-xs font-semibold text-white">Quantity Adjusted</th>
-                    <th className="border border-[#d1d5db] px-4 py-3 text-right text-xs font-semibold text-white">Newly Adjusted Stock</th>
+                  <tr className="bg-[#1B1B1B] text-white">
+                    <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider">#</th>
+                    <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider">SKU</th>
+                    <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider">Item & Description</th>
+                    <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider">Quantity Adjusted</th>
+                    <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider">Newly Adjusted Stock</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-[#F0F0F0]">
                   {adjustment.items && adjustment.items.length > 0 ? (
                     adjustment.items.map((item, index) => (
-                      <tr key={index} className="hover:bg-[#f9fafb]">
-                        <td className="border border-[#d1d5db] px-4 py-3 text-sm text-[#111827]">{index + 1}</td>
-                        <td className="border border-[#d1d5db] px-4 py-3 text-sm text-[#111827] font-medium">
+                      <tr key={index} className="hover:bg-[#FAFAFA]">
+                        <td className="px-4 py-3 text-[13px] text-[#525252]">{index + 1}</td>
+                        <td className="px-4 py-3 text-[13px] text-[#1B1B1B] font-mono font-medium">
                           {item.itemSku || "-"}
                         </td>
-                        <td className="border border-[#d1d5db] px-4 py-3 text-sm text-[#111827]">
+                        <td className="px-4 py-3 text-[13px] text-[#1B1B1B]">
                           {item.itemName || "-"}
                         </td>
-                        <td className="border border-[#d1d5db] px-4 py-3 text-sm text-right text-[#111827] font-medium">
+                        <td className="px-4 py-3 text-[13px] text-right text-[#1B1B1B] font-semibold tabular-nums">
                           {parseFloat(item.quantityAdjusted || 0).toFixed(2)} PCS
                         </td>
-                        <td className="border border-[#d1d5db] px-4 py-3 text-sm text-right text-[#111827] font-medium">
+                        <td className="px-4 py-3 text-[13px] text-right text-[#1B1B1B] font-semibold tabular-nums">
                           {parseFloat(item.newQuantity || item.currentQuantity || 0).toFixed(2)} PCS
                         </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="5" className="border border-[#d1d5db] px-4 py-8 text-center text-sm text-[#6b7280]">
+                      <td colSpan="5" className="px-4 py-8 text-center text-[13px] text-[#7A7A7A]">
                         No items found
                       </td>
                     </tr>
@@ -265,84 +273,72 @@ const InventoryAdjustmentDetail = () => {
       
       {/* Non-PDF View (if toggle is off) */}
       {!showPdfView && (
-        <div className="bg-white rounded-lg shadow-lg border border-[#e2e8f0] p-8">
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h1 className="text-2xl font-bold text-[#1e293b]">
-                {adjustment.referenceNumber || "Inventory Adjustment"}
-              </h1>
-              <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
-                adjustment.status === "adjusted"
-                  ? "bg-[#dbeafe] text-[#1e40af]"
-                  : "bg-[#fef3c7] text-[#92400e]"
-              }`}>
-                {adjustment.status === "adjusted" ? "Adjusted" : "Draft"}
-              </span>
-            </div>
+        <div className="bg-white rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-[#E5E5E5] p-6">
+          <div className="flex items-center justify-between mb-5 pb-4 border-b border-[#F0F0F0]">
+            <h1 className="text-[20px] font-bold text-[#1B1B1B]">
+              {adjustment.referenceNumber || "Inventory Adjustment"}
+            </h1>
+            <span className={`inline-flex items-center rounded-[6px] px-3 py-1 text-[12px] font-semibold ${
+              adjustment.status === "adjusted"
+                ? "bg-[#DCFCE7] text-[#16A34A]"
+                : "bg-[#FEF3C7] text-[#B45309]"
+            }`}>
+              {adjustment.status === "adjusted" ? "Adjusted" : "Draft"}
+            </span>
           </div>
           
-          <div className="grid grid-cols-2 gap-6 mb-6">
-            <div>
-              <span className="text-sm font-semibold text-[#64748b]">Date: </span>
-              <span className="text-sm text-[#1e293b]">{formatDate(adjustment.date)}</span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="rounded-[10px] border border-[#EBEBEB] bg-[#FAFAFA] p-3.5">
+              <span className="block text-[11px] font-semibold uppercase tracking-wider text-[#7A7A7A]">Date</span>
+              <span className="text-[13px] font-semibold text-[#1B1B1B] mt-0.5 block">{formatDate(adjustment.date)}</span>
             </div>
-            <div>
-              <span className="text-sm font-semibold text-[#64748b]">Status: </span>
-              <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-semibold ${
-                adjustment.status === "adjusted"
-                  ? "bg-[#dbeafe] text-[#1e40af]"
-                  : "bg-[#fef3c7] text-[#92400e]"
-              }`}>
-                {adjustment.status === "adjusted" ? "Adjusted" : "Draft"}
-              </span>
+            <div className="rounded-[10px] border border-[#EBEBEB] bg-[#FAFAFA] p-3.5">
+              <span className="block text-[11px] font-semibold uppercase tracking-wider text-[#7A7A7A]">Reason</span>
+              <span className="text-[13px] font-semibold text-[#1B1B1B] mt-0.5 block">{adjustment.reason || "-"}</span>
             </div>
-            <div>
-              <span className="text-sm font-semibold text-[#64748b]">Reason: </span>
-              <span className="text-sm text-[#1e293b]">{adjustment.reason || "-"}</span>
+            <div className="rounded-[10px] border border-[#EBEBEB] bg-[#FAFAFA] p-3.5">
+              <span className="block text-[11px] font-semibold uppercase tracking-wider text-[#7A7A7A]">Warehouse</span>
+              <span className="text-[13px] font-semibold text-[#1B1B1B] mt-0.5 block">{adjustment.warehouse || "-"}</span>
             </div>
-            <div>
-              <span className="text-sm font-semibold text-[#64748b]">Warehouse: </span>
-              <span className="text-sm text-[#1e293b]">{adjustment.warehouse || "-"}</span>
+            <div className="rounded-[10px] border border-[#EBEBEB] bg-[#FAFAFA] p-3.5">
+              <span className="block text-[11px] font-semibold uppercase tracking-wider text-[#7A7A7A]">Branch</span>
+              <span className="text-[13px] font-semibold text-[#1B1B1B] mt-0.5 block">{branchName}</span>
             </div>
-            <div>
-              <span className="text-sm font-semibold text-[#64748b]">Branch: </span>
-              <span className="text-sm text-[#1e293b]">{branchName}</span>
-            </div>
-            <div>
-              <span className="text-sm font-semibold text-[#64748b]">Adjustment Type: </span>
-              <span className="text-sm text-[#1e293b]">{adjustmentType}</span>
+            <div className="rounded-[10px] border border-[#EBEBEB] bg-[#FAFAFA] p-3.5">
+              <span className="block text-[11px] font-semibold uppercase tracking-wider text-[#7A7A7A]">Adjustment Type</span>
+              <span className="text-[13px] font-semibold text-[#1B1B1B] mt-0.5 block">{adjustmentType}</span>
             </div>
           </div>
 
-          <div className="mt-6">
-            <h3 className="text-sm font-semibold text-[#64748b] mb-3">Items</h3>
-            <div className="border border-[#e2e8f0] rounded-lg overflow-hidden">
-              <table className="min-w-full divide-y divide-[#e2e8f0]">
-                <thead className="bg-[#f8fafc]">
+          <div className="mt-4">
+            <h3 className="text-[13px] font-semibold text-[#1B1B1B] mb-3">Adjusted Items</h3>
+            <div className="border border-[#E5E5E5] rounded-[12px] overflow-hidden">
+              <table className="min-w-full border-collapse">
+                <thead className="bg-[#1B1B1B] text-white">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[#64748b]">SKU</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-[#64748b]">Item</th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-[#64748b]">Quantity Adjusted</th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-[#64748b]">Newly Adjusted Stock</th>
+                    <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider">SKU</th>
+                    <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider">Item</th>
+                    <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider">Quantity Adjusted</th>
+                    <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider">Newly Adjusted Stock</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#e2e8f0]">
+                <tbody className="divide-y divide-[#F0F0F0]">
                   {adjustment.items && adjustment.items.length > 0 ? (
                     adjustment.items.map((item, index) => (
-                      <tr key={index}>
-                        <td className="px-4 py-3 text-sm font-medium text-[#1e293b]">{item.itemSku || "-"}</td>
-                        <td className="px-4 py-3 text-sm text-[#1e293b]">{item.itemName || "-"}</td>
-                        <td className="px-4 py-3 text-sm text-right text-[#1e293b]">
+                      <tr key={index} className="hover:bg-[#FAFAFA]">
+                        <td className="px-4 py-3 text-[13px] font-mono font-medium text-[#1B1B1B]">{item.itemSku || "-"}</td>
+                        <td className="px-4 py-3 text-[13px] text-[#212121]">{item.itemName || "-"}</td>
+                        <td className="px-4 py-3 text-[13px] text-right font-medium text-[#1B1B1B] tabular-nums">
                           {parseFloat(item.quantityAdjusted || 0).toFixed(2)} PCS
                         </td>
-                        <td className="px-4 py-3 text-sm text-right text-[#1e293b] font-medium">
+                        <td className="px-4 py-3 text-[13px] text-right font-semibold text-[#1B1B1B] tabular-nums">
                           {parseFloat(item.newQuantity || item.currentQuantity || 0).toFixed(2)} PCS
                         </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="4" className="px-4 py-8 text-center text-sm text-[#64748b]">
+                      <td colSpan="4" className="px-4 py-8 text-center text-[13px] text-[#7A7A7A]">
                         No items found
                       </td>
                     </tr>
@@ -353,6 +349,8 @@ const InventoryAdjustmentDetail = () => {
           </div>
         </div>
       )}
+        </div>
+      </div>
     </div>
   );
 };

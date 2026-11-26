@@ -83,22 +83,22 @@ const CompactDropdown = ({ value, onChange, options, placeholder = "Select...", 
         zIndex: 999999,
       }}
     >
-      <div className="rounded-none shadow-lg bg-white border border-gray-300 overflow-hidden animate-in fade-in duration-100">
-        <div className="flex items-center gap-2 border-b border-gray-200 px-3 py-2 bg-gray-50">
-          <Search size={13} className="text-gray-400" />
+      <div className="rounded-[10px] shadow-xl bg-white border border-[#E5E5E5] overflow-hidden animate-in fade-in duration-100">
+        <div className="flex items-center gap-2 border-b border-[#F0F0F0] px-3 py-2 bg-[#FAFAFA]">
+          <Search size={13} className="text-[#7A7A7A]" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search..."
-            className="h-7 w-full border-none bg-transparent text-xs text-gray-800 outline-none placeholder:text-gray-400"
+            className="h-7 w-full border-none bg-transparent text-[13px] text-[#212121] outline-none placeholder:text-[#A1A1AA]"
             onClick={(e) => e.stopPropagation()}
             autoFocus
           />
         </div>
-        <div className="py-1 max-h-[220px] overflow-y-auto" style={{ scrollbarWidth: "thin" }}>
+        <div className="py-1 max-h-[220px] overflow-y-auto rf-select__menu-list" style={{ scrollbarWidth: "thin" }}>
           {filteredOptions.length === 0 ? (
-            <div className="px-3 py-2 text-xs text-gray-400 text-center">No options found</div>
+            <div className="px-3 py-2.5 text-[12px] text-[#7A7A7A] text-center">No options found</div>
           ) : (
             filteredOptions.map((option) => {
               const isSelected = option === value;
@@ -110,10 +110,10 @@ const CompactDropdown = ({ value, onChange, options, placeholder = "Select...", 
                     setIsOpen(false);
                     setSearchTerm("");
                   }}
-                  className={`px-3.5 py-2.5 text-xs cursor-pointer transition-colors ${
+                  className={`px-3.5 py-2 text-[13px] cursor-pointer transition-colors ${
                     isSelected
-                      ? "bg-purple-50 text-purple-700 font-semibold"
-                      : "text-gray-700 hover:bg-gray-50"
+                      ? "bg-[#9D43D6] text-white font-medium"
+                      : "text-[#212121] hover:bg-[#F3E8FF] hover:text-[#9D43D6]"
                   }`}
                 >
                   {option}
@@ -132,12 +132,16 @@ const CompactDropdown = ({ value, onChange, options, placeholder = "Select...", 
         <div
           ref={buttonRef}
           onClick={toggleDropdown}
-          className="w-full h-[42px] rounded-none border border-gray-300 bg-white text-xs text-gray-800 focus-within:border-purple-600 focus-within:ring-1 focus-within:ring-purple-600 transition-colors cursor-pointer px-3.5 flex items-center justify-between"
+          className={`w-full h-[40px] rounded-[10px] border bg-white text-[13px] transition-colors cursor-pointer pl-3.5 pr-2.5 flex items-center justify-between ${
+            isOpen ? "border-[#9D43D6] ring-2 ring-[#9D43D6]/15" : "border-[#E5E5E5] hover:border-[#D4D4D8]"
+          }`}
         >
-          <span className={`truncate ${!value ? "text-gray-400" : "text-gray-900 font-medium"}`}>
+          <span className={`truncate pr-2 ${!value ? "text-[#A1A1AA]" : "text-[#212121] font-medium"}`}>
             {selectedLabel}
           </span>
-          <ChevronDown size={15} className="text-gray-400 shrink-0 pointer-events-none" />
+          <div className="flex items-center pl-2.5 border-l border-[#E5E5E5] h-[22px] shrink-0">
+            <ChevronDown size={15} className={`text-[#525252] transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
+          </div>
         </div>
       </div>
       {typeof document !== "undefined" && document.body && createPortal(dropdownPortal, document.body)}
@@ -396,24 +400,24 @@ const ItemDropdown = ({ rowId, value, onChange, warehouse, onStockFetched, userW
         zIndex: 999999,
       }}
     >
-      <div className="rounded-none shadow-lg bg-white border border-gray-300 overflow-hidden animate-in fade-in duration-100">
-        <div className="flex items-center gap-2 border-b border-gray-200 px-3 py-2 bg-gray-50">
-          <Search size={13} className="text-gray-400" />
+      <div className="rounded-[10px] shadow-xl bg-white border border-[#E5E5E5] overflow-hidden animate-in fade-in duration-100">
+        <div className="flex items-center gap-2 border-b border-[#F0F0F0] px-3 py-2 bg-[#FAFAFA]">
+          <Search size={13} className="text-[#7A7A7A]" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Type or search item..."
-            className="h-7 w-full border-none bg-transparent text-xs text-gray-800 outline-none placeholder:text-gray-400"
+            className="h-7 w-full border-none bg-transparent text-[13px] text-[#212121] outline-none placeholder:text-[#A1A1AA]"
             onClick={(e) => e.stopPropagation()}
             autoFocus
           />
         </div>
-        <div className="py-1 max-h-[300px] overflow-y-auto" style={{ scrollbarWidth: "thin" }}>
+        <div className="py-1 max-h-[300px] overflow-y-auto rf-select__menu-list" style={{ scrollbarWidth: "thin" }}>
           {loading ? (
-            <div className="px-4 py-6 text-center text-xs text-gray-400">Loading items...</div>
+            <div className="px-4 py-6 text-center text-[12px] text-[#7A7A7A]">Loading items...</div>
           ) : filteredItems.length === 0 ? (
-            <div className="px-4 py-6 text-center text-xs text-gray-400">
+            <div className="px-4 py-6 text-center text-[12px] text-[#7A7A7A]">
               {searchTerm ? "No matching items found" : "No items available"}
             </div>
           ) : (
@@ -425,21 +429,21 @@ const ItemDropdown = ({ rowId, value, onChange, warehouse, onStockFetched, userW
                 <div
                   key={item._id}
                   onClick={() => handleSelectItem(item)}
-                  className={`px-3.5 py-2.5 cursor-pointer transition-colors border-b border-gray-100 flex items-center justify-between ${
-                    isSelected ? "bg-purple-50 text-purple-900" : "hover:bg-gray-50 text-gray-800"
+                  className={`px-3.5 py-2.5 cursor-pointer transition-colors border-b border-[#F4F4F5] flex items-center justify-between ${
+                    isSelected ? "bg-[#F3E8FF] text-[#6D2898]" : "hover:bg-[#FAFAFA] text-[#212121]"
                   }`}
                 >
                   <div>
-                    <div className="font-semibold text-xs text-gray-900">
+                    <div className="font-semibold text-[13px] text-[#1B1B1B]">
                       {item.itemName || item.name || "Unnamed Item"}
                     </div>
-                    <div className="text-[11px] text-gray-500 mt-0.5">
-                      {item.isFromGroup && <span className="text-purple-600 font-medium">[{item.groupName}] </span>}
+                    <div className="text-[11px] text-[#7A7A7A] mt-0.5">
+                      {item.isFromGroup && <span className="text-[#9D43D6] font-medium">[{item.groupName}] </span>}
                       SKU: {item.sku || "—"}
                     </div>
                   </div>
                   {item.costPrice !== undefined && (
-                    <div className="text-xs font-semibold text-gray-600">
+                    <div className="text-[12px] font-semibold text-[#525252]">
                       ₹{parseFloat(item.costPrice || 0).toFixed(2)}
                     </div>
                   )}
@@ -462,7 +466,7 @@ const ItemDropdown = ({ rowId, value, onChange, warehouse, onStockFetched, userW
           readOnly
           placeholder="Type of click to select an item"
           value={selectedItem ? (selectedItem.itemName || selectedItem.name || "") : ""}
-          className="w-full h-[42px] rounded-none border border-gray-300 bg-white text-xs text-gray-800 placeholder:text-gray-400 focus:border-purple-600 focus:outline-none focus:ring-1 focus:ring-purple-600 transition-colors cursor-pointer px-3.5"
+          className="rf-input !h-[40px] cursor-pointer bg-white"
         />
       </div>
       {typeof document !== "undefined" && document.body && createPortal(dropdownPortal, document.body)}
@@ -910,373 +914,377 @@ const InventoryAdjustmentCreate = () => {
   
   if (loading) {
     return (
-      <div className={`transition-all duration-300 p-8 bg-[#f8f9fa] min-h-screen flex items-center justify-center ${isSidebarOpen ? "ml-64" : "ml-0"}`}>
-        <div className="text-gray-500 text-sm flex items-center gap-2">
-          <RefreshCw size={16} className="animate-spin text-purple-600" />
-          <span>Loading adjustment...</span>
+      <div className="min-h-screen bg-[#FAFAFA]">
+        <Header title={isEditMode ? "Edit Adjustment" : "New Adjustment"} />
+        <div className={`transition-all duration-300 p-8 min-h-screen flex items-center justify-center ${isSidebarOpen ? "ml-[240px]" : "ml-0"}`}>
+          <div className="text-[#7A7A7A] text-[13px] flex items-center gap-2">
+            <RefreshCw size={16} className="animate-spin text-[#9D43D6]" />
+            <span>Loading adjustment...</span>
+          </div>
         </div>
       </div>
     );
   }
   
   return (
-    <>
-      <Header title="Inventory Adjustments" />
-      <div className={`inventory-adjustment-wrapper transition-all duration-300 min-h-screen bg-[#f8f9fa] p-8 ${isSidebarOpen ? "ml-64" : "ml-0"}`}>
-
-      {/* Top Header Actions Bar */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <button
-            type="button"
-            onClick={() => navigate("/inventory/adjustments")}
-            className="h-[42px] px-4 border border-gray-300 text-gray-700 bg-[#f3f4f6] rounded-none text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-none"
-          >
-            <ChevronLeft size={16} />
-            <span>Back to Inventory List</span>
-          </button>
+    <div className="min-h-screen bg-[#FAFAFA] text-[#212121]">
+      <Header title={isEditMode ? "Edit Adjustment" : "New Adjustment"} />
+      <div className={`inventory-adjustment-wrapper transition-all duration-300 ${isSidebarOpen ? "ml-[240px]" : "ml-0"}`}>
+        {/* Clean Page Title Header */}
+        <div className="bg-white px-6 md:px-8 py-4 border-b border-[#E5E5E5] flex items-center justify-between">
+          <h1 className="text-[18px] font-semibold text-[#212121]">
+            {isEditMode ? "Edit Adjustment" : "New Adjustment"}
+          </h1>
         </div>
-        <div className="flex items-center gap-2.5">
-          <button
-            type="button"
-            onClick={() => navigate("/inventory/adjustments")}
-            className="h-[42px] px-5 border border-gray-300 text-gray-700 bg-[#f3f4f6] rounded-none text-xs font-semibold cursor-pointer shadow-none"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={() => handleSave("draft")}
-            disabled={saving}
-            className="h-[42px] px-5 border border-gray-300 text-gray-700 bg-[#f3f4f6] rounded-none text-xs font-semibold flex items-center gap-2 cursor-pointer disabled:opacity-50 shadow-none"
-          >
-            <FileText size={15} className="text-gray-600" />
-            <span>Save as Draft</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => handleSave("adjusted")}
-            disabled={saving}
-            className="h-[42px] px-6 bg-[#9333ea] text-white rounded-none text-xs font-semibold cursor-pointer disabled:opacity-50 shadow-none"
-          >
-            {saving ? "Saving..." : "Convert to Adjusted"}
-          </button>
-        </div>
-      </div>
-
-      {/* Main Details Card */}
-      <div className="bg-white rounded-none border border-gray-200 shadow-sm p-7 space-y-6 mb-6">
-        {/* Mode of Adjustment Selector */}
-        <div className="flex items-center gap-6 text-xs text-gray-700 font-medium">
-          <span className="font-semibold text-gray-800">Mode of Adjustment :</span>
-          <label className="inline-flex items-center gap-2 cursor-pointer">
-            <input
-              type="radio"
-              name="adjustmentType"
-              value="quantity"
-              checked={adjustmentType === "quantity"}
-              onChange={(e) => setAdjustmentType(e.target.value)}
-              className="accent-purple-600 cursor-pointer w-4 h-4"
-            />
-            <span>Quantity Adjustment</span>
-          </label>
-          <label className="inline-flex items-center gap-2 cursor-pointer">
-            <input
-              type="radio"
-              name="adjustmentType"
-              value="value"
-              checked={adjustmentType === "value"}
-              onChange={(e) => setAdjustmentType(e.target.value)}
-              className="accent-purple-600 cursor-pointer w-4 h-4"
-            />
-            <span>Value Adjustment</span>
-          </label>
-        </div>
-
-        {/* Form Fields: Row 1 */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {/* Reference Number */}
-          <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-              Reference Number
-            </label>
-            <div className="relative flex items-center">
-              <input
-                type="text"
-                value={referenceNumberLoading ? "Generating..." : (referenceNumber || "")}
-                onChange={(e) => setReferenceNumber(e.target.value)}
-                placeholder="IA-00043"
-                disabled={referenceNumberLoading}
-                className="w-full h-[42px] rounded-none border border-gray-300 bg-white pl-3.5 pr-10 text-xs text-gray-900 font-semibold tracking-wide focus:border-purple-600 focus:outline-none focus:ring-1 focus:ring-purple-600 transition-colors"
-              />
+        <div className="p-5 md:p-6">
+          {/* Top Header Actions Bar */}
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+            <div>
               <button
                 type="button"
-                onClick={handleRegenerateReferenceNumber}
-                disabled={referenceNumberLoading}
-                className="absolute right-1.5 top-1.5 bottom-1.5 px-2 bg-purple-50 hover:bg-purple-100 active:bg-purple-200 text-purple-700 flex items-center justify-center transition-all cursor-pointer disabled:opacity-50 border border-purple-200 group"
-                title="Generate new reference number"
+                onClick={() => navigate("/inventory/adjustments")}
+                className="h-[40px] px-4 rounded-[10px] border border-[#E5E5E5] bg-white hover:bg-[#FAFAFA] text-[#212121] text-[13px] font-medium inline-flex items-center gap-1.5 cursor-pointer transition-colors"
               >
-                <RefreshCw
-                  size={14}
-                  className={`transition-transform duration-300 group-hover:rotate-180 ${
-                    referenceNumberLoading ? "animate-spin" : ""
-                  }`}
-                />
+                <ChevronLeft size={15} className="text-[#525252]" />
+                <span>Back to Inventory List</span>
+              </button>
+            </div>
+            <div className="flex flex-wrap items-center gap-2.5">
+              <button
+                type="button"
+                onClick={() => navigate("/inventory/adjustments")}
+                className="rf-btn-cancel !h-[40px] !px-4 !text-[13px]"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSave("draft")}
+                disabled={saving}
+                className="h-[40px] px-4 rounded-[10px] border border-[#E5E5E5] bg-white hover:bg-[#FAFAFA] text-[#212121] text-[13px] font-medium inline-flex items-center gap-2 cursor-pointer disabled:opacity-50 transition-colors"
+              >
+                <FileText size={15} className="text-[#9D43D6]" />
+                <span>Save as Draft</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSave("adjusted")}
+                disabled={saving}
+                className="rf-btn-primary !h-[40px] !px-5 !text-[13px]"
+              >
+                {saving ? "Saving..." : "Convert to Adjusted"}
               </button>
             </div>
           </div>
 
-          {/* Date */}
-          <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-              Date <span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                required
-                className="w-full h-[42px] rounded-none border border-gray-300 bg-white px-3.5 text-xs text-gray-900 focus:border-purple-600 focus:outline-none focus:ring-1 focus:ring-purple-600 cursor-pointer"
+          {/* Main Details Card */}
+          <div className="bg-white rounded-[16px] border border-[#E5E5E5] shadow-[0_2px_10px_rgba(0,0,0,0.03)] p-6 space-y-5 mb-5">
+            {/* Mode of Adjustment Selector */}
+            <div className="flex flex-wrap items-center gap-6 text-[13px] text-[#212121]">
+              <span className="font-semibold text-[#1B1B1B]">Mode of Adjustment :</span>
+              <label className="inline-flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="adjustmentType"
+                  value="quantity"
+                  checked={adjustmentType === "quantity"}
+                  onChange={(e) => setAdjustmentType(e.target.value)}
+                  className="accent-[#9D43D6] cursor-pointer w-4 h-4"
+                />
+                <span className="font-medium text-[#212121]">Quantity Adjustment</span>
+              </label>
+              <label className="inline-flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="adjustmentType"
+                  value="value"
+                  checked={adjustmentType === "value"}
+                  onChange={(e) => setAdjustmentType(e.target.value)}
+                  className="accent-[#9D43D6] cursor-pointer w-4 h-4"
+                />
+                <span className="font-medium text-[#212121]">Value Adjustment</span>
+              </label>
+            </div>
+
+            {/* Form Fields: Row 1 */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {/* Reference Number */}
+              <div>
+                <label className="rf-field-label">Reference Number</label>
+                <div className="flex items-center gap-2.5">
+                  <button
+                    type="button"
+                    onClick={handleRegenerateReferenceNumber}
+                    disabled={referenceNumberLoading}
+                    className="w-[40px] h-[40px] rounded-[10px] bg-[#9D43D6] hover:bg-[#8732BE] text-white flex items-center justify-center shrink-0 transition-colors cursor-pointer disabled:opacity-50 group shadow-xs"
+                    title="Generate new reference number"
+                  >
+                    <RefreshCw
+                      size={15}
+                      className={`transition-transform duration-300 group-hover:rotate-180 ${
+                        referenceNumberLoading ? "animate-spin" : ""
+                      }`}
+                    />
+                  </button>
+                  <input
+                    type="text"
+                    value={referenceNumberLoading ? "Generating..." : (referenceNumber || "")}
+                    onChange={(e) => setReferenceNumber(e.target.value)}
+                    placeholder="IA-00043"
+                    disabled={referenceNumberLoading}
+                    className="rf-input !h-[40px] font-medium"
+                  />
+                </div>
+              </div>
+
+              {/* Date */}
+              <div>
+                <label className="rf-field-label">
+                  Date <span className="text-[#EF4444]">*</span>
+                </label>
+                <input
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  required
+                  className="rf-input !h-[40px] cursor-pointer"
+                />
+              </div>
+
+              {/* Account */}
+              <div>
+                <label className="rf-field-label">
+                  Account <span className="text-[#EF4444]">*</span>
+                </label>
+                <CompactDropdown
+                  value={account}
+                  onChange={(e) => setAccount(e.target.value)}
+                  options={accountOptions}
+                  placeholder="Select Account"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Form Fields: Row 2 */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {/* Reason */}
+              <div>
+                <label className="rf-field-label">
+                  Reason <span className="text-[#EF4444]">*</span>
+                </label>
+                <CompactDropdown
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  options={reasonOptions}
+                  placeholder="Select Reason"
+                  required
+                />
+              </div>
+
+              {/* Branch */}
+              <div>
+                <label className="rf-field-label">
+                  Branch <span className="text-[#EF4444]">*</span>
+                </label>
+                <CompactDropdown
+                  value={branch}
+                  onChange={(e) => setBranch(e.target.value)}
+                  options={branchOptions}
+                  placeholder="Select Branch"
+                  required
+                />
+              </div>
+
+              {/* Warehouse */}
+              <div>
+                <label className="rf-field-label">
+                  Warehouse <span className="text-[#EF4444]">*</span>
+                </label>
+                <CompactDropdown
+                  value={warehouse}
+                  onChange={(e) => setWarehouse(e.target.value)}
+                  options={warehouseOptions}
+                  placeholder="Select Warehouse"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Description */}
+            <div className="w-full md:w-1/2">
+              <label className="rf-field-label">Description</label>
+              <textarea
+                rows={4}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="w-full rounded-[10px] border border-[#E5E5E5] bg-white p-3.5 text-[13px] text-[#212121] placeholder:text-[#A1A1AA] focus:border-[#9D43D6] focus:outline-none focus:ring-2 focus:ring-[#9D43D6]/15 transition-colors resize-none"
+                placeholder="Enter description"
+                maxLength={500}
               />
+              <div className="text-[11px] text-[#7A7A7A] text-right mt-1">
+                Maximum 500 characters
+              </div>
             </div>
           </div>
 
-          {/* Account */}
-          <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-              Account <span className="text-red-500">*</span>
-            </label>
-            <CompactDropdown
-              value={account}
-              onChange={(e) => setAccount(e.target.value)}
-              options={accountOptions}
-              placeholder="Select Account"
-              required
-            />
-          </div>
-        </div>
+          {/* Items Details Table Card */}
+          <div className="bg-white rounded-[12px] border border-[#E5E5E5] shadow-[0_1px_2px_rgba(0,0,0,0.02)] overflow-hidden mb-6">
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-[#1B1B1B] text-white">
+                    <th className="px-4 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider">
+                      ITEM DETAILS
+                    </th>
+                    <th className="px-4 py-3.5 text-center text-[11px] font-semibold uppercase tracking-wider">
+                      QUANTITY AVAILABLE
+                    </th>
+                    {adjustmentType === "quantity" ? (
+                      <>
+                        <th className="px-4 py-3.5 text-center text-[11px] font-semibold uppercase tracking-wider">
+                          NEW QUANTITY ON HAND
+                        </th>
+                        <th className="px-4 py-3.5 text-center text-[11px] font-semibold uppercase tracking-wider">
+                          QUANTITY ADJUSTED
+                        </th>
+                      </>
+                    ) : (
+                      <>
+                        <th className="px-4 py-3.5 text-center text-[11px] font-semibold uppercase tracking-wider">
+                          NEW QUANTITY ON HAND
+                        </th>
+                        <th className="px-4 py-3.5 text-center text-[11px] font-semibold uppercase tracking-wider">
+                          UNIT COST
+                        </th>
+                        <th className="px-4 py-3.5 text-center text-[11px] font-semibold uppercase tracking-wider">
+                          NEW VALUE
+                        </th>
+                        <th className="px-4 py-3.5 text-center text-[11px] font-semibold uppercase tracking-wider">
+                          VALUE ADJUSTED
+                        </th>
+                      </>
+                    )}
+                    <th className="px-3 py-3.5 w-14 text-center"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#F0F0F0] bg-white">
+                  {tableRows.map((row) => (
+                    <tr key={row.id} className="hover:bg-[#FAFAFA]/70 transition-colors">
+                      {/* ITEM DETAILS */}
+                      <td className="px-4 py-3.5 align-middle min-w-[280px] border-r border-[#F5F5F5]">
+                        <ItemDropdown
+                          rowId={row.id}
+                          value={row.item}
+                          onChange={(item) => handleItemSelect(row.id, item)}
+                          warehouse={warehouse}
+                          onStockFetched={handleStockFetched(row.id)}
+                          userWarehouse={userWarehouse}
+                          isAdmin={isAdmin}
+                          selectedWarehouse={warehouse}
+                        />
+                      </td>
 
-        {/* Form Fields: Row 2 */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {/* Reason */}
-          <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-              Reason <span className="text-red-500">*</span>
-            </label>
-            <CompactDropdown
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              options={reasonOptions}
-              placeholder="Select Reason"
-              required
-            />
-          </div>
+                      {/* QUANTITY AVAILABLE */}
+                      <td className="px-4 py-3.5 text-center align-middle text-[13px] font-medium text-[#1B1B1B] tabular-nums border-r border-[#F5F5F5]">
+                        {row.currentQuantity !== undefined ? row.currentQuantity : 0}
+                      </td>
 
-          {/* Branch */}
-          <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-              Branch <span className="text-red-500">*</span>
-            </label>
-            <CompactDropdown
-              value={branch}
-              onChange={(e) => setBranch(e.target.value)}
-              options={branchOptions}
-              placeholder="Select Branch"
-              required
-            />
-          </div>
+                      {adjustmentType === "quantity" ? (
+                        <>
+                          {/* NEW QUANTITY ON HAND */}
+                          <td className="px-4 py-3.5 align-middle border-r border-[#F5F5F5]">
+                            <input
+                              type="number"
+                              value={row.newQuantity !== undefined ? row.newQuantity : ""}
+                              onChange={(e) => handleNewQuantityChange(row.id, e.target.value)}
+                              placeholder="0"
+                              className="rf-input !h-[40px] max-w-[180px] mx-auto block text-center font-medium tabular-nums"
+                            />
+                          </td>
 
-          {/* Warehouse */}
-          <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-              Warehouse <span className="text-red-500">*</span>
-            </label>
-            <CompactDropdown
-              value={warehouse}
-              onChange={(e) => setWarehouse(e.target.value)}
-              options={warehouseOptions}
-              placeholder="Select Warehouse"
-              required
-            />
-          </div>
-        </div>
+                          {/* QUANTITY ADJUSTED */}
+                          <td className="px-4 py-3.5 align-middle border-r border-[#F5F5F5]">
+                            <input
+                              type="number"
+                              value={row.quantityAdjusted !== undefined ? row.quantityAdjusted : ""}
+                              onChange={(e) => handleQuantityAdjustedChange(row.id, e.target.value)}
+                              placeholder="0"
+                              className="rf-input !h-[40px] max-w-[180px] mx-auto block text-center font-medium tabular-nums"
+                            />
+                          </td>
+                        </>
+                      ) : (
+                        <>
+                          {/* NEW QUANTITY ON HAND */}
+                          <td className="px-4 py-3.5 align-middle border-r border-[#F5F5F5]">
+                            <input
+                              type="number"
+                              value={row.newQuantity !== undefined ? row.newQuantity : ""}
+                              onChange={(e) => handleNewQuantityChange(row.id, e.target.value)}
+                              placeholder="0"
+                              className="rf-input !h-[40px] max-w-[130px] mx-auto block text-center font-medium tabular-nums"
+                            />
+                          </td>
 
-        {/* Description */}
-        <div>
-          <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-            Description
-          </label>
-          <textarea
-            rows={3}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="w-full rounded-none border border-gray-300 bg-white p-3.5 text-xs text-gray-900 placeholder:text-gray-400 focus:border-purple-600 focus:outline-none focus:ring-1 focus:ring-purple-600"
-            placeholder="Enter description"
-            maxLength={500}
-          />
-          <div className="text-[11px] text-gray-400 text-right mt-1">
-            Maximum 500 characters
+                          {/* UNIT COST */}
+                          <td className="px-4 py-3.5 align-middle border-r border-[#F5F5F5]">
+                            <input
+                              type="number"
+                              value={row.unitCost !== undefined ? row.unitCost : ""}
+                              onChange={(e) => handleUnitCostChange(row.id, e.target.value)}
+                              placeholder="0.00"
+                              className="rf-input !h-[40px] max-w-[130px] mx-auto block text-center font-medium tabular-nums"
+                            />
+                          </td>
+
+                          {/* NEW VALUE */}
+                          <td className="px-4 py-3.5 text-center align-middle text-[13px] font-medium text-[#212121] tabular-nums border-r border-[#F5F5F5]">
+                            {row.newValue || "0.00"}
+                          </td>
+
+                          {/* VALUE ADJUSTED */}
+                          <td className="px-4 py-3.5 text-center align-middle text-[13px] font-medium text-[#212121] tabular-nums border-r border-[#F5F5F5]">
+                            {row.valueAdjusted || "0.00"}
+                          </td>
+                        </>
+                      )}
+
+                      {/* ACTIONS */}
+                      <td className="px-3 py-3.5 align-middle text-center">
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteRow(row.id)}
+                          className="w-[36px] h-[36px] rounded-[8px] bg-[#FEF2F2] hover:bg-[#FEE2E2] border border-[#FECACA]/60 text-[#EF4444] flex items-center justify-center mx-auto cursor-pointer transition-colors"
+                          title="Delete Row"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Below Table Actions */}
+            <div className="px-4 py-3.5 bg-white border-t border-[#F0F0F0] flex flex-wrap items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={handleAddRow}
+                className="h-[38px] px-4 rounded-[10px] bg-[#F3F4F6] hover:bg-[#E5E7EB] text-[#212121] text-[13px] font-medium inline-flex items-center gap-1.5 cursor-pointer transition-colors"
+              >
+                <Plus size={15} className="text-[#525252]" />
+                <span>New Row</span>
+              </button>
+              <span className="text-[12px] text-[#7A7A7A]">
+                All price exclude local tax
+              </span>
+            </div>
           </div>
         </div>
       </div>
-
-      {/* Items Details Table Card */}
-      <div className="bg-white rounded-none border border-gray-200 shadow-sm overflow-hidden mb-6">
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="bg-[#181920] text-white">
-                <th className="px-4 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider">
-                  ITEM DETAILS
-                </th>
-                <th className="px-4 py-3.5 text-center text-[11px] font-bold uppercase tracking-wider">
-                  QUANTITY AVAILABLE
-                </th>
-                {adjustmentType === "quantity" ? (
-                  <>
-                    <th className="px-4 py-3.5 text-center text-[11px] font-bold uppercase tracking-wider">
-                      NEW QUANTITY ON HAND
-                    </th>
-                    <th className="px-4 py-3.5 text-center text-[11px] font-bold uppercase tracking-wider">
-                      QUANTITY ADJUSTED
-                    </th>
-                  </>
-                ) : (
-                  <>
-                    <th className="px-4 py-3.5 text-center text-[11px] font-bold uppercase tracking-wider">
-                      NEW QUANTITY ON HAND
-                    </th>
-                    <th className="px-4 py-3.5 text-center text-[11px] font-bold uppercase tracking-wider">
-                      UNIT COST
-                    </th>
-                    <th className="px-4 py-3.5 text-center text-[11px] font-bold uppercase tracking-wider">
-                      NEW VALUE
-                    </th>
-                    <th className="px-4 py-3.5 text-center text-[11px] font-bold uppercase tracking-wider">
-                      VALUE ADJUSTED
-                    </th>
-                  </>
-                )}
-                <th className="px-3 py-3.5 w-14 text-center"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200 bg-white">
-              {tableRows.map((row) => (
-                <tr key={row.id} className="hover:bg-gray-50/70 transition-colors">
-                  {/* ITEM DETAILS */}
-                  <td className="px-4 py-3 align-middle min-w-[280px]">
-                    <ItemDropdown
-                      rowId={row.id}
-                      value={row.item}
-                      onChange={(item) => handleItemSelect(row.id, item)}
-                      warehouse={warehouse}
-                      onStockFetched={handleStockFetched(row.id)}
-                      userWarehouse={userWarehouse}
-                      isAdmin={isAdmin}
-                      selectedWarehouse={warehouse}
-                    />
-                  </td>
-
-                  {/* QUANTITY AVAILABLE */}
-                  <td className="px-4 py-3 text-center align-middle text-xs font-semibold text-gray-800">
-                    {row.currentQuantity !== undefined ? row.currentQuantity : 0}
-                  </td>
-
-                  {adjustmentType === "quantity" ? (
-                    <>
-                      {/* NEW QUANTITY ON HAND */}
-                      <td className="px-4 py-3 align-middle">
-                        <input
-                          type="number"
-                          value={row.newQuantity !== undefined ? row.newQuantity : ""}
-                          onChange={(e) => handleNewQuantityChange(row.id, e.target.value)}
-                          placeholder="0"
-                          className="w-full max-w-[140px] mx-auto block h-[42px] rounded-none border border-gray-300 bg-white text-center text-xs text-gray-900 font-medium focus:border-purple-600 focus:outline-none focus:ring-1 focus:ring-purple-600"
-                        />
-                      </td>
-
-                      {/* QUANTITY ADJUSTED */}
-                      <td className="px-4 py-3 align-middle">
-                        <input
-                          type="number"
-                          value={row.quantityAdjusted !== undefined ? row.quantityAdjusted : ""}
-                          onChange={(e) => handleQuantityAdjustedChange(row.id, e.target.value)}
-                          placeholder="0"
-                          className="w-full max-w-[140px] mx-auto block h-[42px] rounded-none border border-gray-300 bg-white text-center text-xs text-gray-900 font-medium focus:border-purple-600 focus:outline-none focus:ring-1 focus:ring-purple-600"
-                        />
-                      </td>
-                    </>
-                  ) : (
-                    <>
-                      {/* NEW QUANTITY ON HAND */}
-                      <td className="px-4 py-3 align-middle">
-                        <input
-                          type="number"
-                          value={row.newQuantity !== undefined ? row.newQuantity : ""}
-                          onChange={(e) => handleNewQuantityChange(row.id, e.target.value)}
-                          placeholder="0"
-                          className="w-full max-w-[120px] mx-auto block h-[42px] rounded-none border border-gray-300 bg-white text-center text-xs text-gray-900 font-medium focus:border-purple-600 focus:outline-none focus:ring-1 focus:ring-purple-600"
-                        />
-                      </td>
-
-                      {/* UNIT COST */}
-                      <td className="px-4 py-3 align-middle">
-                        <input
-                          type="number"
-                          value={row.unitCost !== undefined ? row.unitCost : ""}
-                          onChange={(e) => handleUnitCostChange(row.id, e.target.value)}
-                          placeholder="0.00"
-                          className="w-full max-w-[120px] mx-auto block h-[42px] rounded-none border border-gray-300 bg-white text-center text-xs text-gray-900 font-medium focus:border-purple-600 focus:outline-none focus:ring-1 focus:ring-purple-600"
-                        />
-                      </td>
-
-                      {/* NEW VALUE */}
-                      <td className="px-4 py-3 text-center align-middle text-xs font-semibold text-gray-700">
-                        {row.newValue || "0.00"}
-                      </td>
-
-                      {/* VALUE ADJUSTED */}
-                      <td className="px-4 py-3 text-center align-middle text-xs font-semibold text-gray-700">
-                        {row.valueAdjusted || "0.00"}
-                      </td>
-                    </>
-                  )}
-
-                  {/* ACTIONS */}
-                  <td className="px-3 py-3 align-middle text-center">
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteRow(row.id)}
-                      className="w-[38px] h-[38px] rounded-none bg-red-50 text-red-500 flex items-center justify-center mx-auto cursor-pointer"
-                      title="Delete Row"
-                    >
-                      <Trash2 size={15} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Below Table Actions */}
-        <div className="p-4 bg-white border-t border-gray-200 flex items-center justify-between">
-          <button
-            type="button"
-            onClick={handleAddRow}
-            className="h-[42px] px-4 border border-gray-300 bg-white text-gray-700 rounded-none text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-none"
-          >
-            <Plus size={15} className="text-gray-600" />
-            <span>New Row</span>
-          </button>
-          <span className="text-xs text-gray-400 font-normal">
-            All price exclude local tax
-          </span>
-        </div>
-      </div>
-      </div>
-    </>
+    </div>
   );
 };
 
