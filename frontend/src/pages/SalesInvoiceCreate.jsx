@@ -9,6 +9,7 @@ import { mapLocNameToWarehouse } from "../utils/warehouseMapping";
 import { getActiveStores } from "../utils/storeService";
 import useSidebar from "../hooks/useSidebar";
 
+import AppSelect from "../components/AppSelect.jsx";
 // Utility function to round to 2 decimal places without floating-point errors
 // This fixes issues like 9999.99 showing as 9999.989999 or 100.01 instead of 100.00
 const round2 = (num) => {
@@ -3148,7 +3149,7 @@ Customer Service Available`;
   const Select = ({ className = "", ...props }) => {
     const baseClasses = "w-full rounded-lg border border-[#e5e7eb] bg-white text-sm text-[#111827] hover:border-[#9ca3af] focus:border-[#9ca3af] focus:outline-none focus:ring-0 transition-all cursor-pointer px-3 py-2.5 appearance-none bg-no-repeat bg-right pr-10";
     return (
-      <select
+      <AppSelect
         {...props}
         className={`${baseClasses} ${className}`}
         style={{
@@ -3347,7 +3348,7 @@ Customer Service Available`;
                         />
                       ) : (
                         <div className="relative">
-                          <select
+                          <AppSelect
                             value={branch}
                             onChange={(e) => {
                               const b = e.target.value;
@@ -3366,11 +3367,8 @@ Customer Service Available`;
                                 <option key={name} value={name}>{name}</option>
                               ));
                             })()}
-                          </select>
-                          <ChevronDown
-                            size={16}
-                            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6B7280]"
-                          />
+                          </AppSelect>
+                          
                         </div>
                       )}
                     </div>
@@ -3380,17 +3378,14 @@ Customer Service Available`;
                         Category <span className="text-red-500">*</span>
                       </label>
                       <div className="relative">
-                        <select
+                        <AppSelect
                           value="Income"
                           disabled
                           className="w-full h-[42px] appearance-none rounded-none border border-[#E5E7EB] bg-[#F9FAFB] px-3.5 pr-8 text-sm text-[#111827] cursor-not-allowed"
                         >
                           <option value="Income">Income</option>
-                        </select>
-                        <ChevronDown
-                          size={16}
-                          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6B7280]"
-                        />
+                        </AppSelect>
+                        
                       </div>
                     </div>
                   </div>

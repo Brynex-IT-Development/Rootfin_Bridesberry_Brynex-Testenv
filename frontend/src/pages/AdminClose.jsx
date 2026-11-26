@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useEnterToSave } from "../hooks/useEnterToSave";
 import Select from "react-select";
+import { appSelectStyles } from "../components/AppSelect.jsx";
 import Header from "../components/Header";
 import baseUrl from "../api/api";
 import { Helmet } from "react-helmet";
-import { Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
 import { useSidebar } from "../hooks/useSidebar.js";
 import { fetchActiveStores, getActiveStores } from "../utils/storeService.js";
 
@@ -19,42 +20,6 @@ const formatLocationName = (name) => {
 
 // Fallback locations (empty - dynamic active stores only)
 const fallbackLocations = [];
-
-// Custom React-Select styles for clean modern UI
-const customSelectStyles = {
-  control: (provided, state) => ({
-    ...provided,
-    backgroundColor: "#ffffff",
-    borderColor: state.isFocused ? "#9333ea" : "#d1d5db",
-    borderRadius: "0.5rem",
-    padding: "2px 4px",
-    minHeight: "42px",
-    boxShadow: state.isFocused ? "0 0 0 2px rgba(147, 51, 234, 0.2)" : "none",
-    "&:hover": {
-      borderColor: "#9ca3af",
-    },
-    fontSize: "0.875rem",
-    color: "#1f2937",
-    cursor: "pointer",
-  }),
-  option: (provided, state) => ({
-    ...provided,
-    backgroundColor: state.isSelected
-      ? "#9333ea"
-      : state.isFocused
-      ? "#f3e8ff"
-      : "#ffffff",
-    color: state.isSelected ? "#ffffff" : "#374151",
-    fontSize: "0.875rem",
-    cursor: "pointer",
-  }),
-  menu: (provided) => ({
-    ...provided,
-    borderRadius: "0.5rem",
-    boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
-    zIndex: 50,
-  }),
-};
 
 const AdminClose = () => {
   const [selectedLocation, setSelectedLocation] = useState(null);
@@ -215,7 +180,7 @@ const AdminClose = () => {
         <title>Admin Close | RootFin</title>
       </Helmet>
 
-      <div className="min-h-screen bg-[#f8f9fa]">
+      <div className="min-h-screen bg-[#FFFFFF]">
         <Header title="Admin Close" />
 
         <div
@@ -223,163 +188,130 @@ const AdminClose = () => {
             isSidebarOpen ? "ml-[240px]" : "ml-0"
           }`}
         >
-          <div className="p-6 md:p-8 space-y-6 max-w-5xl mx-auto">
-            {/* Page Header */}
-            <div>
-              <h1 className="text-xl font-bold text-gray-900 uppercase tracking-wide">
-                Admin Close
-              </h1>
-              <p className="text-sm text-gray-500 mt-1">
-                Record and manage daily cash &amp; bank closing summaries by store location
-              </p>
-            </div>
+          {/* Clean Page Title Header */}
+          <div className="bg-white px-8 py-4 border-b border-[#E5E5E5] flex items-center justify-between">
+            <h1 className="text-[18px] font-semibold text-[#212121]">Admin Close</h1>
+          </div>
 
+          {/* Form Section */}
+          <div className="bg-white px-8 py-7 max-w-[1400px] space-y-6">
             {/* Edit Mode Alert Banner */}
             {isEditMode && (
-              <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl shadow-xs flex items-center gap-3">
-                <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0" />
-                <div>
-                  <p className="text-sm font-semibold text-amber-900">
-                    Edit Mode Active
-                  </p>
-                  <p className="text-xs text-amber-700 mt-0.5">
-                    Updating existing closing data for{" "}
-                    <span className="font-semibold">{selectedLocation?.label}</span> on{" "}
-                    <span className="font-semibold">{cashDate}</span>.
-                  </p>
+              <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-3">
+                <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                <div className="text-xs text-amber-900">
+                  <span className="font-semibold">Edit Mode Active:</span>{" "}
+                  Updating existing closing data for{" "}
+                  <span className="font-semibold">{selectedLocation?.label}</span> on{" "}
+                  <span className="font-semibold">{cashDate}</span>.
                 </div>
               </div>
             )}
 
-            {/* Main Card */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200/80 p-6 md:p-8 space-y-6">
-              {/* Location Selector */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-gray-600 tracking-wide uppercase">
-                  Location
-                </label>
+            {/* Row 1: Location & Cash Date */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Location */}
+              <div className="rf-form-field !mb-0">
+                <label className="rf-field-label">Location</label>
                 <Select
+                  classNamePrefix="rf-select"
                   options={AllLocations}
                   value={selectedLocation}
                   onChange={setSelectedLocation}
-                  placeholder="Select a location..."
-                  styles={customSelectStyles}
+                  placeholder="Select Location"
+                  styles={appSelectStyles}
                   isSearchable
                 />
               </div>
 
-              {/* Grid Form Fields */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Cash Date */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-gray-600 tracking-wide uppercase">
-                    Cash Date
-                  </label>
+              {/* Cash Date */}
+              <div className="rf-form-field !mb-0">
+                <label className="rf-field-label">Cash Date</label>
+                <input
+                  type="date"
+                  value={cashDate}
+                  onChange={(e) => setCashDate(e.target.value)}
+                  className="rf-input"
+                />
+              </div>
+            </div>
+
+            {/* Row 2: Cash (Calculated Closing), Closing Cash (Physical Count), Bank */}
+            {loadingData ? (
+              <div className="py-8 flex items-center gap-2.5 text-[#6A6A6A]">
+                <Loader2 className="w-5 h-5 animate-spin text-[#9D43D6]" />
+                <p className="text-[13px]">Loading existing closing data...</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Cash (Calculated Closing) */}
+                <div className="rf-form-field !mb-0">
+                  <label className="rf-field-label">Cash (Calculated Closing)</label>
                   <input
-                    type="date"
-                    value={cashDate}
-                    onChange={(e) => setCashDate(e.target.value)}
-                    className="w-full px-3.5 py-2.5 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 shadow-sm transition-all"
+                    type="number"
+                    step="0.01"
+                    value={cash}
+                    onChange={(e) => setCash(e.target.value)}
+                    placeholder="Enter calculated closing cash"
+                    className="rf-input"
                   />
+                  <p className="text-[11px] text-[#6A6A6A] mt-1.5">
+                    Opening + Day's transactions (for next day opening)
+                  </p>
                 </div>
 
-                {loadingData ? (
-                  <div className="col-span-1 md:col-span-2 py-8 flex flex-col items-center justify-center gap-2 text-gray-500">
-                    <Loader2 className="w-6 h-6 animate-spin text-purple-600" />
-                    <p className="text-sm">Loading existing closing data...</p>
-                  </div>
-                ) : (
+                {/* Closing Cash (Physical Count) */}
+                <div className="rf-form-field !mb-0">
+                  <label className="rf-field-label">Closing Cash (Physical Count)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={closingCash}
+                    onChange={(e) => setClosingCash(e.target.value)}
+                    placeholder="Enter physical cash counted"
+                    className="rf-input"
+                  />
+                  <p className="text-[11px] text-[#6A6A6A] mt-1.5">
+                    Actual cash counted from denominations
+                  </p>
+                </div>
+
+                {/* Bank */}
+                <div className="rf-form-field !mb-0">
+                  <label className="rf-field-label">Bank</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={bank}
+                    onChange={(e) => setBank(e.target.value)}
+                    placeholder="Enter bank amount"
+                    className="rf-input"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Row 3: Save Close Button */}
+            <div className="pt-2 flex items-center justify-start">
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={loading || loadingData}
+                className={
+                  loading || loadingData
+                    ? "rf-btn-disabled !px-6"
+                    : "rf-btn-primary cursor-pointer !px-6"
+                }
+              >
+                {loading ? (
                   <>
-                    {/* Cash (Calculated Closing) */}
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-semibold text-gray-600 tracking-wide uppercase">
-                        Cash (Calculated Closing)
-                      </label>
-                      <div className="relative">
-                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-semibold">
-                          ₹
-                        </span>
-                        <input
-                          type="number"
-                          step="0.01"
-                          value={cash}
-                          onChange={(e) => setCash(e.target.value)}
-                          placeholder="Enter calculated closing cash"
-                          className="w-full pl-8 pr-3.5 py-2.5 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 shadow-sm transition-all"
-                        />
-                      </div>
-                      <p className="text-xs text-gray-400 mt-0.5">
-                        Opening + Day's transactions (for next day opening)
-                      </p>
-                    </div>
-
-                    {/* Closing Cash (Physical Count) */}
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-semibold text-gray-600 tracking-wide uppercase">
-                        Closing Cash (Physical Count)
-                      </label>
-                      <div className="relative">
-                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-semibold">
-                          ₹
-                        </span>
-                        <input
-                          type="number"
-                          step="0.01"
-                          value={closingCash}
-                          onChange={(e) => setClosingCash(e.target.value)}
-                          placeholder="Enter physical cash counted"
-                          className="w-full pl-8 pr-3.5 py-2.5 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 shadow-sm transition-all"
-                        />
-                      </div>
-                      <p className="text-xs text-gray-400 mt-0.5">
-                        Actual cash counted from physical denominations
-                      </p>
-                    </div>
-
-                    {/* Bank */}
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-semibold text-gray-600 tracking-wide uppercase">
-                        Bank
-                      </label>
-                      <div className="relative">
-                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-semibold">
-                          ₹
-                        </span>
-                        <input
-                          type="number"
-                          step="0.01"
-                          value={bank}
-                          onChange={(e) => setBank(e.target.value)}
-                          placeholder="Enter bank amount"
-                          className="w-full pl-8 pr-3.5 py-2.5 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 shadow-sm transition-all"
-                        />
-                      </div>
-                    </div>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Saving...</span>
                   </>
+                ) : (
+                  <span>{isEditMode ? "Update Close" : "Save Close"}</span>
                 )}
-              </div>
-
-              {/* Action Button */}
-              <div className="pt-4 border-t border-gray-100 flex items-center justify-start">
-                <button
-                  type="button"
-                  onClick={handleSubmit}
-                  disabled={loading || loadingData}
-                  className="px-8 py-3 rounded-lg bg-[#9333ea] hover:bg-[#7e22ce] active:bg-[#6b21a8] text-white text-sm font-semibold shadow-sm hover:shadow transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Saving...</span>
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 className="w-4 h-4" />
-                      <span>{isEditMode ? "Update Close" : "Save Close"}</span>
-                    </>
-                  )}
-                </button>
-              </div>
+              </button>
             </div>
           </div>
         </div>

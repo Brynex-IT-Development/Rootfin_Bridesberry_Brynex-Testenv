@@ -7,6 +7,7 @@ import { SYSTEM_ROLES, normalizeRole, getRoleLabel } from "../utils/roleUtils";
 import { fetchActiveStores, saveCustomStore, removeCustomStore } from "../utils/storeService";
 import Header from "../components/Header.jsx";
 
+import AppSelect from "../components/AppSelect.jsx";
 const ROLE_GROUPS = [
     { key: "super_admin", label: "SUPER ADMIN" },
     { key: "admin", label: "ADMIN" },
@@ -544,7 +545,7 @@ const ExistingUsers = () => {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-xs font-semibold text-gray-600 uppercase mb-1.5">User Role</label>
-                                            <select
+                                            <AppSelect
                                                 value={editRole}
                                                 onChange={(e) => {
                                                     setEditRole(e.target.value);
@@ -570,7 +571,7 @@ const ExistingUsers = () => {
                                                 <option value="cluster_admin">Cluster Admin</option>
                                                 <option value="store_admin">Store Admin</option>
                                                 <option value="normal_user">Normal User</option>
-                                            </select>
+                                            </AppSelect>
                                         </div>
                                         <div>
                                             <label className="block text-xs font-semibold text-gray-600 uppercase mb-1.5">
@@ -647,7 +648,7 @@ const ExistingUsers = () => {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-xs font-semibold text-gray-600 uppercase mb-1.5">User Role</label>
-                                            <select
+                                            <AppSelect
                                                 value={editRole}
                                                 onChange={(e) => {
                                                     setEditRole(e.target.value);
@@ -665,7 +666,7 @@ const ExistingUsers = () => {
                                                 <option value="cluster_admin">Cluster Admin</option>
                                                 <option value="store_admin">Store Admin</option>
                                                 <option value="normal_user">Normal User</option>
-                                            </select>
+                                            </AppSelect>
                                         </div>
                                         <div>
                                             <label className="block text-xs font-semibold text-gray-600 uppercase mb-1.5">Email Address *</label>
@@ -767,7 +768,7 @@ const ExistingUsers = () => {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-xs font-semibold text-gray-600 uppercase mb-1.5">User Role</label>
-                                            <select
+                                            <AppSelect
                                                 value={editRole}
                                                 onChange={(e) => {
                                                     setEditRole(e.target.value);
@@ -786,7 +787,7 @@ const ExistingUsers = () => {
                                                 <option value="cluster_admin">Cluster Admin</option>
                                                 <option value="store_admin">Store Admin</option>
                                                 <option value="normal_user">Normal User</option>
-                                            </select>
+                                            </AppSelect>
                                         </div>
                                         <div>
                                             <label className="block text-xs font-semibold text-gray-600 uppercase mb-1.5">Email Address *</label>

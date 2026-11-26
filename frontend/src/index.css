@@ -1227,3 +1227,22 @@ html body.sidebar-open [class*="ml-[290px]"]:not(nav *):not(.rf-sidebar *) {
   margin-left: 240px !important;
   transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
+
+/* Standardized Dropdown Menu Scrollbar (matching Day Book Category dropdown) */
+.rf-select__menu-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.rf-select__menu-list::-webkit-scrollbar-track {
+  background: #f8fafc;
+}
+
+.rf-select__menu-list::-webkit-scrollbar-thumb {
+  background: #c4c4c4;
+  border-radius: 9999px;
+  border: 2px solid #f8fafc;
+}
+
+.rf-select__menu-list::-webkit-scrollbar-thumb:hover {
+  background: #a3a3a3;
+}

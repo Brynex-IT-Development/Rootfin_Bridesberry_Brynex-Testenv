@@ -457,7 +457,7 @@ const InventoryAdjustments = () => {
                 />
               </div>
 
-              <Select
+              <Select classNamePrefix="rf-select"
                 value={{ value: filters.type, label: filters.type === 'All' ? 'Type: All' : filters.type }}
                 onChange={(opt) => setFilters({ ...filters, type: opt.value })}
                 options={[
@@ -465,10 +465,10 @@ const InventoryAdjustments = () => {
                   { value: "Quantity", label: "Quantity" },
                   { value: "Value", label: "Value" }
                 ]}
-                styles={customSelectStyles}
+                styles={appSelectStyles}
                 isSearchable={false}
               />
-              <Select
+              <Select classNamePrefix="rf-select"
                 value={{ value: filters.status, label: filters.status === 'All' ? 'Status: All' : filters.status }}
                 onChange={(opt) => setFilters({ ...filters, status: opt.value })}
                 options={[
@@ -476,10 +476,10 @@ const InventoryAdjustments = () => {
                   { value: "Draft", label: "Draft" },
                   { value: "Adjusted", label: "Adjusted" }
                 ]}
-                styles={customSelectStyles}
+                styles={appSelectStyles}
                 isSearchable={false}
               />
-              <Select
+              <Select classNamePrefix="rf-select"
                 value={{ value: filters.period, label: filters.period === 'All' ? 'Period: All' : filters.period }}
                 onChange={(opt) => setFilters({ ...filters, period: opt.value })}
                 options={[
@@ -488,7 +488,7 @@ const InventoryAdjustments = () => {
                   { value: "Last Month", label: "Last Month" },
                   { value: "This Year", label: "This Year" }
                 ]}
-                styles={customSelectStyles}
+                styles={appSelectStyles}
                 isSearchable={false}
               />
             </div>

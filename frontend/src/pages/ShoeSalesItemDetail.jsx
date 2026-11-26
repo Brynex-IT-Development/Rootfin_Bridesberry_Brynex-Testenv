@@ -27,6 +27,7 @@ import ImageUpload from "../components/ImageUpload";
 import AttachmentDisplay from "../components/AttachmentDisplay";
 import useSidebar from "../hooks/useSidebar";
 
+import AppSelect from "../components/AppSelect.jsx";
 const API_ROOT = (baseUrl?.baseUrl || "").replace(/\/$/, "");
 
 const unitOptions = [
@@ -1955,7 +1956,7 @@ const ShoeSalesItemDetail = () => {
                     <span className="text-red-500">*</span>
                     <Info size={14} className="inline ml-1 text-[#94a3b8]" />
                   </label>
-                  <select
+                  <AppSelect
                     value={newGroupUnit}
                     onChange={(e) => setNewGroupUnit(e.target.value)}
                     className="w-full px-4 py-2 border border-[#d7dcf5] rounded-lg text-sm text-[#1f2937] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -1967,7 +1968,7 @@ const ShoeSalesItemDetail = () => {
                         {unit}
                       </option>
                     ))}
-                  </select>
+                  </AppSelect>
                 </div>
                 <div>
                   <label className="flex items-center gap-2 cursor-pointer">
@@ -1992,7 +1993,7 @@ const ShoeSalesItemDetail = () => {
                 <label className="block text-sm font-medium text-[#475569] mb-2">
                   Select Group
                 </label>
-                <select
+                <AppSelect
                   value={selectedTargetGroupId}
                   onChange={(e) => setSelectedTargetGroupId(e.target.value)}
                   className="w-full px-4 py-2 border border-[#d7dcf5] rounded-lg text-sm text-[#1f2937] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -2004,7 +2005,7 @@ const ShoeSalesItemDetail = () => {
                       {group.name}
                     </option>
                   ))}
-                </select>
+                </AppSelect>
                 {loadingGroups && (
                   <p className="text-xs text-[#64748b] mt-2">Loading groups...</p>
                 )}

@@ -7,6 +7,7 @@ import baseUrl from "../api/api";
 import { mapLocNameToWarehouse } from "../utils/warehouseMapping";
 import useSidebar from "../hooks/useSidebar";
 
+import AppSelect from "../components/AppSelect.jsx";
 const StoreOrders = () => {
   const isSidebarOpen = useSidebar();
   const navigate = useNavigate();
@@ -626,7 +627,7 @@ const StoreOrders = () => {
                       </td>
                       <td className="px-4 py-2.5 whitespace-nowrap text-sm border-r border-[#f1f5f9]" onClick={(e) => e.stopPropagation()}>
                         <div className="relative inline-block">
-                          <select
+                          <AppSelect
                             value={order.status || "pending"}
                             disabled={updatingStatus.has(order._id || order.id)}
                             onChange={(e) => {
@@ -656,7 +657,7 @@ const StoreOrders = () => {
                             <option value="approved">Approved</option>
                             <option value="rejected">Rejected</option>
                             <option value="transferred">Transferred</option>
-                          </select>
+                          </AppSelect>
                         </div>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-right font-semibold text-[#1f2937] border-r border-[#f1f5f9]">

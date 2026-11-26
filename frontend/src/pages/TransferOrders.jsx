@@ -7,6 +7,7 @@ import baseUrl from "../api/api";
 import { mapLocNameToWarehouse } from "../utils/warehouseMapping";
 import useSidebar from "../hooks/useSidebar";
 
+import AppSelect from "../components/AppSelect.jsx";
 const PERIOD_OPTIONS = [
   { label: "30 Days", value: 30 },
   { label: "90 Days", value: 90 },
@@ -367,7 +368,7 @@ const TransferOrders = () => {
     const id = order._id || order.id;
     return (
       <div className="relative inline-flex items-center">
-        <select
+        <AppSelect
           value={order.status}
           onChange={(e) => handleStatusChange(id, e.target.value)}
           disabled={updatingStatus.has(id)}
@@ -376,8 +377,8 @@ const TransferOrders = () => {
           <option value="draft">Draft</option>
           <option value="in_transit">In Transit</option>
           <option value="transferred">Transferred</option>
-        </select>
-        <ChevronDown size={11} className={`pointer-events-none absolute right-1.5 ${s.text}`} />
+        </AppSelect>
+        
       </div>
     );
   };
@@ -446,7 +447,7 @@ const TransferOrders = () => {
           <div className="flex items-center gap-2">
             <span className="text-[11px] font-medium text-[#64748b]">Transfer Period</span>
             <div className="relative">
-              <select
+              <AppSelect
                 value={transferPeriod}
                 onChange={(e) => setTransferPeriod(Number(e.target.value))}
                 className="appearance-none h-7 pl-2.5 pr-7 text-[11px] font-semibold border border-[#e2e8f0] bg-white text-[#374151] rounded-md focus:outline-none focus:ring-1 focus:ring-[#9B48D7] cursor-pointer"
@@ -454,8 +455,8 @@ const TransferOrders = () => {
                 {PERIOD_OPTIONS.map((o) => (
                   <option key={o.value} value={o.value}>{o.label}</option>
                 ))}
-              </select>
-              <ChevronDown size={11} className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[#6b7280]" />
+              </AppSelect>
+              
             </div>
           </div>
 

@@ -11,6 +11,7 @@ import { useSidebar } from "../hooks/useSidebar.js";
 import { getActiveStores } from "../utils/storeService.js";
 import { mapLocNameToWarehouse } from "../utils/warehouseMapping.js";
 
+import AppSelect from "../components/AppSelect.jsx";
 // Helper to format currency
 const formatCurrency = (amount) => {
   if (amount === undefined || amount === null || isNaN(amount)) return "₹0.00";
@@ -463,7 +464,7 @@ const InventoryReport = () => {
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <span className="text-gray-600">Items per page:</span>
-            <select
+            <AppSelect
               value={itemsPerPage}
               onChange={(e) => {
                 const val = e.target.value === "all" ? "all" : Number(e.target.value);
@@ -477,7 +478,7 @@ const InventoryReport = () => {
               <option value={50}>50</option>
               <option value={100}>100</option>
               <option value="all">All</option>
-            </select>
+            </AppSelect>
           </div>
 
           {itemsPerPage !== "all" && totalPages > 1 && (
@@ -545,7 +546,7 @@ const InventoryReport = () => {
                       Store
                     </label>
                     {canChooseStore ? (
-                      <Select
+                      <Select classNamePrefix="rf-select"
                         options={
                           isClusterManager
                             ? [
@@ -565,7 +566,7 @@ const InventoryReport = () => {
                         onChange={(opt) => setSelectedStore(opt.value)}
                         isSearchable
                         placeholder="Select Store..."
-                        styles={customSelectStyles}
+                        styles={appSelectStyles}
                       />
                     ) : (
                       <div className="px-3.5 py-2 text-sm text-gray-800 bg-gray-50 border border-gray-300 rounded-lg">
@@ -579,11 +580,11 @@ const InventoryReport = () => {
                     <label className="text-xs font-semibold text-gray-600 tracking-wide">
                       Report Type
                     </label>
-                    <Select
+                    <Select classNamePrefix="rf-select"
                       options={reportTypeOptions}
                       value={reportTypeOptions.find((r) => r.value === reportType)}
                       onChange={(opt) => setReportType(opt.value)}
-                      styles={customSelectStyles}
+                      styles={appSelectStyles}
                     />
                   </div>
 
@@ -593,11 +594,11 @@ const InventoryReport = () => {
                       <label className="text-xs font-semibold text-gray-600 tracking-wide">
                         Category
                       </label>
-                      <Select
+                      <Select classNamePrefix="rf-select"
                         options={categoryOptions}
                         value={categoryOptions.find((c) => c.value === selectedCategory)}
                         onChange={(opt) => setSelectedCategory(opt.value)}
-                        styles={customSelectStyles}
+                        styles={appSelectStyles}
                       />
                     </div>
                   )}

@@ -3,9 +3,7 @@ import { CSVLink } from "react-csv";
 import { Helmet } from "react-helmet";
 import { useNavigate } from "react-router-dom";
 import {
-  ChevronDown,
   Download,
-  Menu,
   Plus,
   RotateCcw,
   Search,
@@ -15,8 +13,8 @@ import baseUrl from "../api/api";
 import { useSidebar } from "../hooks/useSidebar.js";
 import { useActiveStores } from "../utils/storeService.js";
 import { filterAdminOnlyTransactions } from "../utils/adminTransactionVisibility.js";
-import Breadcrumbs from "../components/Breadcrumbs.jsx";
-
+import Header from "../components/Header.jsx";
+import AppSelect from "../components/AppSelect.jsx";
 const toDateInput = (date = new Date()) =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 
@@ -253,297 +251,266 @@ export default function RecordExpenses() {
         <title>Record Expense | RootFin</title>
       </Helmet>
 
-      <main
-        className={`min-h-screen bg-[#fafafb] transition-all duration-300 ${
-          isSidebarOpen ? "md:ml-64" : "ml-0"
-        }`}
-      >
-        <div className="w-full px-5 py-7 sm:px-8 lg:px-12">
-          <Breadcrumbs currentTitle="Record Expense" className="mb-4" />
-          <div className="mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-            <div className="flex min-w-0 items-center gap-3">
-              <button
-                type="button"
-                onClick={() =>
-                  window.dispatchEvent(new CustomEvent("toggle-sidebar"))
-                }
-                className="rounded-xl border border-gray-200 bg-white p-3 text-slate-700 shadow-sm transition hover:bg-slate-50"
-                aria-label="Toggle sidebar"
-              >
-                <Menu size={20} />
-              </button>
-              <div className="relative w-full sm:w-80">
-                <Search
-                  size={18}
-                  className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
-                />
+      <div className="min-h-screen bg-[#FFFFFF]">
+        <Header title="Record Expense" />
+
+        <main
+          className={`transition-all duration-300 ${
+            isSidebarOpen ? "ml-[240px]" : "ml-0"
+          }`}
+        >
+          <div className="w-full max-w-[1440px] px-8 py-6">
+            {/* Row 1: Search Input + New Expense Button */}
+            <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
+              <div className="relative w-full sm:w-[270px]">
+                <div className="pointer-events-none absolute inset-y-0 left-0 pl-3.5 flex items-center">
+                  <Search size={15} className="text-[#212121]" />
+                  <span className="h-4 w-[1px] bg-[#E5E5E5] ml-2.5" />
+                </div>
                 <input
                   type="search"
                   value={searchTerm}
                   onChange={(event) => setSearchTerm(event.target.value)}
-                  placeholder="Search expenses"
-                  className="w-full rounded-xl border border-gray-200 bg-white py-3 pl-10 pr-4 text-sm text-slate-800 shadow-sm outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
+                  placeholder="Search by name or sku"
+                  className="rf-input !pl-12"
                 />
+              </div>
+
+              <div className="flex items-center gap-2.5">
+                <CSVLink
+                  data={csvData}
+                  filename={`expense-records-${dateFrom}-to-${dateTo}.csv`}
+                  className="rf-btn-secondary h-[40px]"
+                  title="Download CSV"
+                >
+                  <Download size={15} />
+                  CSV
+                </CSVLink>
+                <button
+                  type="button"
+                  onClick={() => navigate("/direct-expenses")}
+                  className="inline-flex h-[40px] items-center justify-center gap-2 rounded-lg bg-[#1B1B1B] px-5 text-[13px] font-medium text-white transition hover:bg-black cursor-pointer"
+                >
+                  <Plus size={15} />
+                  New Expense
+                </button>
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-3">
-              <CSVLink
-                data={csvData}
-                filename={`expense-records-${dateFrom}-to-${dateTo}.csv`}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700"
-              >
-                <Download size={17} />
-                Download CSV
-              </CSVLink>
-              <button
-                type="button"
-                onClick={() => navigate("/direct-expenses")}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#18181b] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-black"
-              >
-                <Plus size={18} />
-                New Expense
-              </button>
-            </div>
-          </div>
+            {/* Row 2: From Date, To Date, Fetch Data + Filters Toggle */}
+            <div className="pb-5 border-b border-[#EFEFEF] flex flex-wrap items-end justify-between gap-4">
+              <div className="flex flex-wrap items-end gap-3">
+                <div className="rf-form-field !mb-0">
+                  <label className="rf-field-label">From Date</label>
+                  <input
+                    type="date"
+                    value={dateFrom}
+                    onChange={(event) => setDateFrom(event.target.value)}
+                    className="rf-input !w-[165px]"
+                  />
+                </div>
+                <div className="rf-form-field !mb-0">
+                  <label className="rf-field-label">To Date</label>
+                  <input
+                    type="date"
+                    value={dateTo}
+                    onChange={(event) => setDateTo(event.target.value)}
+                    className="rf-input !w-[165px]"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => fetchExpenses()}
+                  disabled={loading}
+                  className={
+                    loading
+                      ? "rf-btn-disabled h-[40px] !px-6"
+                      : "rf-btn-primary h-[40px] !px-6 cursor-pointer"
+                  }
+                >
+                  {loading ? "Fetching..." : "Fetch Data"}
+                </button>
+              </div>
 
-          <section className="mb-7">
-            <div className="flex flex-wrap items-end gap-4">
-              <label className="space-y-1.5 text-xs font-medium text-slate-500">
-                From Date
-                <input
-                  type="date"
-                  value={dateFrom}
-                  onChange={(event) => setDateFrom(event.target.value)}
-                  className="block rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 outline-none focus:border-purple-500"
-                />
-              </label>
-              <label className="space-y-1.5 text-xs font-medium text-slate-500">
-                To Date
-                <input
-                  type="date"
-                  value={dateTo}
-                  onChange={(event) => setDateTo(event.target.value)}
-                  className="block rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 outline-none focus:border-purple-500"
-                />
-              </label>
-              <button
-                type="button"
-                onClick={() => fetchExpenses()}
-                disabled={loading}
-                className="h-[42px] rounded-xl bg-[#9b48d7] px-7 text-sm font-semibold text-white shadow-sm transition hover:bg-[#8735c3] disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {loading ? "Fetching..." : "Fetch Data"}
-              </button>
-              <CSVLink
-                data={csvData}
-                filename={`expense-records-${dateFrom}-to-${dateTo}.csv`}
-                className="inline-flex h-[42px] items-center gap-2 rounded-xl border border-gray-200 bg-white px-5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
-              >
-                <Download size={16} />
-                CSV
-              </CSVLink>
               <button
                 type="button"
                 onClick={() => setShowFilters((current) => !current)}
-                className={`inline-flex h-[42px] items-center gap-2 rounded-xl px-5 text-sm font-medium shadow-sm transition ${
+                className={`inline-flex h-[40px] items-center gap-2 rounded-lg px-4 text-[13px] font-medium transition cursor-pointer ${
                   showFilters
-                    ? "bg-slate-200 text-slate-800"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    ? "bg-[#EFEFEF] text-[#212121]"
+                    : "bg-[#F5F5F5] text-[#4A4A4A] hover:bg-[#EFEFEF]"
                 }`}
               >
                 Filters
-                <SlidersHorizontal size={16} />
+                <SlidersHorizontal size={15} />
               </button>
             </div>
 
+            {/* Row 3: Collapsible Right-Aligned Filter Dropdowns */}
             {showFilters && (
-              <div className="mt-6 flex flex-wrap items-end justify-end gap-3">
-                <label className="space-y-1.5 text-[11px] font-medium text-slate-500">
-                  Store
-                  <span className="relative block">
-                    <select
-                      value={selectedStore}
-                      onChange={(event) => setSelectedStore(event.target.value)}
-                      disabled={!canSelectStore}
-                      className="min-w-40 appearance-none rounded-xl border border-gray-200 bg-white py-2.5 pl-4 pr-9 text-xs font-medium text-slate-700 outline-none focus:border-purple-500 disabled:bg-slate-50"
-                    >
-                      {canSelectStore && <option value="all">All Stores</option>}
-                      {visibleStores.map((store) => (
-                        <option key={store.locCode} value={store.locCode}>
-                          {store.locName}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown
-                      size={14}
-                      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
-                    />
-                  </span>
-                </label>
+              <div className="py-4 flex flex-wrap items-end justify-end gap-3">
+                <div className="rf-form-field !mb-0 w-[180px]">
+                  <label className="rf-field-label">Store</label>
+                  <AppSelect
+                    value={selectedStore}
+                    onChange={(event) => setSelectedStore(event.target.value)}
+                    disabled={!canSelectStore}
+                    className="w-full"
+                  >
+                    {canSelectStore && <option value="all">All Stores</option>}
+                    {visibleStores.map((store) => (
+                      <option key={store.locCode} value={store.locCode}>
+                        {store.locName}
+                      </option>
+                    ))}
+                  </AppSelect>
+                </div>
 
-                <label className="space-y-1.5 text-[11px] font-medium text-slate-500">
-                  Expense Type
-                  <span className="relative block">
-                    <select
-                      value={selectedExpenseType}
-                      onChange={(event) =>
-                        setSelectedExpenseType(event.target.value)
-                      }
-                      className="min-w-36 appearance-none rounded-xl border border-gray-200 bg-white py-2.5 pl-4 pr-9 text-xs font-medium text-slate-700 outline-none focus:border-purple-500"
-                    >
-                      <option value="all">All Types</option>
-                      <option value="direct">Direct</option>
-                      <option value="indirect">Indirect</option>
-                    </select>
-                    <ChevronDown
-                      size={14}
-                      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
-                    />
-                  </span>
-                </label>
+                <div className="rf-form-field !mb-0 w-[165px]">
+                  <label className="rf-field-label">Expense Type</label>
+                  <AppSelect
+                    value={selectedExpenseType}
+                    onChange={(event) =>
+                      setSelectedExpenseType(event.target.value)
+                    }
+                    className="w-full"
+                  >
+                    <option value="all">All Types</option>
+                    <option value="direct">Direct</option>
+                    <option value="indirect">Indirect</option>
+                  </AppSelect>
+                </div>
 
-                <label className="space-y-1.5 text-[11px] font-medium text-slate-500">
-                  Payment Type
-                  <span className="relative block">
-                    <select
-                      value={selectedPaymentType}
-                      onChange={(event) =>
-                        setSelectedPaymentType(event.target.value)
-                      }
-                      className="min-w-32 appearance-none rounded-xl border border-gray-200 bg-white py-2.5 pl-4 pr-9 text-xs font-medium text-slate-700 outline-none focus:border-purple-500"
-                    >
-                      <option value="all">All</option>
-                      <option value="cash">Cash</option>
-                      <option value="bank">Bank</option>
-                      <option value="upi">UPI</option>
-                      <option value="split">Split</option>
-                    </select>
-                    <ChevronDown
-                      size={14}
-                      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
-                    />
-                  </span>
-                </label>
+                <div className="rf-form-field !mb-0 w-[165px]">
+                  <label className="rf-field-label">Payment Type</label>
+                  <AppSelect
+                    value={selectedPaymentType}
+                    onChange={(event) =>
+                      setSelectedPaymentType(event.target.value)
+                    }
+                    className="w-full"
+                  >
+                    <option value="all">All</option>
+                    <option value="cash">Cash</option>
+                    <option value="bank">Bank</option>
+                    <option value="upi">UPI</option>
+                    <option value="split">Split</option>
+                  </AppSelect>
+                </div>
 
                 <button
                   type="button"
                   onClick={resetFilters}
-                  className="rounded-xl border border-gray-200 bg-white p-2.5 text-slate-600 shadow-sm transition hover:bg-slate-50"
+                  className="h-[38px] w-[38px] rounded-lg bg-[#F5F5F5] hover:bg-[#EAEAEA] text-[#212121] flex items-center justify-center transition cursor-pointer"
                   title="Reset filters"
                   aria-label="Reset filters"
                 >
-                  <RotateCcw size={16} />
+                  <RotateCcw size={15} />
                 </button>
               </div>
             )}
-          </section>
 
-          {error && (
-            <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
-              {error}
-            </div>
-          )}
+            {error && (
+              <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-[13px] font-medium text-red-700">
+                {error}
+              </div>
+            )}
 
-          <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-            <div className="overflow-x-auto">
-              <table className="min-w-[1450px] w-full border-collapse text-left">
-                <thead>
-                  <tr className="bg-[#333] text-[11px] font-semibold uppercase tracking-wide text-white">
-                    <th className="px-5 py-4">Date</th>
-                    <th className="px-5 py-4">Expense Category</th>
-                    <th className="px-5 py-4">Branch</th>
-                    <th className="px-5 py-4 text-center">Expense Type</th>
-                    <th className="px-5 py-4">Attachment</th>
-                    <th className="px-5 py-4">Payment Method</th>
-                    <th className="px-5 py-4">Bank Account</th>
-                    <th className="px-5 py-4 text-right">Amount</th>
-                    <th className="px-5 py-4">Remarks</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
-                  {loading ? (
-                    <tr>
-                      <td colSpan={9} className="px-5 py-16 text-center text-slate-400">
-                        Loading expense records...
-                      </td>
+            {/* Expense Records Table */}
+            <section className="mt-2 overflow-hidden rounded-lg border border-[#E5E5E5] bg-white">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[960px] border-collapse text-left">
+                  <thead>
+                    <tr className="bg-[#1B1B1B] text-[11px] font-semibold uppercase tracking-wider text-white">
+                      <th className="px-4 py-3">Expense Category</th>
+                      <th className="px-4 py-3">Branch</th>
+                      <th className="px-4 py-3 text-center">Expense Type</th>
+                      <th className="px-4 py-3 text-center">Attachment</th>
+                      <th className="px-4 py-3 text-center">Payment Method</th>
+                      <th className="px-4 py-3 text-center">Amount</th>
+                      <th className="px-4 py-3">Remarks</th>
                     </tr>
-                  ) : filteredTransactions.length === 0 ? (
-                    <tr>
-                      <td colSpan={9} className="px-5 py-16 text-center text-slate-400">
-                        No expense records found for the selected criteria.
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredTransactions.map((transaction, index) => {
-                      const type = getExpenseType(transaction);
-                      const attachmentUrl =
-                        transaction.hasAttachment && transaction._id
-                          ? `${baseUrl.baseUrl}user/transaction/${transaction._id}/attachment`
-                          : "";
-                      return (
-                        <tr
-                          key={transaction._id || `${transaction.invoiceNo}-${index}`}
-                          className="transition hover:bg-slate-50/80"
-                        >
-                          <td className="whitespace-nowrap px-5 py-4 text-slate-500">
-                            {String(transaction.date || "").split("T")[0] || "-"}
-                          </td>
-                          <td className="px-5 py-4 font-medium text-slate-950">
-                            {transaction.category || "-"}
-                          </td>
-                          <td className="px-5 py-4 text-slate-600">
-                            {getBranchName(transaction.locCode)}
-                          </td>
-                          <td className="px-5 py-4 text-center">
-                            <span
-                              className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${
-                                type === "direct"
-                                  ? "bg-orange-100 text-orange-600"
-                                  : "bg-purple-100 text-purple-600"
-                              }`}
-                            >
-                              {type === "direct" ? "Direct" : "Indirect"}
-                            </span>
-                          </td>
-                          <td className="px-5 py-4">
-                            {attachmentUrl ? (
-                              <a
-                                href={attachmentUrl}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="font-medium text-purple-600 hover:text-purple-800 hover:underline"
+                  </thead>
+                  <tbody className="divide-y divide-[#EFEFEF] text-[13px] text-[#212121]">
+                    {loading ? (
+                      <tr>
+                        <td colSpan={7} className="px-4 py-14 text-center text-[#6A6A6A]">
+                          Loading expense records...
+                        </td>
+                      </tr>
+                    ) : filteredTransactions.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="px-4 py-14 text-center text-[#6A6A6A]">
+                          No expense records found for the selected criteria.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredTransactions.map((transaction, index) => {
+                        const type = getExpenseType(transaction);
+                        const attachmentUrl =
+                          transaction.hasAttachment && transaction._id
+                            ? `${baseUrl.baseUrl}user/transaction/${transaction._id}/attachment`
+                            : "";
+                        return (
+                          <tr
+                            key={transaction._id || `${transaction.invoiceNo}-${index}`}
+                            className="transition-colors hover:bg-[#FBF5FC]"
+                          >
+                            <td className="px-4 py-3.5 border-r border-[#F3F3F3] font-medium text-[#212121]">
+                              {transaction.category || "-"}
+                            </td>
+                            <td className="px-4 py-3.5 border-r border-[#F3F3F3] text-[#4A4A4A]">
+                              {getBranchName(transaction.locCode)}
+                            </td>
+                            <td className="px-4 py-3.5 border-r border-[#F3F3F3] text-center">
+                              <span
+                                className={`inline-flex items-center justify-center rounded-md px-3.5 py-1 text-[11px] font-semibold ${
+                                  type === "direct"
+                                    ? "bg-[#FFEDD5] text-[#EA580C]"
+                                    : "bg-[#EFE3F7] text-[#9D43D6]"
+                                }`}
                               >
-                                {transaction.attachmentFilename || `Receipt ${index + 1}`}
-                              </a>
-                            ) : (
-                              <span className="text-slate-400">-</span>
-                            )}
-                          </td>
-                          <td className="px-5 py-4 text-xs font-semibold uppercase text-slate-800">
-                            {transaction.paymentMethod || "cash"}
-                          </td>
-                          <td className="px-5 py-4 text-slate-600">
-                            {transaction.bankAccount || "-"}
-                          </td>
-                          <td className="px-5 py-4 text-right font-bold text-slate-950">
-                            {formatAmount(transaction.amount)}
-                          </td>
-                          <td className="max-w-sm px-5 py-4 text-xs text-slate-500">
-                            <span className="line-clamp-2">
-                              {cleanRemark(transaction.remark)}
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        </div>
-      </main>
+                                {type === "direct" ? "Direct" : "Indirect"}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3.5 border-r border-[#F3F3F3] text-center">
+                              {attachmentUrl ? (
+                                <a
+                                  href={attachmentUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="font-medium text-[#9D43D6] hover:text-[#8B3CBD] hover:underline"
+                                >
+                                  {transaction.attachmentFilename || `Receipt ${index + 1}`}
+                                </a>
+                              ) : (
+                                <span className="text-[#A3A3A3]">-</span>
+                              )}
+                            </td>
+                            <td className="px-4 py-3.5 border-r border-[#F3F3F3] text-center text-[#212121] capitalize">
+                              {String(transaction.paymentMethod || "cash").toLowerCase() === "upi"
+                                ? "UPI"
+                                : transaction.paymentMethod || "Cash"}
+                            </td>
+                            <td className="px-4 py-3.5 border-r border-[#F3F3F3] text-center font-semibold text-[#212121] tabular-nums">
+                              {formatAmount(transaction.amount)}
+                            </td>
+                            <td className="max-w-xs px-4 py-3.5 text-[#4A4A4A]">
+                              <span className="line-clamp-2">
+                                {cleanRemark(transaction.remark)}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+        </main>
+      </div>
     </>
   );
 }

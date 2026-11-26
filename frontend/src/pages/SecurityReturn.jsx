@@ -179,14 +179,14 @@ const SecurityReturn = () => {
             <div className="flex flex-col">
               <label>Category</label>
               {Iselected ? (
-                <Select
+                <Select classNamePrefix="rf-select" styles={appSelectStyles}
                   options={categories1}
                   value={InselectedCategory}
                   onChange={insetSelectedCategory}
                   className="w-[250px]"
                 />
               ) : (
-                <Select
+                <Select classNamePrefix="rf-select" styles={appSelectStyles}
                   options={categories}
                   value={selectedCategory}
                   onChange={setSelectedCategory}

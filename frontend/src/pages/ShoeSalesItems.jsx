@@ -7,6 +7,7 @@ import baseUrl from "../api/api";
 import { mapLocNameToWarehouse as mapWarehouse } from "../utils/warehouseMapping";
 import { useSidebar } from "../hooks/useSidebar.js";
 
+import AppSelect from "../components/AppSelect.jsx";
 const columns = [
   { key: "select", label: "" },
   { key: "name", label: "NAME" },
@@ -874,7 +875,7 @@ const ShoeSalesItems = () => {
 
                   <div>
                     <label className="block text-xs font-bold text-gray-700 mb-1">Unit</label>
-                    <select
+                    <AppSelect
                       value={newGroupUnit}
                       onChange={(e) => setNewGroupUnit(e.target.value)}
                       className="w-full px-3 py-2 text-xs rounded-none border border-gray-200 bg-white focus:outline-none focus:border-purple-600 focus:ring-1 focus:ring-purple-600 cursor-pointer"
@@ -885,7 +886,7 @@ const ShoeSalesItems = () => {
                       <option value="SET">SET (Set)</option>
                       <option value="BOX">BOX (Box)</option>
                       <option value="PAIR">PAIR (Pair)</option>
-                    </select>
+                    </AppSelect>
                   </div>
                 </div>
               )}
@@ -951,9 +952,9 @@ const FloatingField = ({ label, placeholder, inputType = "input", hint, prefix }
         className="rounded-lg border border-[#d7dcf5] px-3 py-2 text-sm text-[#1f2937] placeholder:text-[#94a3b8] focus:border-[#3762f9] focus:outline-none"
       />
     ) : inputType === "select" ? (
-      <select className="rounded-lg border border-[#d7dcf5] px-3 py-2 text-sm text-[#1f2937] focus:border-[#3762f9] focus:outline-none">
+      <AppSelect className="rounded-lg border border-[#d7dcf5] px-3 py-2 text-sm text-[#1f2937] focus:border-[#3762f9] focus:outline-none">
         <option>{placeholder}</option>
-      </select>
+      </AppSelect>
     ) : (
       <div className="flex items-center rounded-lg border border-[#d7dcf5] focus-within:border-[#3762f9]">
         {prefix && <span className="pl-3 text-xs font-semibold uppercase text-[#64748b]">{prefix}</span>}
@@ -997,12 +998,12 @@ const ImagePlaceholder = () => (
 const FloatingSelect = ({ label, options = [], placeholder }) => (
   <label className="flex w-full flex-col gap-1 text-sm text-[#475569]">
     <span className="font-medium">{label}</span>
-    <select className="rounded-lg border border-[#d7dcf5] px-3 py-2 text-sm text-[#1f2937] focus:border-[#4285f4] focus:outline-none">
+    <AppSelect className="rounded-lg border border-[#d7dcf5] px-3 py-2 text-sm text-[#1f2937] focus:border-[#4285f4] focus:outline-none">
       {placeholder && <option>{placeholder}</option>}
       {options.map((option) => (
         <option key={option}>{option}</option>
       ))}
-    </select>
+    </AppSelect>
   </label>
 );
 

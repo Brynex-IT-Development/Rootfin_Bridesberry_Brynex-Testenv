@@ -11,6 +11,7 @@ import {
 import baseUrl from "../api/api";
 import useSidebar from "../hooks/useSidebar";
 
+import AppSelect from "../components/AppSelect.jsx";
 const currency = (value) =>
   new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 }).format(value || 0);
 
@@ -854,7 +855,7 @@ const PurchaseVendorDetail = () => {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <select
+                  <AppSelect
                     value={billStatusFilter}
                     onChange={(e) => setBillStatusFilter(e.target.value)}
                     className="h-9 px-3 rounded-lg border border-gray-200 bg-white text-xs font-semibold text-gray-700 focus:border-[#8B5CF6] focus:outline-none"
@@ -863,7 +864,7 @@ const PurchaseVendorDetail = () => {
                     <option value="OPEN">Open</option>
                     <option value="OVERDUE">Overdue</option>
                     <option value="PAID">Paid</option>
-                  </select>
+                  </AppSelect>
 
                   <button
                     onClick={() => navigate(`/purchase/bills/new?vendorId=${id}&vendorName=${encodeURIComponent(vendorDisplayName)}`)}

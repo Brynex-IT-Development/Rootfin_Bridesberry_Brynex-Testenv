@@ -8,6 +8,7 @@ import ImageUpload from "../components/ImageUpload";
 import baseUrl from "../api/api";
 import useSidebar from "../hooks/useSidebar";
 
+import AppSelect from "../components/AppSelect.jsx";
 const Input = ({ label, placeholder = "", hint, type = "text", right, ...props }) => (
   <label className="flex w-full flex-col gap-1 text-sm text-[#475569]">
     {label && <span className="text-xs font-bold uppercase tracking-wider text-gray-600">{label}</span>}
@@ -27,12 +28,12 @@ const Input = ({ label, placeholder = "", hint, type = "text", right, ...props }
 const Select = ({ label, children, ...props }) => (
   <label className="flex w-full flex-col gap-1 text-sm text-[#475569]">
     {label && <span className="text-xs font-bold uppercase tracking-wider text-gray-600">{label}</span>}
-    <select
+    <AppSelect
       className="rounded-none border border-[#e2e8f0] px-3 py-2 text-sm text-[#111827] focus:border-[#8B5CF6] focus:outline-none bg-white transition-colors"
       {...props}
     >
       {children}
-    </select>
+    </AppSelect>
   </label>
 );
 
@@ -965,7 +966,7 @@ const PurchaseVendorCreate = () => {
                         {contacts.map((c, idx) => (
                           <tr key={c.id} className="border-b border-gray-100 hover:bg-[#f8fafc]">
                             <td className="p-2 border-r border-gray-100">
-                              <select
+                              <AppSelect
                                 className="w-full rounded-none border border-[#e2e8f0] px-2 py-1.5 text-xs text-[#111827] focus:outline-none focus:border-[#8B5CF6] bg-white"
                                 value={c.salutation}
                                 onChange={(e) => {
@@ -979,7 +980,7 @@ const PurchaseVendorCreate = () => {
                                 <option value="Ms">Ms</option>
                                 <option value="Mrs">Mrs</option>
                                 <option value="Dr">Dr</option>
-                              </select>
+                              </AppSelect>
                             </td>
                             <td className="p-2 border-r border-gray-100">
                               <input

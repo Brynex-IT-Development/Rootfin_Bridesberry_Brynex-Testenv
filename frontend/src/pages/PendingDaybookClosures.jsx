@@ -1,15 +1,36 @@
 import { useCallback, useEffect, useState } from "react";
+import { Store, RefreshCw, Loader2 } from "lucide-react";
 import Header from "../components/Header.jsx";
 import { useSidebar } from "../hooks/useSidebar.js";
 import baseUrl from "../api/api.js";
+import { fetchActiveStores, getActiveStores } from "../utils/storeService.js";
 
-const currency = (value) => new Intl.NumberFormat("en-IN", {
-  style: "currency", currency: "INR", maximumFractionDigits: 2
-}).format(Number(value) || 0);
+const formatAmount = (value) =>
+  new Intl.NumberFormat("en-IN", {
+    maximumFractionDigits: 2,
+  }).format(Number(value) || 0);
+
+const formatDateParts = (rawDate) => {
+  if (!rawDate) return { dateStr: "—", weekday: "" };
+  const d = new Date(rawDate);
+  if (Number.isNaN(d.getTime())) return { dateStr: String(rawDate), weekday: "" };
+  const dateStr = d.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    timeZone: "Asia/Kolkata",
+  });
+  const weekday = d.toLocaleDateString("en-IN", {
+    weekday: "long",
+    timeZone: "Asia/Kolkata",
+  });
+  return { dateStr, weekday };
+};
 
 const PendingDaybookClosures = () => {
   const isSidebarOpen = useSidebar();
   const [closures, setClosures] = useState([]);
+  const [stores, setStores] = useState(() => getActiveStores() || []);
   const [loading, setLoading] = useState(true);
   const [approving, setApproving] = useState(null);
   const [error, setError] = useState("");
@@ -19,6 +40,23 @@ const PendingDaybookClosures = () => {
     localStorage.removeItem("rootfinuser");
     localStorage.removeItem("rootfin_auth_token");
     window.location.assign("/login");
+  };
+
+  useEffect(() => {
+    fetchActiveStores()
+      .then((list) => {
+        if (Array.isArray(list) && list.length > 0) setStores(list);
+      })
+      .catch(() => {});
+  }, []);
+
+  const getStoreInfo = (locCode) => {
+    const code = String(locCode || "").trim();
+    const match = stores.find((s) => String(s.locCode || "").trim() === code);
+    return {
+      name: match?.locName || match?.name || `Store ${code}`,
+      subtitle: code ? `Loc Code: ${code}` : "Store",
+    };
   };
 
   const fetchClosures = useCallback(async () => {
@@ -34,7 +72,7 @@ const PendingDaybookClosures = () => {
     }
     try {
       const response = await fetch(`${baseUrl.baseUrl}user/pendingClosures`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       const result = await response.json();
       if (response.status === 401) setNeedsSignIn(true);
@@ -48,7 +86,9 @@ const PendingDaybookClosures = () => {
     }
   }, []);
 
-  useEffect(() => { fetchClosures(); }, [fetchClosures]);
+  useEffect(() => {
+    fetchClosures();
+  }, [fetchClosures]);
 
   const approve = async (id) => {
     const token = localStorage.getItem("rootfin_auth_token");
@@ -62,7 +102,7 @@ const PendingDaybookClosures = () => {
     try {
       const response = await fetch(`${baseUrl.baseUrl}user/approveClosure/${id}`, {
         method: "PUT",
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       const result = await response.json();
       if (response.status === 401) setNeedsSignIn(true);
@@ -76,53 +116,147 @@ const PendingDaybookClosures = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f5f7fb]">
+    <div className="min-h-screen bg-[#FFFFFF]">
       <Header title="Late Closures" />
-      <main className={`p-6 transition-all ${isSidebarOpen ? "ml-[240px]" : "ml-0"}`}>
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-6 flex items-center justify-between gap-4">
-            <h1 className="flex items-center gap-3 text-2xl font-bold text-gray-800">
-              Late Closures
-              <span aria-label={`${closures.length} pending`} className="rounded-full bg-amber-500 px-2.5 py-0.5 text-sm font-semibold text-white">
+
+      <div className={`transition-all duration-300 ${isSidebarOpen ? "ml-[240px]" : "ml-0"}`}>
+        {/* Clean Page Title Header */}
+        <div className="bg-white px-8 py-4 border-b border-[#E5E5E5] flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-[18px] font-semibold text-[#212121]">
+              Pending Daybook Closures
+            </h1>
+            {closures.length > 0 && (
+              <span
+                aria-label={`${closures.length} pending`}
+                className="bg-[#9D43D6] text-white text-[11px] font-semibold min-w-[22px] h-[22px] px-1.5 rounded-full inline-flex items-center justify-center"
+              >
                 {closures.length}
               </span>
-            </h1>
-            <button type="button" onClick={fetchClosures} className="rounded-lg border bg-white px-4 py-2 text-sm">Refresh</button>
+            )}
           </div>
-          {error && <div role="alert" className="mb-5 rounded-lg bg-red-50 p-4 text-red-700">
-            <p>{error}</p>
-            {needsSignIn && <button type="button" onClick={signInAgain} className="mt-3 rounded-lg bg-purple-600 px-4 py-2 text-white">Sign in again</button>}
-          </div>}
-          {loading ? <p>Loading...</p> : error ? null : closures.length === 0 ? (
-            <div className="rounded-xl bg-white p-8 text-center text-gray-500">No pending closure requests found.</div>
+
+          <button
+            type="button"
+            onClick={fetchClosures}
+            className="rf-btn-secondary cursor-pointer"
+          >
+            <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
+            Refresh
+          </button>
+        </div>
+
+        {/* Main Content */}
+        <main className="bg-white px-8 py-6 max-w-[1400px]">
+          {error && (
+            <div
+              role="alert"
+              className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+            >
+              <p>{error}</p>
+              {needsSignIn && (
+                <button
+                  type="button"
+                  onClick={signInAgain}
+                  className="mt-3 rf-btn-primary cursor-pointer"
+                >
+                  Sign in again
+                </button>
+              )}
+            </div>
+          )}
+
+          {loading ? (
+            <div className="py-16 flex items-center justify-center gap-2.5 text-[#6A6A6A]">
+              <Loader2 className="w-5 h-5 animate-spin text-[#9D43D6]" />
+              <span className="text-[13px]">Loading pending closures...</span>
+            </div>
+          ) : error ? null : closures.length === 0 ? (
+            <div className="rounded-xl border border-[#E5E5E5] bg-white p-12 text-center text-[#6A6A6A] text-[13px]">
+              No pending closure requests found.
+            </div>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {closures.map((closure) => {
-                const difference = Number(closure.cash) - Number(closure.Closecash);
+                const { name, subtitle } = getStoreInfo(closure.locCode);
+                const { dateStr, weekday } = formatDateParts(closure.date);
+                const isApproving = approving === closure._id;
+
                 return (
-                  <article key={closure._id} className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-                    <div className="mb-3 flex items-center justify-between gap-2">
-                      <h2 className="font-bold text-gray-900">Store {closure.locCode}</h2>
-                      <span className="rounded-full bg-amber-100 px-2 py-1 text-xs text-amber-800">Pending Approval</span>
+                  <article
+                    key={closure._id}
+                    className="rounded-xl border border-[#E5E5E5] bg-white p-5 flex flex-col justify-between transition-shadow hover:shadow-sm"
+                  >
+                    {/* Top Store & Date Row */}
+                    <div className="flex items-start justify-between gap-3 pb-4 border-b border-[#EFEFEF]">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-10 h-10 rounded-full bg-[#EFE3F7] text-[#9D43D6] flex items-center justify-center shrink-0">
+                          <Store size={18} />
+                        </div>
+                        <div className="min-w-0">
+                          <h2 className="text-[15px] font-semibold text-[#212121] truncate leading-tight">
+                            {name}
+                          </h2>
+                          <p className="text-[12px] text-[#6A6A6A] truncate mt-0.5">
+                            {subtitle}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="text-right shrink-0">
+                        <p className="text-[12px] font-semibold text-[#212121] leading-tight">
+                          {dateStr}
+                        </p>
+                        {weekday && (
+                          <p className="text-[12px] text-[#6A6A6A] mt-0.5">
+                            {weekday}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    <p className="text-sm text-gray-600">Date: {new Date(closure.date).toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata" })}</p>
-                    <p className="text-sm text-gray-600">System Cash: {currency(closure.cash)}</p>
-                    <p className="text-sm text-gray-600">Physical Cash: {currency(closure.Closecash)}</p>
-                    <p className="text-sm text-gray-600">Bank: {currency(closure.bank)}</p>
-                    <p className={`mt-2 font-semibold ${difference === 0 ? "text-emerald-700" : "text-red-700"}`}>
-                      Difference: {currency(difference)}
-                    </p>
-                    <button type="button" disabled={approving === closure._id} onClick={() => approve(closure._id)}
-                      className="mt-5 w-full rounded-lg bg-purple-600 py-2.5 text-sm font-semibold text-white disabled:opacity-60">
-                      {approving === closure._id ? "Approving..." : "Approve Closure"}
+
+                    {/* Metrics Row: System Cash, Physical Cash, Bank */}
+                    <div className="grid grid-cols-3 gap-3 py-4">
+                      <div>
+                        <p className="text-[11px] font-medium text-[#6A6A6A]">System Cash</p>
+                        <p className="text-[14px] font-semibold text-[#212121] mt-1 tabular-nums">
+                          {formatAmount(closure.cash)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[11px] font-medium text-[#6A6A6A]">Physical Cash</p>
+                        <p className="text-[14px] font-semibold text-[#212121] mt-1 tabular-nums">
+                          {formatAmount(closure.Closecash)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[11px] font-medium text-[#6A6A6A]">Bank</p>
+                        <p className="text-[14px] font-semibold text-[#212121] mt-1 tabular-nums">
+                          {formatAmount(closure.bank)}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Approve Button */}
+                    <button
+                      type="button"
+                      disabled={isApproving}
+                      onClick={() => approve(closure._id)}
+                      className={
+                        isApproving
+                          ? "rf-btn-disabled w-full !py-2.5"
+                          : "rf-btn-primary w-full !py-2.5 cursor-pointer"
+                      }
+                    >
+                      {isApproving ? "Approving..." : "Approve Closure"}
                     </button>
                   </article>
                 );
               })}
             </div>
           )}
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 };

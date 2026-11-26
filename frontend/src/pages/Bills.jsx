@@ -12,6 +12,7 @@ import useSidebar from "../hooks/useSidebar";
 import Header from "../components/Header";
 import { getActiveStores } from "../utils/storeService.js";
 
+import AppSelect from "../components/AppSelect.jsx";
 const Label = ({ children, required = false }) => (
   <span className={`text-xs font-semibold uppercase tracking-[0.18em] ${required ? "text-[#ef4444]" : "text-[#64748b]"}`}>
     {children}
@@ -45,7 +46,7 @@ const Select = ({ className = "", ...props }) => {
   const finalClasses = `${baseClasses} ${isTableInput ? tableInputClasses : defaultClasses} ${className}`;
   
   return (
-    <select
+    <AppSelect
       {...props}
       className={finalClasses}
     />
@@ -3939,7 +3940,7 @@ ${storeNameZpl}^FO81,21
                 Warehouse <span className="text-red-500">*</span>
               </label>
               <div className="relative">
-                <select
+                <AppSelect
                   value={warehouse}
                   onChange={(e) => {
                     setWarehouse(e.target.value);
@@ -3950,8 +3951,8 @@ ${storeNameZpl}^FO81,21
                   <option value="Warehouse">Warehouse</option>
                   <option value="Store 1">Store 1</option>
                   <option value="Store 2">Store 2</option>
-                </select>
-                <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                </AppSelect>
+                
               </div>
             </div>
           </div>
@@ -4031,7 +4032,7 @@ ${storeNameZpl}^FO81,21
                 Source of Supply
               </label>
               <div className="relative">
-                <select
+                <AppSelect
                   value={sourceOfSupply}
                   onChange={(e) => setSourceOfSupply(e.target.value)}
                   className="w-full h-9 rounded-none border border-gray-200 bg-white px-3 py-2 text-xs text-gray-900 focus:border-purple-600 focus:outline-none focus:ring-1 focus:ring-purple-600 appearance-none cursor-pointer pr-9"
@@ -4042,8 +4043,8 @@ ${storeNameZpl}^FO81,21
                       {state.value}
                     </option>
                   ))}
-                </select>
-                <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                </AppSelect>
+                
               </div>
             </div>
 
@@ -4053,7 +4054,7 @@ ${storeNameZpl}^FO81,21
                 Destination of Supply
               </label>
               <div className="relative">
-                <select
+                <AppSelect
                   value={destinationOfSupply || "[KL] - Kerala"}
                   onChange={(e) => setDestinationOfSupply(e.target.value)}
                   className="w-full h-9 rounded-none border border-gray-200 bg-white px-3 py-2 text-xs text-gray-900 focus:border-purple-600 focus:outline-none focus:ring-1 focus:ring-purple-600 appearance-none cursor-pointer pr-9"
@@ -4063,8 +4064,8 @@ ${storeNameZpl}^FO81,21
                       {state.value}
                     </option>
                   ))}
-                </select>
-                <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                </AppSelect>
+                
               </div>
             </div>
           </div>
@@ -4236,18 +4237,15 @@ ${storeNameZpl}^FO81,21
                       {/* Category */}
                       <td className="px-3 py-3 align-top w-32">
                         <div className="relative w-full">
-                          <select
+                          <AppSelect
                             value={row.category || "BR code"}
                             onChange={(e) => handleUpdateRow(row.id, "category", e.target.value)}
                             className="w-full h-8 rounded-none border border-gray-200 bg-white px-2.5 py-1 text-xs font-semibold text-gray-900 focus:border-purple-600 focus:outline-none focus:ring-1 focus:ring-purple-600 appearance-none cursor-pointer pr-6"
                           >
                             <option value="BR code">BR code</option>
                             <option value="QR code">QR code</option>
-                          </select>
-                          <ChevronDown
-                            size={13}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-                          />
+                          </AppSelect>
+                          
                         </div>
                         <label className="inline-flex items-center gap-1.5 mt-1.5 px-1.5 py-0.5 bg-slate-50 border border-slate-200 text-[10px] font-medium text-slate-700 hover:bg-slate-100 cursor-pointer select-none transition-colors whitespace-nowrap">
                           <input
@@ -4319,7 +4317,7 @@ ${storeNameZpl}^FO81,21
                       {/* Tax */}
                       <td className="px-3 py-3 align-top min-w-[140px]">
                         <div className="relative w-full">
-                          <select
+                          <AppSelect
                             value={row.tax || ""}
                             onChange={(e) => handleUpdateRow(row.id, "tax", e.target.value)}
                             className={`w-full h-8 rounded-none border border-gray-200 bg-white px-2.5 py-1 text-xs focus:border-purple-600 focus:outline-none focus:ring-1 focus:ring-purple-600 appearance-none cursor-pointer pr-7 ${
@@ -4343,11 +4341,8 @@ ${storeNameZpl}^FO81,21
                                 ))}
                               </optgroup>
                             )}
-                          </select>
-                          <ChevronDown
-                            size={13}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-                          />
+                          </AppSelect>
+                          
                         </div>
                       </td>
 
@@ -4569,15 +4564,15 @@ ${storeNameZpl}^FO81,21
                       className="w-[78px] h-9 rounded-none border border-gray-200 bg-white px-3 text-xs text-right text-gray-700 placeholder:text-gray-400 focus:border-purple-600 focus:outline-none"
                     />
                     <div className="relative">
-                      <select
+                      <AppSelect
                         value={discount.type}
                         onChange={(e) => setDiscount({ ...discount, type: e.target.value })}
                         className="w-[68px] h-9 rounded-none border border-gray-200 bg-white pl-3 pr-6 text-xs text-gray-500 focus:border-purple-600 focus:outline-none appearance-none cursor-pointer"
                       >
                         <option value="%">%</option>
                         <option value="₹">₹</option>
-                      </select>
-                      <ChevronDown size={13} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                      </AppSelect>
+                      
                     </div>
                   </div>
                   <span className="text-xs text-gray-500 w-10 text-right">{totals.discountAmount}</span>
@@ -4644,7 +4639,7 @@ ${storeNameZpl}^FO81,21
 
               {/* Select a Tax */}
               <div className="relative py-0.5">
-                <select
+                <AppSelect
                   value={tdsTcsTax}
                   onChange={(e) => {
                     setTdsTcsTax(e.target.value);
@@ -4664,11 +4659,8 @@ ${storeNameZpl}^FO81,21
                       {tax.display || tax.name}
                     </option>
                   ))}
-                </select>
-                <ChevronDown
-                  size={14}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none"
-                />
+                </AppSelect>
+                
               </div>
 
               {/* Adjustment */}
@@ -4906,7 +4898,7 @@ ${storeNameZpl}^FO81,21
                     </div>
                   ) : (
                     <div className="relative">
-                      <select
+                      <AppSelect
                         value={selectedGroupId}
                         onChange={(e) => setSelectedGroupId(e.target.value)}
                         className="w-full h-9 rounded-none border border-gray-200 bg-white px-3 py-2 text-xs text-gray-900 focus:border-purple-600 focus:outline-none appearance-none cursor-pointer pr-8"
@@ -4925,8 +4917,8 @@ ${storeNameZpl}^FO81,21
                             </option>
                           );
                         })}
-                      </select>
-                      <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                      </AppSelect>
+                      
                     </div>
                   )}
                 </div>
@@ -5083,7 +5075,7 @@ ${storeNameZpl}^FO81,21
                       </button>
                     </div>
                   ) : (
-                    <select
+                    <AppSelect
                       value={groupModalBatchGroupId}
                       onChange={(e) => {
                         const gid = e.target.value;
@@ -5105,7 +5097,7 @@ ${storeNameZpl}^FO81,21
                           </option>
                         );
                       })}
-                    </select>
+                    </AppSelect>
                   )}
                 </div>
               )}
@@ -5194,7 +5186,7 @@ ${storeNameZpl}^FO81,21
                     <label className="block text-xs font-medium text-gray-700 mb-1.5">
                       Tax Rate
                     </label>
-                    <select
+                    <AppSelect
                       value={groupModalBatchTax}
                       onChange={(e) => setGroupModalBatchTax(e.target.value)}
                       className="w-full h-9 rounded-none border border-gray-200 bg-white px-3 py-2 text-xs text-gray-900 focus:border-purple-600 focus:outline-none focus:ring-1 focus:ring-purple-600 cursor-pointer"
@@ -5214,7 +5206,7 @@ ${storeNameZpl}^FO81,21
                           </option>
                         ))}
                       </optgroup>
-                    </select>
+                    </AppSelect>
                   </div>
 
                   <div>
@@ -6649,7 +6641,7 @@ const Bills = () => {
                         className="px-3 py-2.5 whitespace-nowrap text-xs border-r border-gray-100"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <select
+                        <AppSelect
                           value={bill.status}
                           onChange={(e) => handleStatusUpdate(bill._id, e.target.value, e)}
                           className={`rounded-full border-0 px-2.5 py-0.5 text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-offset-1 transition-colors cursor-pointer ${
@@ -6677,7 +6669,7 @@ const Bills = () => {
                           )}
                           <option value="UNPAID" className="bg-white text-[#d97706]">Unpaid</option>
                           <option value="COMPLETED" className="bg-white text-[#15803d]">Completed</option>
-                        </select>
+                        </AppSelect>
                       </td>
                       <td className="px-3 py-2.5 whitespace-nowrap text-xs text-gray-600 border-r border-gray-100">
                         {bill.dueDate}
@@ -6716,12 +6708,12 @@ const Bills = () => {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-[#1e293b] mb-2">Status</label>
-                  <select className="w-full px-3 py-2 border border-[#e2e8f0] rounded-none text-sm">
+                  <AppSelect className="w-full px-3 py-2 border border-[#e2e8f0] rounded-none text-sm">
                     <option value="">No change</option>
                     <option value="completed">Completed</option>
                     <option value="draft">Draft</option>
                     <option value="closed">Closed</option>
-                  </select>
+                  </AppSelect>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[#1e293b] mb-2">Due Date</label>
@@ -6790,12 +6782,12 @@ const Bills = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[#1e293b] mb-2">Payment Method</label>
-                  <select className="w-full px-3 py-2 border border-[#e2e8f0] rounded-none text-sm">
+                  <AppSelect className="w-full px-3 py-2 border border-[#e2e8f0] rounded-none text-sm">
                     <option value="cash">Cash</option>
                     <option value="bank">Bank Transfer</option>
                     <option value="cheque">Cheque</option>
                     <option value="credit_card">Credit Card</option>
-                  </select>
+                  </AppSelect>
                 </div>
               </div>
               <div className="flex justify-end gap-3 mt-6">

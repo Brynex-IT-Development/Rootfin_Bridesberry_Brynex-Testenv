@@ -6,6 +6,7 @@ import { mapLocNameToWarehouse as mapWarehouse } from "../utils/warehouseMapping
 import useSidebar from "../hooks/useSidebar";
 import { Search, Calendar, FileText, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, RotateCcw } from "lucide-react";
 
+import AppSelect from "../components/AppSelect.jsx";
 const SalesInvoiceReturns = () => {
   const isSidebarOpen = useSidebar();
   const [invoices, setInvoices] = useState([]);
@@ -432,7 +433,7 @@ const SalesInvoiceReturns = () => {
                       <div className="flex items-center gap-3">
                         <div className="flex items-center gap-1.5">
                           <span className="text-xs text-[#6B7280]">Rows:</span>
-                          <select
+                          <AppSelect
                             value={itemsPerPage}
                             onChange={(e) => {
                               setItemsPerPage(Number(e.target.value));
@@ -443,7 +444,7 @@ const SalesInvoiceReturns = () => {
                             <option value={25}>25</option>
                             <option value={50}>50</option>
                             <option value={100}>100</option>
-                          </select>
+                          </AppSelect>
                         </div>
                         <span className="text-xs text-[#6B7280]">
                           Page {currentPage} of {totalPages}

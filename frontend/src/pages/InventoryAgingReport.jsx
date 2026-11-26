@@ -27,6 +27,7 @@ import { useSidebar } from "../hooks/useSidebar.js";
 import { useActiveStores } from "../utils/storeService.js";
 import { mapLocNameToWarehouse } from "../utils/warehouseMapping.js";
 
+import AppSelect from "../components/AppSelect.jsx";
 // Helper to format currency
 const formatCurrency = (amount) => {
   if (amount === undefined || amount === null || isNaN(amount)) return "₹0.00";
@@ -596,9 +597,9 @@ const InventoryAgingReport = () => {
               <label className="block text-xs font-semibold text-[#475569] uppercase tracking-wider mb-1.5">
                 Store / Warehouse
               </label>
-              <Select
+              <Select classNamePrefix="rf-select"
                 options={storeOptions}
-                styles={customSelectStyles}
+                styles={appSelectStyles}
                 value={storeOptions.find((opt) => opt.value === selectedStore)}
                 onChange={(option) => {
                   setSelectedStore(option ? option.value : "All Stores");
@@ -615,9 +616,9 @@ const InventoryAgingReport = () => {
                 <Folder size={12} className="text-[#9333ea]" />
                 <span>Item Group</span>
               </label>
-              <Select
+              <Select classNamePrefix="rf-select"
                 options={groupOptions}
-                styles={customSelectStyles}
+                styles={appSelectStyles}
                 value={groupOptions.find((opt) => opt.value === selectedGroup) || groupOptions[0]}
                 onChange={(option) => {
                   setSelectedGroup(option ? option.value : "all");
@@ -633,9 +634,9 @@ const InventoryAgingReport = () => {
                 <ShoppingCart size={12} className="text-[#059669]" />
                 <span>Sales Status</span>
               </label>
-              <Select
+              <Select classNamePrefix="rf-select"
                 options={salesStatusOptions}
-                styles={customSelectStyles}
+                styles={appSelectStyles}
                 value={salesStatusOptions.find((opt) => opt.value === selectedSalesStatus)}
                 onChange={(option) => {
                   setSelectedSalesStatus(option ? option.value : "all");
@@ -650,9 +651,9 @@ const InventoryAgingReport = () => {
               <label className="block text-xs font-semibold text-[#475569] uppercase tracking-wider mb-1.5">
                 Age Bracket
               </label>
-              <Select
+              <Select classNamePrefix="rf-select"
                 options={bracketOptions}
-                styles={customSelectStyles}
+                styles={appSelectStyles}
                 value={bracketOptions.find((opt) => opt.value === selectedBracket)}
                 onChange={(option) => {
                   setSelectedBracket(option ? option.value : "all");
@@ -667,9 +668,9 @@ const InventoryAgingReport = () => {
               <label className="block text-xs font-semibold text-[#475569] uppercase tracking-wider mb-1.5">
                 Category
               </label>
-              <Select
+              <Select classNamePrefix="rf-select"
                 options={categoryOptions}
-                styles={customSelectStyles}
+                styles={appSelectStyles}
                 value={categoryOptions.find((opt) => opt.value === selectedCategory)}
                 onChange={(option) => {
                   setSelectedCategory(option ? option.value : "all");
@@ -954,7 +955,7 @@ const InventoryAgingReport = () => {
             {/* Sort Options (Note: "Highest quantity" removed per requirement 1) */}
             <div className="flex items-center gap-1.5">
               <span className="text-xs font-medium text-[#64748b]">Sort:</span>
-              <select
+              <AppSelect
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
                 className="h-9 px-3 rounded-lg border border-[#d1d5db] text-xs font-medium text-[#374151] bg-white focus:outline-none focus:border-[#9333ea] cursor-pointer"
@@ -964,14 +965,14 @@ const InventoryAgingReport = () => {
                 <option value="value_desc">Highest Valuation</option>
                 <option value="sales_desc">Highest Sales (Units Sold)</option>
                 <option value="name_asc">Item Name (A-Z)</option>
-              </select>
+              </AppSelect>
             </div>
 
             {/* Items Per Page (disabled if grouped by bracket view) */}
             {!groupByBracketView && (
               <div className="flex items-center gap-1.5">
                 <span className="text-xs font-medium text-[#64748b]">Show:</span>
-                <select
+                <AppSelect
                   value={itemsPerPage}
                   onChange={(e) => {
                     setItemsPerPage(e.target.value);
@@ -983,7 +984,7 @@ const InventoryAgingReport = () => {
                   <option value="50">50</option>
                   <option value="100">100</option>
                   <option value="all">All</option>
-                </select>
+                </AppSelect>
               </div>
             )}
           </div>

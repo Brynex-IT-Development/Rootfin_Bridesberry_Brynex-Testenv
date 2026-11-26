@@ -7,10 +7,11 @@ import { SlidersHorizontal, Download, Calendar, ChevronDown, X } from "lucide-re
 import useSidebar from '../hooks/useSidebar.js';
 import { fetchActiveStores } from '../utils/storeService.js';
 
+import AppSelect from "../components/AppSelect.jsx";
 /* ── tiny native select wrapper ── */
 const NativeSelect = ({ value, onChange, options, placeholder }) => (
   <div className="relative">
-    <select
+    <AppSelect
       value={value || ""}
       onChange={(e) => onChange(e.target.value || null)}
       className="w-full h-[40px] border border-gray-300 rounded-md pl-3 pr-9 text-sm text-gray-700 bg-white focus:outline-none focus:border-purple-500 appearance-none"
@@ -19,8 +20,8 @@ const NativeSelect = ({ value, onChange, options, placeholder }) => (
       {options.map(o => (
         <option key={o.value || "__null__"} value={o.value || ""}>{o.label}</option>
       ))}
-    </select>
-    <ChevronDown size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+    </AppSelect>
+    
   </div>
 );
 

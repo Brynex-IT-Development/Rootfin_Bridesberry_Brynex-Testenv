@@ -9,6 +9,7 @@ import baseUrl from "../api/api";
 import useSidebar from "../hooks/useSidebar";
 import Breadcrumbs from "../components/Breadcrumbs.jsx";
 
+import AppSelect from "../components/AppSelect.jsx";
 const Label = ({ children, required = false }) => (
   <span className="block text-xs font-semibold text-gray-700 mb-1.5">
     {children}
@@ -42,7 +43,7 @@ const Select = ({ className = "", ...props }) => {
   const finalClasses = `${baseClasses} ${isTableInput ? tableInputClasses : defaultClasses} ${className}`;
   
   return (
-    <select
+    <AppSelect
       {...props}
       className={finalClasses}
     />

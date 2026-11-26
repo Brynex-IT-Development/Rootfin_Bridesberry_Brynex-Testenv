@@ -7,6 +7,7 @@ import { useSidebar } from "../hooks/useSidebar.js";
 import dataCache from "../utils/cache";
 import { Plus, Search, Calendar, RotateCcw, FileText, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 
+import AppSelect from "../components/AppSelect.jsx";
 const SalesInvoices = () => {
   const isSidebarOpen = useSidebar();
   const [invoices, setInvoices] = useState([]);
@@ -524,7 +525,7 @@ const SalesInvoices = () => {
                       <div className="flex items-center gap-3">
                         <div className="flex items-center gap-1.5">
                           <span className="text-xs text-[#6B7280]">Rows:</span>
-                          <select
+                          <AppSelect
                             value={itemsPerPage}
                             onChange={(e) => {
                               setItemsPerPage(Number(e.target.value));
@@ -536,7 +537,7 @@ const SalesInvoices = () => {
                             <option value={50}>50</option>
                             <option value={100}>100</option>
                             <option value={200}>200</option>
-                          </select>
+                          </AppSelect>
                         </div>
 
                         <div className="flex items-center gap-1">

@@ -4,6 +4,7 @@ import { Loader2, Target, X } from "lucide-react";
 import baseUrl from "../api/api";
 import { baseExpenseCats } from "../config/expenseCategories";
 
+import AppSelect from "./AppSelect.jsx";
 const API_ROOT = baseUrl?.baseUrl?.replace(/\/$/, "") || "http://localhost:7000";
 
 export default function AssignTargetModal({ open, onClose, stores = [], defaultStoreCode, onSaved }) {
@@ -102,25 +103,25 @@ export default function AssignTargetModal({ open, onClose, stores = [], defaultS
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="space-y-1.5 text-xs font-bold uppercase tracking-wide text-slate-500">
               Store
-              <select value={storeCode} onChange={(event) => setStoreCode(event.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm font-medium normal-case text-slate-800 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100">
+              <AppSelect value={storeCode} onChange={(event) => setStoreCode(event.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm font-medium normal-case text-slate-800 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100">
                 {stores.map((store) => <option key={store.locCode} value={store.locCode}>{store.locName}</option>)}
-              </select>
+              </AppSelect>
             </label>
             <label className="space-y-1.5 text-xs font-bold uppercase tracking-wide text-slate-500">
               Category
-              <select value={category} onChange={(event) => { setCategory(event.target.value); setSubCategory(""); }} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm font-medium normal-case text-slate-800 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100">
+              <AppSelect value={category} onChange={(event) => { setCategory(event.target.value); setSubCategory(""); }} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm font-medium normal-case text-slate-800 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100">
                 {baseExpenseCats.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
-              </select>
+              </AppSelect>
             </label>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="space-y-1.5 text-xs font-bold uppercase tracking-wide text-slate-500">
               Subcategory
-              <select value={subCategory} onChange={(event) => setSubCategory(event.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm font-medium normal-case text-slate-800 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100">
+              <AppSelect value={subCategory} onChange={(event) => setSubCategory(event.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm font-medium normal-case text-slate-800 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100">
                 <option value="">All subcategories</option>
                 {(selectedCategory.subs || []).map((item) => <option key={item} value={item}>{item}</option>)}
-              </select>
+              </AppSelect>
             </label>
             <label className="space-y-1.5 text-xs font-bold uppercase tracking-wide text-slate-500">
               Monthly Limit

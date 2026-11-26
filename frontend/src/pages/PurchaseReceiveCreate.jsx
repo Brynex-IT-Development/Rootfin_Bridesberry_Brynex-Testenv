@@ -8,6 +8,7 @@ import Header from "../components/Header";
 import baseUrl from "../api/api";
 import useSidebar from "../hooks/useSidebar";
 
+import AppSelect from "../components/AppSelect.jsx";
 const Label = ({ children, required = false }) => (
   <span className={`text-[10px] font-bold uppercase tracking-wider ${required ? "text-[#EF4444]" : "text-[#6B7280]"}`}>
     {children}
@@ -38,7 +39,7 @@ const Select = ({ className = "", ...props }) => {
   const finalClasses = `${baseClasses} ${defaultClasses} ${className}`;
 
   return (
-    <select
+    <AppSelect
       {...props}
       className={finalClasses}
     />

@@ -10,6 +10,7 @@ import { useSidebar } from "../hooks/useSidebar.js";
 import { FALLBACK_STORES, fetchActiveStores, getActiveStores } from "../utils/storeService.js";
 import { Download, Printer, Loader2 } from "lucide-react";
 
+import AppSelect from "../components/AppSelect.jsx";
 /* ---------- Store master list ---------- */
 const getStoreName = (c) =>
   getActiveStores().find(
@@ -410,7 +411,7 @@ const Security = () => {
 
               <div className="flex flex-col gap-1 min-w-[180px]">
                 <label className="text-xs font-semibold text-gray-500">Store</label>
-                <select
+                <AppSelect
                   value={selectedStore}
                   onChange={(e) => setSelectedStore(e.target.value)}
                   className="h-[38px] rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-800 shadow-sm focus:border-[#8B5CF6] focus:outline-none"
@@ -424,7 +425,7 @@ const Security = () => {
                   {(user.power || "").toLowerCase() === "admin" && (
                     <option value="all">All Stores (Totals)</option>
                   )}
-                </select>
+                </AppSelect>
               </div>
 
               <button

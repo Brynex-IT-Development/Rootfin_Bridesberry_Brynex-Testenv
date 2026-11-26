@@ -8,6 +8,7 @@ import baseUrl from "../api/api";
 import useSidebar from "../hooks/useSidebar";
 import { getActiveStores, isAllowedStoreNameOrCode } from "../utils/storeService.js";
 
+import AppSelect from "../components/AppSelect.jsx";
 // Warehouse name mapping: actual names from API -> display names for Stocks page
 const WAREHOUSE_NAME_MAPPING = {
   // Actual API names -> Display names
@@ -1858,7 +1859,7 @@ const ShoeSalesItemDetailFromGroup = () => {
                     No other item groups available.
                   </div>
                 ) : (
-                  <select
+                  <AppSelect
                     value={selectedTargetGroupId}
                     onChange={(e) => setSelectedTargetGroupId(e.target.value)}
                     className="w-full rounded-none border border-[#E5E7EB] bg-white px-3.5 py-2 text-xs font-bold text-[#111827] focus:border-[#8B5CF6] focus:outline-none"
@@ -1869,7 +1870,7 @@ const ShoeSalesItemDetailFromGroup = () => {
                         {group.name}
                       </option>
                     ))}
-                  </select>
+                  </AppSelect>
                 )}
               </div>
               <div className="px-6 py-4 border-t border-[#E5E7EB] bg-[#F9FAFB] flex items-center justify-end gap-2.5">

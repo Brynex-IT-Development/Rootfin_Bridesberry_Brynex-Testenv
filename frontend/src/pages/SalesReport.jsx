@@ -316,7 +316,7 @@ const SalesReport = () => {
                   color: "#495057",
                   fontSize: "14px"
                 }}>Store</label>
-                <Select
+                <Select classNamePrefix="rf-select"
                   options={isClusterManager
                     ? [{ value: "all", label: "All My Stores" }, ...storeOptions.filter(s => clusterAllowedLocCodes.includes(s.value))]
                     : storeOptions
@@ -327,16 +327,7 @@ const SalesReport = () => {
                   }}
                   isSearchable
                   placeholder="Select Store..."
-                  styles={{
-                    control: (base, state) => ({
-                      ...base,
-                      borderRadius: "8px",
-                      borderColor: state.isFocused ? "#a855f7" : "#dee2e6",
-                      boxShadow: state.isFocused ? "0 0 0 2px rgba(168,85,247,0.1)" : "none",
-                      padding: "4px 8px",
-                      transition: "all 0.2s ease"
-                    })
-                  }}
+                  styles={appSelectStyles}
                 />
               </div>
             ) : (
@@ -369,20 +360,11 @@ const SalesReport = () => {
                 color: "#495057",
                 fontSize: "14px"
               }}>Report Type</label>
-              <Select
+              <Select classNamePrefix="rf-select"
                 options={reportTypeOptions}
                 value={reportTypeOptions.find(r => r.value === reportType)}
                 onChange={(opt) => setReportType(opt.value)}
-                styles={{
-                  control: (base, state) => ({
-                    ...base,
-                    borderRadius: "8px",
-                    borderColor: state.isFocused ? "#a855f7" : "#dee2e6",
-                    boxShadow: state.isFocused ? "0 0 0 2px rgba(168,85,247,0.1)" : "none",
-                    padding: "4px 8px",
-                    transition: "all 0.2s ease"
-                  })
-                }}
+                styles={appSelectStyles}
               />
             </div>
           </div>

@@ -7,6 +7,7 @@ import ImageUpload from "../components/ImageUpload";
 import baseUrl from "../api/api";
 import useSidebar from "../hooks/useSidebar";
 
+import AppSelect from "../components/AppSelect.jsx";
 const API_ROOT = (baseUrl?.baseUrl || "").replace(/\/$/, "");
 const API_URL = baseUrl?.baseUrl?.replace(/\/$/, "") || "http://localhost:7000";
 
@@ -1649,7 +1650,7 @@ const FloatingField = ({
         className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400 outline-none"
       />
     ) : inputType === "select" ? (
-      <select
+      <AppSelect
         name={name}
         value={value}
         onChange={onChange}
@@ -1657,7 +1658,7 @@ const FloatingField = ({
         className="w-full h-10 rounded-xl border border-gray-200 bg-white px-3.5 text-sm text-gray-900 focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400 outline-none"
       >
         <option value="">{placeholder}</option>
-      </select>
+      </AppSelect>
     ) : (
       <div className="relative">
         <div className={`flex items-center rounded-xl border border-gray-200 bg-white focus-within:border-purple-500 focus-within:ring-2 focus-within:ring-purple-100 transition overflow-hidden ${disabled ? "bg-gray-50" : ""}`}>

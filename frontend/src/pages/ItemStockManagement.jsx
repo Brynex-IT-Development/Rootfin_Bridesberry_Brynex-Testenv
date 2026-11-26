@@ -5,6 +5,7 @@ import { X, Trash2, Plus, Copy, Package, Store, Check, ArrowLeft, Layers } from 
 import baseUrl from "../api/api";
 import useSidebar from "../hooks/useSidebar";
 
+import AppSelect from "../components/AppSelect.jsx";
 // Warehouse names for the dropdown - restricted to Warehouse and Brides Berry
 const WAREHOUSES = [
   "Warehouse",
@@ -413,7 +414,7 @@ const ItemStockManagement = () => {
                     {stockRows.map((row, index) => (
                       <tr key={index} className="hover:bg-slate-50/70 transition-colors">
                         <td className="px-5 py-3.5">
-                          <select
+                          <AppSelect
                             value={row.warehouse}
                             onChange={(e) => handleInputChange(index, "warehouse", e.target.value)}
                             className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-800 focus:border-slate-400 focus:outline-none focus:ring-3 focus:ring-slate-100 transition-all shadow-2xs"
@@ -422,7 +423,7 @@ const ItemStockManagement = () => {
                             {warehouses.map((wh, idx) => (
                               <option key={idx} value={wh}>{wh}</option>
                             ))}
-                          </select>
+                          </AppSelect>
                         </td>
                         <td className="px-5 py-3.5">
                           <input

@@ -9,6 +9,7 @@ import { useSidebar } from "../hooks/useSidebar.js";
 import { useActiveStores } from "../utils/storeService.js";
 import Breadcrumbs from "../components/Breadcrumbs.jsx";
 
+import AppSelect from "../components/AppSelect.jsx";
 const baseIncomeCats = [
   {
     value: "compensation from cancellation",
@@ -290,7 +291,7 @@ const Income = () => {
                 Store / Branch
               </label>
               <div className="relative">
-                <select
+                <AppSelect
                   id="income-store"
                   value={selectedStore}
                   onChange={(event) => setSelectedStore(event.target.value)}
@@ -309,11 +310,8 @@ const Income = () => {
                       {store.locName} ({store.locCode})
                     </option>
                   ))}
-                </select>
-                <ChevronDown
-                  size={20}
-                  className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-[#98a2b3]"
-                />
+                </AppSelect>
+                
               </div>
             </div>
 
@@ -326,7 +324,7 @@ const Income = () => {
                   Category
                 </label>
                 <div className="relative">
-                  <select
+                  <AppSelect
                     id="income-category"
                     value={selectedCategory.value}
                     onChange={(event) =>
@@ -339,11 +337,8 @@ const Income = () => {
                         {category.label}
                       </option>
                     ))}
-                  </select>
-                  <ChevronDown
-                    size={20}
-                    className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-[#98a2b3]"
-                  />
+                  </AppSelect>
+                  
                 </div>
               </div>
 

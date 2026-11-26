@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import Head from "../components/Head";
 import useSidebar from "../hooks/useSidebar";
 
+import AppSelect from "../components/AppSelect.jsx";
 const ShoeSalesPriceListCreate = () => {
   const isSidebarOpen = useSidebar();
   const [showExamples, setShowExamples] = useState(false);
@@ -87,10 +88,10 @@ const ShoeSalesPriceListCreate = () => {
               label="Percentage*"
               renderInput={() => (
                 <div className="flex items-center gap-2">
-                  <select className="w-32 rounded-lg border border-[#d7dcf5] px-3 py-2 text-sm text-[#1f2937] focus:border-[#94a3b8] focus:outline-none">
+                  <AppSelect className="w-32 rounded-lg border border-[#d7dcf5] px-3 py-2 text-sm text-[#1f2937] focus:border-[#94a3b8] focus:outline-none">
                     <option>Markup</option>
                     <option>Markdown</option>
-                  </select>
+                  </AppSelect>
                   <div className="flex items-center rounded-lg border border-[#d7dcf5] focus-within:border-[#94a3b8]">
                     <input
                       type="number"
@@ -161,7 +162,7 @@ const TypeCard = ({ title, subtitle, defaultChecked = false, group }) => (
 
 const RoundOffSelect = () => {
   return (
-    <select className="w-56 rounded-lg border border-[#d7dcf5] px-3 py-2 text-sm text-[#1f2937] focus:border-[#94a3b8] focus:ring-2 focus:ring-[#c7d7ff] focus:outline-none">
+    <AppSelect className="w-56 rounded-lg border border-[#d7dcf5] px-3 py-2 text-sm text-[#1f2937] focus:border-[#94a3b8] focus:ring-2 focus:ring-[#c7d7ff] focus:outline-none">
       <option>Never mind</option>
       <option>Nearest whole number</option>
       <option>0.99</option>
@@ -170,7 +171,7 @@ const RoundOffSelect = () => {
       <option disabled className="text-[#9ca3af]">
         Decimal Places
       </option>
-    </select>
+    </AppSelect>
   );
 };
 

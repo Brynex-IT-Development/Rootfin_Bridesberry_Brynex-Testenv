@@ -224,41 +224,25 @@ const OptimizedFinancialSummary = () => {
 
               <div className='flex flex-col'>
                 <label>Category</label>
-                <Select
+                <Select classNamePrefix="rf-select"
                   options={categories}
                   value={selectedCategory}
                   onChange={setSelectedCategory}
                   className="min-w-[200px]"
                   menuPortalTarget={document.body}
-                  styles={{
-                    control: base => ({
-                      ...base,
-                      minHeight: '40px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '0.375rem'
-                    }),
-                    menuPortal: base => ({ ...base, zIndex: 9999 })
-                  }}
+                  styles={appSelectStyles}
                 />
               </div>
 
               <div className='flex flex-col'>
                 <label>Sub Category</label>
-                <Select
+                <Select classNamePrefix="rf-select"
                   options={subCategories}
                   value={selectedSubCategory}
                   onChange={setSelectedSubCategory}
                   className="min-w-[200px]"
                   menuPortalTarget={document.body}
-                  styles={{
-                    control: base => ({
-                      ...base,
-                      minHeight: '40px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '0.375rem'
-                    }),
-                    menuPortal: base => ({ ...base, zIndex: 9999 })
-                  }}
+                  styles={appSelectStyles}
                 />
               </div>
 

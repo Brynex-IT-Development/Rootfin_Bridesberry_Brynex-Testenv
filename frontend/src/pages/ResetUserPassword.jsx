@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { KeyRound, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import baseUrl from "../api/api";
 import { useSidebar } from "../hooks/useSidebar.js";
 import Header from "../components/Header.jsx";
@@ -45,8 +45,8 @@ const ResetUserPassword = () => {
     const filteredUsers = userSearch.trim() === "" || selectedUser
         ? users
         : users.filter(u =>
-            u.email.toLowerCase().includes(userSearch.toLowerCase()) ||
-            u.username.toLowerCase().includes(userSearch.toLowerCase())
+            (u.email || "").toLowerCase().includes(userSearch.toLowerCase()) ||
+            (u.username || "").toLowerCase().includes(userSearch.toLowerCase())
         );
 
     const handleSelectUser = (user) => {
@@ -88,119 +88,136 @@ const ResetUserPassword = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#F7F7F7]">
+        <div className="min-h-screen bg-[#FFFFFF]">
             <Header title="Reset Password" />
 
             <div className={`transition-all duration-300 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
-                {/* Page Title Banner */}
-                <div className="bg-white px-8 py-5 border-b border-[#E5E5E5] flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <div className="bg-[#9D43D6] p-3 rounded-xl flex items-center justify-center shadow-sm">
-                            <KeyRound className="text-white" size={24} />
-                        </div>
-                        <div>
-                            <h1 className="text-[22px] font-semibold text-[#212121]">RESET USER PASSWORD</h1>
-                            <p className="text-[#6A6A6A] text-[13px] font-normal">Super Admin / Admin password reset for any user or store account</p>
-                        </div>
-                    </div>
+                {/* Clean Page Title Header */}
+                <div className="bg-white px-8 py-4 border-b border-[#E5E5E5] flex items-center justify-between">
+                    <h1 className="text-[18px] font-semibold text-[#212121]">Reset User Password</h1>
                 </div>
 
-                {/* Form */}
-                <div className="p-6 md:p-8">
-                <form onSubmit={handleReset} className="max-w-lg bg-white border border-[#E5E5E5] rounded-xl p-6 shadow-xs space-y-4" autoComplete="off">
-                    {/* Select User */}
-                    <div ref={dropdownRef}>
-                        <label className="block text-[12px] font-medium text-[#212121] mb-[6px]">
-                            Select User / Store *
-                        </label>
-                        <div className="relative">
-                            <input
-                                type="text"
-                                value={userSearch}
-                                onChange={(e) => {
-                                    setUserSearch(e.target.value);
-                                    setSelectedUser(null);
-                                    setShowUserDropdown(true);
-                                }}
-                                onFocus={() => setShowUserDropdown(true)}
-                                placeholder="Enter mail id or username..."
-                                autoComplete="off"
-                                className="w-full h-[40px] px-[14px] pr-10 border border-[#E5E5E5] rounded-[10px] text-[13px] font-medium text-[#212121] placeholder-[#A3A3A3] outline-none focus:border-[#9B48D7] focus:ring-1 focus:ring-[#9B48D7]"
-                            />
-                            <ChevronDown size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#6A6A6A] pointer-events-none" />
-                            {showUserDropdown && filteredUsers.length > 0 && (
-                                <div className="absolute z-50 w-full mt-1 bg-white border border-[#E5E5E5] rounded-[10px] shadow-xl max-h-60 overflow-y-auto">
-                                    {filteredUsers.map((u) => (
-                                        <div
-                                            key={u._id}
-                                            onMouseDown={(e) => { e.preventDefault(); handleSelectUser(u); }}
-                                            className="px-3.5 py-2.5 hover:bg-[#FBF5FC] cursor-pointer text-[#212121] text-[13px] border-b border-[#E5E5E5] last:border-0"
-                                        >
-                                            <span className="font-medium text-[#212121]">{u.username}</span>
-                                            <span className="text-[#6A6A6A] ml-2 text-xs">— {u.email}</span>
+                {/* Form Section */}
+                <div className="bg-white px-8 py-7 max-w-[1400px]">
+                    <form onSubmit={handleReset} className="space-y-6" autoComplete="off">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {/* Select User */}
+                            <div ref={dropdownRef} className="rf-form-field !mb-0">
+                                <label className="rf-field-label">
+                                    Select User / Store <span className="required">*</span>
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        value={userSearch}
+                                        onChange={(e) => {
+                                            setUserSearch(e.target.value);
+                                            setSelectedUser(null);
+                                            setShowUserDropdown(true);
+                                        }}
+                                        onFocus={() => setShowUserDropdown(true)}
+                                        placeholder="Enter mail id or username..."
+                                        autoComplete="off"
+                                        className="rf-input !pr-11"
+                                    />
+                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 pl-2.5">
+                                        <span className="h-4 w-[1px] bg-[#E5E5E5] mr-2.5" />
+                                        <ChevronDown size={15} className="text-[#6A6A6A]" />
+                                    </div>
+                                    {showUserDropdown && filteredUsers.length > 0 && (
+                                        <div className="rf-select__menu-list absolute z-50 w-full mt-1 bg-white border border-[#e2e8f0] rounded-none shadow-lg max-h-60 overflow-y-auto">
+                                            {filteredUsers.map((u) => {
+                                                const isSelected = selectedUser && selectedUser._id === u._id;
+                                                return (
+                                                    <div
+                                                        key={u._id}
+                                                        onMouseDown={(e) => { e.preventDefault(); handleSelectUser(u); }}
+                                                        className={`px-3.5 py-2.5 cursor-pointer text-[14px] transition-colors ${
+                                                            isSelected
+                                                                ? "bg-[#18181b] text-white font-medium"
+                                                                : "text-[#334155] hover:bg-[#f1f5f9]"
+                                                        }`}
+                                                    >
+                                                        <span>{u.username}</span>
+                                                        <span className={`ml-2 text-xs ${isSelected ? "text-gray-300" : "text-[#64748b]"}`}>— {u.email}</span>
+                                                    </div>
+                                                );
+                                            })}
                                         </div>
-                                    ))}
+                                    )}
                                 </div>
-                            )}
-                        </div>
-                    </div>
+                            </div>
 
-                    {/* New Password */}
-                    <div>
-                        <label className="block text-[12px] font-medium text-[#212121] mb-[6px]">
-                            New Password *
-                        </label>
-                        <div className="relative">
-                            <input
-                                type={showNewPassword ? "text" : "password"}
-                                value={newPassword}
-                                onChange={(e) => setNewPassword(e.target.value)}
-                                placeholder="Enter new password"
-                                autoComplete="new-password"
-                                className="w-full h-[40px] px-[14px] pr-12 border border-[#E5E5E5] rounded-[10px] text-[13px] font-medium text-[#212121] placeholder-[#A3A3A3] outline-none focus:border-[#9B48D7] focus:ring-1 focus:ring-[#9B48D7]"
-                            />
-                            <span onClick={() => setShowNewPassword(!showNewPassword)}
-                                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#6A6A6A] hover:text-[#9D43D6] cursor-pointer">
-                                {showNewPassword ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
-                            </span>
-                        </div>
-                    </div>
+                            {/* New Password */}
+                            <div className="rf-form-field !mb-0">
+                                <label className="rf-field-label">
+                                    New Password <span className="required">*</span>
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        type={showNewPassword ? "text" : "password"}
+                                        value={newPassword}
+                                        onChange={(e) => setNewPassword(e.target.value)}
+                                        placeholder="Enter new password"
+                                        autoComplete="new-password"
+                                        className="rf-input !pr-12"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowNewPassword(!showNewPassword)}
+                                        className="absolute inset-y-0 right-0 pr-3.5 pl-2.5 flex items-center text-[#9D43D6] hover:text-[#8B3CBD] cursor-pointer"
+                                    >
+                                        <span className="h-4 w-[1px] bg-[#E5E5E5] mr-2.5" />
+                                        {showNewPassword ? <FaEyeSlash size={15} /> : <FaEye size={15} />}
+                                    </button>
+                                </div>
+                            </div>
 
-                    {/* Confirm Password */}
-                    <div>
-                        <label className="block text-[12px] font-medium text-[#212121] mb-[6px]">
-                            Confirm Password *
-                        </label>
-                        <div className="relative">
-                            <input
-                                type={showConfirmPassword ? "text" : "password"}
-                                value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                placeholder="Confirm new password"
-                                autoComplete="new-password"
-                                className="w-full h-[40px] px-[14px] pr-12 border border-[#E5E5E5] rounded-[10px] text-[13px] font-medium text-[#212121] placeholder-[#A3A3A3] outline-none focus:border-[#9B48D7] focus:ring-1 focus:ring-[#9B48D7]"
-                            />
-                            <span onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#6A6A6A] hover:text-[#9D43D6] cursor-pointer">
-                                {showConfirmPassword ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
-                            </span>
+                            {/* Confirm Password */}
+                            <div className="rf-form-field !mb-0">
+                                <label className="rf-field-label">
+                                    Confirm Password <span className="required">*</span>
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        type={showConfirmPassword ? "text" : "password"}
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        placeholder="Confirm new password"
+                                        autoComplete="new-password"
+                                        className="rf-input !pr-12"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                        className="absolute inset-y-0 right-0 pr-3.5 pl-2.5 flex items-center text-[#9D43D6] hover:text-[#8B3CBD] cursor-pointer"
+                                    >
+                                        <span className="h-4 w-[1px] bg-[#E5E5E5] mr-2.5" />
+                                        {showConfirmPassword ? <FaEyeSlash size={15} /> : <FaEye size={15} />}
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                    </div>
 
-                    {/* Buttons */}
-                    <div className="flex justify-between items-center pt-4">
-                        <button type="button"
-                            onClick={() => { setSelectedUser(null); setUserSearch(""); setNewPassword(""); setConfirmPassword(""); }}
-                            className="rf-btn-cancel cursor-pointer">
-                            CANCEL
-                        </button>
-                        <button type="submit" disabled={loading}
-                            className={loading ? "rf-btn-disabled" : "rf-btn-primary cursor-pointer"}>
-                            {loading ? "RESETTING..." : "RESET PASSWORD"}
-                        </button>
-                    </div>
-                </form>
-            </div>
+                        {/* Buttons */}
+                        <div className="flex items-center gap-3 pt-2">
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className={loading ? "rf-btn-disabled" : "rf-btn-primary cursor-pointer !px-6"}
+                            >
+                                {loading ? "Resetting..." : "Reset Password"}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => { setSelectedUser(null); setUserSearch(""); setNewPassword(""); setConfirmPassword(""); }}
+                                className="rf-btn-cancel cursor-pointer !px-6"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     );

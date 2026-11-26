@@ -291,44 +291,32 @@ const Permissions = () => {
     const currentRolePerms = allPermissions[activeTab] || getDefaultPermissionsForRole(activeTab);
 
     return (
-        <div className="min-h-screen bg-[#F7F7F7]">
+        <div className="min-h-screen bg-[#FFFFFF]">
             <Header title="Permissions" />
 
             <div className={`transition-all duration-300 ${isSidebarOpen ? "ml-[240px]" : "ml-0"}`}>
-                {/* Page Title Banner */}
-                <div className="bg-white px-8 py-5 border-b border-[#E5E5E5] flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <div className="bg-[#9D43D6] p-3 rounded-xl flex items-center justify-center shadow-sm">
-                            <ShieldCheck className="text-white" size={24} />
-                        </div>
-                        <div>
-                            <div className="flex items-center gap-2">
-                                <h1 className="text-[22px] font-semibold text-[#212121]">ROLE PERMISSIONS</h1>
-                                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#9D43D6]/10 text-[#9D43D6] uppercase tracking-wide">
-                                    SUPER ADMIN ONLY
-                                </span>
-                            </div>
-                            <p className="text-[#6A6A6A] text-[13px] font-normal">
-                                Configure accessible modules and sub-pages for each role across the organization
-                            </p>
-                        </div>
+                {/* Clean Page Title Header */}
+                <div className="bg-white px-8 py-4 border-b border-[#E5E5E5] flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-[18px] font-semibold text-[#212121]">Role Permissions</h1>
+                        <span className="px-2.5 py-0.5 rounded-md text-[10px] font-semibold bg-[#EFE3F7] text-[#9D43D6] uppercase tracking-wide">
+                            SUPER ADMIN ONLY
+                        </span>
                     </div>
 
                     <div className="flex items-center gap-3">
                         <button
                             onClick={handleResetDefaults}
-                            className="px-4 py-2 border border-[#E5E5E5] text-[#212121] hover:bg-[#F7F7F7] rounded-xl font-semibold text-xs flex items-center gap-2 transition-colors cursor-pointer"
+                            className="rf-btn-secondary cursor-pointer"
                             title="Reset permissions to system defaults"
                         >
-                            <RotateCcw size={15} />
+                            <RotateCcw size={14} />
                             Reset Defaults
                         </button>
                         <button
                             onClick={handleSave}
                             disabled={saving}
-                            className={`px-5 py-2 bg-[#9D43D6] hover:bg-[#8835bd] text-white rounded-xl font-semibold text-xs flex items-center gap-2 transition-all shadow-sm cursor-pointer ${
-                                saving ? "opacity-75 cursor-not-allowed" : ""
-                            }`}
+                            className={saving ? "rf-btn-disabled" : "rf-btn-primary cursor-pointer"}
                         >
                             {saving ? (
                                 <>
@@ -337,12 +325,12 @@ const Permissions = () => {
                                 </>
                             ) : saveSuccess ? (
                                 <>
-                                    <Check size={16} />
-                                    Saved Lively!
+                                    <Check size={15} />
+                                    Saved!
                                 </>
                             ) : (
                                 <>
-                                    <Save size={15} />
+                                    <Save size={14} />
                                     Save Permissions
                                 </>
                             )}
@@ -350,39 +338,39 @@ const Permissions = () => {
                     </div>
                 </div>
 
-                <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6">
+                <div className="px-8 py-6 max-w-[1400px] space-y-5">
 
                 {/* Notifications */}
                 {saveSuccess && (
-                    <div className="mb-5 p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl flex items-center gap-2.5 text-xs animate-fade-in font-medium">
+                    <div className="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg flex items-center gap-2.5 text-xs animate-fade-in font-medium">
                         <CheckCircle2 className="text-emerald-500 shrink-0" size={17} />
                         <span>Permissions saved successfully! Navigation for active users will update immediately.</span>
                     </div>
                 )}
 
                 {errorMessage && (
-                    <div className="mb-5 p-3.5 bg-red-50 border border-red-200 text-red-800 rounded-xl flex items-center gap-2.5 text-xs animate-fade-in font-medium">
+                    <div className="p-3.5 bg-red-50 border border-red-200 text-red-800 rounded-lg flex items-center gap-2.5 text-xs animate-fade-in font-medium">
                         <AlertCircle className="text-red-500 shrink-0" size={17} />
                         <span>{errorMessage}</span>
                     </div>
                 )}
 
                 {/* Role Tabs Row */}
-                <div className="bg-white p-1.5 rounded-xl shadow-sm border border-gray-200 mb-6 flex overflow-x-auto gap-1 [scrollbar-width:none]">
+                <div className="bg-[#F7F7F7] p-1.5 rounded-xl border border-[#E5E5E5] flex flex-wrap items-center gap-1.5">
                     {/* All Roles Matrix Option */}
                     <button
                         onClick={() => setActiveTab("matrix")}
-                        className={`py-2 px-4 rounded-lg text-xs font-semibold transition-all whitespace-nowrap cursor-pointer flex items-center gap-2 ${
+                        className={`px-3.5 py-2 rounded-lg text-[12px] font-semibold transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
                             activeTab === "matrix"
-                                ? "bg-[#18181b] text-white shadow-sm"
-                                : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                                ? "bg-[#9D43D6] text-white shadow-xs"
+                                : "bg-white text-[#4A4A4A] border border-[#E5E5E5] hover:border-[#9D43D6]/40 hover:text-[#9D43D6]"
                         }`}
                     >
                         <LayoutGrid size={14} />
                         All Roles Matrix
                     </button>
 
-                    <div className="w-[1px] bg-gray-200 my-1 mx-1 shrink-0" />
+                    <div className="hidden sm:block w-[1px] h-5 bg-[#DCDCDC] mx-1 shrink-0" />
 
                     {/* Individual Roles */}
                     {SYSTEM_ROLES.map((r) => {
@@ -391,10 +379,10 @@ const Permissions = () => {
                             <button
                                 key={r.key}
                                 onClick={() => setActiveTab(r.key)}
-                                className={`flex-1 min-w-[125px] py-2 px-3 rounded-lg text-xs font-semibold transition-all whitespace-nowrap cursor-pointer text-center ${
+                                className={`px-3.5 py-2 rounded-lg text-[12px] font-semibold transition-all whitespace-nowrap cursor-pointer ${
                                     isSelected
-                                        ? "bg-[#9D43D6] text-white shadow-sm"
-                                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                                        ? "bg-[#9D43D6] text-white shadow-xs"
+                                        : "text-[#525252] hover:text-[#212121] hover:bg-white"
                                 }`}
                             >
                                 {r.label}
@@ -404,17 +392,17 @@ const Permissions = () => {
                 </div>
 
                 {loading ? (
-                    <div className="bg-white p-12 rounded-xl shadow-sm border border-gray-200 text-center">
+                    <div className="bg-white p-12 rounded-lg border border-[#E5E5E5] text-center">
                         <div className="w-8 h-8 border-3 border-[#9D43D6] border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-                        <p className="text-gray-500 text-xs">Loading permissions...</p>
+                        <p className="text-[#6A6A6A] text-xs">Loading permissions...</p>
                     </div>
                 ) : activeTab === "matrix" ? (
                     /* ── ALL ROLES MATRIX TABLE VIEW ── */
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div className="bg-white rounded-lg border border-[#E5E5E5] overflow-hidden">
                         <div className="overflow-x-auto">
                             <table className="w-full text-left border-collapse">
                                 <thead>
-                                    <tr className="bg-gray-50 border-b border-gray-200 text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+                                    <tr className="bg-[#1B1B1B] text-white text-[11px] font-semibold uppercase tracking-wider">
                                         <th className="py-3 px-4 min-w-[220px]">Module / Page</th>
                                         {SYSTEM_ROLES.map(r => (
                                             <th key={r.key} className="py-3 px-3 text-center min-w-[110px]">
@@ -512,12 +500,12 @@ const Permissions = () => {
                     </div>
                 ) : (
                     /* ── SINGLE ROLE TABLE VIEW (COLUMNS AND ROWS) ── */
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                        <div className="px-6 py-3.5 bg-gray-50/80 border-b border-gray-200 flex items-center justify-between">
-                            <span className="text-xs font-bold text-gray-700 uppercase tracking-wider">
+                    <div className="bg-white rounded-lg border border-[#E5E5E5] overflow-hidden">
+                        <div className="px-5 py-3 bg-[#F1E6F8] border-b border-[#E2D4EC] flex items-center justify-between">
+                            <span className="text-[12px] font-bold text-[#212121] uppercase tracking-wider">
                                 Permissions for role: <span className="text-[#9D43D6]">{activeTab.replace('_', ' ').toUpperCase()}</span>
                             </span>
-                            <span className="text-xs text-gray-400">
+                            <span className="text-[12px] text-[#6A6A6A]">
                                 Click checkbox to open/close module. Open dropdown to toggle inside sub-pages.
                             </span>
                         </div>
@@ -525,7 +513,7 @@ const Permissions = () => {
                         <div className="overflow-x-auto">
                             <table className="w-full text-left border-collapse">
                                 <thead>
-                                    <tr className="bg-gray-50 border-b border-gray-200 text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+                                    <tr className="bg-[#1B1B1B] text-white text-[11px] font-semibold uppercase tracking-wider">
                                         <th className="py-3 px-4 w-12 text-center">#</th>
                                         <th className="py-3 px-4 min-w-[200px]">Module</th>
                                         <th className="py-3 px-4 w-40">Access</th>

@@ -1,4 +1,5 @@
 import { useRef, useState, useMemo, useEffect } from 'react';
+import { Download } from 'lucide-react';
 import Headers from '../components/Header';
 import baseUrl from '../api/api';
 import { useSidebar } from '../hooks/useSidebar.js';
@@ -168,135 +169,198 @@ const CloseReport = () => {
   };
 
   return (
-    <div className="close-report-wrapper bg-[#fcfcfc] min-h-screen pb-10">
+    <div className="close-report-wrapper min-h-screen bg-[#FFFFFF] pb-10">
       <Headers title={'Close Report'} />
-      <div className={`transition-all duration-300 pl-[10px] pr-8 pt-8 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-        
-        {/* Top Controls Area */}
-        <div className="flex justify-between items-end mb-8">
-          <div className="flex items-end gap-3">
-            <div className="flex flex-col">
-              <label className="text-[13px] text-gray-500 mb-1 ml-1">Select Date</label>
-              <div className="relative">
-                 <input
-                   type="date"
-                   value={fromDate}
-                   onChange={(e) => setFromDate(e.target.value)}
-                   className="border border-gray-300 bg-white rounded-md px-3 py-2 text-sm text-gray-700 outline-none focus:border-blue-500 w-[160px] h-[40px] shadow-sm"
-                 />
-              </div>
-            </div>
-            
-            <button
-              onClick={handleFetch}
-              disabled={!fromDate || isLoading}
-              className={`px-6 rounded-md text-[14px] font-medium h-[40px] flex items-center justify-center gap-2 transition-colors ${!fromDate || isLoading ? 'bg-[#d8b4fe] cursor-not-allowed text-white' : 'bg-[#a855f7] hover:bg-[#9333ea] text-white shadow-sm'}`}
-            >
-              {isLoading ? 'Loading...' : 'Fetch Data'}
-            </button>
-            
-            <button
-              onClick={handleExportCSV}
-              className="bg-[#f1f5f9] hover:bg-gray-200 text-gray-800 px-5 rounded-md text-[14px] font-medium h-[40px] flex items-center justify-center gap-2 transition-colors shadow-sm border border-gray-200"
-            >
-              Export CSV 
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-            </button>
-          </div>
-          
-          <div className="flex bg-[#eceef0] rounded-full p-1 items-center">
-            <button 
-              onClick={() => setFilter("All")} 
-              style={{ display: 'inline-flex' }}
-              className={`px-4 py-1.5 rounded-full text-[13px] font-medium whitespace-nowrap transition-colors items-center justify-center ${filter === 'All' ? 'bg-[#222222] text-white shadow-sm' : 'text-gray-800 hover:bg-gray-200 bg-transparent'}`}
-            >
-              All Status
-            </button>
-            <button 
-              onClick={() => setFilter("Not Closed")} 
-              style={{ display: 'inline-flex' }}
-              className={`items-center justify-center gap-1.5 px-4 py-1.5 rounded-full text-[13px] font-medium whitespace-nowrap transition-colors ${filter === 'Not Closed' ? 'bg-[#222222] text-white shadow-sm' : 'text-gray-800 hover:bg-gray-200 bg-transparent'}`}
-            >
-              <span>Not Closed</span>
-              {counts.notClosedCount > 0 && (
-                <span className="bg-[#ef4444] text-white text-[11px] rounded-full w-5 h-5 flex items-center justify-center font-bold">
-                  {counts.notClosedCount}
-                </span>
-              )}
-            </button>
-            <button 
-              onClick={() => setFilter("Match")} 
-              style={{ display: 'inline-flex' }}
-              className={`px-4 py-1.5 rounded-full text-[13px] font-medium whitespace-nowrap transition-colors items-center justify-center ${filter === 'Match' ? 'bg-[#222222] text-white shadow-sm' : 'text-gray-800 hover:bg-gray-200 bg-transparent'}`}
-            >
-              Match
-            </button>
-            <button 
-              onClick={() => setFilter("Mismatch")} 
-              style={{ display: 'inline-flex' }}
-              className={`items-center justify-center gap-1.5 px-4 py-1.5 rounded-full text-[13px] font-medium whitespace-nowrap transition-colors ${filter === 'Mismatch' ? 'bg-[#222222] text-white shadow-sm' : 'text-gray-800 hover:bg-gray-200 bg-transparent'}`}
-            >
-              <span>Mismatch</span>
-              {counts.mismatchCount > 0 && (
-                <span className="bg-[#ef4444] text-white text-[11px] rounded-full w-5 h-5 flex items-center justify-center font-bold">
-                  {counts.mismatchCount}
-                </span>
-              )}
-            </button>
-          </div>
+
+      <div className={`transition-all duration-300 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
+        {/* Clean Page Title Header */}
+        <div className="bg-white px-8 py-4 border-b border-[#E5E5E5] flex items-center justify-between">
+          <h1 className="text-[18px] font-semibold text-[#212121]">Close Report</h1>
         </div>
 
-        {/* Table Area */}
-        <div className="bg-white shadow-sm border border-gray-200 rounded-lg overflow-hidden">
-          <table className="w-full text-left border-collapse">
-            <thead className="bg-[#222222] text-white text-[12px] uppercase tracking-wider">
-              <tr>
-                <th className="px-6 py-4 font-semibold w-16">NO.</th>
-                <th className="px-6 py-4 font-semibold">NO.OF BILLS</th>
-                <th className="px-6 py-4 font-semibold text-center">LOC CODE</th>
-                <th className="px-6 py-4 font-semibold text-center">BANK</th>
-                <th className="px-6 py-4 font-semibold text-center">CASH</th>
-                <th className="px-6 py-4 font-semibold text-center">CLOSE CASH</th>
-                <th className="px-6 py-4 font-semibold text-center">DIFFERENCE</th>
-                <th className="px-6 py-4 font-semibold text-center w-40">STATUS</th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading ? (
-                <tr>
-                  <td colSpan="8" className="text-center py-16">
-                    <div className="flex items-center justify-center gap-3">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
-                      <span className="text-gray-600 text-[14px]">Loading data...</span>
-                    </div>
-                  </td>
-                </tr>
-              ) : combinedData.length > 0 ? (
-                combinedData.map((row, index) => (
-                  <tr key={index} className={`border-b border-gray-100 text-[14px] hover:bg-gray-50 transition-colors ${row.displayStatus === 'Not Closed' ? 'bg-[#ffe4e6]' : 'bg-white'}`}>
-                    <td className="px-6 py-4 text-gray-500">{String(index + 1).padStart(2, '0')}</td>
-                    <td className="px-6 py-4 font-medium text-gray-900">{row.storeName}</td>
-                    <td className="px-6 py-4 text-center text-gray-600">{row.locCode}</td>
-                    <td className="px-6 py-4 text-center text-gray-600">{formatNumber(row.bankPlusUpi)}</td>
-                    <td className="px-6 py-4 text-center text-gray-600">{formatNumber(row.cash)}</td>
-                    <td className="px-6 py-4 text-center text-gray-600">{formatNumber(row.Closecash)}</td>
-                    <td className="px-6 py-4 text-center text-gray-600">{formatNumber(row.difference)}</td>
-                    <td className="px-6 py-4 text-center">
-                      {row.displayStatus === 'Match' && <span className="bg-[#dcfce7] text-[#16a34a] px-3 py-1 rounded-md text-[12px] font-semibold inline-block">Match</span>}
-                      {row.displayStatus === 'Mismatch' && <span className="bg-[#fee2e2] text-[#ef4444] px-3 py-1 rounded-md text-[12px] font-semibold inline-block">Mismatch</span>}
-                      {row.displayStatus === 'Not Closed' && <span className="bg-[#ef4444] text-white px-3 py-1 rounded-md text-[12px] font-semibold inline-block">Not Closed</span>}
-                    </td>
+        <div className="px-8 pt-6 pb-8 max-w-[1440px]">
+          {/* Top Controls Area */}
+          <div className="flex flex-wrap justify-between items-end gap-4 mb-5">
+            <div className="flex flex-wrap items-end gap-3">
+              <div className="rf-form-field !mb-0">
+                <label className="rf-field-label">Select Date</label>
+                <input
+                  type="date"
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                  className="rf-input !w-[165px]"
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={handleFetch}
+                disabled={!fromDate || isLoading}
+                className={
+                  !fromDate || isLoading
+                    ? 'rf-btn-disabled h-[40px] !px-6'
+                    : 'rf-btn-primary h-[40px] !px-6 cursor-pointer'
+                }
+              >
+                {isLoading ? 'Loading...' : 'Fetch Data'}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleExportCSV}
+                className="rf-btn-cancel h-[40px] !px-5 cursor-pointer"
+              >
+                <span>Export CSV</span>
+                <Download size={15} />
+              </button>
+            </div>
+
+            {/* Status Segmented Filter Pill */}
+            <div className="inline-flex bg-[#F0F1F3] rounded-full p-1 items-center gap-0.5">
+              <button
+                type="button"
+                onClick={() => setFilter("All")}
+                className={`inline-flex px-4 py-1.5 rounded-full text-[12px] font-medium whitespace-nowrap transition-colors items-center justify-center cursor-pointer ${
+                  filter === 'All'
+                    ? 'bg-[#1B1B1B] text-white shadow-xs'
+                    : 'text-[#212121] hover:bg-[#E5E7EB]'
+                }`}
+              >
+                All Status
+              </button>
+              <button
+                type="button"
+                onClick={() => setFilter("Not Closed")}
+                className={`inline-flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-full text-[12px] font-medium whitespace-nowrap transition-colors cursor-pointer ${
+                  filter === 'Not Closed'
+                    ? 'bg-[#1B1B1B] text-white shadow-xs'
+                    : 'text-[#212121] hover:bg-[#E5E7EB]'
+                }`}
+              >
+                <span>Not Closed</span>
+                {counts.notClosedCount > 0 && (
+                  <span className="bg-[#EF4444] text-white text-[10px] rounded-full min-w-[18px] h-[18px] px-1 inline-flex items-center justify-center font-bold">
+                    {counts.notClosedCount}
+                  </span>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setFilter("Match")}
+                className={`inline-flex px-4 py-1.5 rounded-full text-[12px] font-medium whitespace-nowrap transition-colors items-center justify-center cursor-pointer ${
+                  filter === 'Match'
+                    ? 'bg-[#1B1B1B] text-white shadow-xs'
+                    : 'text-[#212121] hover:bg-[#E5E7EB]'
+                }`}
+              >
+                Match
+              </button>
+              <button
+                type="button"
+                onClick={() => setFilter("Mismatch")}
+                className={`inline-flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-full text-[12px] font-medium whitespace-nowrap transition-colors cursor-pointer ${
+                  filter === 'Mismatch'
+                    ? 'bg-[#1B1B1B] text-white shadow-xs'
+                    : 'text-[#212121] hover:bg-[#E5E7EB]'
+                }`}
+              >
+                <span>Mismatch</span>
+                {counts.mismatchCount > 0 && (
+                  <span className="bg-[#EF4444] text-white text-[10px] rounded-full min-w-[18px] h-[18px] px-1 inline-flex items-center justify-center font-bold">
+                    {counts.mismatchCount}
+                  </span>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Table Area */}
+          <div className="bg-white border border-[#E5E5E5] rounded-lg overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[900px] text-left border-collapse">
+                <thead>
+                  <tr className="bg-[#1B1B1B] text-white text-[11px] font-semibold uppercase tracking-wider">
+                    <th className="px-4 py-3 w-16">NO.</th>
+                    <th className="px-4 py-3">NO.OF BILLS</th>
+                    <th className="px-4 py-3 text-center">LOC CODE</th>
+                    <th className="px-4 py-3 text-center">CARD/BANK</th>
+                    <th className="px-4 py-3 text-center">CASH</th>
+                    <th className="px-4 py-3 text-center">CLOSE CASH</th>
+                    <th className="px-4 py-3 text-center">DIFFERENCE</th>
+                    <th className="px-4 py-3 text-center w-36">STATUS</th>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="8" className="text-center py-16 text-gray-500 text-[14px]">
-                    {!fromDate ? "Please select a date to view reports" : "No reports found for selected filter"}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                </thead>
+                <tbody className="divide-y divide-[#EFEFEF] text-[13px]">
+                  {isLoading ? (
+                    <tr>
+                      <td colSpan="8" className="text-center py-16">
+                        <div className="flex items-center justify-center gap-3">
+                          <div className="animate-spin rounded-full h-6 w-6 border-2 border-[#9D43D6] border-t-transparent"></div>
+                          <span className="text-[#6A6A6A] text-[13px]">Loading data...</span>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : combinedData.length > 0 ? (
+                    combinedData.map((row, index) => (
+                      <tr
+                        key={index}
+                        className={`transition-colors ${
+                          row.displayStatus === 'Not Closed'
+                            ? 'bg-[#FFE8E8] hover:bg-[#FFE0E0]'
+                            : 'bg-white hover:bg-[#FBF5FC]'
+                        }`}
+                      >
+                        <td className="px-4 py-3.5 border-r border-[#F3F3F3] text-[#6A6A6A] tabular-nums">
+                          {String(index + 1).padStart(2, '0')}
+                        </td>
+                        <td className="px-4 py-3.5 border-r border-[#F3F3F3] font-medium text-[#212121]">
+                          {row.storeName}
+                        </td>
+                        <td className="px-4 py-3.5 border-r border-[#F3F3F3] text-center text-[#4A4A4A] tabular-nums">
+                          {row.locCode}
+                        </td>
+                        <td className="px-4 py-3.5 border-r border-[#F3F3F3] text-center text-[#4A4A4A] tabular-nums">
+                          {formatNumber(row.bankPlusUpi)}
+                        </td>
+                        <td className="px-4 py-3.5 border-r border-[#F3F3F3] text-center text-[#4A4A4A] tabular-nums">
+                          {formatNumber(row.cash)}
+                        </td>
+                        <td className="px-4 py-3.5 border-r border-[#F3F3F3] text-center text-[#4A4A4A] tabular-nums">
+                          {formatNumber(row.Closecash)}
+                        </td>
+                        <td className="px-4 py-3.5 border-r border-[#F3F3F3] text-center text-[#4A4A4A] tabular-nums">
+                          {formatNumber(row.difference)}
+                        </td>
+                        <td className="px-4 py-3.5 text-center">
+                          {row.displayStatus === 'Match' && (
+                            <span className="bg-[#DCFCE7] text-[#16A34A] px-3.5 py-1 rounded-md text-[11px] font-semibold inline-block min-w-[84px]">
+                              Match
+                            </span>
+                          )}
+                          {row.displayStatus === 'Mismatch' && (
+                            <span className="bg-[#FEE2E2] text-[#EF4444] px-3.5 py-1 rounded-md text-[11px] font-semibold inline-block min-w-[84px]">
+                              Mismatch
+                            </span>
+                          )}
+                          {row.displayStatus === 'Not Closed' && (
+                            <span className="bg-[#EF4444] text-white px-3.5 py-1 rounded-md text-[11px] font-semibold inline-block min-w-[84px]">
+                              Not Closed
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="8" className="text-center py-16 text-[#6A6A6A] text-[13px]">
+                        {!fromDate ? "Please select a date to view reports" : "No reports found for selected filter"}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -7,6 +7,7 @@ import { useSidebar } from "../hooks/useSidebar";
 import { fetchActiveStores, saveCustomStore } from "../utils/storeService";
 import Header from "../components/Header.jsx";
 
+import AppSelect from "../components/AppSelect.jsx";
 const AddNewUser = () => {
     const isSidebarOpen = useSidebar();
     const navigate = useNavigate();
@@ -224,7 +225,7 @@ const AddNewUser = () => {
                 Role <span className="required">*</span>
             </label>
             <div className="relative">
-                <select
+                <AppSelect
                     value={role}
                     onChange={(e) => handleRoleChange(e.target.value)}
                     className={`rf-input appearance-none !pr-11 cursor-pointer ${!role ? "!text-[#A3A3A3] !font-normal" : ""}`}
@@ -238,11 +239,8 @@ const AddNewUser = () => {
                     <option value="cluster_admin">Cluster Admin</option>
                     <option value="store_admin">Store Admin</option>
                     <option value="normal_user">Normal User</option>
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 pl-2.5">
-                    <span className="h-4 w-[1px] bg-[#E5E5E5] mr-2.5" />
-                    <ChevronDown size={15} className="text-[#6A6A6A]" />
-                </div>
+                </AppSelect>
+                
             </div>
         </div>
     );

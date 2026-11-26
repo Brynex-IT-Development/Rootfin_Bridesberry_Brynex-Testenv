@@ -8,6 +8,7 @@ import { mapLocNameToWarehouse as mapWarehouse } from "../utils/warehouseMapping
 import useSidebar from "../hooks/useSidebar";
 import Header from "../components/Header";
 
+import AppSelect from "../components/AppSelect.jsx";
 // Vendor Credit Number Preferences Modal Component
 const CreditNumberPreferencesModal = ({ isOpen, onClose, onSave, currentPrefix, currentNextNumber, autoGenerate, restartYearly }) => {
   const [localAutoGenerate, setLocalAutoGenerate] = useState(autoGenerate);
@@ -206,7 +207,7 @@ const Select = ({ className = "", ...props }) => {
   const finalClasses = `${baseClasses} ${isTableInput ? tableInputClasses : defaultClasses} ${className}`;
   
   return (
-    <select
+    <AppSelect
       {...props}
       className={finalClasses}
     />

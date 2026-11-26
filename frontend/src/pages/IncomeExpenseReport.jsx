@@ -9,6 +9,7 @@ import { baseExpenseCats } from "../config/expenseCategories.js";
 import { useActiveStores } from "../utils/storeService.js";
 import { canViewAdminOnlyTransactions } from "../utils/adminTransactionVisibility.js";
 
+import AppSelect from "../components/AppSelect.jsx";
 const TWS_BASE = "https://rentalapi.rootments.live/api/GetBooking";
 
 const fmt = (n) =>
@@ -1247,7 +1248,7 @@ export default function IncomeExpenseReport() {
                 <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">
                   Store / Department
                 </label>
-                <select
+                <AppSelect
                   value={selectedStore}
                   onChange={(e) => setSelectedStore(e.target.value)}
                   className="w-full h-[38px] bg-white border border-gray-300 rounded-lg px-3 text-xs font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all shadow-sm cursor-pointer"
@@ -1278,7 +1279,7 @@ export default function IncomeExpenseReport() {
                       ))}
                     </optgroup>
                   )}
-                </select>
+                </AppSelect>
               </div>
             )}
 

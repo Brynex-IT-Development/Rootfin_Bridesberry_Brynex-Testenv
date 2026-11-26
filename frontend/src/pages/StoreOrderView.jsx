@@ -5,6 +5,7 @@ import baseUrl from "../api/api";
 import { mapLocNameToWarehouse } from "../utils/warehouseMapping";
 import useSidebar from "../hooks/useSidebar";
 
+import AppSelect from "../components/AppSelect.jsx";
 const StoreOrderView = () => {
   const isSidebarOpen = useSidebar();
   const { id } = useParams();
@@ -242,7 +243,7 @@ const StoreOrderView = () => {
             </div>
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold text-[#64748b] uppercase tracking-wider">Status:</span>
-              <select
+              <AppSelect
                 value={storeOrder.status || 'pending'}
                 onChange={(e) => handleManualStatusChange(e.target.value)}
                 disabled={processing}
@@ -259,7 +260,7 @@ const StoreOrderView = () => {
                 <option value="approved">APPROVED</option>
                 <option value="rejected">REJECTED</option>
                 <option value="transferred">TRANSFERRED</option>
-              </select>
+              </AppSelect>
             </div>
           </div>
           
@@ -280,7 +281,7 @@ const StoreOrderView = () => {
                 </div>
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#64748b] mb-2">Status</p>
-                  <select
+                  <AppSelect
                     value={storeOrder.status || 'pending'}
                     onChange={(e) => handleManualStatusChange(e.target.value)}
                     disabled={processing}
@@ -297,7 +298,7 @@ const StoreOrderView = () => {
                     <option value="approved">APPROVED</option>
                     <option value="rejected">REJECTED</option>
                     <option value="transferred">TRANSFERRED</option>
-                  </select>
+                  </AppSelect>
                 </div>
               </div>
               

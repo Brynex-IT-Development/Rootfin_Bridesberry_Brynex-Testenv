@@ -4,23 +4,16 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import baseUrl from "../api/api";
 import {
-  ArrowLeft,
   Banknote,
-  Building2,
-  Check,
   ChevronDown,
-  IndianRupee,
+  Code2,
   Landmark,
-  Layers3,
-  Menu,
   Search,
-  UploadCloud,
-  WalletCards,
   X,
 } from "lucide-react";
 import { useSidebar } from "../hooks/useSidebar.js";
 import { useActiveStores } from "../utils/storeService.js";
-import Breadcrumbs from "../components/Breadcrumbs.jsx";
+import Header from "../components/Header.jsx";
 import {
   IMAGE_CONFIG,
   processImageFiles,
@@ -35,7 +28,6 @@ const SearchableSelect = ({
   placeholder = "Select...",
   disabled = false,
   searchPlaceholder = "Search...",
-  icon = null,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -79,44 +71,46 @@ const SearchableSelect = ({
         onClick={() => {
           if (!disabled) setIsOpen((prev) => !prev);
         }}
-        className={`w-full flex items-center justify-between rounded-xl border bg-white px-4 py-3.5 text-sm transition-all focus:outline-none ${
-          isOpen ? "border-purple-500 ring-2 ring-purple-100 shadow-xs" : "border-gray-200"
-        } ${disabled ? "bg-gray-50 text-gray-400 cursor-not-allowed" : "cursor-pointer hover:border-gray-300"}`}
+        className={`w-full h-[40px] flex items-center justify-between border bg-white pl-3.5 pr-3 text-[13px] transition-all focus:outline-none ${
+          isOpen
+            ? "border-[#18181b] ring-1 ring-[#18181b]"
+            : "border-[#e2e8f0] hover:border-[#cbd5e1]"
+        } ${disabled ? "bg-[#f8fafc] text-[#94a3b8] cursor-not-allowed" : "cursor-pointer"}`}
       >
-        <span className="flex min-w-0 items-center gap-3">
-          {icon && <span className="shrink-0 text-slate-400">{icon}</span>}
-          <span
-            className={`truncate ${
-              selectedOption ? "text-gray-800 font-medium" : "text-gray-400"
-            }`}
-          >
-            {selectedOption ? selectedOption.label : placeholder}
-          </span>
-        </span>
-        <ChevronDown
-          size={18}
-          className={`text-gray-400 transition-transform duration-200 shrink-0 ml-2 ${
-            isOpen ? "rotate-180 text-purple-600" : ""
+        <span
+          className={`truncate ${
+            selectedOption ? "text-[#1e293b] font-medium" : "text-[#94a3b8] font-normal"
           }`}
-        />
+        >
+          {selectedOption ? selectedOption.label : placeholder}
+        </span>
+        <span className="flex items-center shrink-0 ml-2">
+          <span className="h-4 w-[1px] bg-[#cbd5e1] mr-2.5" />
+          <ChevronDown
+            size={15}
+            className={`text-[#475569] transition-transform duration-150 ${
+              isOpen ? "rotate-180 text-[#18181b]" : ""
+            }`}
+          />
+        </span>
       </button>
 
       {isOpen && !disabled && (
-        <div className="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-xl border border-gray-100 bg-white shadow-xl overflow-hidden animate-in fade-in-0 duration-150">
-          <div className="p-2.5 border-b border-gray-100 bg-gray-50/70">
+        <div className="absolute left-0 right-0 top-full mt-1 z-50 border border-[#e2e8f0] bg-white shadow-lg overflow-hidden">
+          <div className="p-2 border-b border-[#e2e8f0] bg-[#f8fafc]">
             <div className="relative flex items-center">
-              <Search size={15} className="absolute left-3 text-gray-400 pointer-events-none" />
+              <Search size={14} className="absolute left-2.5 text-[#64748b] pointer-events-none" />
               <input
                 ref={inputRef}
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={searchPlaceholder}
-                className="w-full pl-9 pr-3 py-2 text-xs bg-white border border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                className="w-full pl-8 pr-2.5 py-1.5 text-xs bg-white border border-[#e2e8f0] text-[#1e293b] placeholder-[#94a3b8] focus:outline-none focus:border-[#18181b]"
               />
             </div>
           </div>
-          <div className="max-h-60 overflow-y-auto py-1">
+          <div className="rf-select__menu-list max-h-60 overflow-y-auto">
             {filteredOptions.length > 0 ? (
               filteredOptions.map((opt) => {
                 const isSelected = opt.value === value;
@@ -129,19 +123,18 @@ const SearchableSelect = ({
                       setIsOpen(false);
                       setSearch("");
                     }}
-                    className={`w-full flex items-center justify-between px-4 py-2.5 text-xs text-left transition-colors cursor-pointer ${
+                    className={`w-full flex items-center justify-between px-3.5 py-2.5 text-[14px] text-left transition-colors cursor-pointer ${
                       isSelected
-                        ? "bg-purple-50 text-purple-700 font-semibold"
-                        : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                        ? "bg-[#18181b] text-white font-medium"
+                        : "text-[#334155] hover:bg-[#f1f5f9]"
                     }`}
                   >
                     <span className="truncate">{opt.label}</span>
-                    {isSelected && <Check size={14} className="text-purple-600 shrink-0 ml-2" />}
                   </button>
                 );
               })
             ) : (
-              <div className="px-4 py-6 text-center text-xs text-gray-400">
+              <div className="px-4 py-6 text-center text-xs text-[#94a3b8]">
                 No matching options
               </div>
             )}
@@ -559,401 +552,372 @@ const DirectIndirectExpenses = ({ initialType = "direct" }) => {
   };
 
   return (
-    <div className={`min-h-screen bg-[#FAFAFB] transition-all duration-300 ${isSidebarOpen ? "md:ml-64 ml-0" : "ml-0"}`}>
+    <div className="min-h-screen bg-[#FFFFFF]">
       <Helmet>
-        <title>New Expense | RootFin</title>
+        <title>Record Expense | RootFin</title>
       </Helmet>
-      <div className="w-full px-6 sm:px-10 py-8">
-        <Breadcrumbs currentTitle={expenseType === "direct" ? "Direct Expenses" : "Indirect Expenses"} className="mb-4" />
-        {/* Top Header: Sidebar Menu Toggle, Back Button & Direct / Indirect Expense Pill Switch */}
-        <div className="mb-8 flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => window.dispatchEvent(new CustomEvent('toggle-sidebar'))}
-            className="p-2 rounded-xl bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900 shadow-xs cursor-pointer transition-colors"
-            title="Toggle Sidebar Menu"
-          >
-            <Menu size={20} />
-          </button>
 
-          <button
-            type="button"
-            onClick={() => navigate("/record-expense")}
-            className="p-2 rounded-xl bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900 shadow-xs cursor-pointer transition-colors"
-            title="Back to Expense List"
-          >
-            <ArrowLeft size={20} />
-          </button>
+      <Header title={expenseType === "direct" ? "Direct Expenses" : "Indirect Expenses"} />
 
-          <div className="inline-flex bg-[#EBECEF] p-1 rounded-full border border-gray-200/60 shadow-xs">
-            <button
-              type="button"
-              onClick={() => {
-                setExpenseType("direct");
-                navigate("/direct-expenses", { replace: true });
-              }}
-              className={`px-5 py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-150 cursor-pointer ${
-                expenseType === "direct"
-                  ? "bg-white text-gray-800 shadow-sm font-semibold"
-                  : "text-gray-500 hover:text-gray-800"
-              }`}
-            >
-              Direct Expense
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setExpenseType("indirect");
-                navigate("/indirect-expenses", { replace: true });
-              }}
-              className={`px-5 py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-150 cursor-pointer ${
-                expenseType === "indirect"
-                  ? "bg-white text-gray-800 shadow-sm font-semibold"
-                  : "text-gray-500 hover:text-gray-800"
-              }`}
-            >
-              Indirect Expense
-            </button>
-          </div>
+      <div className={`transition-all duration-300 ${isSidebarOpen ? "ml-[240px]" : "ml-0"}`}>
+        {/* Clean Page Title Header */}
+        <div className="bg-white px-8 py-4 border-b border-[#E5E5E5] flex items-center justify-between">
+          <h1 className="text-[18px] font-semibold text-[#212121]">Record Expense</h1>
         </div>
 
-        {/* Status Notification Toast */}
-        {statusMessage && (
-          <div
-            className={`mb-6 p-4 rounded-xl flex items-center justify-between text-sm font-medium border shadow-xs transition-all ${
-              statusMessage.type === "success"
-                ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-                : "bg-red-50 text-red-800 border-red-200"
-            }`}
-          >
-            <span>{statusMessage.text}</span>
-            <button
-              type="button"
-              onClick={() => setStatusMessage(null)}
-              className="text-xs uppercase font-bold text-gray-500 hover:text-gray-800 cursor-pointer ml-4"
-            >
-              Dismiss
-            </button>
+        <div className="bg-white px-8 py-6 max-w-[1400px]">
+          {/* Direct / Indirect Expense Pill Switch */}
+          <div className="mb-7">
+            <div className="inline-flex bg-[#F3F4F6] p-1 rounded-full">
+              <button
+                type="button"
+                onClick={() => {
+                  setExpenseType("direct");
+                  navigate("/direct-expenses", { replace: true });
+                }}
+                className={`px-4 py-1.5 rounded-full text-[12px] font-medium transition-all duration-150 cursor-pointer ${
+                  expenseType === "direct"
+                    ? "bg-white text-[#212121] shadow-xs font-semibold"
+                    : "text-[#6A6A6A] hover:text-[#212121]"
+                }`}
+              >
+                Direct Expense
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setExpenseType("indirect");
+                  navigate("/indirect-expenses", { replace: true });
+                }}
+                className={`px-4 py-1.5 rounded-full text-[12px] font-medium transition-all duration-150 cursor-pointer ${
+                  expenseType === "indirect"
+                    ? "bg-white text-[#212121] shadow-xs font-semibold"
+                    : "text-[#6A6A6A] hover:text-[#212121]"
+                }`}
+              >
+                Indirect Expense
+              </button>
+            </div>
           </div>
-        )}
 
-        {/* Form Container (Left-aligned) */}
-        <form onSubmit={handleSubmit} className="max-w-7xl space-y-6">
-          
-          {/* Row 1: Category, Branch, Amount (3 Columns) */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
-            {/* Category */}
-            <div>
-              <label className="block text-sm font-normal text-gray-700 mb-2">
-                Category <span className="text-red-500">*</span>
-              </label>
-              <SearchableSelect
-                value={category}
-                onChange={(val) => setCategory(val)}
-                options={categories}
-                placeholder="Select Category"
-                searchPlaceholder="Search category..."
-                icon={<Layers3 size={19} />}
-              />
+          {/* Status Notification Toast */}
+          {statusMessage && (
+            <div
+              className={`mb-6 p-3.5 rounded-lg flex items-center justify-between text-[13px] font-medium border ${
+                statusMessage.type === "success"
+                  ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                  : "bg-red-50 text-red-800 border-red-200"
+              }`}
+            >
+              <span>{statusMessage.text}</span>
+              <button
+                type="button"
+                onClick={() => setStatusMessage(null)}
+                className="text-xs uppercase font-bold text-gray-500 hover:text-gray-800 cursor-pointer ml-4"
+              >
+                Dismiss
+              </button>
             </div>
+          )}
 
-            {/* Branch */}
-            <div>
-              <label className="block text-sm font-normal text-gray-700 mb-2">
-                Branch <span className="text-red-500">*</span>
-              </label>
-              <SearchableSelect
-                value={branch || (canSelectStore ? "" : (currentusers.locCode || ""))}
-                onChange={(val) => setBranch(val)}
-                options={selectableStores.map((loc) => ({
-                  value: loc.locCode,
-                  label: loc.locName,
-                }))}
-                placeholder="Select Branch"
-                searchPlaceholder="Search branch..."
-                disabled={!canSelectStore}
-                icon={<Building2 size={19} />}
-              />
-            </div>
+          {/* Form Container */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Row 1: Category *, Branch *, Amount * (3 Columns) */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Category */}
+              <div className="rf-form-field !mb-0">
+                <label className="rf-field-label">
+                  Category <span className="required">*</span>
+                </label>
+                <SearchableSelect
+                  value={category}
+                  onChange={(val) => setCategory(val)}
+                  options={categories}
+                  placeholder="Select Category"
+                  searchPlaceholder="Search category..."
+                />
+              </div>
 
-            {/* Amount */}
-            <div>
-              <label className="block text-sm font-normal text-gray-700 mb-2">
-                Amount <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <IndianRupee size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+              {/* Branch */}
+              <div className="rf-form-field !mb-0">
+                <label className="rf-field-label">
+                  Branch <span className="required">*</span>
+                </label>
+                <SearchableSelect
+                  value={branch || (canSelectStore ? "" : (currentusers.locCode || ""))}
+                  onChange={(val) => setBranch(val)}
+                  options={selectableStores.map((loc) => ({
+                    value: loc.locCode,
+                    label: loc.locName,
+                  }))}
+                  placeholder="Select Branch"
+                  searchPlaceholder="Search branch..."
+                  disabled={!canSelectStore}
+                />
+              </div>
+
+              {/* Amount */}
+              <div className="rf-form-field !mb-0">
+                <label className="rf-field-label">
+                  Amount <span className="required">*</span>
+                </label>
                 <input
                   type="number"
                   step="0.01"
                   min="0.01"
-                  placeholder="0.00"
+                  placeholder="Enter the amount"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 bg-white py-3.5 pl-11 pr-4 text-sm font-medium text-gray-800 placeholder-gray-400 transition-all focus:border-purple-500 focus:outline-none"
+                  className="rf-input"
                 />
               </div>
             </div>
 
-          </div>
-
-          {/* Way of Payment */}
-          <section className="space-y-4 pt-1">
-            <p className="text-sm font-normal text-gray-700">Way of Payment</p>
-            <div className="flex flex-wrap items-center gap-3">
-              {[
-                { value: "cash", label: "Cash", Icon: Banknote },
-                { value: "bank", label: "Bank", Icon: Landmark },
-                { value: "upi", label: "UPI", Icon: WalletCards },
-              ].map(({ value, label, Icon }) => {
-                const active = !splitPayment && paymentMethod === value;
-                return (
-                  <label
-                    key={value}
-                    className={`inline-flex cursor-pointer items-center gap-2 rounded-xl border px-4 py-3 text-sm font-medium transition ${
-                      active
-                        ? "border-purple-500 bg-purple-50 text-purple-600 ring-2 ring-purple-100"
-                        : "border-gray-200 bg-white text-slate-700 hover:border-slate-300"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value={value}
-                      checked={active}
-                      onChange={() => {
-                        setPaymentMethod(value);
-                        setSplitPayment(false);
-                        if (value !== "bank") setBankAccount("");
-                      }}
-                      className="h-4 w-4 accent-purple-600"
-                    />
-                    <Icon size={18} />
-                    {label}
-                  </label>
-                );
-              })}
-
-              <label
-                className={`inline-flex cursor-pointer items-center gap-2 rounded-xl border px-4 py-3 text-sm font-medium transition ${
-                  splitPayment
-                    ? "border-purple-500 bg-purple-50 text-purple-600 ring-2 ring-purple-100"
-                    : "border-gray-200 bg-white text-slate-700 hover:border-slate-300"
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  checked={splitPayment}
-                  onChange={(event) => setSplitPayment(event.target.checked)}
-                  className="h-4 w-4 rounded accent-purple-600"
-                />
-                Split Payment (Cash + Bank + UPI)
-              </label>
-            </div>
-
-            {splitPayment && (
-              <div className="grid max-w-4xl grid-cols-1 gap-4 sm:grid-cols-3">
-                {[
-                  ["Cash Amount", cashAmount, setCashAmount],
-                  ["Bank Amount", bankAmount, setBankAmount],
-                  ["UPI Amount", upiAmount, setUpiAmount],
-                ].map(([label, value, setter]) => (
-                  <label key={label} className="space-y-1.5 text-xs font-medium text-slate-600">
-                    {label}
-                    <span className="relative block">
-                      <IndianRupee size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={value}
-                        onChange={(event) => setter(event.target.value)}
-                        placeholder="0.00"
-                        className="w-full rounded-xl border border-gray-200 bg-white py-3 pl-9 pr-3 text-sm text-slate-800 outline-none transition focus:border-purple-500"
-                      />
-                    </span>
-                  </label>
-                ))}
-                <p className={`sm:col-span-3 text-xs font-semibold ${
-                  Math.abs(
-                    Number(amount || 0) -
-                    Number(cashAmount || 0) -
-                    Number(bankAmount || 0) -
-                    Number(upiAmount || 0)
-                  ) <= 0.01
-                    ? "text-emerald-600"
-                    : "text-amber-600"
-                }`}>
-                  Balance: ₹{Math.abs(
-                    Number(amount || 0) -
-                    Number(cashAmount || 0) -
-                    Number(bankAmount || 0) -
-                    Number(upiAmount || 0)
-                  ).toFixed(2)}
-                </p>
-              </div>
-            )}
-
-            {(paymentMethod === "bank" || splitPayment) && (
-              <div className="max-w-sm">
-                <label className="mb-2 block text-sm font-normal text-gray-700">
-                  Bank Account <span className="text-red-500">*</span>
-                </label>
-                <SearchableSelect
-                  value={bankAccount}
-                  onChange={setBankAccount}
-                  options={BANK_ACCOUNTS}
-                  placeholder="Select Bank Account"
-                  searchPlaceholder="Search bank account..."
-                  icon={<Landmark size={19} />}
-                />
-              </div>
-            )}
-          </section>
-
-          {/* Row 2: Attachment (Left) and Remarks (Right) (2 Columns) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-            
-            {/* Attachment */}
-            <div>
-              <label className="block text-sm font-normal text-gray-700 mb-2">
-                Attachment <span className="text-red-500">*</span>
-              </label>
-
-              {/* Upload Drop Area */}
-              <div
-                onDragEnter={handleDrag}
-                onDragLeave={handleDrag}
-                onDragOver={handleDrag}
-                onDrop={handleDrop}
-                className={`flex min-h-[300px] flex-col items-center justify-center rounded-2xl border border-dashed bg-white p-8 text-center transition-colors ${
-                  dragActive
-                    ? "border-purple-500 bg-purple-50/20"
-                    : "border-gray-300 hover:border-gray-400"
-                }`}
-              >
-                <span className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-purple-50 text-purple-500">
-                  <UploadCloud size={23} />
-                </span>
-                <p className="text-sm font-semibold text-gray-800">
-                  Drag image(s) here or browse images
-                </p>
-                <p className="mt-1 text-xs text-gray-400 max-w-xs leading-relaxed">
-                  Up to {IMAGE_CONFIG.MAX_FILES} images. Large images up to {IMAGE_CONFIG.MAX_FILE_SIZE / (1024 * 1024)}MB are compressed automatically.
-                </p>
-
-                <button
-                  type="button"
-                  onClick={() => triggerFileInput(fileInputRef)}
-                  disabled={uploading}
-                  className="mt-5 rounded-xl bg-[#18181b] px-8 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {uploading ? "Processing..." : "Upload Images"}
-                </button>
-
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  multiple
-                  accept="image/jpeg,image/png,image/gif,image/webp,image/heic,image/heif,.heic,.heif"
-                  onChange={handleFileInput}
-                  style={{ display: "none" }}
-                />
-              </div>
-
-              {/* Error messages if any */}
-              {uploadErrors.length > 0 && (
-                <div className="mt-2 space-y-1">
-                  {uploadErrors.map((err, idx) => (
-                    <p key={idx} className="text-xs text-red-500 font-medium">
-                      {err}
-                    </p>
-                  ))}
-                </div>
-              )}
-
-              {/* Uploaded Images Thumbnails */}
-              {images.length > 0 && (
-                <div className="mt-4 space-y-2">
-                  <div className="text-xs font-semibold text-gray-500">
-                    Uploaded Images ({images.length}/{IMAGE_CONFIG.MAX_FILES})
-                  </div>
-                  <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
-                    {images.map((img, idx) => (
-                      <div
-                        key={idx}
-                        className="group relative rounded-xl overflow-hidden border border-gray-200 bg-gray-50 aspect-square shadow-2xs"
-                      >
-                        <img
-                          src={img.base64 || img}
-                          alt={img.name || `Upload ${idx + 1}`}
-                          className="w-full h-full object-cover"
-                        />
+            {/* Row 2: Left (Payment Method + Remarks) & Right (Attachment *) */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-1">
+              {/* Left Column */}
+              <div className="space-y-5">
+                {/* Payment Method */}
+                <div className="rf-form-field !mb-0">
+                  <label className="rf-field-label">Payment Method</label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    {[
+                      { value: "cash", label: "CASH", Icon: Banknote },
+                      { value: "upi", label: "UPI", Icon: null },
+                      { value: "bank", label: "CARD/ BANK", Icon: Landmark },
+                    ].map(({ value, label, Icon }) => {
+                      const active = !splitPayment && paymentMethod === value;
+                      return (
                         <button
+                          key={value}
                           type="button"
-                          onClick={() => handleRemoveImage(idx)}
-                          className="absolute top-1 right-1 w-5 h-5 bg-black/70 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-colors shadow-sm cursor-pointer"
-                          title="Remove image"
+                          onClick={() => {
+                            setPaymentMethod(value);
+                            setSplitPayment(false);
+                            if (value !== "bank") setBankAccount("");
+                          }}
+                          className={`h-[40px] px-3 rounded-lg border text-[12px] font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                            active
+                              ? "border-[#9D43D6] bg-[#FBF5FC] text-[#212121] font-semibold"
+                              : "border-[#E5E5E5] bg-white text-[#212121] hover:border-[#CCCCCC]"
+                          }`}
                         >
-                          <X size={12} />
+                          {Icon ? (
+                            <Icon size={15} className={active ? "text-[#9D43D6]" : "text-[#4A4A4A]"} />
+                          ) : (
+                            <span className="font-extrabold italic tracking-tight text-[13px]">UPI</span>
+                          )}
+                          {Icon && <span>{label}</span>}
                         </button>
-                        {img.compressed && (
-                          <span className="absolute bottom-1 left-1 rounded-full bg-emerald-600/90 px-1.5 py-0.5 text-[9px] font-bold text-white">
-                            Compressed
-                          </span>
-                        )}
+                      );
+                    })}
+
+                    <button
+                      type="button"
+                      onClick={() => setSplitPayment((prev) => !prev)}
+                      className={`h-[40px] px-3 rounded-lg border text-[12px] font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                        splitPayment
+                          ? "border-[#9D43D6] bg-[#FBF5FC] text-[#212121] font-semibold"
+                          : "border-[#E5E5E5] bg-white text-[#212121] hover:border-[#CCCCCC]"
+                      }`}
+                    >
+                      <Code2 size={15} className={splitPayment ? "text-[#9D43D6]" : "text-[#4A4A4A]"} />
+                      <span>SPLIT</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Split Amounts */}
+                {splitPayment && (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-lg border border-[#E5E5E5] bg-[#FAFAFA]">
+                    {[
+                      ["Cash Amount", cashAmount, setCashAmount],
+                      ["Bank Amount", bankAmount, setBankAmount],
+                      ["UPI Amount", upiAmount, setUpiAmount],
+                    ].map(([label, value, setter]) => (
+                      <div key={label} className="rf-form-field !mb-0">
+                        <label className="rf-field-label">{label}</label>
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={value}
+                          onChange={(event) => setter(event.target.value)}
+                          placeholder="0.00"
+                          className="rf-input"
+                        />
                       </div>
                     ))}
+                    <p
+                      className={`sm:col-span-3 text-xs font-semibold ${
+                        Math.abs(
+                          Number(amount || 0) -
+                            Number(cashAmount || 0) -
+                            Number(bankAmount || 0) -
+                            Number(upiAmount || 0)
+                        ) <= 0.01
+                          ? "text-emerald-600"
+                          : "text-amber-600"
+                      }`}
+                    >
+                      Balance: ₹
+                      {Math.abs(
+                        Number(amount || 0) -
+                          Number(cashAmount || 0) -
+                          Number(bankAmount || 0) -
+                          Number(upiAmount || 0)
+                      ).toFixed(2)}
+                    </p>
                   </div>
+                )}
+
+                {/* Conditional Bank Account */}
+                {(paymentMethod === "bank" || splitPayment) && (
+                  <div className="rf-form-field !mb-0">
+                    <label className="rf-field-label">
+                      Bank Account <span className="required">*</span>
+                    </label>
+                    <SearchableSelect
+                      value={bankAccount}
+                      onChange={setBankAccount}
+                      options={BANK_ACCOUNTS}
+                      placeholder="Select Bank Account"
+                      searchPlaceholder="Search bank account..."
+                    />
+                  </div>
+                )}
+
+                {/* Remarks */}
+                <div className="rf-form-field !mb-0">
+                  <label className="rf-field-label">Remarks</label>
+                  <textarea
+                    placeholder="Enter remarks..."
+                    value={remarks}
+                    onChange={(e) => setRemarks(e.target.value)}
+                    className="rf-textarea h-[112px] resize-none"
+                  />
                 </div>
-              )}
+              </div>
+
+              {/* Right Column: Attachment * */}
+              <div className="rf-form-field !mb-0 flex flex-col">
+                <label className="rf-field-label">
+                  Attachment <span className="required">*</span>
+                </label>
+
+                {/* Upload Drop Area */}
+                <div
+                  onDragEnter={handleDrag}
+                  onDragLeave={handleDrag}
+                  onDragOver={handleDrag}
+                  onDrop={handleDrop}
+                  className={`flex flex-1 min-h-[205px] flex-col items-center justify-center rounded-xl border border-dashed p-6 text-center transition-colors ${
+                    dragActive
+                      ? "border-[#9D43D6] bg-[#FBF5FC]"
+                      : "border-[#D4D4D4] bg-[#FAFAFA] hover:border-[#B5B5B5]"
+                  }`}
+                >
+                  <p className="text-[15px] font-medium text-[#212121]">
+                    Drag image (s) here or browse images
+                  </p>
+                  <p className="mt-1.5 text-[11px] text-[#A3A3A3] max-w-sm leading-relaxed">
+                    You can add up to {IMAGE_CONFIG.MAX_FILES} images, each not exceeding{" "}
+                    {IMAGE_CONFIG.MAX_FILE_SIZE / (1024 * 1024)}MB in size and 7000x7000 pixels resolution.
+                  </p>
+
+                  <button
+                    type="button"
+                    onClick={() => triggerFileInput(fileInputRef)}
+                    disabled={uploading}
+                    className="mt-5 rounded-lg bg-[#2E2E2E] px-7 py-2 text-[13px] font-medium text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+                  >
+                    {uploading ? "Processing..." : "Upload"}
+                  </button>
+
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    accept="image/jpeg,image/png,image/gif,image/webp,image/heic,image/heif,.heic,.heif"
+                    onChange={handleFileInput}
+                    style={{ display: "none" }}
+                  />
+                </div>
+
+                {/* Error messages if any */}
+                {uploadErrors.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    {uploadErrors.map((err, idx) => (
+                      <p key={idx} className="text-xs text-red-500 font-medium">
+                        {err}
+                      </p>
+                    ))}
+                  </div>
+                )}
+
+                {/* Uploaded Images Thumbnails */}
+                {images.length > 0 && (
+                  <div className="mt-3 space-y-2">
+                    <div className="text-xs font-semibold text-[#6A6A6A]">
+                      Uploaded Images ({images.length}/{IMAGE_CONFIG.MAX_FILES})
+                    </div>
+                    <div className="grid grid-cols-4 sm:grid-cols-5 gap-2.5">
+                      {images.map((img, idx) => (
+                        <div
+                          key={idx}
+                          className="group relative rounded-lg overflow-hidden border border-[#E5E5E5] bg-[#F7F7F7] aspect-square"
+                        >
+                          <img
+                            src={img.base64 || img}
+                            alt={img.name || `Upload ${idx + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveImage(idx)}
+                            className="absolute top-1 right-1 w-5 h-5 bg-black/70 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-colors cursor-pointer"
+                            title="Remove image"
+                          >
+                            <X size={12} />
+                          </button>
+                          {img.compressed && (
+                            <span className="absolute bottom-1 left-1 rounded-full bg-emerald-600/90 px-1.5 py-0.5 text-[9px] font-bold text-white">
+                              Compressed
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* Remarks */}
-            <div>
-              <label className="block text-sm font-normal text-gray-700 mb-2">
-                Remarks
-              </label>
-              <textarea
-                placeholder="Enter remarks or details about this expense..."
-                value={remarks}
-                onChange={(e) => setRemarks(e.target.value)}
-                className="h-[300px] w-full resize-none rounded-2xl border border-gray-200 bg-white p-4 text-sm text-gray-800 placeholder-gray-400 transition-all focus:border-purple-500 focus:outline-none"
-              />
+            {/* Row 3: Action Buttons (Save, Cancel) */}
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className={
+                  isSubmitting
+                    ? "rf-btn-disabled !px-7"
+                    : "rf-btn-primary cursor-pointer !px-7"
+                }
+              >
+                {isSubmitting ? "Saving..." : "Save"}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleCancel}
+                disabled={isSubmitting}
+                className="rf-btn-cancel cursor-pointer !px-7"
+              >
+                Cancel
+              </button>
             </div>
-
-          </div>
-
-          {/* Row 3: Action Buttons (Bottom Left) */}
-          <div className="flex items-center gap-3 pt-6">
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="rounded-lg bg-[#9B48D7] hover:bg-[#8B38C7] text-white px-7 py-2.5 text-sm font-medium transition-all shadow-xs cursor-pointer disabled:opacity-50 flex items-center gap-2"
-            >
-              {isSubmitting ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>Saving...</span>
-                </>
-              ) : (
-                  <span>Save Expense</span>
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={handleCancel}
-              disabled={isSubmitting}
-              className="rounded-lg bg-[#F3F4F6] hover:bg-[#E5E7EB] text-gray-700 px-7 py-2.5 text-sm font-medium transition-all cursor-pointer"
-            >
-              Cancel
-            </button>
-          </div>
-
-        </form>
-
+          </form>
+        </div>
       </div>
     </div>
   );

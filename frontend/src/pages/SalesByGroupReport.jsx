@@ -6,6 +6,7 @@ import baseUrl from "../api/api.js";
 import useSidebar from "../hooks/useSidebar";
 import { fetchActiveStores } from "../utils/storeService.js";
 
+import AppSelect from "../components/AppSelect.jsx";
 const STORES = [
   { value: "all", label: "All Stores" },
 ];
@@ -122,13 +123,13 @@ const SalesByGroupReport = () => {
             {canSelectStore && (
               <div className="flex flex-col">
                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Store</label>
-                <select value={selectedStore} onChange={e => setSelectedStore(e.target.value)}
+                <AppSelect value={selectedStore} onChange={e => setSelectedStore(e.target.value)}
                   style={{ height: 36 }} className={`${inputCls} w-44`}>
                   {isClusterManager
                     ? [{ value: "all", label: "All My Stores" }, ...STORES.filter(s => clusterAllowedLocCodes.includes(s.value))].map(s => <option key={s.value} value={s.value}>{s.label}</option>)
                     : STORES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)
                   }
-                </select>
+                </AppSelect>
               </div>
             )}
             {fetched && csvData.length > 0 && (

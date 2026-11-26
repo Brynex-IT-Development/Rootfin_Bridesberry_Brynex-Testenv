@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import Head from "../components/Head";
 import useSidebar from "../hooks/useSidebar";
 
+import AppSelect from "../components/AppSelect.jsx";
 const InventoryPackageCreate = () => {
   const isSidebarOpen = useSidebar();
   const [customer, setCustomer] = useState("");
@@ -39,7 +40,7 @@ const InventoryPackageCreate = () => {
         <div className="space-y-8 px-8 py-8">
           <section className="grid gap-6 md:grid-cols-2">
             <Field label="Customer Name" required>
-              <select
+              <AppSelect
                 value={customer}
                 onChange={(event) => setCustomer(event.target.value)}
                 className="w-full rounded-lg border border-[#d7dcf5] px-3 py-2 text-sm text-[#1f2937] focus:border-[#94a3b8] focus:outline-none"
@@ -48,10 +49,10 @@ const InventoryPackageCreate = () => {
                 <option value="Acme Inc.">Acme Inc.</option>
                 <option value="Globex">Globex</option>
                 <option value="Initech">Initech</option>
-              </select>
+              </AppSelect>
             </Field>
             <Field label="Sales Order" required>
-              <select
+              <AppSelect
                 value={salesOrder}
                 onChange={(event) => setSalesOrder(event.target.value)}
                 className="w-full rounded-lg border border-[#d7dcf5] px-3 py-2 text-sm text-[#1f2937] focus:border-[#94a3b8] focus:outline-none"
@@ -60,7 +61,7 @@ const InventoryPackageCreate = () => {
                 <option value="SO-1007">SO-1007</option>
                 <option value="SO-1008">SO-1008</option>
                 <option value="SO-1010">SO-1010</option>
-              </select>
+              </AppSelect>
             </Field>
           </section>
 

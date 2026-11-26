@@ -7,6 +7,7 @@ import useSidebar from "../hooks/useSidebar";
 import { normalizeRole } from "../utils/roleUtils";
 import { fetchActiveStores, saveCustomStore, removeCustomStore } from "../utils/storeService";
 
+import AppSelect from "../components/AppSelect.jsx";
 const EditUser = () => {
     const isSidebarOpen = useSidebar();
     const { id } = useParams();
@@ -171,7 +172,7 @@ const EditUser = () => {
                             <label className="block mb-2 text-sm font-semibold text-gray-700">
                                 User Role *
                             </label>
-                            <select
+                            <AppSelect
                                 value={role}
                                 onChange={(e) => {
                                     setRole(e.target.value);
@@ -198,7 +199,7 @@ const EditUser = () => {
                                 <option value="cluster_admin">Cluster Admin</option>
                                 <option value="store_admin">Store Admin</option>
                                 <option value="normal_user">Normal User</option>
-                            </select>
+                            </AppSelect>
                         </div>
 
                         {/* Store / Warehouse Admin: Store/Warehouse Name */}

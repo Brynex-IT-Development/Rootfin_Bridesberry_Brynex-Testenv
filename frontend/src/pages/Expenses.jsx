@@ -11,6 +11,7 @@ import { baseExpenseCats } from "../config/expenseCategories.js";
 import { useActiveStores } from "../utils/storeService.js";
 import Breadcrumbs from "../components/Breadcrumbs.jsx";
 
+import AppSelect from "../components/AppSelect.jsx";
 const currentDate = () => {
   const date = new Date();
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
@@ -239,7 +240,7 @@ const Expenses = () => {
               </label>
               {canSelectStore ? (
                 <div className="relative">
-                  <select
+                  <AppSelect
                     id="expense-store"
                     value={selectedStore}
                     onChange={(event) => setSelectedStore(event.target.value)}
@@ -256,11 +257,8 @@ const Expenses = () => {
                         {store.locName}
                       </option>
                     ))}
-                  </select>
-                  <ChevronDown
-                    size={20}
-                    className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-[#98a2b3]"
-                  />
+                  </AppSelect>
+                  
                 </div>
               ) : (
                 <div className="flex h-[68px] items-center rounded-xl border border-[#d7deef] bg-slate-50 px-6 text-base font-medium text-[#17213b] sm:text-lg">
@@ -282,7 +280,7 @@ const Expenses = () => {
                       Category
                     </label>
                     <div className="relative">
-                      <select
+                      <AppSelect
                         id="expense-category"
                         value={selectedCategory.value}
                         onChange={(e) => handleCategoryChange(e.target.value)}
@@ -293,11 +291,8 @@ const Expenses = () => {
                             {c.label}
                           </option>
                         ))}
-                      </select>
-                      <ChevronDown
-                        size={20}
-                        className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-[#98a2b3]"
-                      />
+                      </AppSelect>
+                      
                     </div>
                   </div>
 
@@ -310,7 +305,7 @@ const Expenses = () => {
                         Sub Category
                       </label>
                       <div className="relative">
-                        <select
+                        <AppSelect
                           id="expense-subcategory"
                           value={subCategory}
                           onChange={(e) => setSubCategory(e.target.value)}
@@ -321,11 +316,8 @@ const Expenses = () => {
                               {sub}
                             </option>
                           ))}
-                        </select>
-                        <ChevronDown
-                          size={20}
-                          className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-[#98a2b3]"
-                        />
+                        </AppSelect>
+                        
                       </div>
                     </div>
                   )}
