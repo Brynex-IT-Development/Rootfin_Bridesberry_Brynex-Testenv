@@ -1,16 +1,17 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash, FaTimes } from "react-icons/fa";
-import { ArrowLeft } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import baseUrl from "../api/api";
 import { useSidebar } from "../hooks/useSidebar";
 import { fetchActiveStores, saveCustomStore } from "../utils/storeService";
+import Header from "../components/Header.jsx";
 
 const AddNewUser = () => {
     const isSidebarOpen = useSidebar();
     const navigate = useNavigate();
 
-    // Form states
+    // Form states (preserving all original fields & role options)
     const [role, setRole] = useState("");
     const [storeName, setStoreName] = useState("");
     const [email, setEmail] = useState("");
@@ -20,8 +21,8 @@ const AddNewUser = () => {
     const [address, setAddress] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    
-    // Cluster manager assigned stores
+
+    // Cluster admin assigned stores
     const [allowedLocCodes, setAllowedLocCodes] = useState([]);
     const [showStoreDropdown, setShowStoreDropdown] = useState(false);
     const [storeSearchTerm, setStoreSearchTerm] = useState("");
@@ -58,7 +59,7 @@ const AddNewUser = () => {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const filteredStores = availableStores.filter(store => 
+    const filteredStores = availableStores.filter(store =>
         (store.locName || store.name || "").toLowerCase().includes(storeSearchTerm.toLowerCase()) ||
         (store.locCode || "").toLowerCase().includes(storeSearchTerm.toLowerCase())
     );
@@ -217,71 +218,66 @@ const AddNewUser = () => {
     const isStoreOrWarehouse = isStoreAdmin || isWarehouseAdmin;
     const isClusterAdmin = role === "cluster_admin";
 
+    const roleSelectField = (
+        <div className="rf-form-field !mb-0">
+            <label className="rf-field-label">
+                Role <span className="required">*</span>
+            </label>
+            <div className="relative">
+                <select
+                    value={role}
+                    onChange={(e) => handleRoleChange(e.target.value)}
+                    className={`rf-input appearance-none !pr-11 cursor-pointer ${!role ? "!text-[#A3A3A3] !font-normal" : ""}`}
+                    required
+                >
+                    <option value="">Select Role</option>
+                    <option value="super_admin">Super Admin</option>
+                    <option value="admin">Admin</option>
+                    <option value="warehouse_admin">Warehouse Admin</option>
+                    <option value="financial_admin">Financial Admin</option>
+                    <option value="cluster_admin">Cluster Admin</option>
+                    <option value="store_admin">Store Admin</option>
+                    <option value="normal_user">Normal User</option>
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 pl-2.5">
+                    <span className="h-4 w-[1px] bg-[#E5E5E5] mr-2.5" />
+                    <ChevronDown size={15} className="text-[#6A6A6A]" />
+                </div>
+            </div>
+        </div>
+    );
+
     return (
-        <div className={`min-h-screen bg-[#F7F7F7] transition-all duration-300 ${isSidebarOpen ? "md:ml-64" : "ml-0"}`}>
-            <div className="p-8 max-w-[1400px] mx-auto">
-                
-                {/* Header Row with Back Button */}
-                <div className="flex items-center gap-4 mb-8">
-                    <button
-                        type="button"
-                        onClick={() => navigate(-1)}
-                        className="w-9 h-9 bg-[#1B1B1B] hover:bg-black text-white rounded-lg flex items-center justify-center transition-colors cursor-pointer"
-                        title="Back"
-                    >
-                        <ArrowLeft size={16} />
-                    </button>
-                    <h1 className="text-[24px] font-semibold text-[#212121]">Add New User</h1>
+        <div className="min-h-screen bg-[#FFFFFF]">
+            <Header title="Add New User" />
+
+            <div className={`transition-all duration-300 ${isSidebarOpen ? "ml-[240px]" : "ml-0"}`}>
+                {/* Clean Page Title Header */}
+                <div className="bg-white px-8 py-4 border-b border-[#E5E5E5] flex items-center justify-between">
+                    <h1 className="text-[18px] font-semibold text-[#212121]">Add New User</h1>
                 </div>
 
-                {/* Form Card */}
-                <div className="bg-white rounded-2xl border border-[#E9E9E9] p-8 shadow-xs">
-                    <form onSubmit={handleSubmit} className="space-y-8">
+                {/* Form Section */}
+                <div className="bg-white px-8 py-7 max-w-[1400px]">
+                    <form onSubmit={handleSubmit} className="space-y-6" autoComplete="off">
 
-                        {/* Store / Warehouse Admin layout: Role & Store/Warehouse Name in first row, then Email & Phone */}
+                        {/* Store / Warehouse Admin layout */}
                         {isStoreOrWarehouse ? (
                             <>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    {/* Role * */}
-                                    <div>
-                                        <label className="block mb-2 text-sm font-medium text-gray-700">
-                                            Role <span className="text-red-500">*</span>
-                                        </label>
-                                        <div className="relative">
-                                            <select
-                                                value={role}
-                                                onChange={(e) => handleRoleChange(e.target.value)}
-                                                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-gray-700 text-sm appearance-none cursor-pointer"
-                                                required
-                                            >
-                                                <option value="">Select Role</option>
-                                                <option value="super_admin">Super Admin</option>
-                                                <option value="admin">Admin</option>
-                                                <option value="warehouse_admin">Warehouse Admin</option>
-                                                <option value="financial_admin">Financial Admin</option>
-                                                <option value="cluster_admin">Cluster Admin</option>
-                                                <option value="store_admin">Store Admin</option>
-                                                <option value="normal_user">Normal User</option>
-                                            </select>
-                                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
-                                                <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20">
-                                                    <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/>
-                                                </svg>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    {roleSelectField}
 
                                     {/* Store Name / Warehouse Name * */}
-                                    <div>
-                                        <label className="block mb-2 text-sm font-medium text-gray-700">
-                                            {isWarehouseAdmin ? "Warehouse Name" : "Store Name"} <span className="text-red-500">*</span>
+                                    <div className="rf-form-field !mb-0">
+                                        <label className="rf-field-label">
+                                            {isWarehouseAdmin ? "Warehouse Name" : "Store Name"} <span className="required">*</span>
                                         </label>
                                         <input
                                             type="text"
                                             value={storeName}
                                             onChange={(e) => setStoreName(e.target.value)}
                                             placeholder={isWarehouseAdmin ? "Enter warehouse name" : "Enter store name"}
-                                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-gray-700 text-sm placeholder-gray-400"
+                                            className="rf-input"
                                             required
                                         />
                                     </div>
@@ -289,23 +285,23 @@ const AddNewUser = () => {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     {/* Email * */}
-                                    <div>
-                                        <label className="block mb-2 text-sm font-medium text-gray-700">
-                                            Email <span className="text-red-500">*</span>
+                                    <div className="rf-form-field !mb-0">
+                                        <label className="rf-field-label">
+                                            Email <span className="required">*</span>
                                         </label>
                                         <input
                                             type="email"
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
                                             placeholder="Enter email address"
-                                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-gray-700 text-sm placeholder-gray-400"
+                                            className="rf-input"
                                             required
                                         />
                                     </div>
 
                                     {/* Phone Number */}
-                                    <div>
-                                        <label className="block mb-2 text-sm font-medium text-gray-700">
+                                    <div className="rf-form-field !mb-0">
+                                        <label className="rf-field-label">
                                             Phone Number
                                         </label>
                                         <input
@@ -313,31 +309,31 @@ const AddNewUser = () => {
                                             value={phone}
                                             onChange={(e) => setPhone(e.target.value)}
                                             placeholder="Enter phone number"
-                                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-gray-700 text-sm placeholder-gray-400"
+                                            className="rf-input"
                                         />
                                     </div>
                                 </div>
 
-                                {/* Store Details: Loc Code, GST Number, Store Address */}
+                                {/* Store Details: Loc Code, GST Number, Store/Warehouse Address */}
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                     {/* Loc Code * */}
-                                    <div>
-                                        <label className="block mb-2 text-sm font-medium text-gray-700">
-                                            Loc Code <span className="text-red-500">*</span>
+                                    <div className="rf-form-field !mb-0">
+                                        <label className="rf-field-label">
+                                            Loc Code <span className="required">*</span>
                                         </label>
                                         <input
                                             type="text"
                                             value={locCode}
                                             onChange={(e) => setLocCode(e.target.value)}
                                             placeholder={isWarehouseAdmin ? "e.g., 858" : "Enter location code"}
-                                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-gray-700 text-sm placeholder-gray-400"
+                                            className="rf-input"
                                             required
                                         />
                                     </div>
 
                                     {/* GST Number */}
-                                    <div>
-                                        <label className="block mb-2 text-sm font-medium text-gray-700">
+                                    <div className="rf-form-field !mb-0">
+                                        <label className="rf-field-label">
                                             GST Number
                                         </label>
                                         <input
@@ -345,13 +341,13 @@ const AddNewUser = () => {
                                             value={gst}
                                             onChange={(e) => setGst(e.target.value)}
                                             placeholder="eg12345565455454"
-                                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-gray-700 text-sm placeholder-gray-400"
+                                            className="rf-input"
                                         />
                                     </div>
 
-                                    {/* Store Address / Warehouse Address */}
-                                    <div>
-                                        <label className="block mb-2 text-sm font-medium text-gray-700">
+                                    {/* Store / Warehouse Address */}
+                                    <div className="rf-form-field !mb-0">
+                                        <label className="rf-field-label">
                                             {isWarehouseAdmin ? "Warehouse Address" : "Store Address"}
                                         </label>
                                         <input
@@ -359,61 +355,34 @@ const AddNewUser = () => {
                                             value={address}
                                             onChange={(e) => setAddress(e.target.value)}
                                             placeholder={isWarehouseAdmin ? "Enter warehouse address" : "Enter store address"}
-                                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-gray-700 text-sm placeholder-gray-400"
+                                            className="rf-input"
                                         />
                                     </div>
                                 </div>
                             </>
                         ) : (
-                            /* Non-Store Admin layout (Super Admin, Admin, Financial Admin, Cluster Admin, Normal User) */
+                            /* Default / Non-Store Admin layout: Role *, Email *, Phone Number */
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                {/* Role * */}
-                                <div>
-                                    <label className="block mb-2 text-sm font-medium text-gray-700">
-                                        Role <span className="text-red-500">*</span>
-                                    </label>
-                                    <div className="relative">
-                                        <select
-                                            value={role}
-                                            onChange={(e) => handleRoleChange(e.target.value)}
-                                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-gray-700 text-sm appearance-none cursor-pointer"
-                                            required
-                                        >
-                                            <option value="">Select Role</option>
-                                            <option value="super_admin">Super Admin</option>
-                                            <option value="admin">Admin</option>
-                                            <option value="warehouse_admin">Warehouse Admin</option>
-                                            <option value="financial_admin">Financial Admin</option>
-                                            <option value="cluster_admin">Cluster Admin</option>
-                                            <option value="store_admin">Store Admin</option>
-                                            <option value="normal_user">Normal User</option>
-                                        </select>
-                                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
-                                            <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20">
-                                                <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/>
-                                            </svg>
-                                        </div>
-                                    </div>
-                                </div>
+                                {roleSelectField}
 
                                 {/* Email * */}
-                                <div>
-                                    <label className="block mb-2 text-sm font-medium text-gray-700">
-                                        Email <span className="text-red-500">*</span>
+                                <div className="rf-form-field !mb-0">
+                                    <label className="rf-field-label">
+                                        Email <span className="required">*</span>
                                     </label>
                                     <input
                                         type="email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         placeholder="Enter email address"
-                                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-gray-700 text-sm placeholder-gray-400"
+                                        className="rf-input"
                                         required
                                     />
                                 </div>
 
                                 {/* Phone Number */}
-                                <div>
-                                    <label className="block mb-2 text-sm font-medium text-gray-700">
+                                <div className="rf-form-field !mb-0">
+                                    <label className="rf-field-label">
                                         Phone Number
                                     </label>
                                     <input
@@ -421,7 +390,7 @@ const AddNewUser = () => {
                                         value={phone}
                                         onChange={(e) => setPhone(e.target.value)}
                                         placeholder="Enter phone number"
-                                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-gray-700 text-sm placeholder-gray-400"
+                                        className="rf-input"
                                     />
                                 </div>
                             </div>
@@ -429,24 +398,24 @@ const AddNewUser = () => {
 
                         {/* Conditional Cluster Admin: Assign Stores Dropdown */}
                         {isClusterAdmin && (
-                            <div className="p-6 bg-purple-50/50 rounded-xl border border-purple-100 space-y-3">
+                            <div className="p-5 bg-[#FBF5FC] rounded-xl border border-[#E5E5E5] space-y-3">
                                 <div className="flex items-center justify-between">
-                                    <label className="block text-sm font-semibold text-gray-800">
-                                        Assign Stores to Cluster Admin <span className="text-red-500">*</span>
+                                    <label className="rf-field-label !mb-0">
+                                        Assign Stores to Cluster Admin <span className="required">*</span>
                                     </label>
                                     <div className="flex items-center gap-3 text-xs">
                                         <button
                                             type="button"
                                             onClick={handleSelectAllStores}
-                                            className="text-purple-700 hover:text-purple-900 font-medium cursor-pointer"
+                                            className="text-[#9D43D6] hover:text-[#8B3CBD] font-medium cursor-pointer"
                                         >
                                             Select All ({availableStores.length})
                                         </button>
-                                        <span className="text-gray-300">|</span>
+                                        <span className="text-[#E5E5E5]">|</span>
                                         <button
                                             type="button"
                                             onClick={handleClearAllStores}
-                                            className="text-gray-500 hover:text-gray-700 cursor-pointer"
+                                            className="text-[#6A6A6A] hover:text-[#212121] cursor-pointer"
                                         >
                                             Clear All
                                         </button>
@@ -456,16 +425,16 @@ const AddNewUser = () => {
                                 <div className="relative" ref={dropdownRef}>
                                     <div
                                         onClick={() => setShowStoreDropdown(!showStoreDropdown)}
-                                        className="w-full min-h-[48px] px-4 py-2 bg-white border border-gray-200 rounded-lg focus-within:ring-2 focus-within:ring-purple-500 cursor-pointer flex flex-wrap gap-2 items-center justify-between"
+                                        className="w-full min-h-[40px] px-3.5 py-1.5 bg-white border border-[#E5E5E5] rounded-[10px] focus-within:border-[#9B48D7] focus-within:ring-1 focus-within:ring-[#9B48D7] cursor-pointer flex flex-wrap gap-2 items-center justify-between"
                                     >
-                                        <div className="flex flex-wrap gap-2 items-center flex-1">
+                                        <div className="flex flex-wrap gap-1.5 items-center flex-1">
                                             {allowedLocCodes.length === 0 ? (
-                                                <span className="text-gray-400 text-sm">Select stores currently available...</span>
+                                                <span className="text-[#A3A3A3] text-[13px]">Select stores currently available...</span>
                                             ) : (
                                                 allowedLocCodes.map((code) => (
                                                     <span
                                                         key={code}
-                                                        className="inline-flex items-center gap-1.5 px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium"
+                                                        className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-[#9D43D6]/10 text-[#9D43D6] rounded-full text-xs font-medium"
                                                     >
                                                         {getStoreDisplayName(code)} ({code})
                                                         <button
@@ -474,7 +443,7 @@ const AddNewUser = () => {
                                                                 e.stopPropagation();
                                                                 handleToggleStore(code);
                                                             }}
-                                                            className="hover:text-purple-900"
+                                                            className="hover:text-[#8B3CBD] cursor-pointer"
                                                         >
                                                             <FaTimes size={10} />
                                                         </button>
@@ -482,24 +451,24 @@ const AddNewUser = () => {
                                                 ))
                                             )}
                                         </div>
-                                        <span className="text-xs text-purple-600 font-semibold px-2 py-1 bg-purple-50 rounded">
+                                        <span className="text-xs text-[#9D43D6] font-semibold px-2 py-0.5 bg-[#9D43D6]/10 rounded">
                                             {allowedLocCodes.length} selected
                                         </span>
                                     </div>
 
                                     {showStoreDropdown && (
-                                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-3">
+                                        <div className="absolute z-50 w-full mt-1 bg-white border border-[#E5E5E5] rounded-[10px] shadow-lg p-3">
                                             <input
                                                 type="text"
                                                 value={storeSearchTerm}
                                                 onChange={(e) => setStoreSearchTerm(e.target.value)}
                                                 placeholder="Search store name or location code..."
-                                                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm mb-2 outline-none focus:border-purple-500"
+                                                className="rf-input mb-2"
                                                 autoFocus
                                             />
                                             <div className="max-h-56 overflow-y-auto space-y-1">
                                                 {filteredStores.length === 0 ? (
-                                                    <p className="text-xs text-gray-400 py-3 text-center">No matching stores found</p>
+                                                    <p className="text-xs text-[#A3A3A3] py-3 text-center">No matching stores found</p>
                                                 ) : (
                                                     filteredStores.map(store => {
                                                         const isSelected = allowedLocCodes.includes(store.locCode);
@@ -507,8 +476,8 @@ const AddNewUser = () => {
                                                             <div
                                                                 key={store.locCode}
                                                                 onClick={() => handleToggleStore(store.locCode)}
-                                                                className={`p-2.5 rounded-lg cursor-pointer text-sm flex items-center justify-between transition-colors ${
-                                                                    isSelected ? "bg-purple-100/70 text-purple-900 font-semibold" : "hover:bg-purple-50 text-gray-700"
+                                                                className={`p-2 rounded-lg cursor-pointer text-[13px] flex items-center justify-between transition-colors ${
+                                                                    isSelected ? "bg-[#FBF5FC] text-[#9D43D6] font-medium" : "hover:bg-[#F7F7F7] text-[#212121]"
                                                                 }`}
                                                             >
                                                                 <div className="flex items-center gap-2.5">
@@ -516,11 +485,11 @@ const AddNewUser = () => {
                                                                         type="checkbox"
                                                                         checked={isSelected}
                                                                         onChange={() => {}}
-                                                                        className="rounded text-purple-600 focus:ring-purple-500 cursor-pointer pointer-events-none"
+                                                                        className="rounded accent-[#9D43D6] cursor-pointer pointer-events-none"
                                                                     />
                                                                     <span>{store.locName || store.name}</span>
                                                                 </div>
-                                                                <span className="text-xs text-gray-400">Loc: {store.locCode}</span>
+                                                                <span className="text-xs text-[#6A6A6A]">Loc: {store.locCode}</span>
                                                             </div>
                                                         );
                                                     })
@@ -535,9 +504,9 @@ const AddNewUser = () => {
                         {/* Passwords: Set Password, Confirm Password */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {/* Set Password * */}
-                            <div>
-                                <label className="block mb-2 text-sm font-medium text-gray-700">
-                                    Set Password <span className="text-red-500">*</span>
+                            <div className="rf-form-field !mb-0">
+                                <label className="rf-field-label">
+                                    Set Password <span className="required">*</span>
                                 </label>
                                 <div className="relative">
                                     <input
@@ -545,23 +514,24 @@ const AddNewUser = () => {
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         placeholder="Enter your password"
-                                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-gray-700 text-sm placeholder-gray-400 pr-12"
+                                        className="rf-input !pr-12"
                                         required
                                     />
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-purple-600 hover:text-purple-700 cursor-pointer"
+                                        className="absolute inset-y-0 right-0 pr-3.5 pl-2.5 flex items-center text-[#9D43D6] hover:text-[#8B3CBD] cursor-pointer"
                                     >
-                                        {showPassword ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
+                                        <span className="h-4 w-[1px] bg-[#E5E5E5] mr-2.5" />
+                                        {showPassword ? <FaEyeSlash size={15} /> : <FaEye size={15} />}
                                     </button>
                                 </div>
                             </div>
 
                             {/* Confirm Password * */}
-                            <div>
-                                <label className="block mb-2 text-sm font-medium text-gray-700">
-                                    Confirm Password <span className="text-red-500">*</span>
+                            <div className="rf-form-field !mb-0">
+                                <label className="rf-field-label">
+                                    Confirm Password <span className="required">*</span>
                                 </label>
                                 <div className="relative">
                                     <input
@@ -569,33 +539,34 @@ const AddNewUser = () => {
                                         value={confirmPassword}
                                         onChange={(e) => setConfirmPassword(e.target.value)}
                                         placeholder="Confirm your password"
-                                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-gray-700 text-sm placeholder-gray-400 pr-12"
+                                        className="rf-input !pr-12"
                                         required
                                     />
                                     <button
                                         type="button"
                                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-purple-600 hover:text-purple-700 cursor-pointer"
+                                        className="absolute inset-y-0 right-0 pr-3.5 pl-2.5 flex items-center text-[#9D43D6] hover:text-[#8B3CBD] cursor-pointer"
                                     >
-                                        {showConfirmPassword ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
+                                        <span className="h-4 w-[1px] bg-[#E5E5E5] mr-2.5" />
+                                        {showConfirmPassword ? <FaEyeSlash size={15} /> : <FaEye size={15} />}
                                     </button>
                                 </div>
                             </div>
                         </div>
 
                         {/* Buttons Row: Save User, Cancel */}
-                        <div className="flex items-center gap-4 pt-4">
+                        <div className="flex items-center gap-3 pt-2">
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className={loading ? "rf-btn-disabled" : "rf-btn-primary cursor-pointer"}
+                                className={loading ? "rf-btn-disabled" : "rf-btn-primary cursor-pointer !px-6"}
                             >
                                 {loading ? "Saving..." : "Save User"}
                             </button>
                             <button
                                 type="button"
                                 onClick={() => navigate(-1)}
-                                className="rf-btn-cancel cursor-pointer"
+                                className="rf-btn-cancel cursor-pointer !px-6"
                             >
                                 Cancel
                             </button>
@@ -603,7 +574,6 @@ const AddNewUser = () => {
 
                     </form>
                 </div>
-
             </div>
         </div>
     );

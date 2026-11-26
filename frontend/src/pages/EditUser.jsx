@@ -109,7 +109,7 @@ const EditUser = () => {
 
         try {
             setLoading(true);
-            
+
             const response = await fetch(`${baseUrl.baseUrl}user/updateUser/${id}`, {
                 method: "PUT",
                 headers: {
@@ -136,7 +136,7 @@ const EditUser = () => {
                         email: email.trim().toLowerCase(),
                         gst: gst.trim()
                     });
-                    fetchActiveStores().catch(() => {});
+                    fetchActiveStores().catch(() => { });
                 }
                 alert(data.message || "User updated successfully!");
                 navigate("/manage-users/existing-users");
@@ -351,11 +351,10 @@ const EditUser = () => {
                             </button>
                             <button
                                 type="submit"
-                                className={`w-[40%] py-3 rounded-xl text-white font-medium text-sm transition-colors cursor-pointer ${
-                                    loading
-                                        ? "bg-gray-400 cursor-not-allowed"
-                                        : "bg-[#a855f7] hover:bg-[#9333ea]"
-                                }`}
+                                className={`w-[40%] py-3 rounded-xl text-white font-medium text-sm transition-colors cursor-pointer ${loading
+                                    ? "bg-gray-400 cursor-not-allowed"
+                                    : "bg-[#a855f7] hover:bg-[#9333ea]"
+                                    }`}
                                 disabled={loading}
                             >
                                 {loading ? "Updating..." : "Update User"}

@@ -1,19 +1,20 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Users, Plus, ChevronRight, ChevronDown, ChevronLeft, Pencil, Trash2, Mail, Phone, MapPin, ShieldCheck, Eye } from "lucide-react";
+import { Users, Plus, ChevronRight, ChevronDown, ChevronLeft, Pencil, Trash2, Mail, Phone, MapPin, ShieldCheck, Eye, Search } from "lucide-react";
 import baseUrl from "../api/api";
 import { useSidebar } from "../hooks/useSidebar.js";
 import { SYSTEM_ROLES, normalizeRole, getRoleLabel } from "../utils/roleUtils";
 import { fetchActiveStores, saveCustomStore, removeCustomStore } from "../utils/storeService";
+import Header from "../components/Header.jsx";
 
 const ROLE_GROUPS = [
-    { key: "super_admin",     label: "SUPER ADMIN" },
-    { key: "admin",           label: "ADMIN" },
+    { key: "super_admin", label: "SUPER ADMIN" },
+    { key: "admin", label: "ADMIN" },
     { key: "warehouse_admin", label: "WAREHOUSE ADMIN" },
     { key: "financial_admin", label: "FINANCIAL ADMIN" },
-    { key: "cluster_admin",   label: "CLUSTER ADMIN" },
-    { key: "store_admin",     label: "STORE ADMIN" },
-    { key: "normal_user",     label: "NORMAL USER" },
+    { key: "cluster_admin", label: "CLUSTER ADMIN" },
+    { key: "store_admin", label: "STORE ADMIN" },
+    { key: "normal_user", label: "NORMAL USER" },
 ];
 
 const ExistingUsers = () => {
@@ -21,6 +22,7 @@ const ExistingUsers = () => {
     const [stores, setStores] = useState([]);
     const [loadingStores, setLoadingStores] = useState(false);
     const [openGroups, setOpenGroups] = useState({});
+    const [searchQuery, setSearchQuery] = useState("");
 
     // Dynamic available stores for cluster admin selection
     const [availableStores, setAvailableStores] = useState([]);
@@ -49,8 +51,8 @@ const ExistingUsers = () => {
 
     const navigate = useNavigate();
 
-    useEffect(() => { 
-        fetchStores(); 
+    useEffect(() => {
+        fetchStores();
         loadAvailableStores();
     }, []);
 
@@ -88,16 +90,27 @@ const ExistingUsers = () => {
     };
 
     const getUsersForRole = (roleKey) => {
+        const q = searchQuery.trim().toLowerCase();
         return stores.filter(u => {
             const role = normalizeRole(u.role);
-            if (roleKey === "super_admin")     return role === "super_admin";
-            if (roleKey === "admin")           return role === "admin";
-            if (roleKey === "warehouse_admin") return role === "warehouse_admin";
-            if (roleKey === "financial_admin") return role === "financial_admin";
-            if (roleKey === "cluster_admin")   return role === "cluster_admin";
-            if (roleKey === "store_admin")     return role === "store_admin";
-            if (roleKey === "normal_user")     return role === "normal_user" || !u.role;
-            return false;
+            let matchesRole = false;
+            if (roleKey === "super_admin") matchesRole = role === "super_admin";
+            else if (roleKey === "admin") matchesRole = role === "admin";
+            else if (roleKey === "warehouse_admin") matchesRole = role === "warehouse_admin";
+            else if (roleKey === "financial_admin") matchesRole = role === "financial_admin";
+            else if (roleKey === "cluster_admin") matchesRole = role === "cluster_admin";
+            else if (roleKey === "store_admin") matchesRole = role === "store_admin";
+            else if (roleKey === "normal_user") matchesRole = role === "normal_user" || !u.role;
+
+            if (!matchesRole) return false;
+            if (!q) return true;
+
+            const name = (u.storeName || u.username || "").toLowerCase();
+            const email = (u.email || "").toLowerCase();
+            const phone = (u.phone || "").toLowerCase();
+            const loc = (u.locCode || "").toLowerCase();
+            const roleLbl = getRoleLabel(u.role || "normal_user").toLowerCase();
+            return name.includes(q) || email.includes(q) || phone.includes(q) || loc.includes(q) || roleLbl.includes(q);
         });
     };
 
@@ -189,7 +202,7 @@ const ExistingUsers = () => {
                         email: editEmail.trim().toLowerCase(),
                         gst: editGst.trim()
                     });
-                    fetchActiveStores().catch(() => {});
+                    fetchActiveStores().catch(() => { });
                 }
                 alert("User updated successfully!");
                 setShowEditModal(false);
@@ -223,7 +236,7 @@ const ExistingUsers = () => {
                 setShowDeleteModal(false);
                 setSelectedUser(null);
                 fetchStores();
-                await fetchActiveStores().catch(() => {});
+                await fetchActiveStores().catch(() => { });
             } else {
                 const data = await response.json().catch(() => ({}));
                 alert(data.message || "Failed to delete user.");
@@ -238,107 +251,144 @@ const ExistingUsers = () => {
 
     const editFilteredStores = availableStores.filter(store =>
         ((store.locName || store.name || "").toLowerCase().includes(editStoreSearch.toLowerCase()) ||
-         (store.locCode || "").toLowerCase().includes(editStoreSearch.toLowerCase())) &&
+            (store.locCode || "").toLowerCase().includes(editStoreSearch.toLowerCase())) &&
         !editAllowedLocCodes.includes(store.locCode)
     );
 
     return (
-        <div className={`bg-[#F7F7F7] min-h-screen transition-all duration-300 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
-            {/* Header */}
-            <div className="bg-white px-8 py-6 border-b border-[#E9E9E9] flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <div className="bg-[#9D43D6] p-3.5 rounded-xl flex items-center justify-center shadow-sm">
-                        <Users className="text-white" size={24} />
-                    </div>
-                    <div>
-                        <h1 className="text-[24px] font-semibold text-[#212121]">MANAGE EXISTING USERS</h1>
-                        <p className="text-[#6A6A6A] text-[13px] font-normal">Detailed overview of Income &amp; Expense Report</p>
-                    </div>
+        <div className="min-h-screen bg-[#FFFFFF]">
+            <Header title="Existing Users" />
+
+            <div className={`transition-all duration-300 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
+                {/* Clean Page Title Header */}
+                <div className="bg-white px-8 py-4 border-b border-[#E5E5E5] flex items-center justify-between">
+                    <h1 className="text-[18px] font-semibold text-[#212121]">Manage Existing Users</h1>
                 </div>
-                <button
-                    onClick={() => navigate("/manage-users/add-user")}
-                    className="rf-btn-primary cursor-pointer"
-                >
-                    ADD NEW USER <Plus size={16} />
-                </button>
-            </div>
 
-            {/* Table */}
-            <div className="p-6">
-                <div className="bg-white rounded-xl border border-[#E5E5E5] overflow-hidden shadow-xs">
-                    {/* Table Header (Height: 36px, Background: #1B1B1B, Text: 11px Capital) */}
-                    <div className="grid grid-cols-[2.5fr_2fr_3fr_2fr_1fr] bg-[#1B1B1B] text-white px-4 h-[36px] items-center">
-                        {["ROLE", "USER", "EMAIL", "PHONE", "ACTION"].map(h => (
-                            <div key={h} className="text-[11px] font-semibold text-white uppercase tracking-wider">{h}</div>
-                        ))}
+                {/* Toolbar: Search + New User Button */}
+                <div className="px-8 pt-6 pb-4 flex flex-wrap items-center justify-between gap-4">
+                    <div className="relative w-full sm:w-[270px]">
+                        <div className="pointer-events-none absolute inset-y-0 left-0 pl-3.5 flex items-center">
+                            <Search size={15} className="text-[#212121]" />
+                            <span className="h-4 w-[1px] bg-[#E5E5E5] ml-2.5" />
+                        </div>
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Search by name or user"
+                            className="rf-input !pl-12"
+                        />
                     </div>
 
-                    {loadingStores ? (
-                        <div className="p-10 text-center text-[#6A6A6A] text-[13px]">Loading...</div>
-                    ) : (
-                        ROLE_GROUPS.map(({ key, label }) => {
-                            const users = getUsersForRole(key);
-                            const isOpen = !!openGroups[key];
+                    <button
+                        onClick={() => navigate("/manage-users/add-user")}
+                        className="rf-btn-primary cursor-pointer"
+                    >
+                        <Plus size={15} /> New User
+                    </button>
+                </div>
 
-                            return (
-                                <div key={key} className="border-b border-[#E5E5E5] last:border-b-0">
-                                    {/* Group Header Row (Height: 44px, Hover: #FBF5FC) */}
-                                    <div
-                                        onClick={() => toggleGroup(key)}
-                                        className="grid grid-cols-[2.5fr_2fr_3fr_2fr_1fr] px-4 h-[44px] cursor-pointer hover:bg-[#FBF5FC] transition-colors items-center"
-                                    >
-                                        <div className="flex items-center gap-2 col-span-4">
-                                            <span className="text-[14px] font-semibold text-[#212121] uppercase tracking-wide">{label}</span>
-                                            {users.length > 0 && (
-                                                <span className="text-[12px] text-[#6A6A6A] font-medium">({users.length})</span>
-                                            )}
-                                        </div>
-                                        <div className="flex justify-end items-center">
-                                            {isOpen
-                                                ? <ChevronDown size={17} className="text-[#6A6A6A]" />
-                                                : <ChevronRight size={17} className="text-[#6A6A6A]" />
-                                            }
-                                        </div>
-                                    </div>
+                {/* Table */}
+                <div className="px-8 pb-8">
+                    <div className="bg-white rounded-lg border border-[#E5E5E5] overflow-hidden">
+                        {/* Table Header */}
+                        <div className="grid grid-cols-[48px_1.6fr_1.6fr_2.2fr_1.5fr_1.2fr_0.9fr] bg-[#1B1B1B] text-white h-[40px] items-center">
+                            <div />
+                            <div className="px-3 text-[11px] font-semibold text-white uppercase tracking-wider">ROLE</div>
+                            <div className="px-3 text-[11px] font-semibold text-white uppercase tracking-wider">USER</div>
+                            <div className="px-3 text-[11px] font-semibold text-white uppercase tracking-wider">EMAIL</div>
+                            <div className="px-3 text-[11px] font-semibold text-white uppercase tracking-wider">PHONE</div>
+                            <div className="px-3 text-[11px] font-semibold text-white uppercase tracking-wider text-center">USER TYPE</div>
+                            <div className="px-3 text-[11px] font-semibold text-white uppercase tracking-wider text-center">ACTION</div>
+                        </div>
 
-                                    {/* User Rows (Height: 44px, Divider: #E5E5E5, Hover: #FBF5FC, Text: 13px) */}
-                                    {isOpen && (
-                                        users.length === 0 ? (
-                                            <div className="px-4 py-3 text-[13px] text-[#6A6A6A] bg-[#F7F7F7]">No users in this role.</div>
-                                        ) : (
-                                            users.map((user) => (
-                                                <div
-                                                    key={user._id}
-                                                    className="grid grid-cols-[2.5fr_2fr_3fr_2fr_1fr] px-4 h-[44px] bg-white border-t border-[#E5E5E5] hover:bg-[#FBF5FC] transition-colors items-center text-[13px]"
-                                                >
-                                                    {/* Role column */}
-                                                    <div className="text-[13px] text-[#212121] font-normal">{getRoleLabel(user.role || 'normal_user')}</div>
-                                                    {/* User */}
-                                                    <div className="text-[13px] font-medium text-[#212121]">{user.storeName || user.username}</div>
-                                                    {/* Email */}
-                                                    <div className="text-[13px] text-[#6A6A6A] truncate pr-2">{user.email}</div>
-                                                    {/* Phone */}
-                                                    <div className="text-[13px] text-[#6A6A6A]">{user.phone || "—"}</div>
-                                                    {/* Action */}
-                                                    <div className="flex items-center">
-                                                        <button
-                                                            onClick={() => setViewUser(user)}
-                                                            className="no-blue-button text-[#6A6A6A] hover:text-[#9D43D6] transition-colors cursor-pointer"
-                                                            title="View details"
-                                                        >
-                                                            <Eye size={17} />
-                                                        </button>
-                                                    </div>
+                        {loadingStores ? (
+                            <div className="p-10 text-center text-[#6A6A6A] text-[13px]">Loading...</div>
+                        ) : (
+                            ROLE_GROUPS.map(({ key, label }) => {
+                                const users = getUsersForRole(key);
+                                const isSearching = searchQuery.trim().length > 0;
+                                if (isSearching && users.length === 0) return null;
+                                const isOpen = isSearching ? true : !!openGroups[key];
+
+                                return (
+                                    <div key={key} className="border-b border-[#E2D4EC] last:border-b-0">
+                                        {/* Lavender Accordion Group Header Row */}
+                                        <div
+                                            onClick={() => toggleGroup(key)}
+                                            className="grid grid-cols-[48px_1fr] bg-[#F1E6F8] hover:bg-[#EAD9F5] h-[44px] cursor-pointer transition-colors items-center"
+                                        >
+                                            <div className="flex items-center justify-center">
+                                                {isOpen
+                                                    ? <ChevronDown size={15} className="text-[#212121]" />
+                                                    : <ChevronRight size={15} className="text-[#212121]" />
+                                                }
+                                            </div>
+                                            <div className="px-3 flex items-center gap-2.5">
+                                                <span className="text-[12px] font-bold text-[#212121] uppercase tracking-wide">{label}</span>
+                                                <span className="bg-[#9D43D6] text-white text-[10px] font-semibold min-w-[20px] h-[20px] px-1.5 rounded-full inline-flex items-center justify-center">
+                                                    {users.length}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* User Rows */}
+                                        {isOpen && (
+                                            users.length === 0 ? (
+                                                <div className="px-14 py-3 text-[13px] text-[#6A6A6A] bg-white border-t border-[#EFEFEF]">
+                                                    No users in this role.
                                                 </div>
-                                            ))
-                                        )
-                                    )}
-                                </div>
-                            );
-                        })
-                    )}
+                                            ) : (
+                                                users.map((user) => (
+                                                    <div
+                                                        key={user._id}
+                                                        className="grid grid-cols-[48px_1.6fr_1.6fr_2.2fr_1.5fr_1.2fr_0.9fr] min-h-[46px] bg-white border-t border-[#EFEFEF] hover:bg-[#FBF5FC] transition-colors items-center text-[13px]"
+                                                    >
+                                                        {/* Spacer under chevron */}
+                                                        <div className="h-full border-r border-[#F3F3F3]" />
+                                                        {/* Role */}
+                                                        <div className="px-3 py-2.5 h-full flex items-center border-r border-[#F3F3F3] text-[#4A4A4A] italic">
+                                                            {getRoleLabel(user.role || 'normal_user')}
+                                                        </div>
+                                                        {/* User */}
+                                                        <div className="px-3 py-2.5 h-full flex items-center border-r border-[#F3F3F3] text-[#212121] italic">
+                                                            {user.storeName || user.username}
+                                                        </div>
+                                                        {/* Email */}
+                                                        <div className="px-3 py-2.5 h-full flex items-center border-r border-[#F3F3F3] text-[#4A4A4A] italic truncate">
+                                                            <span className="truncate">{user.email}</span>
+                                                        </div>
+                                                        {/* Phone */}
+                                                        <div className="px-3 py-2.5 h-full flex items-center border-r border-[#F3F3F3] text-[#4A4A4A] italic">
+                                                            {user.phone || "—"}
+                                                        </div>
+                                                        {/* User Type Badge */}
+                                                        <div className="px-3 py-2.5 h-full flex items-center justify-center border-r border-[#F3F3F3]">
+                                                            <span className="bg-[#EFE3F7] text-[#9D43D6] text-[11px] font-semibold px-3.5 py-1 rounded-md whitespace-nowrap">
+                                                                {getRoleLabel(user.role || 'normal_user')}
+                                                            </span>
+                                                        </div>
+                                                        {/* Action */}
+                                                        <div className="px-3 py-2.5 h-full flex items-center justify-center">
+                                                            <button
+                                                                onClick={() => setViewUser(user)}
+                                                                className="no-blue-button text-[#9D43D6] hover:text-[#7E2BB8] transition-colors cursor-pointer"
+                                                                title="View details"
+                                                            >
+                                                                <Eye size={16} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            )
+                                        )}
+                                    </div>
+                                );
+                            })
+                        )}
+                    </div>
                 </div>
-            </div>
 
             {/* User Detail Panel (slide-in from right) */}
             {viewUser && (
@@ -494,8 +544,8 @@ const ExistingUsers = () => {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-xs font-semibold text-gray-600 uppercase mb-1.5">User Role</label>
-                                            <select 
-                                                value={editRole} 
+                                            <select
+                                                value={editRole}
                                                 onChange={(e) => {
                                                     setEditRole(e.target.value);
                                                     if (e.target.value !== "store_admin" && e.target.value !== "warehouse_admin") {
@@ -526,11 +576,11 @@ const ExistingUsers = () => {
                                             <label className="block text-xs font-semibold text-gray-600 uppercase mb-1.5">
                                                 {editRole === "warehouse_admin" ? "Warehouse Name *" : "Store Name *"}
                                             </label>
-                                            <input 
-                                                value={editUsername} 
+                                            <input
+                                                value={editUsername}
                                                 onChange={(e) => setEditUsername(e.target.value)}
                                                 placeholder={editRole === "warehouse_admin" ? "Enter warehouse name" : "Enter store name"}
-                                                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-sm" 
+                                                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                                             />
                                         </div>
                                     </div>
@@ -538,21 +588,21 @@ const ExistingUsers = () => {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-xs font-semibold text-gray-600 uppercase mb-1.5">Email Address *</label>
-                                            <input 
+                                            <input
                                                 type="email"
-                                                value={editEmail} 
+                                                value={editEmail}
                                                 onChange={(e) => setEditEmail(e.target.value)}
                                                 placeholder="store@example.com"
-                                                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-sm" 
+                                                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                                             />
                                         </div>
                                         <div>
                                             <label className="block text-xs font-semibold text-gray-600 uppercase mb-1.5">Phone Number</label>
-                                            <input 
-                                                value={editPhone} 
+                                            <input
+                                                value={editPhone}
                                                 onChange={(e) => setEditPhone(e.target.value)}
                                                 placeholder="+91 98765 43210"
-                                                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-sm" 
+                                                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                                             />
                                         </div>
                                     </div>
@@ -560,20 +610,20 @@ const ExistingUsers = () => {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-xs font-semibold text-gray-600 uppercase mb-1.5">Loc Code *</label>
-                                            <input 
-                                                value={editLocCode} 
+                                            <input
+                                                value={editLocCode}
                                                 onChange={(e) => setEditLocCode(e.target.value)}
                                                 placeholder={editRole === "warehouse_admin" ? "e.g., 858" : "Enter location code"}
-                                                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-sm" 
+                                                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                                             />
                                         </div>
                                         <div>
                                             <label className="block text-xs font-semibold text-gray-600 uppercase mb-1.5">GST Number</label>
-                                            <input 
-                                                value={editGst} 
+                                            <input
+                                                value={editGst}
                                                 onChange={(e) => setEditGst(e.target.value)}
                                                 placeholder="123450000AAz5"
-                                                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-sm" 
+                                                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                                             />
                                         </div>
                                     </div>
@@ -582,12 +632,12 @@ const ExistingUsers = () => {
                                         <label className="block text-xs font-semibold text-gray-600 uppercase mb-1.5">
                                             {editRole === "warehouse_admin" ? "Warehouse Address" : "Store Address"}
                                         </label>
-                                        <textarea 
-                                            value={editAddress} 
+                                        <textarea
+                                            value={editAddress}
                                             onChange={(e) => setEditAddress(e.target.value)}
                                             placeholder={editRole === "warehouse_admin" ? "Enter warehouse address" : "Enter store address"}
                                             rows="2"
-                                            className="w-full px-3 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 resize-none text-sm" 
+                                            className="w-full px-3 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 resize-none text-sm"
                                         />
                                     </div>
                                 </>
@@ -597,8 +647,8 @@ const ExistingUsers = () => {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-xs font-semibold text-gray-600 uppercase mb-1.5">User Role</label>
-                                            <select 
-                                                value={editRole} 
+                                            <select
+                                                value={editRole}
                                                 onChange={(e) => {
                                                     setEditRole(e.target.value);
                                                     if (e.target.value !== "cluster_admin") {
@@ -619,23 +669,23 @@ const ExistingUsers = () => {
                                         </div>
                                         <div>
                                             <label className="block text-xs font-semibold text-gray-600 uppercase mb-1.5">Email Address *</label>
-                                            <input 
+                                            <input
                                                 type="email"
-                                                value={editEmail} 
+                                                value={editEmail}
                                                 onChange={(e) => setEditEmail(e.target.value)}
                                                 placeholder="user@example.com"
-                                                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-sm" 
+                                                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                                             />
                                         </div>
                                     </div>
 
                                     <div>
                                         <label className="block text-xs font-semibold text-gray-600 uppercase mb-1.5">Phone Number</label>
-                                        <input 
-                                            value={editPhone} 
+                                        <input
+                                            value={editPhone}
                                             onChange={(e) => setEditPhone(e.target.value)}
                                             placeholder="+91 98765 43210"
-                                            className="w-full px-3 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-sm" 
+                                            className="w-full px-3 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                                         />
                                     </div>
 
@@ -717,8 +767,8 @@ const ExistingUsers = () => {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-xs font-semibold text-gray-600 uppercase mb-1.5">User Role</label>
-                                            <select 
-                                                value={editRole} 
+                                            <select
+                                                value={editRole}
                                                 onChange={(e) => {
                                                     setEditRole(e.target.value);
                                                     if (e.target.value === "warehouse_admin") {
@@ -740,23 +790,23 @@ const ExistingUsers = () => {
                                         </div>
                                         <div>
                                             <label className="block text-xs font-semibold text-gray-600 uppercase mb-1.5">Email Address *</label>
-                                            <input 
+                                            <input
                                                 type="email"
-                                                value={editEmail} 
+                                                value={editEmail}
                                                 onChange={(e) => setEditEmail(e.target.value)}
                                                 placeholder="user@example.com"
-                                                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-sm" 
+                                                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                                             />
                                         </div>
                                     </div>
 
                                     <div>
                                         <label className="block text-xs font-semibold text-gray-600 uppercase mb-1.5">Phone Number</label>
-                                        <input 
-                                            value={editPhone} 
+                                        <input
+                                            value={editPhone}
                                             onChange={(e) => setEditPhone(e.target.value)}
                                             placeholder="+91 98765 43210"
-                                            className="w-full px-3 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-sm" 
+                                            className="w-full px-3 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                                         />
                                     </div>
                                 </>
@@ -805,6 +855,7 @@ const ExistingUsers = () => {
                     </div>
                 </div>
             )}
+            </div>
         </div>
     );
 };
