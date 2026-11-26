@@ -10,3 +10,9 @@ export const closureStatusFor = (closingDate, today = businessDate()) => {
     if (closingDate > today) throw new Error("Future daybooks cannot be closed.");
     return closingDate === today ? "closed" : "pending_approval";
 };
+
+export const previousDaybookDate = (date) => {
+    const previous = new Date(`${date}T00:00:00.000Z`);
+    previous.setUTCDate(previous.getUTCDate() - 1);
+    return previous.toISOString().slice(0, 10);
+};
