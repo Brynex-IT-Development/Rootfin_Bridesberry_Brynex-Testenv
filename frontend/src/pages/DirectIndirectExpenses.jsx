@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { useSidebar } from "../hooks/useSidebar.js";
 import { useActiveStores } from "../utils/storeService.js";
+import Breadcrumbs from "../components/Breadcrumbs.jsx";
 import {
   IMAGE_CONFIG,
   processImageFiles,
@@ -563,7 +564,7 @@ const DirectIndirectExpenses = ({ initialType = "direct" }) => {
         <title>New Expense | RootFin</title>
       </Helmet>
       <div className="w-full px-6 sm:px-10 py-8">
-        
+        <Breadcrumbs currentTitle={expenseType === "direct" ? "Direct Expenses" : "Indirect Expenses"} className="mb-4" />
         {/* Top Header: Sidebar Menu Toggle, Back Button & Direct / Indirect Expense Pill Switch */}
         <div className="mb-8 flex items-center gap-3">
           <button

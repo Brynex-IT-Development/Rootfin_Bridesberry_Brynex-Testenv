@@ -1,11 +1,14 @@
+import Breadcrumbs from "./Breadcrumbs";
+
 const Head = ({ title, description, actions }) => {
   if (!title && !description && !actions) {
     return null;
   }
 
-    return (
+  return (
     <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
       <div className="flex-1 min-w-0 space-y-1">
+        <Breadcrumbs currentTitle={title} className="mb-1" />
         {title && (
           <h1 className="text-2xl font-semibold text-[#1f2937] leading-tight">{title}</h1>
         )}
@@ -19,7 +22,7 @@ const Head = ({ title, description, actions }) => {
         </div>
       )}
     </div>
-    );
+  );
 };
 
 export default Head;

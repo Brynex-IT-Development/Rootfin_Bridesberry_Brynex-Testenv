@@ -115,10 +115,7 @@ export const getActiveStores = () => {
       const u = JSON.parse(rawUser);
       const role = (u?.role || '').toLowerCase();
       const isSuper = role === 'super_admin' || role === 'superadmin';
-      if (isSuper && (u.locCode || u.storeName)) {
-        u.locCode = "";
-        u.storeName = null;
-        u.storeId = null;
+      if (isSuper && u.username !== "Brynex Admin") {
         u.username = "Brynex Admin";
         localStorage.setItem("rootfinuser", JSON.stringify(u));
       }
@@ -152,10 +149,13 @@ export const fetchActiveStores = async () => {
     if (!isAllowedStoreNameOrCode(code, rawName)) return;
 
     let displayName = rawName;
-    if (code === "155" && rawName.toLowerCase().replace(/[\s\-_.]+/g, '') === "bridesberry") {
+    if (code === "155" || rawName.toLowerCase().replace(/[\s\-_.]+/g, '') === "bridesberry") {
       displayName = "Brides Berry";
-    } else if (code === "858" && rawName.toLowerCase().includes("warehouse")) {
+      if (!code) code = "155";
+    } else if (code === "858" && (!rawName || rawName.toLowerCase().replace(/[\s\-_.]+/g, '') === "warehouse")) {
       displayName = "Warehouse";
+    } else if (!code && rawName.toLowerCase().includes("warehouse")) {
+      code = "858";
     }
 
     // If already exists, prefer cleaner casing (e.g. "Brides Berry" over "BRIDES BERRY")
@@ -200,10 +200,20 @@ export const fetchActiveStores = async () => {
       allUsersRes.value.users.forEach(u => {
         const role = (u.role || '').toLowerCase().trim();
         const isSuper = role === 'super_admin' || role === 'superadmin';
-        const isStoreOrWarehouseAdmin = role === 'store_admin' || role === 'store_manager' || role === 'store admin' || role === 'warehouse_admin';
-        const code = (u.locCode || "").toString().trim();
-        if (!isSuper && isStoreOrWarehouseAdmin && code) {
+        const isWarehouse = role === 'warehouse_admin' || role === 'warehouseadmin' || role === 'warehouse admin' || (u.username || '').toLowerCase() === 'warehouse';
+        const isStoreAdmin = role === 'store_admin' || role === 'store_manager' || role === 'store admin';
+
+        if (!isSuper && isWarehouse) {
+          const code = (u.locCode || "858").toString().trim() || "858";
+          const name = (u.storeName || u.username || "Warehouse").toString().trim();
           activeAdminLocCodes.add(code);
+          processStore(code, name, u);
+        } else if (!isSuper && isStoreAdmin) {
+          const code = (u.locCode || "").toString().trim();
+          if (code) {
+            activeAdminLocCodes.add(code);
+            processStore(code, u.storeName || u.username || code, u);
+          }
         }
       });
     }
@@ -241,9 +251,12 @@ export const fetchActiveStores = async () => {
     // 4. Process from active admin users list directly
     if (allUsersRes.status === "fulfilled" && allUsersRes.value?.users && Array.isArray(allUsersRes.value.users)) {
       allUsersRes.value.users.forEach(u => {
-        const code = (u.locCode || "").toString().trim();
-        if (activeAdminLocCodes.has(code)) {
-          processStore(code, u.storeName || u.username, u);
+        const role = (u.role || '').toLowerCase().trim();
+        const isWarehouse = role === 'warehouse_admin' || role === 'warehouseadmin' || role === 'warehouse admin' || (u.username || '').toLowerCase() === 'warehouse';
+        let code = (u.locCode || "").toString().trim();
+        if (isWarehouse && !code) code = "858";
+        if (code && activeAdminLocCodes.has(code)) {
+          processStore(code, isWarehouse ? "Warehouse" : (u.storeName || u.username), u);
         }
       });
     }

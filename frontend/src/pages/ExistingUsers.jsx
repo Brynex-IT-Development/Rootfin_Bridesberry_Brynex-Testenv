@@ -124,6 +124,7 @@ const ExistingUsers = () => {
         try {
             setEditLoading(true);
             const isStore = editRole === "store_admin";
+            const isWarehouse = editRole === "warehouse_admin";
             const isCluster = editRole === "cluster_admin";
 
             if (!editEmail) {
@@ -151,14 +152,17 @@ const ExistingUsers = () => {
                 return;
             }
 
+            const derivedLocCode = isStore ? editLocCode.trim() : (isWarehouse ? (editLocCode.trim() || "858") : "");
+            const derivedStoreName = isStore ? editUsername.trim() : (isWarehouse ? (editUsername.trim() || "Warehouse") : undefined);
+
             const payload = {
-                username: isStore ? (editUsername.trim() || editEmail.split('@')[0]) : editEmail.split('@')[0],
-                storeName: isStore ? editUsername.trim() : undefined,
+                username: (isStore || isWarehouse) ? (editUsername.trim() || (isWarehouse ? "Warehouse" : editEmail.split('@')[0])) : editEmail.split('@')[0],
+                storeName: derivedStoreName,
                 email: editEmail.trim().toLowerCase(),
                 phone: editPhone.trim(),
-                gst: isStore ? editGst.trim() : "",
-                locCode: isStore ? editLocCode.trim() : "",
-                address: isStore ? editAddress.trim() : "",
+                gst: (isStore || isWarehouse) ? editGst.trim() : "",
+                locCode: derivedLocCode,
+                address: (isStore || isWarehouse) ? editAddress.trim() : "",
                 role: editRole || undefined,
                 allowedLocCodes: isCluster ? editAllowedLocCodes : [],
             };
@@ -171,15 +175,15 @@ const ExistingUsers = () => {
             const data = await response.json();
             if (response.ok) {
                 const oldLocCode = (selectedUser?.locCode || "").toString().trim();
-                const newLocCode = isStore ? editLocCode.trim() : "";
+                const newLocCode = derivedLocCode;
                 if (oldLocCode && oldLocCode !== newLocCode) {
                     removeCustomStore(oldLocCode);
                 }
 
-                if (isStore && editLocCode.trim()) {
+                if ((isStore || isWarehouse) && newLocCode) {
                     saveCustomStore({
-                        locCode: editLocCode.trim(),
-                        locName: editUsername.trim(),
+                        locCode: newLocCode,
+                        locName: (isWarehouse && (!editUsername.trim() || editUsername.trim().toLowerCase() === "warehouse")) ? "Warehouse" : (editUsername.trim() || "Warehouse"),
                         address: editAddress.trim(),
                         phone: editPhone.trim(),
                         email: editEmail.trim().toLowerCase(),
@@ -484,8 +488,8 @@ const ExistingUsers = () => {
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[640px] p-8 max-h-[90vh] overflow-y-auto">
                         <h2 className="text-xl font-bold text-gray-900 mb-6">EDIT USER</h2>
                         <div className="space-y-5">
-                            {/* Store Admin layout: Role & Store Name, Email & Phone, Loc Code & GST, Address */}
-                            {editRole === "store_admin" ? (
+                            {/* Store / Warehouse Admin layout: Role & Store/Warehouse Name, Email & Phone, Loc Code & GST, Address */}
+                            {(editRole === "store_admin" || editRole === "warehouse_admin") ? (
                                 <>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
@@ -494,10 +498,13 @@ const ExistingUsers = () => {
                                                 value={editRole} 
                                                 onChange={(e) => {
                                                     setEditRole(e.target.value);
-                                                    if (e.target.value !== "store_admin") {
+                                                    if (e.target.value !== "store_admin" && e.target.value !== "warehouse_admin") {
                                                         setEditLocCode("");
                                                         setEditGst("");
                                                         setEditAddress("");
+                                                    } else if (e.target.value === "warehouse_admin") {
+                                                        if (!editLocCode) setEditLocCode("858");
+                                                        if (!editUsername) setEditUsername("Warehouse");
                                                     }
                                                     if (e.target.value !== "cluster_admin") {
                                                         setEditAllowedLocCodes([]);
@@ -516,11 +523,13 @@ const ExistingUsers = () => {
                                             </select>
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-semibold text-gray-600 uppercase mb-1.5">Store Name *</label>
+                                            <label className="block text-xs font-semibold text-gray-600 uppercase mb-1.5">
+                                                {editRole === "warehouse_admin" ? "Warehouse Name *" : "Store Name *"}
+                                            </label>
                                             <input 
                                                 value={editUsername} 
                                                 onChange={(e) => setEditUsername(e.target.value)}
-                                                placeholder="Enter store name"
+                                                placeholder={editRole === "warehouse_admin" ? "Enter warehouse name" : "Enter store name"}
                                                 className="w-full px-3 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-sm" 
                                             />
                                         </div>
@@ -554,7 +563,7 @@ const ExistingUsers = () => {
                                             <input 
                                                 value={editLocCode} 
                                                 onChange={(e) => setEditLocCode(e.target.value)}
-                                                placeholder="Enter location code"
+                                                placeholder={editRole === "warehouse_admin" ? "e.g., 858" : "Enter location code"}
                                                 className="w-full px-3 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-sm" 
                                             />
                                         </div>
@@ -570,11 +579,13 @@ const ExistingUsers = () => {
                                     </div>
 
                                     <div>
-                                        <label className="block text-xs font-semibold text-gray-600 uppercase mb-1.5">Store Address</label>
+                                        <label className="block text-xs font-semibold text-gray-600 uppercase mb-1.5">
+                                            {editRole === "warehouse_admin" ? "Warehouse Address" : "Store Address"}
+                                        </label>
                                         <textarea 
                                             value={editAddress} 
                                             onChange={(e) => setEditAddress(e.target.value)}
-                                            placeholder="Enter store address"
+                                            placeholder={editRole === "warehouse_admin" ? "Enter warehouse address" : "Enter store address"}
                                             rows="2"
                                             className="w-full px-3 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 resize-none text-sm" 
                                         />
@@ -708,7 +719,13 @@ const ExistingUsers = () => {
                                             <label className="block text-xs font-semibold text-gray-600 uppercase mb-1.5">User Role</label>
                                             <select 
                                                 value={editRole} 
-                                                onChange={(e) => setEditRole(e.target.value)}
+                                                onChange={(e) => {
+                                                    setEditRole(e.target.value);
+                                                    if (e.target.value === "warehouse_admin") {
+                                                        if (!editLocCode) setEditLocCode("858");
+                                                        if (!editUsername) setEditUsername("Warehouse");
+                                                    }
+                                                }}
                                                 className="w-full px-3 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-700 text-sm"
                                             >
                                                 <option value="">Select Role</option>

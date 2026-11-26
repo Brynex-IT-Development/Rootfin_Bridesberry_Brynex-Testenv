@@ -101,11 +101,53 @@ export const getStores = async (req, res) => {
       { $set: { locCode: '', storeName: null, storeId: null } }
     ).catch(() => {});
 
-    // Look up only active Store Admin or Warehouse Admin users
+    // Auto-heal any existing warehouse admin users without locCode
+    await User.updateMany(
+      { 
+        role: { $in: ['warehouse_admin', 'warehouseadmin', 'warehouse admin'] }, 
+        $or: [{ locCode: '' }, { locCode: null }, { locCode: { $exists: false } }] 
+      },
+      { $set: { locCode: '858', storeName: 'Warehouse' } }
+    ).catch(() => {});
+
+    // Ensure Warehouse store document exists if warehouse admin exists
+    const warehouseAdmins = await User.find({
+      role: { $in: ["warehouse_admin", "warehouseadmin", "warehouse admin"] }
+    }).lean();
+    if (warehouseAdmins.length > 0) {
+      await Store.findOneAndUpdate(
+        { locCode: '858' },
+        {
+          name: 'Warehouse',
+          locCode: '858',
+          address: warehouseAdmins[0]?.address || '',
+          phone: warehouseAdmins[0]?.phone || '',
+          email: warehouseAdmins[0]?.email || '',
+          gst: warehouseAdmins[0]?.gst || '',
+          isActive: true,
+          storeType: 'warehouse',
+          manager: warehouseAdmins[0]?.username || 'warehouse'
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      ).catch(() => {});
+    }
+
+    // Look up active Store Admin or Warehouse Admin users
     const storeAdmins = await User.find({
-      role: { $in: ["store_admin", "store_manager", "store admin", "warehouse_admin"] },
-      locCode: { $exists: true, $ne: "" }
-    }).select("username storeName locCode email address phone gst").lean();
+      role: { $in: ["store_admin", "store_manager", "store admin", "warehouse_admin", "warehouseadmin", "warehouse admin"] },
+      $or: [
+        { locCode: { $exists: true, $ne: "" } },
+        { role: { $in: ["warehouse_admin", "warehouseadmin", "warehouse admin"] } }
+      ]
+    }).select("username storeName locCode email address phone gst role").lean();
+
+    storeAdmins.forEach(u => {
+      const r = (u.role || '').toLowerCase();
+      if ((r.includes('warehouse')) && (!u.locCode || !u.locCode.trim())) {
+        u.locCode = '858';
+        u.storeName = u.storeName || 'Warehouse';
+      }
+    });
 
     const validLocCodes = storeAdmins.map(u => (u.locCode || "").toString().trim()).filter(Boolean);
 
@@ -145,13 +187,15 @@ export const getStores = async (req, res) => {
 
     for (const u of storeAdmins) {
       const code = (u.locCode || "").toString().trim();
+      const isWarehouse = ['warehouse_admin', 'warehouseadmin', 'warehouse admin'].includes((u.role || '').toLowerCase().trim());
       if (code) {
         const s = dbStores.find(doc => (doc.locCode || "").toString().trim() === code);
+        const defaultName = isWarehouse ? (u.storeName || 'Warehouse') : (u.storeName || u.username || code);
         combinedMap.set(code, {
           id: (s?._id || s?.id || u._id || code).toString(),
-          name: s?.name || u.storeName || u.username || code,
+          name: s?.name || defaultName,
           locCode: code,
-          locName: s?.name || u.storeName || u.username || code,
+          locName: s?.name || defaultName,
           address: s?.address || u.address || "",
           phone: s?.phone || u.phone || "",
           email: s?.email || u.email || "",

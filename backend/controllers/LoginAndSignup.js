@@ -18,9 +18,10 @@ export const SignUp = async (req, res) => {
 
         const normalizedEmail = email.trim().toLowerCase();
         const isStoreAdmin = (role === 'store_admin' || role === 'store_manager' || role === 'store admin');
+        const isWarehouseAdmin = (role === 'warehouse_admin' || role === 'warehouseadmin' || role === 'warehouse admin');
         const isCluster = (role === 'cluster_manager' || role === 'cluster_admin' || role === 'cluster admin');
 
-        const finalUsername = (storeName && storeName.trim()) || (username && username.trim()) || normalizedEmail.split('@')[0];
+        const finalUsername = (storeName && storeName.trim()) || (username && username.trim()) || (isWarehouseAdmin ? 'Warehouse' : normalizedEmail.split('@')[0]);
 
         const existingUser = await User.findOne({ $or: [{ username: finalUsername }, { email: normalizedEmail }] });
         if (existingUser) {
@@ -30,33 +31,43 @@ export const SignUp = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
+        let assignedLocCode = '';
+        let assignedStoreName = null;
+        if (isStoreAdmin) {
+            assignedLocCode = locCode ? locCode.trim() : '';
+            assignedStoreName = storeName || finalUsername;
+        } else if (isWarehouseAdmin) {
+            assignedLocCode = (locCode && locCode.trim()) ? locCode.trim() : '858';
+            assignedStoreName = (storeName && storeName.trim()) ? storeName.trim() : 'Warehouse';
+        }
+
         const newUser = new User({
             username: finalUsername,
             email: normalizedEmail,
             password: hashedPassword,
-            locCode: isStoreAdmin && locCode ? locCode.trim() : '',
-            address: isStoreAdmin ? (address || '') : '',
+            locCode: assignedLocCode,
+            address: (isStoreAdmin || isWarehouseAdmin) ? (address || '') : '',
             phone: phone || '',
-            gst: isStoreAdmin ? (gst || '') : '',
+            gst: (isStoreAdmin || isWarehouseAdmin) ? (gst || '') : '',
             role: role || 'normal_user',
-            storeName: isStoreAdmin ? (storeName || finalUsername) : null,
+            storeName: assignedStoreName,
             allowedLocCodes: isCluster ? (allowedLocCodes || []) : [],
         });
 
         await newUser.save();
 
-        if (isStoreAdmin && locCode && locCode.trim()) {
+        if ((isStoreAdmin || isWarehouseAdmin) && assignedLocCode) {
             await Store.findOneAndUpdate(
-                { locCode: locCode.trim() },
+                { locCode: assignedLocCode },
                 { 
-                    name: finalUsername, 
-                    locCode: locCode.trim(), 
+                    name: assignedStoreName || (isWarehouseAdmin ? 'Warehouse' : finalUsername), 
+                    locCode: assignedLocCode, 
                     address: address || '', 
                     phone: phone || '', 
                     email: normalizedEmail,
                     gst: gst || '',
                     isActive: true,
-                    storeType: 'branch',
+                    storeType: isWarehouseAdmin ? 'warehouse' : 'branch',
                     manager: finalUsername
                 },
                 { upsert: true, new: true, setDefaultsOnInsert: true }
@@ -145,11 +156,53 @@ export const GetAllStores = async (req, res) => {
             { $set: { locCode: '', storeName: null, storeId: null } }
         ).catch(() => {});
 
-        // ONLY fetch stores for existing store admins
+        // Auto-heal any existing warehouse admin users without locCode
+        await User.updateMany(
+            { 
+                role: { $in: ['warehouse_admin', 'warehouseadmin', 'warehouse admin'] },
+                $or: [{ locCode: '' }, { locCode: null }, { locCode: { $exists: false } }]
+            },
+            { $set: { locCode: '858', storeName: 'Warehouse' } }
+        ).catch(() => {});
+
+        // Ensure Warehouse store document exists if warehouse admin exists
+        const warehouseAdmins = await User.find({
+            role: { $in: ['warehouse_admin', 'warehouseadmin', 'warehouse admin'] }
+        }).lean();
+        if (warehouseAdmins.length > 0) {
+            await Store.findOneAndUpdate(
+                { locCode: '858' },
+                {
+                    name: 'Warehouse',
+                    locCode: '858',
+                    address: warehouseAdmins[0]?.address || '',
+                    phone: warehouseAdmins[0]?.phone || '',
+                    email: warehouseAdmins[0]?.email || '',
+                    gst: warehouseAdmins[0]?.gst || '',
+                    isActive: true,
+                    storeType: 'warehouse',
+                    manager: warehouseAdmins[0]?.username || 'warehouse'
+                },
+                { upsert: true, new: true, setDefaultsOnInsert: true }
+            ).catch(() => {});
+        }
+
+        // ONLY fetch stores for existing store admins & warehouse admins
         const storeAdmins = await User.find({
-            role: { $in: ['store_admin', 'store_manager', 'store admin', 'warehouse_admin'] },
-            locCode: { $exists: true, $ne: '' }
+            role: { $in: ['store_admin', 'store_manager', 'store admin', 'warehouse_admin', 'warehouseadmin', 'warehouse admin'] },
+            $or: [
+                { locCode: { $exists: true, $ne: '' } },
+                { role: { $in: ['warehouse_admin', 'warehouseadmin', 'warehouse admin'] } }
+            ]
         }, { password: 0 }).lean();
+
+        for (const u of storeAdmins) {
+            const isWarehouse = ['warehouse_admin', 'warehouseadmin', 'warehouse admin'].includes((u.role || '').toLowerCase().trim());
+            if (isWarehouse && (!u.locCode || !u.locCode.trim())) {
+                u.locCode = '858';
+                u.storeName = u.storeName || 'Warehouse';
+            }
+        }
 
         const validLocCodes = storeAdmins.map(u => (u.locCode || "").toString().trim()).filter(Boolean);
 
@@ -177,10 +230,12 @@ export const GetAllStores = async (req, res) => {
         const storeMap = new Map();
         for (const u of storeAdmins) {
             const code = (u.locCode || "").toString().trim();
+            const isWarehouse = ['warehouse_admin', 'warehouseadmin', 'warehouse admin'].includes((u.role || '').toLowerCase().trim());
             if (code) {
                 const storeDoc = stores.find(s => (s.locCode || "").toString().trim() === code);
+                const defaultName = isWarehouse ? 'Warehouse' : (u.storeName || u.username || code);
                 storeMap.set(code, {
-                    locName: storeDoc?.name || storeDoc?.locName || u.storeName || u.username || code,
+                    locName: storeDoc?.name || storeDoc?.locName || defaultName,
                     locCode: code,
                     address: storeDoc?.address || u.address || "",
                     phone: storeDoc?.phone || u.phone || "",
@@ -228,6 +283,14 @@ export const GetAllUsers = async (req, res) => {
                     storeId: null
                 };
             }
+            const isWarehouse = role === 'warehouse_admin' || role === 'warehouseadmin' || role === 'warehouse admin' || (u.username || '').toLowerCase() === 'warehouse';
+            if (isWarehouse && (!u.locCode || !u.locCode.trim())) {
+                return {
+                    ...u,
+                    locCode: '858',
+                    storeName: u.storeName || 'Warehouse'
+                };
+            }
             return u;
         });
 
@@ -271,11 +334,20 @@ export const UpdateUser = async (req, res) => {
 
         const effectiveRole = role || user.role || 'normal_user';
         const isStoreAdmin = (effectiveRole === 'store_admin' || effectiveRole === 'store_manager' || effectiveRole === 'store admin');
+        const isWarehouseAdmin = (effectiveRole === 'warehouse_admin' || effectiveRole === 'warehouseadmin' || effectiveRole === 'warehouse admin');
         const isCluster = (effectiveRole === 'cluster_manager' || effectiveRole === 'cluster_admin' || effectiveRole === 'cluster admin');
-        const finalUsername = (storeName && storeName.trim()) || (username && username.trim()) || lowerEmail.split('@')[0];
+        const finalUsername = (storeName && storeName.trim()) || (username && username.trim()) || (isWarehouseAdmin ? 'Warehouse' : lowerEmail.split('@')[0]);
 
         const oldLocCode = (user.locCode || "").toString().trim();
-        const newLocCode = isStoreAdmin && locCode ? locCode.trim() : '';
+        let newLocCode = '';
+        let assignedStoreName = null;
+        if (isStoreAdmin) {
+            newLocCode = locCode ? locCode.trim() : '';
+            assignedStoreName = storeName || finalUsername;
+        } else if (isWarehouseAdmin) {
+            newLocCode = (locCode && locCode.trim()) ? locCode.trim() : '858';
+            assignedStoreName = (storeName && storeName.trim()) ? storeName.trim() : 'Warehouse';
+        }
 
         // Update fields
         user.username = finalUsername;
@@ -283,8 +355,8 @@ export const UpdateUser = async (req, res) => {
         user.phone = phone || '';
         user.role = effectiveRole;
 
-        if (isStoreAdmin) {
-            user.storeName = storeName || finalUsername;
+        if (isStoreAdmin || isWarehouseAdmin) {
+            user.storeName = assignedStoreName;
             user.locCode = newLocCode;
             user.address = address || '';
             user.gst = gst || '';
@@ -320,18 +392,18 @@ export const UpdateUser = async (req, res) => {
             }
         }
 
-        if (isStoreAdmin && newLocCode) {
+        if ((isStoreAdmin || isWarehouseAdmin) && newLocCode) {
             await Store.findOneAndUpdate(
                 { locCode: newLocCode },
                 { 
-                    name: finalUsername, 
+                    name: assignedStoreName || (isWarehouseAdmin ? 'Warehouse' : finalUsername), 
                     locCode: newLocCode, 
                     address: address || '', 
                     phone: phone || '', 
                     email: lowerEmail,
                     gst: gst || '',
                     isActive: true,
-                    storeType: 'branch',
+                    storeType: isWarehouseAdmin ? 'warehouse' : 'branch',
                     manager: finalUsername
                 },
                 { upsert: true, new: true, setDefaultsOnInsert: true }

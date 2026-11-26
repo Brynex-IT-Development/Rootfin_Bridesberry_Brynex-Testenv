@@ -15,6 +15,7 @@ import baseUrl from "../api/api";
 import { useSidebar } from "../hooks/useSidebar.js";
 import { useActiveStores } from "../utils/storeService.js";
 import { filterAdminOnlyTransactions } from "../utils/adminTransactionVisibility.js";
+import Breadcrumbs from "../components/Breadcrumbs.jsx";
 
 const toDateInput = (date = new Date()) =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
@@ -258,6 +259,7 @@ export default function RecordExpenses() {
         }`}
       >
         <div className="w-full px-5 py-7 sm:px-8 lg:px-12">
+          <Breadcrumbs currentTitle="Record Expense" className="mb-4" />
           <div className="mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
             <div className="flex min-w-0 items-center gap-3">
               <button

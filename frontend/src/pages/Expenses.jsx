@@ -9,6 +9,7 @@ import { Helmet } from "react-helmet";
 import { useSidebar } from "../hooks/useSidebar.js";
 import { baseExpenseCats } from "../config/expenseCategories.js";
 import { useActiveStores } from "../utils/storeService.js";
+import Breadcrumbs from "../components/Breadcrumbs.jsx";
 
 const currentDate = () => {
   const date = new Date();
@@ -203,6 +204,7 @@ const Expenses = () => {
               <Menu size={23} />
             </button>
             <div className="min-w-0 pt-0.5">
+              <Breadcrumbs currentTitle="Expenses" className="mb-1" />
               <h1 className="text-xl font-bold uppercase tracking-wide text-[#07132e] sm:text-2xl">
                 Expenses
               </h1>

@@ -69,6 +69,7 @@ const EditUser = () => {
         }
 
         const isStore = role === "store_admin";
+        const isWarehouse = role === "warehouse_admin";
         const isCluster = role === "cluster_admin";
 
         if (isStore) {
@@ -87,14 +88,17 @@ const EditUser = () => {
             return;
         }
 
+        const derivedLocCode = isStore ? locCode.trim() : (isWarehouse ? (locCode.trim() || "858") : "");
+        const derivedStoreName = isStore ? username.trim() : (isWarehouse ? (username.trim() || "Warehouse") : undefined);
+
         const payload = {
-            username: isStore ? (username.trim() || email.split('@')[0]) : email.split('@')[0],
-            storeName: isStore ? username.trim() : undefined,
+            username: (isStore || isWarehouse) ? (username.trim() || (isWarehouse ? "Warehouse" : email.split('@')[0])) : email.split('@')[0],
+            storeName: derivedStoreName,
             email: email.trim().toLowerCase(),
-            locCode: isStore ? locCode.trim() : "",
-            address: isStore ? address.trim() : "",
+            locCode: derivedLocCode,
+            address: (isStore || isWarehouse) ? address.trim() : "",
             phone: phone.trim(),
-            gst: isStore ? gst.trim() : "",
+            gst: (isStore || isWarehouse) ? gst.trim() : "",
             role: role || undefined,
             allowedLocCodes: isCluster ? allowedLocCodes : [],
         };
@@ -118,15 +122,15 @@ const EditUser = () => {
 
             if (response.ok) {
                 const oldLocCode = (storeFromState?.locCode || "").toString().trim();
-                const newLocCode = isStore ? locCode.trim() : "";
+                const newLocCode = derivedLocCode;
                 if (oldLocCode && oldLocCode !== newLocCode) {
                     removeCustomStore(oldLocCode);
                 }
 
-                if (isStore && locCode.trim()) {
+                if ((isStore || isWarehouse) && newLocCode) {
                     saveCustomStore({
-                        locCode: locCode.trim(),
-                        locName: username.trim(),
+                        locCode: newLocCode,
+                        locName: (isWarehouse && (!username.trim() || username.trim().toLowerCase() === "warehouse")) ? "Warehouse" : (username.trim() || "Warehouse"),
                         address: address.trim(),
                         phone: phone.trim(),
                         email: email.trim().toLowerCase(),
@@ -147,7 +151,9 @@ const EditUser = () => {
         }
     };
 
-    const isStoreAdmin = role === "store_admin";
+    const isStore = role === "store_admin";
+    const isWarehouse = role === "warehouse_admin";
+    const isStoreAdmin = isStore || isWarehouse;
     const isClusterAdmin = role === "cluster_admin";
 
     return (
@@ -169,10 +175,13 @@ const EditUser = () => {
                                 value={role}
                                 onChange={(e) => {
                                     setRole(e.target.value);
-                                    if (e.target.value !== "store_admin") {
+                                    if (e.target.value !== "store_admin" && e.target.value !== "warehouse_admin") {
                                         setLocCode("");
                                         setGst("");
                                         setAddress("");
+                                    } else if (e.target.value === "warehouse_admin") {
+                                        if (!locCode) setLocCode("858");
+                                        if (!username) setUsername("Warehouse");
                                     }
                                     if (e.target.value !== "cluster_admin") {
                                         setAllowedLocCodes([]);
@@ -192,17 +201,17 @@ const EditUser = () => {
                             </select>
                         </div>
 
-                        {/* Store Admin: Store Name, Loc Code, GST, Address */}
+                        {/* Store / Warehouse Admin: Store/Warehouse Name */}
                         {isStoreAdmin && (
                             <div>
                                 <label className="block mb-2 text-sm font-semibold text-gray-700">
-                                    Store Name *
+                                    {isWarehouse ? "Warehouse Name *" : "Store Name *"}
                                 </label>
                                 <input
                                     type="text"
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
-                                    placeholder="e.g., Brides Berry"
+                                    placeholder={isWarehouse ? "e.g., Warehouse" : "e.g., Brides Berry"}
                                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-sm"
                                     required
                                 />
@@ -236,7 +245,7 @@ const EditUser = () => {
                             />
                         </div>
 
-                        {/* Store Admin specific details */}
+                        {/* Store / Warehouse Admin specific details: Loc Code, GST, Address */}
                         {isStoreAdmin && (
                             <>
                                 <div>
@@ -247,7 +256,7 @@ const EditUser = () => {
                                         type="text"
                                         value={locCode}
                                         onChange={(e) => setLocCode(e.target.value)}
-                                        placeholder="e.g., 155"
+                                        placeholder={isWarehouse ? "e.g., 858" : "e.g., 155"}
                                         className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-sm"
                                         required
                                     />
@@ -268,12 +277,12 @@ const EditUser = () => {
 
                                 <div>
                                     <label className="block mb-2 text-sm font-semibold text-gray-700">
-                                        Store Address
+                                        {isWarehouse ? "Warehouse Address" : "Store Address"}
                                     </label>
                                     <textarea
                                         value={address}
                                         onChange={(e) => setAddress(e.target.value)}
-                                        placeholder="e.g., MG Road, Kochi, Kerala - 682016"
+                                        placeholder={isWarehouse ? "e.g., Warehouse, Central Hub" : "e.g., MG Road, Kochi, Kerala - 682016"}
                                         rows="3"
                                         className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none resize-none text-sm"
                                     />

@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { ShieldCheck, ChevronDown } from "lucide-react";
+import { KeyRound, ChevronDown } from "lucide-react";
 import baseUrl from "../api/api";
 import { useSidebar } from "../hooks/useSidebar.js";
+import Header from "../components/Header.jsx";
 
 const ResetUserPassword = () => {
     const isSidebarOpen = useSidebar();
@@ -87,22 +88,25 @@ const ResetUserPassword = () => {
     };
 
     return (
-        <div className={`bg-[#F7F7F7] min-h-screen transition-all duration-300 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
-            {/* Header */}
-            <div className="bg-white px-8 py-5 border-b border-[#E5E5E5]">
-                <div className="flex items-center gap-4">
-                    <div className="bg-[#9D43D6] p-3 rounded-xl flex items-center justify-center shadow-sm">
-                        <ShieldCheck className="text-white" size={24} />
-                    </div>
-                    <div>
-                        <h1 className="text-[24px] font-semibold text-[#212121]">RESET USER PASSWORD</h1>
-                        <p className="text-[#6A6A6A] text-[13px] font-normal">Only admin can reset password for any user</p>
+        <div className="min-h-screen bg-[#F7F7F7]">
+            <Header title="Reset Password" />
+
+            <div className={`transition-all duration-300 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
+                {/* Page Title Banner */}
+                <div className="bg-white px-8 py-5 border-b border-[#E5E5E5] flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <div className="bg-[#9D43D6] p-3 rounded-xl flex items-center justify-center shadow-sm">
+                            <KeyRound className="text-white" size={24} />
+                        </div>
+                        <div>
+                            <h1 className="text-[22px] font-semibold text-[#212121]">RESET USER PASSWORD</h1>
+                            <p className="text-[#6A6A6A] text-[13px] font-normal">Super Admin / Admin password reset for any user or store account</p>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            {/* Form */}
-            <div className="p-6 md:p-8">
+                {/* Form */}
+                <div className="p-6 md:p-8">
                 <form onSubmit={handleReset} className="max-w-lg bg-white border border-[#E5E5E5] rounded-xl p-6 shadow-xs space-y-4" autoComplete="off">
                     {/* Select User */}
                     <div ref={dropdownRef}>
@@ -196,6 +200,7 @@ const ResetUserPassword = () => {
                         </button>
                     </div>
                 </form>
+            </div>
             </div>
         </div>
     );

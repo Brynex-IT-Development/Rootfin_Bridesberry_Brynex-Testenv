@@ -87,11 +87,14 @@ const AddNewUser = () => {
 
     const handleRoleChange = (newRole) => {
         setRole(newRole);
-        if (newRole !== "store_admin") {
+        if (newRole !== "store_admin" && newRole !== "warehouse_admin") {
             setStoreName("");
             setLocCode("");
             setGst("");
             setAddress("");
+        } else if (newRole === "warehouse_admin") {
+            if (!storeName) setStoreName("Warehouse");
+            if (!locCode) setLocCode("858");
         }
         if (newRole !== "cluster_admin") {
             setAllowedLocCodes([]);
@@ -117,9 +120,9 @@ const AddNewUser = () => {
             return;
         }
 
-        if (role === "store_admin") {
+        if (role === "store_admin" || role === "warehouse_admin") {
             if (!storeName.trim()) {
-                alert("Please enter the Store Name.");
+                alert(`Please enter the ${role === "warehouse_admin" ? "Warehouse" : "Store"} Name.`);
                 return;
             }
             if (!locCode.trim()) {
@@ -149,17 +152,19 @@ const AddNewUser = () => {
         }
 
         const isStore = role === "store_admin";
+        const isWarehouse = role === "warehouse_admin";
+        const isStoreOrWarehouse = isStore || isWarehouse;
         const isCluster = role === "cluster_admin";
-        const derivedUsername = isStore ? storeName.trim() : email.split('@')[0];
+        const derivedUsername = isStoreOrWarehouse ? storeName.trim() : email.split('@')[0];
 
         const payload = {
             username: derivedUsername,
-            storeName: isStore ? storeName.trim() : undefined,
+            storeName: isStoreOrWarehouse ? storeName.trim() : undefined,
             email: email.trim().toLowerCase(),
             phone: phone.trim(),
-            gst: isStore ? gst.trim() : "",
-            locCode: isStore ? locCode.trim() : "",
-            address: isStore ? address.trim() : "",
+            gst: isStoreOrWarehouse ? gst.trim() : "",
+            locCode: isStoreOrWarehouse ? locCode.trim() : "",
+            address: isStoreOrWarehouse ? address.trim() : "",
             role: role || undefined,
             allowedLocCodes: isCluster ? allowedLocCodes : [],
             password,
@@ -179,14 +184,19 @@ const AddNewUser = () => {
             const data = await response.json();
 
             if (response.ok) {
-                if (isStore && locCode.trim()) {
-                    saveCustomStore({
-                        locCode: locCode.trim(),
-                        locName: storeName.trim(),
-                        address: address.trim(),
-                        phone: phone.trim(),
-                        email: email.trim().toLowerCase()
-                    });
+                if (isStore || isWarehouse) {
+                    const code = isStore ? locCode.trim() : (locCode.trim() || "858");
+                    const name = isStore ? storeName.trim() : (storeName.trim() || "Warehouse");
+                    if (code) {
+                        saveCustomStore({
+                            locCode: code,
+                            locName: name,
+                            address: address.trim(),
+                            phone: phone.trim(),
+                            email: email.trim().toLowerCase()
+                        });
+                        fetchActiveStores().catch(() => {});
+                    }
                 }
 
                 alert(data.message || "User created successfully!");
@@ -203,6 +213,8 @@ const AddNewUser = () => {
     };
 
     const isStoreAdmin = role === "store_admin";
+    const isWarehouseAdmin = role === "warehouse_admin";
+    const isStoreOrWarehouse = isStoreAdmin || isWarehouseAdmin;
     const isClusterAdmin = role === "cluster_admin";
 
     return (
@@ -226,8 +238,8 @@ const AddNewUser = () => {
                 <div className="bg-white rounded-2xl border border-[#E9E9E9] p-8 shadow-xs">
                     <form onSubmit={handleSubmit} className="space-y-8">
 
-                        {/* Store Admin layout: Role & Store Name in first row, then Email & Phone */}
-                        {isStoreAdmin ? (
+                        {/* Store / Warehouse Admin layout: Role & Store/Warehouse Name in first row, then Email & Phone */}
+                        {isStoreOrWarehouse ? (
                             <>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     {/* Role * */}
@@ -259,16 +271,16 @@ const AddNewUser = () => {
                                         </div>
                                     </div>
 
-                                    {/* Store Name * (Only for Store Admin) */}
+                                    {/* Store Name / Warehouse Name * */}
                                     <div>
                                         <label className="block mb-2 text-sm font-medium text-gray-700">
-                                            Store Name <span className="text-red-500">*</span>
+                                            {isWarehouseAdmin ? "Warehouse Name" : "Store Name"} <span className="text-red-500">*</span>
                                         </label>
                                         <input
                                             type="text"
                                             value={storeName}
                                             onChange={(e) => setStoreName(e.target.value)}
-                                            placeholder="Enter store name"
+                                            placeholder={isWarehouseAdmin ? "Enter warehouse name" : "Enter store name"}
                                             className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-gray-700 text-sm placeholder-gray-400"
                                             required
                                         />
@@ -317,7 +329,7 @@ const AddNewUser = () => {
                                             type="text"
                                             value={locCode}
                                             onChange={(e) => setLocCode(e.target.value)}
-                                            placeholder="Enter location code"
+                                            placeholder={isWarehouseAdmin ? "e.g., 858" : "Enter location code"}
                                             className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-gray-700 text-sm placeholder-gray-400"
                                             required
                                         />
@@ -337,16 +349,16 @@ const AddNewUser = () => {
                                         />
                                     </div>
 
-                                    {/* Store Address */}
+                                    {/* Store Address / Warehouse Address */}
                                     <div>
                                         <label className="block mb-2 text-sm font-medium text-gray-700">
-                                            Store Address
+                                            {isWarehouseAdmin ? "Warehouse Address" : "Store Address"}
                                         </label>
                                         <input
                                             type="text"
                                             value={address}
                                             onChange={(e) => setAddress(e.target.value)}
-                                            placeholder="Enter store address"
+                                            placeholder={isWarehouseAdmin ? "Enter warehouse address" : "Enter store address"}
                                             className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-gray-700 text-sm placeholder-gray-400"
                                         />
                                     </div>

@@ -31,6 +31,8 @@ import {
     saveRolePermissions
 } from "../utils/permissionService";
 import { SYSTEM_ROLES, normalizeRole, isSuperAdmin } from "../utils/roleUtils";
+import { useSidebar } from "../hooks/useSidebar.js";
+import Header from "../components/Header.jsx";
 
 const MODULE_ICONS = {
     daybook: FileText,
@@ -50,6 +52,7 @@ const MODULE_ICONS = {
 
 const Permissions = () => {
     const navigate = useNavigate();
+    const isSidebarOpen = useSidebar();
 
     // Verify current user
     const [currentUser, setCurrentUser] = useState(() => {
@@ -87,18 +90,9 @@ const Permissions = () => {
         return initial;
     });
 
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-
     useEffect(() => {
         const user = JSON.parse(localStorage.getItem("rootfinuser") || localStorage.getItem("user") || "{}");
         setCurrentUser(user);
-
-        const handleSidebarChange = (e) => {
-            if (e.detail?.isOpen !== undefined) {
-                setIsSidebarOpen(e.detail.isOpen);
-            }
-        };
-        window.addEventListener("sidebar-changed", handleSidebarChange);
 
         const load = async () => {
             try {
@@ -124,8 +118,6 @@ const Permissions = () => {
         };
 
         load();
-
-        return () => window.removeEventListener("sidebar-changed", handleSidebarChange);
     }, []);
 
     // Toggle expand/collapse for a module's sub-pages
@@ -299,24 +291,25 @@ const Permissions = () => {
     const currentRolePerms = allPermissions[activeTab] || getDefaultPermissionsForRole(activeTab);
 
     return (
-        <div className={`min-h-screen bg-[#f8fafc] transition-all duration-300 ${isSidebarOpen ? "md:ml-64" : "ml-0"}`}>
-            <div className="max-w-7xl mx-auto px-6 py-8">
-                
-                {/* Header Bar */}
-                <div className="bg-white px-8 py-5 rounded-xl shadow-sm border border-gray-200 mb-6 flex items-center justify-between">
-                    <div className="flex items-center gap-3.5">
-                        <div className="w-10 h-10 rounded-xl bg-purple-50 text-[#a855f7] flex items-center justify-center shrink-0">
-                            <ShieldCheck size={22} />
+        <div className="min-h-screen bg-[#F7F7F7]">
+            <Header title="Permissions" />
+
+            <div className={`transition-all duration-300 ${isSidebarOpen ? "ml-[240px]" : "ml-0"}`}>
+                {/* Page Title Banner */}
+                <div className="bg-white px-8 py-5 border-b border-[#E5E5E5] flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <div className="bg-[#9D43D6] p-3 rounded-xl flex items-center justify-center shadow-sm">
+                            <ShieldCheck className="text-white" size={24} />
                         </div>
                         <div>
                             <div className="flex items-center gap-2">
-                                <h1 className="text-xl font-bold text-gray-900">Role Permissions</h1>
-                                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-purple-100 text-purple-700 uppercase tracking-wide">
+                                <h1 className="text-[22px] font-semibold text-[#212121]">ROLE PERMISSIONS</h1>
+                                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#9D43D6]/10 text-[#9D43D6] uppercase tracking-wide">
                                     SUPER ADMIN ONLY
                                 </span>
                             </div>
-                            <p className="text-xs text-gray-500 mt-0.5">
-                                Configure accessible modules and sub-pages for each role. Changes update lively.
+                            <p className="text-[#6A6A6A] text-[13px] font-normal">
+                                Configure accessible modules and sub-pages for each role across the organization
                             </p>
                         </div>
                     </div>
@@ -324,7 +317,7 @@ const Permissions = () => {
                     <div className="flex items-center gap-3">
                         <button
                             onClick={handleResetDefaults}
-                            className="px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-xl font-semibold text-xs flex items-center gap-2 transition-colors cursor-pointer"
+                            className="px-4 py-2 border border-[#E5E5E5] text-[#212121] hover:bg-[#F7F7F7] rounded-xl font-semibold text-xs flex items-center gap-2 transition-colors cursor-pointer"
                             title="Reset permissions to system defaults"
                         >
                             <RotateCcw size={15} />
@@ -333,7 +326,7 @@ const Permissions = () => {
                         <button
                             onClick={handleSave}
                             disabled={saving}
-                            className={`px-5 py-2 bg-[#a855f7] hover:bg-[#9333ea] text-white rounded-xl font-semibold text-xs flex items-center gap-2 transition-all shadow-sm cursor-pointer ${
+                            className={`px-5 py-2 bg-[#9D43D6] hover:bg-[#8835bd] text-white rounded-xl font-semibold text-xs flex items-center gap-2 transition-all shadow-sm cursor-pointer ${
                                 saving ? "opacity-75 cursor-not-allowed" : ""
                             }`}
                         >
@@ -356,6 +349,8 @@ const Permissions = () => {
                         </button>
                     </div>
                 </div>
+
+                <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6">
 
                 {/* Notifications */}
                 {saveSuccess && (
@@ -398,7 +393,7 @@ const Permissions = () => {
                                 onClick={() => setActiveTab(r.key)}
                                 className={`flex-1 min-w-[125px] py-2 px-3 rounded-lg text-xs font-semibold transition-all whitespace-nowrap cursor-pointer text-center ${
                                     isSelected
-                                        ? "bg-[#a855f7] text-white shadow-sm"
+                                        ? "bg-[#9D43D6] text-white shadow-sm"
                                         : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                                 }`}
                             >
@@ -410,7 +405,7 @@ const Permissions = () => {
 
                 {loading ? (
                     <div className="bg-white p-12 rounded-xl shadow-sm border border-gray-200 text-center">
-                        <div className="w-8 h-8 border-3 border-[#a855f7] border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+                        <div className="w-8 h-8 border-3 border-[#9D43D6] border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
                         <p className="text-gray-500 text-xs">Loading permissions...</p>
                     </div>
                 ) : activeTab === "matrix" ? (
@@ -450,7 +445,7 @@ const Permissions = () => {
                                                             {hasSubpages && (
                                                                 <button
                                                                     onClick={() => toggleModuleExpand(modKey)}
-                                                                    className="flex items-center gap-1 text-[11px] text-[#a855f7] hover:underline font-normal cursor-pointer py-0.5 px-1.5 rounded hover:bg-purple-50"
+                                                                    className="flex items-center gap-1 text-[11px] text-[#9D43D6] hover:underline font-normal cursor-pointer py-0.5 px-1.5 rounded hover:bg-purple-50"
                                                                 >
                                                                     <span>{moduleDef.subpages.length} sub-pages</span>
                                                                     <ChevronDown size={13} className={`transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
@@ -471,7 +466,7 @@ const Permissions = () => {
                                                                     type="checkbox"
                                                                     checked={isChecked}
                                                                     onChange={() => handleToggleModule(role.key, modKey)}
-                                                                    className="w-4 h-4 text-[#a855f7] rounded border-2 border-slate-400 checked:border-[#a855f7] bg-white focus:ring-purple-500 cursor-pointer accent-[#a855f7] hover:scale-105 transition-all"
+                                                                    className="w-4 h-4 text-[#9D43D6] rounded border-2 border-slate-400 checked:border-[#9D43D6] bg-white focus:ring-purple-500 cursor-pointer accent-[#9D43D6] hover:scale-105 transition-all"
                                                                     title={`${isChecked ? "Disable" : "Enable"} ${moduleDef.label} for ${role.label}`}
                                                                 />
                                                             </td>
@@ -500,7 +495,7 @@ const Permissions = () => {
                                                                         type="checkbox"
                                                                         checked={isChecked}
                                                                         onChange={() => handleToggleSubpage(role.key, modKey, subpage.path)}
-                                                                        className="w-4 h-4 text-[#a855f7] rounded border-2 border-slate-400 checked:border-[#a855f7] bg-white focus:ring-purple-500 accent-[#a855f7] cursor-pointer hover:scale-105 transition-all"
+                                                                        className="w-4 h-4 text-[#9D43D6] rounded border-2 border-slate-400 checked:border-[#9D43D6] bg-white focus:ring-purple-500 accent-[#9D43D6] cursor-pointer hover:scale-105 transition-all"
                                                                         title={`${subpage.label} for ${role.label}`}
                                                                     />
                                                                 </td>
@@ -520,7 +515,7 @@ const Permissions = () => {
                     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                         <div className="px-6 py-3.5 bg-gray-50/80 border-b border-gray-200 flex items-center justify-between">
                             <span className="text-xs font-bold text-gray-700 uppercase tracking-wider">
-                                Permissions for role: <span className="text-[#a855f7]">{activeTab.replace('_', ' ').toUpperCase()}</span>
+                                Permissions for role: <span className="text-[#9D43D6]">{activeTab.replace('_', ' ').toUpperCase()}</span>
                             </span>
                             <span className="text-xs text-gray-400">
                                 Click checkbox to open/close module. Open dropdown to toggle inside sub-pages.
@@ -558,7 +553,7 @@ const Permissions = () => {
                                                 {/* Module Name + Icon */}
                                                 <td className="py-3.5 px-4 font-semibold text-gray-800">
                                                     <div className="flex items-center gap-2.5">
-                                                        <div className={`p-1.5 rounded-lg shrink-0 ${isModuleEnabled ? "bg-purple-100 text-[#a855f7]" : "bg-gray-100 text-gray-400"}`}>
+                                                        <div className={`p-1.5 rounded-lg shrink-0 ${isModuleEnabled ? "bg-purple-100 text-[#9D43D6]" : "bg-gray-100 text-gray-400"}`}>
                                                             <IconComp size={16} />
                                                         </div>
                                                         <span className={isModuleEnabled ? "text-gray-900" : "text-gray-500"}>
@@ -574,7 +569,7 @@ const Permissions = () => {
                                                             type="checkbox"
                                                             checked={isModuleEnabled}
                                                             onChange={() => handleToggleModule(activeTab, modKey)}
-                                                            className="w-4 h-4 text-[#a855f7] rounded border-2 border-slate-400 checked:border-[#a855f7] bg-white focus:ring-purple-500 cursor-pointer accent-[#a855f7] hover:scale-105 transition-all"
+                                                            className="w-4 h-4 text-[#9D43D6] rounded border-2 border-slate-400 checked:border-[#9D43D6] bg-white focus:ring-purple-500 cursor-pointer accent-[#9D43D6] hover:scale-105 transition-all"
                                                         />
                                                         <span className={`text-xs font-semibold px-2 py-0.5 rounded-md ${
                                                             isModuleEnabled ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-gray-100 text-gray-500"
@@ -597,7 +592,7 @@ const Permissions = () => {
                                                                     onClick={() => toggleModuleExpand(modKey)}
                                                                     className={`flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-lg border transition-colors cursor-pointer ${
                                                                         isExpanded 
-                                                                            ? "bg-purple-50 text-[#a855f7] border-purple-200" 
+                                                                            ? "bg-purple-50 text-[#9D43D6] border-purple-200" 
                                                                             : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
                                                                     }`}
                                                                 >
@@ -626,7 +621,7 @@ const Permissions = () => {
                                                                                     type="checkbox"
                                                                                     checked={isChecked}
                                                                                     onChange={() => handleToggleSubpage(activeTab, modKey, sub.path)}
-                                                                                    className="w-4 h-4 text-[#a855f7] rounded border-2 border-slate-400 checked:border-[#a855f7] bg-white focus:ring-purple-500 accent-[#a855f7] cursor-pointer hover:scale-105 transition-all"
+                                                                                    className="w-4 h-4 text-[#9D43D6] rounded border-2 border-slate-400 checked:border-[#9D43D6] bg-white focus:ring-purple-500 accent-[#9D43D6] cursor-pointer hover:scale-105 transition-all"
                                                                                 />
                                                                                 <span className={`text-xs truncate ${isChecked ? "font-medium text-gray-800" : "text-gray-500"}`}>
                                                                                     {sub.label}
@@ -646,7 +641,7 @@ const Permissions = () => {
                                                         <div className="flex items-center justify-end gap-1.5 text-[11px]">
                                                             <button
                                                                 onClick={() => handleSelectAllSubpages(activeTab, modKey)}
-                                                                className="text-[#a855f7] hover:underline cursor-pointer font-medium"
+                                                                className="text-[#9D43D6] hover:underline cursor-pointer font-medium"
                                                             >
                                                                 All
                                                             </button>
@@ -670,6 +665,7 @@ const Permissions = () => {
                         </div>
                     </div>
                 )}
+                </div>
             </div>
         </div>
     );

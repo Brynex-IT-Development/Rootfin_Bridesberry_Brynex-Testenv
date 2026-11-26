@@ -7,6 +7,7 @@ import {
 import Rootments from '../assets/Rootments.jpg';
 import baseUrl from '../api/api';
 import { getActiveStores, fetchActiveStores } from "../utils/storeService.js";
+import Breadcrumbs from "./Breadcrumbs.jsx";
 
 const API_URL = baseUrl?.baseUrl?.replace(/\/$/, "") || "http://localhost:7000";
 
@@ -94,22 +95,27 @@ const Header = (prop) => {
                 const isGlobal = isSuperAdmin || role === 'admin' || role === 'warehouse_admin' || role === 'financial_admin';
                 const isCluster = role.includes('cluster');
 
-                // Super Admin has NO particular store
+                // Super Admin has Brynex Admin username, but can switch locations
                 if (isSuperAdmin) {
+                    const foundLoc = locations.find(loc => loc.locCode === storedUser.locCode);
+                    const activeLoc = foundLoc || locations[0];
+                    const activeCode = activeLoc ? activeLoc.locCode : "";
+                    const activeStoreName = activeLoc ? activeLoc.locName : null;
+
                     const cleanUser = {
                         ...storedUser,
-                        locCode: "",
-                        storeName: null,
-                        storeId: null,
+                        locCode: activeCode,
+                        storeName: activeStoreName,
                         username: "Brynex Admin"
                     };
-                    if (storedUser.locCode || storedUser.storeName || storedUser.username === "Warehouse" || storedUser.username === "SuitorGuy MG Road" || storedUser.username === "Brides Berry") {
+
+                    if (storedUser.username !== "Brynex Admin" || (!foundLoc && activeCode && storedUser.locCode !== activeCode)) {
                         try {
                             localStorage.setItem("rootfinuser", JSON.stringify(cleanUser));
                         } catch (e) {}
                     }
                     setCurrentUser(cleanUser);
-                    setSelectedValue("");
+                    setSelectedValue(activeCode);
                     return;
                 }
 
@@ -232,7 +238,7 @@ const Header = (prop) => {
     const displayName = getDisplayName();
 
     const userRole = (currentUser?.role || '').toLowerCase();
-    const isGlobalAdmin = userRole === 'super_admin' || userRole === 'admin' || userRole === 'financial_admin';
+    const isGlobalAdmin = userRole === 'super_admin' || userRole === 'superadmin' || userRole === 'admin' || userRole === 'warehouse_admin' || userRole === 'financial_admin';
     const isCluster = userRole.includes('cluster');
 
     const canSwitchLocation = 
@@ -347,10 +353,8 @@ const Header = (prop) => {
     return (
         <header className="bg-white border-b border-[#E5E5E5] h-[56px] flex items-center relative z-40">
             <div className="w-full pl-14 md:pl-6 pr-6 flex items-center justify-between mx-auto">
-                <div className="flex items-center gap-3">
-                    {prop.title && (
-                        <h1 className="text-[20px] md:text-[24px] font-semibold text-[#212121] tracking-tight">{prop.title}</h1>
-                    )}
+                <div className="flex items-center min-w-0 pr-4 overflow-hidden">
+                    <Breadcrumbs currentTitle={prop.title} />
                 </div>
 
                 {/* Right corner: Notification Bell + Store Selection Dropdown Pill */}

@@ -7,6 +7,7 @@ import { ChevronDown, Loader2, Menu } from "lucide-react";
 import { Helmet } from "react-helmet";
 import { useSidebar } from "../hooks/useSidebar.js";
 import { useActiveStores } from "../utils/storeService.js";
+import Breadcrumbs from "../components/Breadcrumbs.jsx";
 
 const baseIncomeCats = [
   {
@@ -266,6 +267,7 @@ const Income = () => {
             <Menu size={23} />
           </button>
           <div className="min-w-0 pt-0.5">
+            <Breadcrumbs currentTitle="Income" className="mb-1" />
             <h1 className="text-xl font-bold uppercase tracking-wide text-[#07132e] sm:text-2xl">
               Income
             </h1>

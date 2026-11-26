@@ -7,6 +7,7 @@ import ImageUpload from "../components/ImageUpload";
 import { X, Pencil, Trash2, Plus, Settings, Search, Check, ChevronDown, Image as ImageIcon } from "lucide-react";
 import baseUrl from "../api/api";
 import useSidebar from "../hooks/useSidebar";
+import Breadcrumbs from "../components/Breadcrumbs.jsx";
 
 const Label = ({ children, required = false }) => (
   <span className="block text-xs font-semibold text-gray-700 mb-1.5">
@@ -2586,6 +2587,7 @@ const PurchaseOrderCreate = () => {
       {/* ── Page header ── */}
       <div className="flex items-center justify-between mb-5">
         <div>
+          <Breadcrumbs currentTitle={isEditMode ? "Edit Purchase Order" : "New Purchase Order"} className="mb-1" />
           <h1 className="text-lg font-bold text-gray-900 tracking-tight">
             {isEditMode ? "Edit Purchase Order" : "New Purchase Order"}
           </h1>
