@@ -2,7 +2,9 @@
   "name": "rootfinjewels",
   "private": true,
   "scripts": {
-    "build": "cd frontend && npm install && npm run build"
+    "build": "cd frontend && npm install && npm run build",
+    "start": "cd backend && npm install && node --max-old-space-size=2048 server.js",
+    "backend": "cd backend && node --max-old-space-size=2048 server.js"
   },
   "dependencies": {
     "cookie-parser": "^1.4.7",
