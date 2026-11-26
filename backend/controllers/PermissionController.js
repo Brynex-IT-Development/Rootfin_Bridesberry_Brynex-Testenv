@@ -2,12 +2,21 @@ import RolePermission from '../model/RolePermission.js';
 
 export const ALL_MODULE_DEFINITIONS = [
     {
-        key: "daybook",
-        label: "Day Book",
+        key: "dashboard",
+        label: "Dashboard",
         isStandalone: true,
         path: "/",
         subpages: [
-            { path: "/", label: "Day Book" }
+            { path: "/", label: "Dashboard" }
+        ]
+    },
+    {
+        key: "daybook",
+        label: "Day Book",
+        isStandalone: true,
+        path: "/daybook",
+        subpages: [
+            { path: "/daybook", label: "Day Book" }
         ]
     },
     {
@@ -158,7 +167,8 @@ export const getDefaultPermissionsForRole = (role) => {
         case "super_admin":
         case "superadmin":
             return {
-                daybook: standaloneEnabled("/"),
+                dashboard: standaloneEnabled("/"),
+                daybook: standaloneEnabled("/daybook"),
                 financial_summary: standaloneEnabled("/datewisedaybook"),
                 sales: fullModule("sales"),
                 inventory: fullModule("inventory"),
@@ -177,7 +187,8 @@ export const getDefaultPermissionsForRole = (role) => {
         case "warehouse_admin":
         case "admin":
             return {
-                daybook: standaloneEnabled("/"),
+                dashboard: standaloneEnabled("/"),
+                daybook: standaloneEnabled("/daybook"),
                 financial_summary: standaloneEnabled("/datewisedaybook"),
                 sales: fullModule("sales"),
                 inventory: fullModule("inventory"),
@@ -196,7 +207,8 @@ export const getDefaultPermissionsForRole = (role) => {
         case "financial_admin":
         case "financial_head":
             return {
-                daybook: standaloneEnabled("/"),
+                dashboard: standaloneEnabled("/"),
+                daybook: standaloneEnabled("/daybook"),
                 financial_summary: standaloneEnabled("/datewisedaybook"),
                 sales: disabledModule(),
                 inventory: disabledModule(),
@@ -215,7 +227,8 @@ export const getDefaultPermissionsForRole = (role) => {
         case "cluster_admin":
         case "cluster_manager":
             return {
-                daybook: standaloneDisabled("/"),
+                dashboard: standaloneEnabled("/"),
+                daybook: standaloneDisabled("/daybook"),
                 financial_summary: standaloneEnabled("/datewisedaybook"),
                 sales: disabledModule(),
                 inventory: disabledModule(),
@@ -234,7 +247,8 @@ export const getDefaultPermissionsForRole = (role) => {
         case "store_admin":
         case "store_manager":
             return {
-                daybook: standaloneEnabled("/"),
+                dashboard: standaloneEnabled("/"),
+                daybook: standaloneEnabled("/daybook"),
                 financial_summary: standaloneDisabled("/datewisedaybook"),
                 sales: fullModule("sales"),
                 inventory: {
@@ -271,7 +285,8 @@ export const getDefaultPermissionsForRole = (role) => {
         case "store_user":
         default:
             return {
-                daybook: standaloneEnabled("/"),
+                dashboard: standaloneEnabled("/"),
+                daybook: standaloneEnabled("/daybook"),
                 financial_summary: standaloneDisabled("/datewisedaybook"),
                 sales: {
                     enabled: true,

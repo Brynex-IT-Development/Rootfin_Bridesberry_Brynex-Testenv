@@ -259,7 +259,7 @@ export default function RecordExpenses() {
             isSidebarOpen ? "ml-[240px]" : "ml-0"
           }`}
         >
-          <div className="w-full max-w-[1440px] px-8 py-6">
+          <div className="w-full px-6 md:px-8 py-6">
             {/* Row 1: Search Input + New Expense Button */}
             <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
               <div className="relative w-full sm:w-[270px]">

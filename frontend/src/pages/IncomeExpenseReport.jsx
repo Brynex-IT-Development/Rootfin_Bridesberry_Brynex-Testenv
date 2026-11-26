@@ -1156,137 +1156,133 @@ export default function IncomeExpenseReport() {
       <Helmet>
         <title>Income &amp; Expenses Report | RootFin</title>
       </Helmet>
-      <Headers />
-      
-      <div className={`transition-all duration-300 p-3 sm:p-6 bg-[#fbfcfd] min-h-screen ${isSidebarOpen ? 'lg:ml-64 ml-0' : 'ml-0'}`}>
-        {/* Page Title & Header */}
-        <div style={{ marginBottom: "24px" }}>
-          <h1 style={{ 
-            fontSize: "24px", 
-            fontWeight: "700", 
-            color: "#1e293b",
-            textTransform: "uppercase",
-            letterSpacing: "0.5px",
-            margin: "0 0 4px 0"
-          }}>
-            Income &amp; Expenses Report
-          </h1>
-          <p style={{ fontSize: "14px", color: "#64748b", margin: 0 }}>
-            Detailed overview of Income &amp; Expense Report
-          </p>
+      <Headers title="Income & Expenses Report" />
+
+      <div
+        className={`invoice-page-wrapper transition-all duration-300 bg-[#FAFAFA] min-h-screen text-[#1B1B1B] ${
+          isSidebarOpen ? "ml-[240px]" : "ml-0"
+        }`}
+      >
+        {/* Clean Page Title Header */}
+        <div className="no-print bg-white px-6 md:px-8 py-4 border-b border-[#E5E5E5] flex items-center justify-between">
+          <div>
+            <h1 className="text-[18px] font-semibold text-[#1B1B1B]">
+              Income &amp; Expenses Report
+            </h1>
+            <p className="text-[12px] text-[#8A8A8A] mt-0.5">
+              Detailed overview of income, expenses, and cashflow breakdown
+            </p>
+          </div>
         </div>
 
-        {/* Filters Card */}
-        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-4 mb-6">
-          <div className="flex flex-wrap items-end gap-3">
-            {/* From Date */}
-            <div className="flex-1 min-w-[140px]">
-              <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">
-                From Date
-              </label>
-              <input
-                type="date"
-                value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
-                className="w-full h-[38px] bg-white border border-gray-300 rounded-lg px-3 text-xs font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all shadow-sm"
-              />
-            </div>
+        <div className="px-6 md:px-8 pt-6 pb-10 space-y-5">
+          {/* Top Filters Bar */}
+          <div className="no-print flex flex-wrap items-end justify-between gap-4">
+            <div className="flex flex-wrap items-end gap-3">
+              {/* From Date */}
+              <div className="rf-form-field !mb-0">
+                <label className="rf-field-label">From Date</label>
+                <input
+                  type="date"
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                  className="rf-input !w-[168px] !h-[40px] !rounded-[10px]"
+                />
+              </div>
 
-            {/* To Date */}
-            <div className="flex-1 min-w-[140px]">
-              <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">
-                To Date
-              </label>
-              <input
-                type="date"
-                value={toDate}
-                onChange={(e) => setToDate(e.target.value)}
-                className="w-full h-[38px] bg-white border border-gray-300 rounded-lg px-3 text-xs font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all shadow-sm"
-              />
-            </div>
+              {/* To Date */}
+              <div className="rf-form-field !mb-0">
+                <label className="rf-field-label">To Date</label>
+                <input
+                  type="date"
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                  className="rf-input !w-[168px] !h-[40px] !rounded-[10px]"
+                />
+              </div>
 
-            {/* Category Multi-Select */}
-            <div className="flex-1 min-w-[200px] relative" id="category-dropdown-container">
-              <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">
-                Categories
-              </label>
-              <button
-                type="button"
-                onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
-                className="w-full h-[38px] bg-white border-2 border-gray-600 rounded-lg px-3 text-xs font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all shadow-sm cursor-pointer text-left"
-              >
-                {filterCategories.length === 0 ? "All Categories" : `${filterCategories.length} selected`}
-              </button>
-
-              {/* Dropdown Menu */}
-              {showCategoryDropdown && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-[300px] overflow-y-auto">
-                  {allCategories.map((c) => (
-                    <label key={c} className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0">
-                      <input
-                        type="checkbox"
-                        checked={filterCategories.includes(c)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setFilterCategories([...filterCategories, c]);
-                          } else {
-                            setFilterCategories(filterCategories.filter(cat => cat !== c));
-                          }
-                        }}
-                        className="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer"
-                      />
-                      <span className="text-xs text-gray-700">{getCategoryLabel(c)}</span>
-                    </label>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Store & Department Combined Dropdown */}
-            {canSelectStore && (
-              <div className="flex-1 min-w-[200px]">
-                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">
-                  Store / Department
-                </label>
-                <AppSelect
-                  value={selectedStore}
-                  onChange={(e) => setSelectedStore(e.target.value)}
-                  className="w-full h-[38px] bg-white border border-gray-300 rounded-lg px-3 text-xs font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all shadow-sm cursor-pointer"
+              {/* Category Multi-Select */}
+              <div className="rf-form-field !mb-0 w-[210px] relative" id="category-dropdown-container">
+                <label className="rf-field-label">Categories</label>
+                <button
+                  type="button"
+                  data-no-confirm="true"
+                  onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                  className="rf-input !w-full !h-[40px] !rounded-[10px] text-left flex items-center justify-between cursor-pointer bg-white"
                 >
-                  <option value="all">All (Stores &amp; Departments)</option>
-                  <option value="all_stores">{isClusterManager ? "All My Stores" : "All Stores"}</option>
-                  {(isAdmin || isSuperAdmin || isFinancialHead) && (
-                    <option value="all_depts">All Departments</option>
-                  )}
-                  
-                  <optgroup label="Stores">
-                    {(isClusterManager
-                      ? reportStores.filter((s) => clusterAllowedLocCodes.includes(s.locCode) && !DEPT_LOC_CODES.includes(s.locCode))
-                      : reportStores.filter((s) => !DEPT_LOC_CODES.includes(s.locCode))
-                    ).map((s) => (
-                      <option key={s.locCode} value={s.locCode}>
-                        {s.locName}
-                      </option>
-                    ))}
-                  </optgroup>
+                  <span className="truncate text-[13px] text-[#1B1B1B]">
+                    {filterCategories.length === 0 ? "All Categories" : `${filterCategories.length} selected`}
+                  </span>
+                  <ChevronDown size={14} className="text-[#7A7A7A] shrink-0" />
+                </button>
 
-                  {(isAdmin || isSuperAdmin || isFinancialHead) && (
-                    <optgroup label="Departments">
-                      {reportStores.filter((s) => DEPT_LOC_CODES.includes(s.locCode)).map((s) => (
+                {/* Dropdown Menu */}
+                {showCategoryDropdown && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#E5E5E5] rounded-[10px] shadow-lg z-50 max-h-[300px] overflow-y-auto">
+                    {allCategories.map((c) => (
+                      <label key={c} className="flex items-center gap-2.5 px-3.5 py-2 hover:bg-[#FAF5FF] cursor-pointer border-b border-[#F5F5F5] last:border-0">
+                        <input
+                          type="checkbox"
+                          checked={filterCategories.includes(c)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setFilterCategories([...filterCategories, c]);
+                            } else {
+                              setFilterCategories(filterCategories.filter(cat => cat !== c));
+                            }
+                          }}
+                          className="w-4 h-4 rounded accent-[#9D43D6] cursor-pointer"
+                        />
+                        <span className="text-[12.5px] text-[#212121]">{getCategoryLabel(c)}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Store & Department Combined Dropdown */}
+              {canSelectStore && (
+                <div className="rf-form-field !mb-0 w-[220px]">
+                  <label className="rf-field-label">Store / Department</label>
+                  <AppSelect
+                    value={selectedStore}
+                    onChange={(e) => setSelectedStore(e.target.value)}
+                    className="rf-input !w-full !h-[40px] !rounded-[10px] bg-white cursor-pointer"
+                  >
+                    <option value="all">All (Stores &amp; Departments)</option>
+                    <option value="all_stores">{isClusterManager ? "All My Stores" : "All Stores"}</option>
+                    {(isAdmin || isSuperAdmin || isFinancialHead) && (
+                      <option value="all_depts">All Departments</option>
+                    )}
+
+                    <optgroup label="Stores">
+                      {(isClusterManager
+                        ? reportStores.filter((s) => clusterAllowedLocCodes.includes(s.locCode) && !DEPT_LOC_CODES.includes(s.locCode))
+                        : reportStores.filter((s) => !DEPT_LOC_CODES.includes(s.locCode))
+                      ).map((s) => (
                         <option key={s.locCode} value={s.locCode}>
                           {s.locName}
                         </option>
                       ))}
                     </optgroup>
-                  )}
-                </AppSelect>
-              </div>
-            )}
 
+                    {(isAdmin || isSuperAdmin || isFinancialHead) && (
+                      <optgroup label="Departments">
+                        {reportStores.filter((s) => DEPT_LOC_CODES.includes(s.locCode)).map((s) => (
+                          <option key={s.locCode} value={s.locCode}>
+                            {s.locName}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                  </AppSelect>
+                </div>
+              )}
 
-            {/* Action Buttons */}
-            <div className="flex items-center gap-2">
+              {/* Reset Icon Button */}
               <button
+                type="button"
+                data-no-confirm="true"
                 onClick={() => {
                   setFromDate(firstOfMonth());
                   setToDate(today());
@@ -1302,38 +1298,37 @@ export default function IncomeExpenseReport() {
                   setExpanded({});
                   setHasSearched(false);
                 }}
-                className="w-[38px] h-[38px] bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-all cursor-pointer flex items-center justify-center shrink-0 border-none"
-                style={{ padding: 0 }}
+                className="w-[40px] h-[40px] bg-[#EFEFF1] hover:bg-[#E4E4E7] text-[#1B1B1B] rounded-[10px] transition-colors cursor-pointer inline-flex items-center justify-center shrink-0"
                 title="Reset Filters"
               >
-                <div className="flex items-center justify-center w-full h-full">
-                  <RefreshCw size={15} />
-                </div>
+                <RefreshCw size={15} />
               </button>
 
+              {/* Fetch Data Button */}
               <button
+                type="button"
+                data-no-confirm="true"
                 onClick={fetchData}
                 disabled={loading}
-                className="h-[38px] px-6 bg-[#a855f7] hover:bg-[#9333ea] text-white text-xs font-semibold rounded-lg shadow-sm transition-all active:scale-95 disabled:opacity-60 cursor-pointer inline-flex items-center justify-center whitespace-nowrap"
+                className="rf-btn-primary !h-[40px] !px-6 !rounded-[10px] !bg-[#9D43D6] hover:!bg-[#8732BE] !text-[13px] !font-medium inline-flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer shadow-[0_2px_8px_rgba(157,67,214,0.24)]"
               >
-                {loading ? <RefreshCw size={14} className="animate-spin mr-1.5" /> : null}
-                <span>Fetch Data</span>
+                {loading && <RefreshCw size={14} className="animate-spin" />}
+                <span>{loading ? "Fetching..." : "Fetch Data"}</span>
               </button>
-
-              {hasSearched && csvData.length > 1 && (
-                <CSVLink
-                  data={csvData}
-                  filename={`income-expense-${fromDate}-to-${toDate}.csv`}
-                  className="inline-flex h-[38px] items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-slate-300 bg-white px-4 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
-                >
-                  <Download size={14} /> Export CSV
-                </CSVLink>
-              )}
-
-
             </div>
+
+            {/* Right Action: Export CSV */}
+            {hasSearched && csvData.length > 1 && (
+              <CSVLink
+                data={csvData}
+                filename={`income-expense-${fromDate}-to-${toDate}.csv`}
+                className="rf-btn-cancel !h-[40px] !px-5 !rounded-[10px] !bg-[#EFEFF1] hover:!bg-[#E4E4E7] !text-[#1B1B1B] !text-[13px] !font-medium !border-0 inline-flex items-center gap-2 transition-colors no-underline cursor-pointer"
+              >
+                <span>Export CSV</span>
+                <Download size={15} />
+              </CSVLink>
+            )}
           </div>
-        </div>
 
         {/* Summary Metric Cards */}
         {hasData && (
@@ -1511,24 +1506,21 @@ export default function IncomeExpenseReport() {
         )}
 
         {/* Report Table Card */}
-        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-[10px] border border-[#EAEAEA] shadow-[0_1px_2px_rgba(0,0,0,0.02)] overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm border-collapse">
-              <thead className="">
-                <tr className="bg-[#222]">
-                  <th colSpan={colCount} className="h-2 p-0"></th>
-                </tr>
-                <tr className="bg-white border-b border-gray-100">
-                  <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-gray-700 pl-8">DATE</th>
-                  <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-gray-700">CATEGORY/ SUBCATEGORY</th>
-                  <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-gray-700">CUSTOMER / INVOICE</th>
-                  <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-gray-700">REMARKS</th>
-                  {showBranch && <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-gray-700">BRANCH</th>}
-                  <th className="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-gray-700">RAZORPAY</th>
-                  <th className="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-gray-700">CASH</th>
-                  <th className="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-gray-700">CARD/ BANK</th>
-                  <th className="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-gray-700">UPI</th>
-                  <th className="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-gray-700">TOTAL</th>
+            <table className="w-full text-[13px] border-collapse">
+              <thead>
+                <tr className="bg-[#1B1B1B] text-white text-[11px] font-semibold uppercase tracking-[0.04em]">
+                  <th className="px-4 py-3.5 text-left pl-8 whitespace-nowrap">DATE</th>
+                  <th className="px-4 py-3.5 text-left whitespace-nowrap">CATEGORY/ SUBCATEGORY</th>
+                  <th className="px-4 py-3.5 text-left whitespace-nowrap">CUSTOMER / INVOICE</th>
+                  <th className="px-4 py-3.5 text-left whitespace-nowrap">REMARKS</th>
+                  {showBranch && <th className="px-4 py-3.5 text-left whitespace-nowrap">BRANCH</th>}
+                  <th className="px-4 py-3.5 text-right whitespace-nowrap">RAZORPAY</th>
+                  <th className="px-4 py-3.5 text-right whitespace-nowrap">CASH</th>
+                  <th className="px-4 py-3.5 text-right whitespace-nowrap">CARD/ BANK</th>
+                  <th className="px-4 py-3.5 text-right whitespace-nowrap">UPI</th>
+                  <th className="px-4 py-3.5 text-right whitespace-nowrap">TOTAL</th>
                 </tr>
               </thead>
 
@@ -1724,6 +1716,7 @@ export default function IncomeExpenseReport() {
               )}
             </table>
           </div>
+        </div>
         </div>
       </div>
     </>

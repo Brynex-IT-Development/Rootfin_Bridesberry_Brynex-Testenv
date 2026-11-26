@@ -20,7 +20,10 @@ import {
   Package,
   Box,
   Pencil,
+  Trash2,
+  Check,
 } from "lucide-react";
+import RootfinConfirmModal from "../components/RootfinModal";
 import baseUrl from "../api/api";
 import { mapLocNameToWarehouse as mapWarehouse } from "../utils/warehouseMapping";
 import { getActiveStores } from "../utils/storeService.js";
@@ -1823,74 +1826,32 @@ const ShoeSalesItemDetail = () => {
       </div>
 
       {/* Delete Confirmation Modal */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50">
-          <div className="rounded-2xl border border-[#e4e6f2] bg-white shadow-[0_18px_50px_-24px_rgba(15,23,42,0.18)] p-6 w-full max-w-md">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-[#1f2937]">Delete Item</h2>
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                className="text-[#64748b] hover:text-[#1f2937]"
-              >
-                <X size={20} />
-              </button>
-            </div>
-            <p className="text-sm text-[#475569] mb-6">
-              Are you sure you want to delete "{item?.itemName}"? This action cannot be undone.
-            </p>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                className="no-blue-button px-4 py-2 text-sm font-medium text-[#475569] bg-white border border-[#d7dcf5] rounded-lg hover:bg-[#FAFAFA]"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDelete}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700"
-                disabled={loading}
-              >
-                {loading ? "Deleting..." : "Delete"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <RootfinConfirmModal
+        open={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDelete}
+        title="Delete this item?"
+        description={`Are you sure you want to delete "${item?.itemName}"? This action cannot be undone.`}
+        cancelLabel="Cancel"
+        confirmLabel={loading ? "Deleting..." : "Delete"}
+        confirmIcon={!loading ? <Trash2 size={15} /> : null}
+        variant="danger"
+        loading={loading}
+      />
 
       {/* Mark as Inactive Confirmation Modal */}
-      {showInactiveModal && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50">
-          <div className="rounded-2xl border border-[#e4e6f2] bg-white shadow-[0_18px_50px_-24px_rgba(15,23,42,0.18)] p-6 w-full max-w-md">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-[#1f2937]">Mark as Inactive</h2>
-              <button
-                onClick={() => setShowInactiveModal(false)}
-                className="text-[#64748b] hover:text-[#1f2937]"
-              >
-                <X size={20} />
-              </button>
-            </div>
-            <p className="text-sm text-[#475569] mb-6">
-              Are you sure you want to mark "{item?.itemName}" as inactive? This item will no longer be available for selection.
-            </p>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setShowInactiveModal(false)}
-                className="no-blue-button px-4 py-2 text-sm font-medium text-[#475569] bg-white border border-[#d7dcf5] rounded-lg hover:bg-[#FAFAFA]"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleMarkAsInactive}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
-                disabled={loading}
-              >
-                {loading ? "Updating..." : "Mark as Inactive"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <RootfinConfirmModal
+        open={showInactiveModal}
+        onClose={() => setShowInactiveModal(false)}
+        onConfirm={handleMarkAsInactive}
+        title="Mark as Inactive?"
+        description={`Are you sure you want to mark "${item?.itemName}" as inactive? This item will no longer be available for selection.`}
+        cancelLabel="Cancel"
+        confirmLabel={loading ? "Updating..." : "Mark as Inactive"}
+        confirmIcon={!loading ? <Check size={15} /> : null}
+        variant="primary"
+        loading={loading}
+      />
 
       {/* Add to Group Modal */}
       {showAddToGroupModal && (

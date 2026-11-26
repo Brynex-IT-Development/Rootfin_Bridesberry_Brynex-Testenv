@@ -183,9 +183,12 @@ const StoreOrderView = () => {
   const handleReject = async () => {
     if (!storeOrder) return;
     
-    const confirmReject = window.confirm(
-      `Are you sure you want to reject Store Order ${storeOrder.orderNumber}?`
-    );
+    const confirmReject = await window.rfConfirm({
+      title: "Reject Store Order?",
+      description: `Are you sure you want to reject Store Order ${storeOrder.orderNumber}?`,
+      confirmLabel: "Reject",
+      variant: "danger",
+    });
     
     if (!confirmReject) return;
     

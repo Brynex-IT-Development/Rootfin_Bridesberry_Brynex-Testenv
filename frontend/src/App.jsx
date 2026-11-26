@@ -2,6 +2,7 @@ import { Routes, Route, useLocation, Navigate, useNavigate } from "react-router-
 import { useEffect, useRef, useState } from "react";
 import usePreventNumberInputScroll from "./hooks/usePreventNumberInputScroll";
 import RootfinLoader from "./components/RootfinLoader.jsx";
+import { RootfinDialogHost } from "./components/RootfinModal.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import DayBookInc from "./pages/BillWiseIncome.jsx";
 import Datewisedaybook from "./pages/Datewisedaybook.jsx";
@@ -367,6 +368,7 @@ const App = () => {
         </Routes>
         </DaybookGuard>
       </div>
+      <RootfinDialogHost />
     </div>
   );
 };

@@ -8,6 +8,7 @@ import { mapLocNameToWarehouse } from "../utils/warehouseMapping";
 import useSidebar from "../hooks/useSidebar";
 
 import AppSelect from "../components/AppSelect.jsx";
+import RootfinConfirmModal from "../components/RootfinModal";
 const StoreOrders = () => {
   const isSidebarOpen = useSidebar();
   const navigate = useNavigate();
@@ -749,78 +750,33 @@ const StoreOrders = () => {
           </div>
 
           {/* 2-Step Delete Confirmation Modal */}
-          {showDeleteModal && (
-            <div className="fixed inset-0 bg-black/50 backdrop-blur-[1px] flex items-center justify-center z-50 p-4">
-              <div className="bg-white rounded-[16px] border border-[#E5E5E5] shadow-2xl max-w-md w-full overflow-hidden">
-                <div className="p-6">
-                  {deleteStep === 1 ? (
-                    <>
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="flex-shrink-0 w-10 h-10 rounded-[10px] bg-[#FEE2E2] flex items-center justify-center">
-                          <AlertTriangle className="text-[#DC2626]" size={20} />
-                        </div>
-                        <h3 className="text-[16px] font-semibold text-[#1B1B1B]">
-                          Delete {ordersToDelete.length === 1 ? 'Store Order' : `${ordersToDelete.length} Store Orders`}?
-                        </h3>
-                      </div>
-                      <p className="text-[13px] text-[#525252] mb-6 leading-relaxed">
-                        Are you sure you want to delete {ordersToDelete.length === 1 ? 'this store order' : `these ${ordersToDelete.length} store orders`}?
-                        {ordersToDelete.some(order => order.status === 'approved' || order.status === 'transferred') && (
-                          <span className="block mt-2 text-[#DC2626] font-semibold">
-                            Some orders are already approved or transferred. This action cannot be undone.
-                          </span>
-                        )}
-                      </p>
-                      <div className="flex gap-2.5 justify-end">
-                        <button
-                          onClick={handleCancelDelete}
-                          className="rf-btn-cancel !h-[38px] !px-4 !text-[13px]"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          onClick={handleConfirmDeleteStep1}
-                          className="inline-flex items-center justify-center h-[38px] px-4 text-[13px] font-semibold text-white bg-[#DC2626] rounded-[10px] hover:bg-[#B91C1C] transition-colors cursor-pointer"
-                        >
-                          Continue
-                        </button>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="flex-shrink-0 w-10 h-10 rounded-[10px] bg-[#FEE2E2] flex items-center justify-center">
-                          <AlertTriangle className="text-[#DC2626]" size={20} />
-                        </div>
-                        <h3 className="text-[16px] font-semibold text-[#1B1B1B]">
-                          Final Confirmation
-                        </h3>
-                      </div>
-                      <p className="text-[13px] text-[#525252] mb-6 leading-relaxed">
-                        This action cannot be undone. Are you absolutely sure you want to delete {ordersToDelete.length === 1 ? 'this store order' : `these ${ordersToDelete.length} store orders`}?
-                      </p>
-                      <div className="flex gap-2.5 justify-end">
-                        <button
-                          onClick={handleCancelDelete}
-                          disabled={deleting}
-                          className="rf-btn-cancel !h-[38px] !px-4 !text-[13px] disabled:opacity-50"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          onClick={handleConfirmDeleteStep2}
-                          disabled={deleting}
-                          className="inline-flex items-center justify-center h-[38px] px-4 text-[13px] font-semibold text-white bg-[#DC2626] rounded-[10px] hover:bg-[#B91C1C] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                        >
-                          {deleting ? "Deleting..." : "Delete Permanently"}
-                        </button>
-                      </div>
-                    </>
-                  )}
+          <RootfinConfirmModal
+            open={showDeleteModal}
+            onClose={handleCancelDelete}
+            onConfirm={deleteStep === 1 ? handleConfirmDeleteStep1 : handleConfirmDeleteStep2}
+            title={
+              deleteStep === 1
+                ? `Delete ${ordersToDelete.length === 1 ? "this store order" : `${ordersToDelete.length} store orders`}?`
+                : "Final Confirmation"
+            }
+            description={
+              deleteStep === 1
+                ? `Are you sure you want to delete ${ordersToDelete.length === 1 ? "this store order" : `these ${ordersToDelete.length} store orders`}? This action cannot be undone.`
+                : `This action cannot be undone. Are you absolutely sure you want to delete ${ordersToDelete.length === 1 ? "this store order" : `these ${ordersToDelete.length} store orders`}?`
+            }
+            cancelLabel="Cancel"
+            confirmLabel={deleteStep === 1 ? "Continue" : deleting ? "Deleting..." : "Delete"}
+            confirmIcon={!deleting ? <Trash2 size={15} /> : null}
+            variant="danger"
+            loading={deleting}
+          >
+            {deleteStep === 1 &&
+              ordersToDelete.some((order) => order.status === "approved" || order.status === "transferred") && (
+                <div className="p-3 rounded-[12px] bg-[#FEF2F2] border border-[#FECACA] text-[#DC2626] text-[12px] font-medium text-center">
+                  Some orders are already approved or transferred. This action cannot be undone.
                 </div>
-              </div>
-            </div>
-          )}
+              )}
+          </RootfinConfirmModal>
         </div>
       </div>
     </div>

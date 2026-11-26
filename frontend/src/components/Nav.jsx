@@ -422,7 +422,7 @@ const Nav = () => {
                     {/* ── CLUSTER MANAGER: Dashboard + Financial Summary + Reports ── */}
                     {isClusterManager ? (
                         <>
-                            {renderSingleItem("/", "Dashboard", LayoutDashboard)}
+                            {hasModule("dashboard") && renderSingleItem("/", "Dashboard", LayoutDashboard)}
 
                             {hasModule("financial_summary") && renderSingleItem("/datewisedaybook", "Financial Summary", LineChart)}
 
@@ -438,7 +438,7 @@ const Nav = () => {
                     ) : (
                         <>
                             {/* Dashboard - Home */}
-                            {renderSingleItem("/", "Dashboard", LayoutDashboard)}
+                            {hasModule("dashboard") && renderSingleItem("/", "Dashboard", LayoutDashboard)}
 
                             {/* Day Book - Standalone */}
                             {hasModule("daybook") && renderSingleItem("/daybook", "Day Book", BookOpen)}

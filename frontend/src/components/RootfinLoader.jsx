@@ -10,7 +10,7 @@ const RootfinLoader = ({ visible = true, fading = false, fullScreen = true }) =>
 
   return (
     <div
-      className={`${
+      className={`rf-loader-screen ${
         fullScreen ? "fixed inset-0 z-[999999]" : "w-full min-h-[260px]"
       } flex flex-col items-center justify-center bg-[#0D0B12] transition-opacity duration-500 select-none ${
         fading ? "opacity-0 pointer-events-none" : "opacity-100"

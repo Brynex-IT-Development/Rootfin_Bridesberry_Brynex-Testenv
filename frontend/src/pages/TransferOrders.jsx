@@ -8,6 +8,7 @@ import { mapLocNameToWarehouse } from "../utils/warehouseMapping";
 import useSidebar from "../hooks/useSidebar";
 
 import AppSelect from "../components/AppSelect.jsx";
+import RootfinConfirmModal from "../components/RootfinModal";
 const PERIOD_OPTIONS = [
   { label: "30 Days", value: 30 },
   { label: "90 Days", value: 90 },
@@ -756,86 +757,46 @@ const TransferOrders = () => {
           </div>
 
           {/* ── 2-Step Delete Modal ── */}
-          {showDeleteModal && (
-            <div className="fixed inset-0 bg-black/50 backdrop-blur-[1px] flex items-center justify-center z-50 p-4">
-              <div className="bg-white shadow-2xl max-w-md w-full rounded-[16px] border border-[#E5E5E5] overflow-hidden">
-                <div className="p-6">
-                  {deleteStep === 1 ? (
-                    <>
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 rounded-[10px] bg-[#FEE2E2] flex items-center justify-center shrink-0">
-                          <AlertTriangle className="text-[#DC2626]" size={20} />
-                        </div>
-                        <h3 className="text-[16px] font-semibold text-[#1B1B1B]">
-                          Delete {ordersToDelete.length === 1 ? "Transfer Order" : `${ordersToDelete.length} Transfer Orders`}?
-                        </h3>
-                      </div>
-                      <p className="text-[13px] text-[#525252] mb-6 leading-relaxed">
-                        Are you sure you want to delete{" "}
-                        {ordersToDelete.length === 1 ? "this transfer order" : `these ${ordersToDelete.length} transfer orders`}?
-                        {ordersToDelete.some((o) => o.status === "transferred") && (
-                          <span className="block mt-2 text-[#DC2626] font-semibold">
-                            Some orders are already transferred. Stock will be reversed before deletion.
-                          </span>
-                        )}
-                      </p>
-                      <div className="flex gap-2.5 justify-end">
-                        <button onClick={handleCancelDelete} className="rf-btn-cancel !h-[38px] !px-4 !text-[13px]">
-                          Cancel
-                        </button>
-                        <button onClick={() => setDeleteStep(2)} className="inline-flex items-center justify-center h-[38px] px-4 text-[13px] font-semibold text-white bg-[#DC2626] rounded-[10px] hover:bg-[#B91C1C] transition cursor-pointer">
-                          Continue
-                        </button>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 rounded-[10px] bg-[#FEE2E2] flex items-center justify-center shrink-0">
-                          <AlertTriangle className="text-[#DC2626]" size={20} />
-                        </div>
-                        <h3 className="text-[16px] font-semibold text-[#1B1B1B]">Final Confirmation</h3>
-                      </div>
-                      <p className="text-[13px] text-[#525252] mb-4 leading-relaxed">
-                        This action cannot be undone. Are you absolutely sure?
-                      </p>
-                      {ordersToDelete.length > 0 && (
-                        <div className="mb-5 p-3 bg-[#FAFAFA] max-h-40 overflow-y-auto border border-[#E5E5E5] rounded-[10px]">
-                          <p className="text-[11px] font-semibold uppercase tracking-wider text-[#7A7A7A] mb-2">Orders to be deleted:</p>
-                          <ul className="text-[12px] text-[#212121] space-y-1">
-                            {ordersToDelete.map((order, idx) => (
-                              <li key={order._id || order.id || idx}>
-                                • {order.transferOrderNumber || `Order-${String(order._id || order.id).slice(-8)}`} — {order.reason || "No reason"} ({order.status})
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                      <div className="flex gap-2.5 justify-end">
-                        <button onClick={() => setDeleteStep(1)} disabled={deleting} className="rf-btn-cancel !h-[38px] !px-4 !text-[13px]">
-                          Back
-                        </button>
-                        <button
-                          onClick={handleConfirmDeleteStep2}
-                          disabled={deleting}
-                          className="inline-flex items-center justify-center gap-2 h-[38px] px-4 text-[13px] font-semibold text-white bg-[#DC2626] rounded-[10px] hover:bg-[#B91C1C] transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                        >
-                          {deleting ? (
-                            <>
-                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                              Deleting...
-                            </>
-                          ) : (
-                            "Confirm Delete"
-                          )}
-                        </button>
-                      </div>
-                    </>
-                  )}
-                </div>
+          <RootfinConfirmModal
+            open={showDeleteModal}
+            onClose={deleteStep === 1 ? handleCancelDelete : () => setDeleteStep(1)}
+            onConfirm={deleteStep === 1 ? () => setDeleteStep(2) : handleConfirmDeleteStep2}
+            title={
+              deleteStep === 1
+                ? `Delete ${ordersToDelete.length === 1 ? "this transfer order" : `${ordersToDelete.length} transfer orders`}?`
+                : "Final Confirmation"
+            }
+            description={
+              deleteStep === 1
+                ? `Are you sure you want to delete ${ordersToDelete.length === 1 ? "this transfer order" : `these ${ordersToDelete.length} transfer orders`}? This action cannot be undone.`
+                : "This action cannot be undone. Are you absolutely sure?"
+            }
+            cancelLabel={deleteStep === 1 ? "Cancel" : "Back"}
+            confirmLabel={deleteStep === 1 ? "Continue" : deleting ? "Deleting..." : "Delete"}
+            confirmIcon={!deleting ? <Trash2 size={15} /> : null}
+            variant="danger"
+            loading={deleting}
+          >
+            {deleteStep === 1 && ordersToDelete.some((o) => o.status === "transferred") && (
+              <div className="p-3 rounded-[12px] bg-[#FEF2F2] border border-[#FECACA] text-[#DC2626] text-[12px] font-medium text-center">
+                Some orders are already transferred. Stock will be reversed before deletion.
               </div>
-            </div>
-          )}
+            )}
+            {deleteStep === 2 && ordersToDelete.length > 0 && (
+              <div className="p-3 bg-[#FAFAFA] max-h-40 overflow-y-auto border border-[#E5E5E5] rounded-[12px]">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-[#7A7A7A] mb-1.5">
+                  Orders to be deleted
+                </p>
+                <ul className="text-[12px] text-[#212121] space-y-1">
+                  {ordersToDelete.map((order, idx) => (
+                    <li key={order._id || order.id || idx}>
+                      • {order.transferOrderNumber || `Order-${String(order._id || order.id).slice(-8)}`} — {order.reason || "No reason"} ({order.status})
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </RootfinConfirmModal>
         </div>
       </div>
     </div>

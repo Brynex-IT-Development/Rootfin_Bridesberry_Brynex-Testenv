@@ -1315,3 +1315,41 @@ html body.sidebar-open [class*="ml-[290px]"]:not(nav *):not(.rf-sidebar *) {
 .rf-loader-bar {
   animation: rfLoaderBarSlide 2s ease-in-out infinite;
 }
+
+/* ============================================================
+   RootFin UI Kit — Global Modal Standardization
+   Applies rounded-[20px] cards, soft blurred backdrop, smooth
+   entrance animation, and rounded-[10px] controls to all modals
+   ============================================================ */
+@keyframes rfModalPop {
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+div.fixed.inset-0:not(.rf-loader-screen):not([class*="justify-end"]) {
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+div.fixed.inset-0:not(.rf-loader-screen):not([class*="justify-end"]) > div.bg-white {
+  border-radius: 20px !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.16) !important;
+  border-color: #EBEBEB !important;
+  animation: rfModalPop 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+div.fixed.inset-0:not(.rf-loader-screen):not([class*="justify-end"]) > div.bg-white button {
+  border-radius: 10px;
+}
+
+div.fixed.inset-0:not(.rf-loader-screen):not([class*="justify-end"]) > div.bg-white input:not([type="checkbox"]):not([type="radio"]),
+div.fixed.inset-0:not(.rf-loader-screen):not([class*="justify-end"]) > div.bg-white select,
+div.fixed.inset-0:not(.rf-loader-screen):not([class*="justify-end"]) > div.bg-white textarea {
+  border-radius: 10px;
+}

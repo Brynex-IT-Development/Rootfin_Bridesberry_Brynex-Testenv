@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { CSVLink } from "react-csv";
+import { Download, RefreshCw, Loader2 } from "lucide-react";
 import Headers from "../components/Header.jsx";
 import baseUrl from "../api/api.js";
 import useSidebar from "../hooks/useSidebar";
@@ -79,178 +80,251 @@ const SalesByGroupReport = () => {
   sizes.forEach(s => { grandTotals[s] = rows.reduce((sum, r) => sum + (r.sizes[s] || 0), 0); });
   const grandTotal = rows.reduce((sum, r) => sum + r.total, 0);
 
-  const inputCls = "border border-slate-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 box-border bg-white";
-
   return (
     <>
       <Helmet><title>Sales by Group Report | RootFin</title></Helmet>
       <Headers title="Sales by Group Report" />
-      <div className={`transition-all duration-300 p-3 sm:p-6 bg-slate-50 min-h-screen ${isSidebarOpen ? 'ml-[240px] ml-0' : 'ml-0'}`}>
 
-        {/* Filter bar */}
-        <div className="flex flex-wrap items-end gap-3 mb-5 p-4 bg-white border border-slate-200 shadow-sm no-print">
-          <div className="flex items-end gap-3">
-            <div className="flex flex-col">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">From</label>
-              <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)}
-                style={{ height: 36 }} className={inputCls} />
+      <div
+        className={`invoice-page-wrapper transition-all duration-300 bg-[#FAFAFA] min-h-screen text-[#1B1B1B] ${
+          isSidebarOpen ? "ml-[240px]" : "ml-0"
+        }`}
+      >
+        {/* Clean Page Title Header */}
+        <div className="no-print bg-white px-6 md:px-8 py-4 border-b border-[#E5E5E5] flex items-center justify-between">
+          <h1 className="text-[18px] font-semibold text-[#1B1B1B]">Sales by Group Report</h1>
+        </div>
+
+        <div className="px-6 md:px-8 pt-5 pb-10 space-y-5">
+          {/* Top Filter Bar */}
+          <div className="no-print flex flex-wrap items-end gap-3">
+            {/* From Date */}
+            <div className="rf-form-field !mb-0">
+              <label className="rf-field-label">From Date</label>
+              <input
+                type="date"
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                className="rf-input !w-[168px] !h-[40px] !rounded-[10px]"
+              />
             </div>
-            <div className="flex flex-col">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">To</label>
-              <input type="date" value={toDate} onChange={e => setToDate(e.target.value)}
-                style={{ height: 36 }} className={inputCls} />
+
+            {/* To Date */}
+            <div className="rf-form-field !mb-0">
+              <label className="rf-field-label">To Date</label>
+              <input
+                type="date"
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                className="rf-input !w-[168px] !h-[40px] !rounded-[10px]"
+              />
             </div>
-            <button onClick={fetchReport} disabled={loading}
-              style={{ height: 36 }}
-              className={`px-6 text-sm font-semibold text-white flex items-center gap-2 transition-all duration-200 shadow-sm ${
-                loading ? "bg-blue-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700 hover:shadow-md active:scale-95 cursor-pointer"
-              }`}>
-              {loading ? (
-                <>
-                  <svg className="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-                  </svg>
-                  Fetching...
-                </>
-              ) : "Fetch Report"}
-            </button>
-          </div>
 
-          <div className="w-px self-stretch bg-slate-200 mx-1" />
-
-          <div className="flex items-end gap-3">
+            {/* Store */}
             {canSelectStore && (
-              <div className="flex flex-col">
-                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Store</label>
-                <AppSelect value={selectedStore} onChange={e => setSelectedStore(e.target.value)}
-                  style={{ height: 36 }} className={`${inputCls} w-44`}>
+              <div className="rf-form-field !mb-0 w-[195px]">
+                <label className="rf-field-label">Store</label>
+                <AppSelect
+                  value={selectedStore}
+                  onChange={(e) => setSelectedStore(e.target.value)}
+                  className="rf-input !w-full !h-[40px] !rounded-[10px] bg-white cursor-pointer"
+                >
                   {isClusterManager
-                    ? [{ value: "all", label: "All My Stores" }, ...STORES.filter(s => clusterAllowedLocCodes.includes(s.value))].map(s => <option key={s.value} value={s.value}>{s.label}</option>)
-                    : STORES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)
-                  }
+                    ? [
+                        { value: "all", label: "All My Stores" },
+                        ...STORES.filter((s) => clusterAllowedLocCodes.includes(s.value)),
+                      ].map((s) => (
+                        <option key={s.value} value={s.value}>
+                          {s.label}
+                        </option>
+                      ))
+                    : STORES.map((s) => (
+                        <option key={s.value} value={s.value}>
+                          {s.label}
+                        </option>
+                      ))}
                 </AppSelect>
               </div>
             )}
-            {fetched && csvData.length > 0 && (
-              <div className="flex flex-col">
-                <label className="text-xs invisible mb-1">.</label>
-                <CSVLink data={csvData} headers={csvHeaders}
+
+            {/* Refresh Icon Button */}
+            <button
+              type="button"
+              data-no-confirm="true"
+              onClick={fetchReport}
+              disabled={loading}
+              title="Refresh"
+              className="h-[40px] w-[40px] rounded-[10px] bg-[#EFEFF1] hover:bg-[#E4E4E7] text-[#1B1B1B] inline-flex items-center justify-center transition-colors disabled:opacity-50 cursor-pointer"
+            >
+              <RefreshCw size={15} className={loading ? "animate-spin text-[#9D43D6]" : ""} />
+            </button>
+
+            {/* Fetch Data Button */}
+            <button
+              type="button"
+              data-no-confirm="true"
+              onClick={fetchReport}
+              disabled={loading}
+              className="rf-btn-primary !h-[40px] !px-6 !rounded-[10px] !bg-[#9D43D6] hover:!bg-[#8732BE] !text-[13px] !font-medium inline-flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer shadow-[0_2px_8px_rgba(157,67,214,0.24)]"
+            >
+              {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+              <span>{loading ? "Fetching..." : "Fetch Data"}</span>
+            </button>
+          </div>
+
+          {/* Summary Strip + Export CSV Row */}
+          {fetched && rows.length > 0 && (
+            <div className="flex flex-wrap items-end justify-between gap-4 pt-1 pb-2 border-b border-[#EAEAEA]">
+              <div className="flex flex-wrap items-center divide-x divide-[#EAEAEA]">
+                <div className="pr-8 md:pr-14">
+                  <div className="text-[11px] font-semibold tracking-[0.06em] text-[#7A7A7A] uppercase mb-1">
+                    GROUPS
+                  </div>
+                  <div className="text-[22px] font-bold text-[#1B1B1B] tabular-nums">
+                    {rows.length.toLocaleString("en-IN")}
+                  </div>
+                </div>
+                <div className="px-8 md:px-14">
+                  <div className="text-[11px] font-semibold tracking-[0.06em] text-[#7A7A7A] uppercase mb-1">
+                    SIZES
+                  </div>
+                  <div className="text-[22px] font-bold text-[#1B1B1B] tabular-nums">
+                    {sizes.length.toLocaleString("en-IN")}
+                  </div>
+                </div>
+                <div className="pl-8 md:pl-14">
+                  <div className="text-[11px] font-semibold tracking-[0.06em] text-[#7A7A7A] uppercase mb-1">
+                    TOTAL UNIT SOLD
+                  </div>
+                  <div className="text-[22px] font-bold text-[#1B1B1B] tabular-nums">
+                    {grandTotal.toLocaleString("en-IN")}
+                  </div>
+                </div>
+              </div>
+
+              {csvData.length > 0 && (
+                <CSVLink
+                  data={csvData}
+                  headers={csvHeaders}
                   filename={`sales-by-group-${fromDate}-to-${toDate}.csv`}
-                  style={{ height: 36 }}
-                  className="border border-blue-600 text-blue-600 px-4 text-sm font-medium hover:bg-blue-50 transition-colors flex items-center gap-1.5">
-                  Export CSV
+                  className="rf-btn-cancel !h-[40px] !px-5 !rounded-[10px] !bg-[#EFEFF1] hover:!bg-[#E4E4E7] !text-[#1B1B1B] !text-[13px] !font-medium !border-0 inline-flex items-center gap-2 transition-colors no-underline cursor-pointer"
+                >
+                  <span>Export CSV</span>
+                  <Download size={15} />
                 </CSVLink>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Summary strip */}
-        {fetched && rows.length > 0 && (
-          <div className="flex gap-4 mb-4">
-            <div className="bg-white border border-slate-200 shadow-sm px-5 py-3 flex flex-col">
-              <span className="text-xs text-slate-500 uppercase tracking-wide">Groups</span>
-              <span className="text-2xl font-bold text-slate-800 mt-0.5">{rows.length}</span>
+              )}
             </div>
-            <div className="bg-white border border-slate-200 shadow-sm px-5 py-3 flex flex-col">
-              <span className="text-xs text-slate-500 uppercase tracking-wide">Sizes</span>
-              <span className="text-2xl font-bold text-slate-800 mt-0.5">{sizes.length}</span>
-            </div>
-            <div className="bg-white border border-slate-200 shadow-sm px-5 py-3 flex flex-col">
-              <span className="text-xs text-slate-500 uppercase tracking-wide">Total Units Sold</span>
-              <span className="text-2xl font-bold text-blue-600 mt-0.5">{grandTotal}</span>
-            </div>
-          </div>
-        )}
+          )}
 
-        {/* Loading skeleton */}
-        {loading && (
-          <div className="bg-white border border-slate-200 shadow-sm p-4">
-            <div className="h-8 bg-slate-100 animate-pulse mb-2 w-full" />
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="flex gap-2 mb-2">
-                <div className="h-6 bg-slate-100 animate-pulse" style={{ width: "20%" }} />
-                {[...Array(6)].map((_, j) => (
-                  <div key={j} className="h-6 bg-slate-100 animate-pulse flex-1" />
-                ))}
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Table */}
-        {fetched && !loading && (
-          <div className="bg-white border border-gray-200 shadow-sm overflow-x-auto">
-            {rows.length === 0 ? (
-              <div className="py-16 text-center text-gray-400 text-sm">
-                No sales data found for the selected period.
-              </div>
-            ) : (
-              <table className="border-collapse w-full text-left" style={{ minWidth: `${180 + sizes.length * 56 + 60}px` }}>
-                <thead>
-                  <tr className="bg-[#1c1c1c] text-white">
-                    <th className="py-3.5 px-4 text-[11px] font-bold uppercase tracking-wider whitespace-nowrap" style={{ minWidth: 200 }}>
-                      Group Name
-                    </th>
-                    {sizes.map(s => (
-                      <th key={s} className="py-3.5 px-3 text-[11px] font-bold uppercase tracking-wider text-center whitespace-nowrap" style={{ minWidth: 52 }}>
-                        {s}
-                      </th>
-                    ))}
-                    <th className="py-3.5 px-4 text-[11px] font-bold uppercase tracking-wider text-center whitespace-nowrap bg-[#0f0f0f]" style={{ minWidth: 60 }}>
-                      Total
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 text-sm">
-                  {rows.map((row, i) => (
-                    <tr key={i} className="hover:bg-gray-50/70 transition-colors text-gray-800">
-                      <td className="px-4 py-3 text-left font-medium whitespace-nowrap">
-                        {row.groupName}
-                      </td>
-                      {sizes.map(s => (
-                        <td key={s} className="px-3 py-3 text-center">
-                          {row.sizes[s] ? (
-                            <span className="font-medium text-gray-900">{row.sizes[s]}</span>
-                          ) : (
-                            <span className="text-gray-300">—</span>
-                          )}
-                        </td>
-                      ))}
-                      <td className="px-4 py-3 text-center font-bold text-gray-900 bg-gray-50/50">
-                        {row.total}
-                      </td>
-                    </tr>
+          {/* Loading Skeleton */}
+          {loading && (
+            <div className="bg-white rounded-[10px] border border-[#EAEAEA] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+              <div className="h-9 bg-[#F4F4F5] rounded-[6px] animate-pulse mb-3 w-full" />
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="flex gap-2.5 mb-2.5">
+                  <div className="h-7 bg-[#F4F4F5] rounded-[6px] animate-pulse" style={{ width: "22%" }} />
+                  {[...Array(6)].map((_, j) => (
+                    <div key={j} className="h-7 bg-[#F4F4F5] rounded-[6px] animate-pulse flex-1" />
                   ))}
-                </tbody>
-                <tfoot>
-                  <tr className="bg-[#e5e7eb] border-t border-gray-300 font-bold text-gray-900">
-                    <td className="px-4 py-3.5 text-left text-xs uppercase tracking-wider">
-                      Total
-                    </td>
-                    {sizes.map(s => (
-                      <td key={s} className="px-3 py-3.5 text-center text-sm">
-                        {grandTotals[s] || <span className="text-gray-400">—</span>}
-                      </td>
-                    ))}
-                    <td className="px-4 py-3.5 text-center text-sm bg-[#d1d5db]">
-                      {grandTotal}
-                    </td>
-                  </tr>
-                </tfoot>
-              </table>
-            )}
-          </div>
-        )}
+                </div>
+              ))}
+            </div>
+          )}
 
-        {!fetched && !loading && (
-          <div className="bg-white border border-slate-200 py-20 text-center">
-            <div className="text-slate-300 text-4xl mb-3">📊</div>
-            <p className="text-slate-500 text-sm font-medium">Select a date range and click Fetch Report</p>
-            <p className="text-slate-400 text-xs mt-1">Sales quantities grouped by item group and size</p>
-          </div>
-        )}
+          {/* Table */}
+          {fetched && !loading && (
+            <div className="bg-white rounded-[10px] border border-[#EAEAEA] overflow-hidden shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+              {rows.length === 0 ? (
+                <div className="py-16 text-center text-[#8A8A8A] text-[13px] font-medium">
+                  No sales data found for the selected period.
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table
+                    className="border-collapse w-full text-left text-[13px]"
+                    style={{ minWidth: `${180 + sizes.length * 56 + 70}px` }}
+                  >
+                    <thead>
+                      <tr className="bg-[#1B1B1B] text-white text-[11px] font-semibold uppercase tracking-[0.04em]">
+                        <th className="py-3.5 px-4 text-left whitespace-nowrap" style={{ minWidth: 200 }}>
+                          GROUP NAME
+                        </th>
+                        {sizes.map((s) => (
+                          <th
+                            key={s}
+                            className="py-3.5 px-3 text-center whitespace-nowrap"
+                            style={{ minWidth: 56 }}
+                          >
+                            {s}
+                          </th>
+                        ))}
+                        <th
+                          className="py-3.5 px-4 text-center whitespace-nowrap"
+                          style={{ minWidth: 72 }}
+                        >
+                          TOTAL
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#F0F0F0] text-[#3F3F46]">
+                      {rows.map((row, i) => (
+                        <tr key={i} className="hover:bg-[#FAF5FF]/60 transition-colors">
+                          <td className="px-4 py-3.5 border-r border-[#F5F5F5] text-left font-medium text-[#212121] whitespace-nowrap">
+                            {row.groupName}
+                          </td>
+                          {sizes.map((s) => (
+                            <td
+                              key={s}
+                              className="px-3 py-3.5 border-r border-[#F5F5F5] text-center tabular-nums"
+                            >
+                              {row.sizes[s] ? (
+                                <span className="font-medium text-[#212121]">{row.sizes[s]}</span>
+                              ) : (
+                                <span className="text-[#D4D4D8]">—</span>
+                              )}
+                            </td>
+                          ))}
+                          <td className="px-4 py-3.5 text-center font-semibold text-[#1B1B1B] tabular-nums">
+                            {row.total}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot>
+                      <tr className="bg-[#EAECEF] border-t border-[#E2E4E8] font-semibold text-[#1B1B1B] text-[13px]">
+                        <td className="px-4 py-3.5 border-r border-[#D8DADF] text-left">
+                          Total
+                        </td>
+                        {sizes.map((s) => (
+                          <td
+                            key={s}
+                            className="px-3 py-3.5 border-r border-[#D8DADF] text-center tabular-nums"
+                          >
+                            {grandTotals[s] || <span className="text-[#9A9A9A]">—</span>}
+                          </td>
+                        ))}
+                        <td className="px-4 py-3.5 text-center font-bold tabular-nums">
+                          {grandTotal}
+                        </td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+
+          {!fetched && !loading && (
+            <div className="bg-white rounded-[12px] border border-[#EAEAEA] py-20 text-center">
+              <p className="text-[#525252] text-[13px] font-medium">
+                Select a date range and click Fetch Data
+              </p>
+              <p className="text-[#8A8A8A] text-[12px] mt-1">
+                Sales quantities grouped by item group and size
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </>
   );

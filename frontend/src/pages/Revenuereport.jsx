@@ -268,7 +268,7 @@ const Revenuereport = () => {
         }
       `}</style>
 
-      <div className="min-h-screen bg-[#f8f9fa]">
+      <div className="invoice-page-wrapper min-h-screen bg-[#FAFAFA] text-[#1B1B1B]">
         <div className="no-print">
           <Headers title={"Revenue Report"} />
         </div>
@@ -278,17 +278,21 @@ const Revenuereport = () => {
             isSidebarOpen ? "ml-[240px]" : "ml-0"
           }`}
         >
-          <div className="p-6 md:p-8">
+          {/* Clean Page Title Header */}
+          <div className="no-print bg-white px-6 md:px-8 py-4 border-b border-[#E5E5E5] flex items-center justify-between">
+            <h1 className="text-[18px] font-semibold text-[#1B1B1B]">
+              Revenue Report
+            </h1>
+          </div>
+
+          <div className="px-6 md:px-8 pt-6 pb-8">
             {/* Top Controls Bar */}
-            <div className="no-print flex flex-wrap items-end justify-between gap-4 mb-6 bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+            <div className="no-print flex flex-wrap items-end justify-between gap-4 mb-5">
               {/* Left filter inputs */}
-              <div className="flex flex-wrap items-end gap-4">
+              <div className="flex flex-wrap items-end gap-3">
                 {/* From Date */}
-                <div className="flex flex-col gap-1.5">
-                  <label
-                    htmlFor="fromDate"
-                    className="text-xs font-semibold text-gray-600 tracking-wide"
-                  >
+                <div className="rf-form-field !mb-0">
+                  <label htmlFor="fromDate" className="rf-field-label">
                     From Date
                   </label>
                   <input
@@ -296,16 +300,13 @@ const Revenuereport = () => {
                     id="fromDate"
                     value={fromDate}
                     onChange={(e) => setFromDate(e.target.value)}
-                    className="w-44 px-3.5 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 shadow-sm transition-all"
+                    className="rf-input !w-[172px] !h-[40px] !rounded-[10px]"
                   />
                 </div>
 
                 {/* To Date */}
-                <div className="flex flex-col gap-1.5">
-                  <label
-                    htmlFor="toDate"
-                    className="text-xs font-semibold text-gray-600 tracking-wide"
-                  >
+                <div className="rf-form-field !mb-0">
+                  <label htmlFor="toDate" className="rf-field-label">
                     To Date
                   </label>
                   <input
@@ -313,16 +314,17 @@ const Revenuereport = () => {
                     id="toDate"
                     value={toDate}
                     onChange={(e) => setToDate(e.target.value)}
-                    className="w-44 px-3.5 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 shadow-sm transition-all"
+                    className="rf-input !w-[172px] !h-[40px] !rounded-[10px]"
                   />
                 </div>
 
                 {/* Fetch Data Button */}
                 <button
                   type="button"
+                  data-no-confirm="true"
                   onClick={handleFetch}
                   disabled={loading}
-                  className="px-6 py-2 text-sm font-medium text-white bg-[#9333ea] hover:bg-[#7e22ce] active:bg-[#6b21a8] rounded-lg shadow-sm hover:shadow transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
+                  className="rf-btn-primary !h-[40px] !px-6 !rounded-[10px] !bg-[#9D43D6] hover:!bg-[#8732BE] !text-[13px] !font-medium inline-flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer shadow-[0_2px_8px_rgba(157,67,214,0.24)]"
                 >
                   {loading && <Loader2 className="w-4 h-4 animate-spin" />}
                   <span>{loading ? "Fetching..." : "Fetch Data"}</span>
@@ -330,7 +332,7 @@ const Revenuereport = () => {
               </div>
 
               {/* Right action buttons: Export CSV & Print PDF */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2.5">
                 {/* Export CSV Button */}
                 {revenueData.length > 0 ? (
                   <CSVLink
@@ -339,31 +341,32 @@ const Revenuereport = () => {
                     filename={`Revenue_Report_${fromDate || "all"}_to_${
                       toDate || "all"
                     }.csv`}
-                    className="px-4 py-2 text-sm font-medium text-gray-800 bg-[#e5e7eb] hover:bg-[#d1d5db] active:bg-[#9ca3af] rounded-lg border border-gray-300 flex items-center gap-2 shadow-sm transition-all cursor-pointer"
+                    className="rf-btn-cancel !h-[40px] !px-5 !rounded-[10px] !bg-[#EFEFF1] hover:!bg-[#E4E4E7] !text-[#1B1B1B] !text-[13px] !font-medium !border-0 inline-flex items-center gap-2 transition-colors cursor-pointer"
                   >
                     <span>Export CSV</span>
-                    <FiDownload className="w-4 h-4 text-gray-700" />
+                    <FiDownload className="w-4 h-4 text-[#1B1B1B]" />
                   </CSVLink>
                 ) : (
                   <button
                     type="button"
                     disabled
-                    className="px-4 py-2 text-sm font-medium text-gray-400 bg-[#f3f4f6] rounded-lg border border-gray-200 flex items-center gap-2 cursor-not-allowed opacity-60"
+                    className="rf-btn-cancel !h-[40px] !px-5 !rounded-[10px] !bg-[#EFEFF1] !text-[#8A8A8A] !text-[13px] !font-medium !border-0 inline-flex items-center gap-2 cursor-not-allowed opacity-70"
                   >
                     <span>Export CSV</span>
-                    <FiDownload className="w-4 h-4 text-gray-400" />
+                    <FiDownload className="w-4 h-4 text-[#8A8A8A]" />
                   </button>
                 )}
 
                 {/* Print PDF Button */}
                 <button
                   type="button"
+                  data-no-confirm="true"
                   onClick={handlePrint}
                   disabled={revenueData.length === 0}
-                  className="px-4 py-2 text-sm font-medium text-gray-800 bg-[#e5e7eb] hover:bg-[#d1d5db] active:bg-[#9ca3af] rounded-lg border border-gray-300 flex items-center gap-2 shadow-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+                  className="rf-btn-cancel !h-[40px] !px-5 !rounded-[10px] !bg-[#EFEFF1] hover:!bg-[#E4E4E7] !text-[#1B1B1B] !text-[13px] !font-medium !border-0 inline-flex items-center gap-2 transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
                 >
                   <span>Print PDF</span>
-                  <FiPrinter className="w-4 h-4 text-gray-700" />
+                  <FiPrinter className="w-4 h-4 text-[#1B1B1B]" />
                 </button>
               </div>
             </div>
@@ -383,45 +386,45 @@ const Revenuereport = () => {
             <div
               id="printable-revenue-area"
               ref={printRef}
-              className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
+              className="bg-white rounded-[10px] border border-[#EAEAEA] overflow-hidden shadow-[0_1px_2px_rgba(0,0,0,0.02)]"
             >
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
-                  {/* Black Header */}
+                  {/* Dark Header */}
                   <thead>
-                    <tr className="bg-[#18181b] text-white text-xs font-bold uppercase tracking-wider select-none">
-                      <th className="py-3.5 px-4 text-left border-r border-zinc-700/60 whitespace-nowrap">
+                    <tr className="bg-[#1B1B1B] text-white text-[11px] font-semibold uppercase tracking-[0.04em] select-none">
+                      <th className="py-3.5 px-4 text-left whitespace-nowrap">
                         DATE
                       </th>
-                      <th className="py-3.5 px-4 text-left border-r border-zinc-700/60 whitespace-nowrap">
+                      <th className="py-3.5 px-4 text-left whitespace-nowrap">
                         INVOICE NO.
                       </th>
-                      <th className="py-3.5 px-4 text-left border-r border-zinc-700/60 whitespace-nowrap">
+                      <th className="py-3.5 px-4 text-left whitespace-nowrap">
                         CUSTOMER NAME
                       </th>
-                      <th className="py-3.5 px-4 text-left border-r border-zinc-700/60 whitespace-nowrap">
+                      <th className="py-3.5 px-4 text-left whitespace-nowrap">
                         CATEGORY
                       </th>
-                      <th className="py-3.5 px-4 text-left border-r border-zinc-700/60 whitespace-nowrap">
+                      <th className="py-3.5 px-4 text-left whitespace-nowrap">
                         SUBCATEGORY
                       </th>
-                      <th className="py-3.5 px-4 text-right whitespace-nowrap">
+                      <th className="py-3.5 px-4 text-center whitespace-nowrap w-[190px]">
                         DIFFERENCE
                       </th>
                     </tr>
                   </thead>
 
                   {/* Table Body */}
-                  <tbody className="divide-y divide-gray-200 text-sm text-gray-700 bg-white">
+                  <tbody className="divide-y divide-[#F0F0F0] text-[13px] text-[#3F3F46] bg-white">
                     {loading ? (
                       <tr>
                         <td
                           colSpan={6}
-                          className="py-16 text-center text-gray-500"
+                          className="py-16 text-center text-[#6A6A6A]"
                         >
                           <div className="flex flex-col items-center justify-center gap-3">
-                            <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
-                            <span className="text-sm font-medium">
+                            <Loader2 className="w-7 h-7 animate-spin text-[#9D43D6]" />
+                            <span className="text-[13px] font-medium">
                               Fetching revenue records...
                             </span>
                           </div>
@@ -431,42 +434,42 @@ const Revenuereport = () => {
                       revenueData.map((row, idx) => (
                         <tr
                           key={idx}
-                          className="hover:bg-gray-50/80 transition-colors"
+                          className="hover:bg-[#FAF5FF]/60 transition-colors"
                         >
                           {/* Date & Time */}
-                          <td className="py-3 px-4 border-r border-gray-200 whitespace-nowrap">
-                            <div className="font-normal text-gray-800">
+                          <td className="py-3.5 px-4 border-r border-[#F5F5F5] whitespace-nowrap">
+                            <div className="font-medium text-[#212121]">
                               {row.date}
                             </div>
                             {row.time && (
-                              <div className="text-xs text-gray-400 font-normal">
+                              <div className="text-[11px] text-[#9A9A9A] mt-0.5">
                                 {row.time}
                               </div>
                             )}
                           </td>
 
                           {/* Invoice No */}
-                          <td className="py-3 px-4 border-r border-gray-200 whitespace-nowrap font-normal text-gray-700">
+                          <td className="py-3.5 px-4 border-r border-[#F5F5F5] whitespace-nowrap text-[#3F3F46] tabular-nums">
                             {row.invoiceNo}
                           </td>
 
                           {/* Customer Name */}
-                          <td className="py-3 px-4 border-r border-gray-200 whitespace-nowrap font-normal text-gray-800">
+                          <td className="py-3.5 px-4 border-r border-[#F5F5F5] whitespace-nowrap text-[#3F3F46]">
                             {row.customerName}
                           </td>
 
                           {/* Category */}
-                          <td className="py-3 px-4 border-r border-gray-200 whitespace-nowrap font-normal text-gray-700">
+                          <td className="py-3.5 px-4 border-r border-[#F5F5F5] whitespace-nowrap text-[#3F3F46]">
                             {row.category}
                           </td>
 
                           {/* Sub Category */}
-                          <td className="py-3 px-4 border-r border-gray-200 whitespace-nowrap font-normal text-gray-700">
+                          <td className="py-3.5 px-4 border-r border-[#F5F5F5] whitespace-nowrap text-[#3F3F46]">
                             {row.subCategory}
                           </td>
 
                           {/* Difference */}
-                          <td className="py-3 px-4 text-right whitespace-nowrap font-normal text-gray-800">
+                          <td className="py-3.5 px-4 text-center whitespace-nowrap font-medium text-[#212121] tabular-nums">
                             {formatNumber(row.difference)}
                           </td>
                         </tr>
@@ -475,7 +478,7 @@ const Revenuereport = () => {
                       <tr>
                         <td
                           colSpan={6}
-                          className="py-14 text-center text-gray-500 font-medium text-sm"
+                          className="py-14 text-center text-[#8A8A8A] font-medium text-[13px]"
                         >
                           {!hasFetched
                             ? "Select Date range and click Fetch Data"
@@ -488,14 +491,14 @@ const Revenuereport = () => {
                   {/* Summary Totals Footer */}
                   {revenueData.length > 0 && (
                     <tfoot>
-                      <tr className="bg-[#e5e7eb] font-bold text-gray-900 text-sm border-t-2 border-gray-300">
+                      <tr className="bg-[#EAECEF] font-semibold text-[#1B1B1B] text-[13px] border-t border-[#E2E4E8]">
                         <td
                           colSpan={5}
-                          className="py-3.5 px-4 text-left font-bold border-r border-gray-300 tracking-wide"
+                          className="py-3.5 px-4 text-left font-semibold border-r border-[#D8DADF]"
                         >
                           Total
                         </td>
-                        <td className="py-3.5 px-4 text-right font-bold whitespace-nowrap">
+                        <td className="py-3.5 px-4 text-center font-bold whitespace-nowrap tabular-nums">
                           {formatNumber(totalDifference)}
                         </td>
                       </tr>

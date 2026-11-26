@@ -8,6 +8,7 @@ import useSidebar from "../hooks/useSidebar";
 import Select from "react-select";
 
 import { appSelectStyles } from "../components/AppSelect.jsx";
+import RootfinConfirmModal from "../components/RootfinModal";
 const InventoryAdjustments = () => {
   const isSidebarOpen = useSidebar();
   const navigate = useNavigate();
@@ -674,97 +675,46 @@ const InventoryAdjustments = () => {
         </div>
 
         {/* 2-Step Delete Confirmation Modal */}
-        {showDeleteModal && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-[1px] flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-[16px] shadow-2xl max-w-md w-full border border-[#E5E5E5] overflow-hidden">
-              <div className="p-6">
-                {deleteStep === 1 ? (
-                  <>
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="flex-shrink-0 w-10 h-10 rounded-[10px] bg-[#FEE2E2] flex items-center justify-center">
-                        <AlertTriangle className="text-[#DC2626]" size={20} />
-                      </div>
-                      <h3 className="text-[16px] font-semibold text-[#1B1B1B]">
-                        Delete {itemsToDelete.length === 1 ? 'Adjustment' : `${itemsToDelete.length} Adjustments`}?
-                      </h3>
-                    </div>
-                    <p className="text-[13px] text-[#525252] mb-6 leading-relaxed">
-                      Are you sure you want to delete {itemsToDelete.length === 1 ? 'this adjustment' : `these ${itemsToDelete.length} adjustments`}? 
-                      {itemsToDelete.some(item => item.status === 'adjusted') && (
-                        <span className="block mt-2 text-[#DC2626] font-semibold">
-                          Some adjustments are already applied. Stock will be reversed before deletion.
-                        </span>
-                      )}
-                    </p>
-                    <div className="flex gap-2.5 justify-end">
-                      <button
-                        onClick={handleCancelDelete}
-                        className="rf-btn-cancel !h-[38px] !px-4 !text-[13px]"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={handleConfirmDeleteStep1}
-                        className="inline-flex items-center justify-center h-[38px] px-4 text-[13px] font-semibold text-white bg-[#DC2626] rounded-[10px] hover:bg-[#B91C1C] transition-colors cursor-pointer"
-                      >
-                        Continue
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="flex-shrink-0 w-10 h-10 rounded-[10px] bg-[#FEE2E2] flex items-center justify-center">
-                        <AlertTriangle className="text-[#DC2626]" size={20} />
-                      </div>
-                      <h3 className="text-[16px] font-semibold text-[#1B1B1B]">
-                        Final Confirmation
-                      </h3>
-                    </div>
-                    <p className="text-[13px] text-[#525252] mb-4 leading-relaxed">
-                      This action cannot be undone. Are you absolutely sure you want to delete {itemsToDelete.length === 1 ? 'this adjustment' : `these ${itemsToDelete.length} adjustments`}?
-                    </p>
-                    {itemsToDelete.length > 0 && (
-                      <div className="mb-5 p-3 bg-[#FAFAFA] rounded-[10px] max-h-40 overflow-y-auto border border-[#E5E5E5]">
-                        <p className="text-[11px] font-semibold uppercase tracking-wider text-[#7A7A7A] mb-2">Items to be deleted:</p>
-                        <ul className="text-[12px] text-[#212121] space-y-1">
-                          {itemsToDelete.map((item, idx) => (
-                            <li key={item.id || item._id || idx} className="font-medium">
-                              • {item.referenceNumber || `Ref-${String(item.id || item._id).slice(-8)}`} - {item.reason || 'No reason'}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    <div className="flex gap-2.5 justify-end">
-                      <button
-                        onClick={() => setDeleteStep(1)}
-                        className="rf-btn-cancel !h-[38px] !px-4 !text-[13px]"
-                        disabled={deleting}
-                      >
-                        Back
-                      </button>
-                      <button
-                        onClick={handleConfirmDeleteStep2}
-                        disabled={deleting}
-                        className="inline-flex items-center justify-center gap-2 h-[38px] px-4 text-[13px] font-semibold text-white bg-[#DC2626] rounded-[10px] hover:bg-[#B91C1C] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                      >
-                        {deleting ? (
-                          <>
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                            Deleting...
-                          </>
-                        ) : (
-                          'Confirm Delete'
-                        )}
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
+        <RootfinConfirmModal
+          open={showDeleteModal}
+          onClose={deleteStep === 1 ? handleCancelDelete : () => setDeleteStep(1)}
+          onConfirm={deleteStep === 1 ? handleConfirmDeleteStep1 : handleConfirmDeleteStep2}
+          title={
+            deleteStep === 1
+              ? `Delete ${itemsToDelete.length === 1 ? "this adjustment" : `${itemsToDelete.length} adjustments`}?`
+              : "Final Confirmation"
+          }
+          description={
+            deleteStep === 1
+              ? `Are you sure you want to delete ${itemsToDelete.length === 1 ? "this adjustment" : `these ${itemsToDelete.length} adjustments`}? This action cannot be undone.`
+              : `This action cannot be undone. Are you absolutely sure you want to delete ${itemsToDelete.length === 1 ? "this adjustment" : `these ${itemsToDelete.length} adjustments`}?`
+          }
+          cancelLabel={deleteStep === 1 ? "Cancel" : "Back"}
+          confirmLabel={deleteStep === 1 ? "Continue" : deleting ? "Deleting..." : "Delete"}
+          confirmIcon={!deleting ? <Trash2 size={15} /> : null}
+          variant="danger"
+          loading={deleting}
+        >
+          {deleteStep === 1 && itemsToDelete.some((item) => item.status === "adjusted") && (
+            <div className="p-3 rounded-[12px] bg-[#FEF2F2] border border-[#FECACA] text-[#DC2626] text-[12px] font-medium text-center">
+              Some adjustments are already applied. Stock will be reversed before deletion.
             </div>
-          </div>
-        )}
+          )}
+          {deleteStep === 2 && itemsToDelete.length > 0 && (
+            <div className="p-3 bg-[#FAFAFA] rounded-[12px] max-h-40 overflow-y-auto border border-[#E5E5E5]">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-[#7A7A7A] mb-1.5">
+                Items to be deleted
+              </p>
+              <ul className="text-[12px] text-[#212121] space-y-1">
+                {itemsToDelete.map((item, idx) => (
+                  <li key={item.id || item._id || idx} className="font-medium">
+                    • {item.referenceNumber || `Ref-${String(item.id || item._id).slice(-8)}`} - {item.reason || "No reason"}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </RootfinConfirmModal>
       </div>
     </div>
   );

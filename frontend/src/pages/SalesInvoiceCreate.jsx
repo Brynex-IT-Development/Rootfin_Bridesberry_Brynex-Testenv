@@ -2512,7 +2512,13 @@ Customer Service Available`;
 
   // Handle deleting sales person
   const handleDeleteSalesPerson = async (salesPersonId, salesPersonName) => {
-    if (!confirm(`Are you sure you want to delete sales person "${salesPersonName}"?`)) {
+    const confirmed = await window.rfConfirm({
+      title: "Delete Sales Person?",
+      description: `Are you sure you want to delete sales person "${salesPersonName}"?`,
+      confirmLabel: "Delete",
+      variant: "danger",
+    });
+    if (!confirmed) {
       return;
     }
 

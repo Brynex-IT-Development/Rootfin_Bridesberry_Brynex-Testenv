@@ -731,9 +731,12 @@ const DayBookInc = ({ admin = false }) => {
             return;
         }
         if (savedData.totalAmount === 0) {
-            const confirmed = window.confirm(
-                'Physical cash count is 0. Are you sure you want to close the day with zero cash? Click OK to proceed or Cancel to go back and enter the denomination count.'
-            );
+            const confirmed = await window.rfConfirm({
+                title: "Close Day Book with Zero Cash?",
+                description: "Physical cash count is 0. Are you sure you want to close the day with zero cash?",
+                confirmLabel: "Close Day Book",
+                variant: "primary",
+            });
             if (!confirmed) return;
         }
         setLoading(true);

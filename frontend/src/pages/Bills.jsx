@@ -13,6 +13,7 @@ import Header from "../components/Header";
 import { getActiveStores } from "../utils/storeService.js";
 
 import AppSelect from "../components/AppSelect.jsx";
+import RootfinConfirmModal from "../components/RootfinModal";
 const Label = ({ children, required = false }) => (
   <span className={`text-xs font-semibold uppercase tracking-[0.18em] ${required ? "text-[#ef4444]" : "text-[#64748b]"}`}>
     {children}
@@ -6168,7 +6169,13 @@ const Bills = () => {
       return;
     }
 
-    if (!confirm(`Create Purchase Receive entries for ${selected.length} selected bill(s)? This will increase stock.`)) {
+    const ok = await window.rfConfirm({
+      title: "Mark as Received?",
+      description: `Create Purchase Receive entries for ${selected.length} selected bill(s)? This will increase stock.`,
+      confirmLabel: "Mark as Received",
+      variant: "primary",
+    });
+    if (!ok) {
       return;
     }
 
@@ -6283,7 +6290,13 @@ const Bills = () => {
       return;
     }
 
-    if (!confirm(`Undo receive for ${selected.length} selected bill(s)? This will decrease stock.`)) {
+    const ok = await window.rfConfirm({
+      title: "Undo Receive?",
+      description: `Undo receive for ${selected.length} selected bill(s)? This will decrease stock.`,
+      confirmLabel: "Undo Receive",
+      variant: "danger",
+    });
+    if (!ok) {
       return;
     }
 
@@ -6345,10 +6358,6 @@ const Bills = () => {
   const handleDeleteBills = async () => {
     const selected = getSelectedBillsData();
     if (selected.length === 0) {
-      return;
-    }
-
-    if (!confirm(`Are you sure you want to delete ${selected.length} bill(s)? This action cannot be undone and will affect payments, stock, and purchase orders.`)) {
       return;
     }
 
@@ -6870,47 +6879,30 @@ const Bills = () => {
       )}
 
       {/* Delete Confirmation Modal */}
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-none shadow-xl max-w-md w-full mx-4">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-[#1e293b]">Delete Bills</h2>
-                <button
-                  onClick={() => setShowDeleteConfirm(false)}
-                  className="text-[#64748b] hover:text-[#1e293b]"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-              <p className="text-sm text-[#64748b] mb-4">
-                Are you sure you want to delete {selectedBills.size} selected bill(s)? This action cannot be undone and will:
-              </p>
-              <ul className="text-sm text-[#64748b] mb-4 list-disc list-inside space-y-1">
-                <li>Reverse any payments made</li>
-                <li>Reverse accounting journal entries</li>
-                <li>Reduce billed amounts in Purchase Orders</li>
-                <li>Delete linked Purchase Receives (if created from bill)</li>
-                <li>Reverse stock increases (if applicable)</li>
-              </ul>
-              <div className="flex justify-end gap-3 mt-6">
-                <button
-                  onClick={() => setShowDeleteConfirm(false)}
-                  className="px-4 py-2 text-sm font-medium text-[#64748b] bg-[#f1f5f9] rounded-none hover:bg-[#e2e8f0]"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleDeleteBills}
-                  className="px-4 py-2 text-sm font-medium text-white bg-[#ef4444] rounded-none hover:bg-[#dc2626]"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
+      <RootfinConfirmModal
+        open={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={handleDeleteBills}
+        title={`Delete ${selectedBills.size === 1 ? "this bill" : `${selectedBills.size} bills`}?`}
+        description={`Are you sure you want to delete ${selectedBills.size} selected bill(s)? This action cannot be undone.`}
+        cancelLabel="Cancel"
+        confirmLabel="Delete"
+        confirmIcon={<Trash2 size={15} />}
+        variant="danger"
+      >
+        <div className="p-3 bg-[#FAFAFA] border border-[#E5E5E5] rounded-[12px]">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-[#7A7A7A] mb-1.5">
+            Deleting will also
+          </p>
+          <ul className="text-[12px] text-[#525252] list-disc list-inside space-y-1">
+            <li>Reverse any payments made</li>
+            <li>Reverse accounting journal entries</li>
+            <li>Reduce billed amounts in Purchase Orders</li>
+            <li>Delete linked Purchase Receives (if created from bill)</li>
+            <li>Reverse stock increases (if applicable)</li>
+          </ul>
         </div>
-      )}
+      </RootfinConfirmModal>
       </div>
     </div>
   );

@@ -1,33 +1,22 @@
 import { useState, useEffect } from "react";
 import { Trash2, BellRing, Mail, MapPin, Search, Check } from "lucide-react";
 import Header from "../components/Header";
+import RootfinConfirmModal from "../components/RootfinModal";
 import baseUrl from "../api/api";
 import useSidebar from "../hooks/useSidebar";
 
-// ── Confirmation Modal ──────────────────────────────────────────────────────
 const ConfirmModal = ({ open, onClose, onConfirm, title, description, confirmLabel, confirmStyle }) => {
-  if (!open) return null;
+  const isDanger = confirmStyle?.background === "#FEE2E2";
   return (
-    <div style={{ position:"fixed", inset:0, zIndex:9999, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(0,0,0,0.35)" }}>
-      <div style={{ background:"white", borderRadius:16, padding:"36px 40px", width:420, maxWidth:"90vw", boxShadow:"0 20px 60px rgba(0,0,0,0.18)", textAlign:"center" }}>
-        <h2 style={{ fontSize:18, fontWeight:700, color:"#111827", marginBottom:10 }}>{title}</h2>
-        <p style={{ fontSize:13, color:"#6b7280", marginBottom:28, lineHeight:1.6 }}>{description}</p>
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:12 }}>
-          <button
-            onClick={onClose}
-            style={{ height:38, padding:"0 20px", fontSize:13, fontWeight:500, color:"#374151", background:"white", border:"1px solid #d1d5db", borderRadius:8, cursor:"pointer" }}
-          >
-            Cancel
-          </button>
-          <button
-            onClick={onConfirm}
-            style={{ height:38, padding:"0 20px", fontSize:13, fontWeight:600, borderRadius:8, cursor:"pointer", display:"flex", alignItems:"center", gap:7, border:"none", ...confirmStyle }}
-          >
-            {confirmLabel}
-          </button>
-        </div>
-      </div>
-    </div>
+    <RootfinConfirmModal
+      open={open}
+      onClose={onClose}
+      onConfirm={onConfirm}
+      title={title}
+      description={description}
+      confirmLabel={confirmLabel}
+      variant={isDanger ? "danger" : "primary"}
+    />
   );
 };
 

@@ -1779,14 +1779,14 @@
   
 //   if (loading) {
 //     return (
-//       <div className={`transition-all duration-300 p-6 bg-[#f8f9fa] min-h-screen flex items-center justify-center ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+//       <div className={`transition-all duration-300 p-6 bg-[#f8f9fa] min-h-screen flex items-center justify-center ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
 //         <div className="text-[#64748b] text-sm">Loading transfer order...</div>
 //       </div>
 //     );
 //   }
 
 //   return (
-//     <div className={`transition-all duration-300 min-h-screen bg-[#f8f9fa] ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+//     <div className={`transition-all duration-300 min-h-screen bg-[#f8f9fa] ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
 
 //       <div className="px-8 py-6">
 

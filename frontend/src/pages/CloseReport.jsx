@@ -33,6 +33,31 @@ const CloseReport = () => {
     return `${year}-${month}-${day}`;
   };
 
+  const toISTDateString = (d) => {
+    if (!d) return "";
+    const dt = new Date(d);
+    if (Number.isNaN(dt.getTime())) return "";
+    return new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Kolkata",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(dt);
+  };
+
+  const isLateClosedTxn = (txn) => {
+    if (!txn) return false;
+    if (txn.status === "pending_approval") return true;
+    if (txn.date && txn.createdAt) {
+      const closeBizDate = new Date(txn.date).toISOString().slice(0, 10);
+      const createdBizDate = toISTDateString(txn.createdAt);
+      if (createdBizDate && closeBizDate && createdBizDate > closeBizDate) {
+        return true;
+      }
+    }
+    return false;
+  };
+
   const handleFetch = async () => {
     if (!fromDate) return alert("Please select a date first.");
 
@@ -78,6 +103,7 @@ const CloseReport = () => {
           const bankAmount = parseInt(transaction.bank || 0);
           const upiAmount = parseInt(transaction.upi || 0);
           const bankPlusUpi = bankAmount + upiAmount;
+          const isLateClosed = isLateClosedTxn(transaction);
 
           return { 
             ...transaction,
@@ -86,7 +112,8 @@ const CloseReport = () => {
             difference,
             match,
             storeName,
-            bankPlusUpi
+            bankPlusUpi,
+            isLateClosed
           };
         });
         
@@ -107,8 +134,9 @@ const CloseReport = () => {
     const transactions = data?.data || [];
     const matchCount = transactions.filter(t => t.match === 'Match').length;
     const mismatchCount = transactions.filter(t => t.match === 'Mismatch').length;
+    const lateClosedCount = transactions.filter(t => t.isLateClosed).length;
     const notClosedCount = allLocations.filter(loc => !transactions.some(t => t.storeName === loc.locName)).length;
-    return { matchCount, mismatchCount, notClosedCount };
+    return { matchCount, mismatchCount, lateClosedCount, notClosedCount };
   }, [data?.data, allLocations]);
 
   const combinedData = useMemo(() => {
@@ -126,17 +154,20 @@ const CloseReport = () => {
       cash: '',
       Closecash: '',
       difference: '',
+      isLateClosed: false,
       displayStatus: 'Not Closed'
     }));
 
     combined = [...combined, ...notClosed];
 
-    if (filter !== "All") {
+    if (filter === "Late Closed") {
+       combined = combined.filter(item => item.isLateClosed);
+    } else if (filter !== "All") {
        combined = combined.filter(item => item.displayStatus === filter);
     }
 
     return combined;
-  }, [data?.data, filter]);
+  }, [data?.data, filter, allLocations]);
 
   const handleExportCSV = () => {
     if (!combinedData || combinedData.length === 0) return;
@@ -151,7 +182,7 @@ const CloseReport = () => {
         row.cash || 0,
         row.Closecash || 0,
         row.difference || 0,
-        row.displayStatus
+        row.isLateClosed ? `${row.displayStatus} (Late Closed)` : row.displayStatus
       ].join(','));
     });
     const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
@@ -174,11 +205,11 @@ const CloseReport = () => {
 
       <div className={`transition-all duration-300 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
         {/* Clean Page Title Header */}
-        <div className="bg-white px-8 py-4 border-b border-[#E5E5E5] flex items-center justify-between">
+        <div className="bg-white px-6 md:px-8 py-4 border-b border-[#E5E5E5] flex items-center justify-between">
           <h1 className="text-[18px] font-semibold text-[#212121]">Close Report</h1>
         </div>
 
-        <div className="px-8 pt-6 pb-8 max-w-[1440px]">
+        <div className="px-6 md:px-8 pt-6 pb-8">
           {/* Top Controls Area */}
           <div className="flex flex-wrap justify-between items-end gap-4 mb-5">
             <div className="flex flex-wrap items-end gap-3">
@@ -246,6 +277,22 @@ const CloseReport = () => {
               </button>
               <button
                 type="button"
+                onClick={() => setFilter("Late Closed")}
+                className={`inline-flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-full text-[12px] font-medium whitespace-nowrap transition-colors cursor-pointer ${
+                  filter === 'Late Closed'
+                    ? 'bg-[#1B1B1B] text-white shadow-xs'
+                    : 'text-[#212121] hover:bg-[#E5E7EB]'
+                }`}
+              >
+                <span>Late Closed</span>
+                {counts.lateClosedCount > 0 && (
+                  <span className="bg-[#F59E0B] text-white text-[10px] rounded-full min-w-[18px] h-[18px] px-1 inline-flex items-center justify-center font-bold">
+                    {counts.lateClosedCount}
+                  </span>
+                )}
+              </button>
+              <button
+                type="button"
                 onClick={() => setFilter("Match")}
                 className={`inline-flex px-4 py-1.5 rounded-full text-[12px] font-medium whitespace-nowrap transition-colors items-center justify-center cursor-pointer ${
                   filter === 'Match'
@@ -307,6 +354,8 @@ const CloseReport = () => {
                         className={`transition-colors ${
                           row.displayStatus === 'Not Closed'
                             ? 'bg-[#FFE8E8] hover:bg-[#FFE0E0]'
+                            : row.isLateClosed
+                            ? 'bg-[#FFFBEB] hover:bg-[#FEF3C7]/70'
                             : 'bg-white hover:bg-[#FBF5FC]'
                         }`}
                       >
@@ -332,21 +381,28 @@ const CloseReport = () => {
                           {formatNumber(row.difference)}
                         </td>
                         <td className="px-4 py-3.5 text-center">
-                          {row.displayStatus === 'Match' && (
-                            <span className="bg-[#DCFCE7] text-[#16A34A] px-3.5 py-1 rounded-md text-[11px] font-semibold inline-block min-w-[84px]">
-                              Match
-                            </span>
-                          )}
-                          {row.displayStatus === 'Mismatch' && (
-                            <span className="bg-[#FEE2E2] text-[#EF4444] px-3.5 py-1 rounded-md text-[11px] font-semibold inline-block min-w-[84px]">
-                              Mismatch
-                            </span>
-                          )}
-                          {row.displayStatus === 'Not Closed' && (
-                            <span className="bg-[#EF4444] text-white px-3.5 py-1 rounded-md text-[11px] font-semibold inline-block min-w-[84px]">
-                              Not Closed
-                            </span>
-                          )}
+                          <div className="inline-flex flex-col items-center gap-1">
+                            {row.displayStatus === 'Match' && (
+                              <span className="bg-[#DCFCE7] text-[#16A34A] px-3.5 py-1 rounded-md text-[11px] font-semibold inline-block min-w-[84px]">
+                                Match
+                              </span>
+                            )}
+                            {row.displayStatus === 'Mismatch' && (
+                              <span className="bg-[#FEE2E2] text-[#EF4444] px-3.5 py-1 rounded-md text-[11px] font-semibold inline-block min-w-[84px]">
+                                Mismatch
+                              </span>
+                            )}
+                            {row.displayStatus === 'Not Closed' && (
+                              <span className="bg-[#EF4444] text-white px-3.5 py-1 rounded-md text-[11px] font-semibold inline-block min-w-[84px]">
+                                Not Closed
+                              </span>
+                            )}
+                            {row.isLateClosed && (
+                              <span className="bg-[#FEF3C7] text-[#D97706] px-2.5 py-0.5 rounded-md text-[10px] font-semibold inline-block min-w-[84px]">
+                                Late Closed
+                              </span>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))

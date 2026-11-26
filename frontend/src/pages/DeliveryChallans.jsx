@@ -4,7 +4,7 @@ import useSidebar from "../hooks/useSidebar";
 const DeliveryChallans = () => {
   const isSidebarOpen = useSidebar();
   return (
-    <div className={`transition-all duration-300 p-6 bg-[#f5f7fb] min-h-screen ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+    <div className={`transition-all duration-300 p-6 bg-[#f5f7fb] min-h-screen ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
       <Head
         title="Delivery Challans"
         description="Track dispatch documentation and proof of delivery."

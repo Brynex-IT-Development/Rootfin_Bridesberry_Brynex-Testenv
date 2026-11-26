@@ -221,7 +221,7 @@ const PurchaseVendorDetail = () => {
     return (
       <>
         <Header title="Vendor Details" />
-        <div className={`transition-all duration-300 min-h-screen bg-[#f8fafc] p-6 md:p-8 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+        <div className={`transition-all duration-300 min-h-screen bg-[#f8fafc] p-6 md:p-8 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
           <div className="flex flex-col items-center justify-center py-24">
             <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#8B5CF6] border-t-transparent"></div>
             <p className="mt-4 text-sm font-medium text-gray-500">Loading vendor details...</p>
@@ -244,7 +244,7 @@ const PurchaseVendorDetail = () => {
   return (
     <>
       <Header title="Vendor Details" />
-      <div className={`transition-all duration-300 min-h-screen bg-[#f8fafc] p-4 md:p-8 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+      <div className={`transition-all duration-300 min-h-screen bg-[#f8fafc] p-4 md:p-8 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
         
         {/* Main Card Container */}
         <div className="rounded-2xl border border-gray-200/80 bg-white shadow-[0_4px_25px_-4px_rgba(0,0,0,0.05)] overflow-hidden">
@@ -307,7 +307,12 @@ const PurchaseVendorDetail = () => {
                       <button
                         onClick={async () => {
                           setShowMoreMenu(false);
-                          if (confirm(`Are you sure you want to mark "${vendorDisplayName}" as inactive?`)) {
+                          if (await window.rfConfirm({
+                            title: "Mark as Inactive?",
+                            description: `Are you sure you want to mark "${vendorDisplayName}" as inactive?`,
+                            confirmLabel: "Mark as Inactive",
+                            variant: "primary",
+                          })) {
                             try {
                               const API_URL = baseUrl?.baseUrl?.replace(/\/$/, "") || "http://localhost:7000";
                               const response = await fetch(`${API_URL}/api/purchase/vendors/${id}`, {
@@ -337,7 +342,12 @@ const PurchaseVendorDetail = () => {
                       <button
                         onClick={async () => {
                           setShowMoreMenu(false);
-                          if (confirm(`Are you sure you want to delete "${vendorDisplayName}"? This action cannot be undone.`)) {
+                          if (await window.rfConfirm({
+                            title: "Delete this vendor?",
+                            description: `Are you sure you want to delete "${vendorDisplayName}"? This action cannot be undone.`,
+                            confirmLabel: "Delete",
+                            variant: "danger",
+                          })) {
                             try {
                               const API_URL = baseUrl?.baseUrl?.replace(/\/$/, "") || "http://localhost:7000";
                               const response = await fetch(`${API_URL}/api/purchase/vendors/${id}`, {

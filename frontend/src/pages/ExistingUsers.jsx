@@ -8,6 +8,7 @@ import { fetchActiveStores, saveCustomStore, removeCustomStore } from "../utils/
 import Header from "../components/Header.jsx";
 
 import AppSelect from "../components/AppSelect.jsx";
+import RootfinConfirmModal from "../components/RootfinModal";
 const ROLE_GROUPS = [
     { key: "super_admin", label: "SUPER ADMIN" },
     { key: "admin", label: "ADMIN" },
@@ -835,27 +836,26 @@ const ExistingUsers = () => {
             )}
 
             {/* Delete Modal */}
-            {showDeleteModal && selectedUser && (
-                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[420px] p-8 text-center border border-[#E9E9E9]">
-                        <h2 className="text-xl font-bold text-[#212121] mb-3">DELETE USER</h2>
-                        <p className="text-[#6A6A6A] text-[13px] mb-8">
-                            Are you sure you want to delete <strong>{selectedUser.storeName || selectedUser.username}</strong>?<br />
-                            This action cannot be undone.
-                        </p>
-                        <div className="flex gap-4 justify-center">
-                            <button onClick={() => setShowDeleteModal(false)}
-                                className="rf-btn-cancel cursor-pointer">
-                                CANCEL
-                            </button>
-                            <button onClick={handleDelete} disabled={deleteLoading}
-                                className={deleteLoading ? "rf-btn-disabled" : "rf-btn-danger !bg-[#DC2626] !text-white hover:!bg-[#b91c1c] cursor-pointer"}>
-                                {deleteLoading ? "DELETING..." : "DELETE"}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <RootfinConfirmModal
+                open={showDeleteModal && Boolean(selectedUser)}
+                onClose={() => setShowDeleteModal(false)}
+                onConfirm={handleDelete}
+                title="Delete this user?"
+                description={
+                    <>
+                        Are you sure you want to delete{" "}
+                        <strong className="text-[#1B1B1B]">
+                            {selectedUser?.storeName || selectedUser?.username}
+                        </strong>
+                        ? This action cannot be undone.
+                    </>
+                }
+                cancelLabel="Cancel"
+                confirmLabel={deleteLoading ? "Deleting..." : "Delete"}
+                confirmIcon={!deleteLoading ? <Trash2 size={15} /> : null}
+                variant="danger"
+                loading={deleteLoading}
+            />
             </div>
         </div>
     );

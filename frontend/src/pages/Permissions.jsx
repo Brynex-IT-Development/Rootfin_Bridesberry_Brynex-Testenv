@@ -21,6 +21,7 @@ import {
     CheckCircle2,
     AlertCircle,
     LayoutGrid,
+    LayoutDashboard,
     SlidersHorizontal,
     FileSpreadsheet
 } from "lucide-react";
@@ -35,6 +36,7 @@ import { useSidebar } from "../hooks/useSidebar.js";
 import Header from "../components/Header.jsx";
 
 const MODULE_ICONS = {
+    dashboard: LayoutDashboard,
     daybook: FileText,
     financial_summary: FileSpreadsheet,
     sales: ShoppingCart,
@@ -240,16 +242,28 @@ const Permissions = () => {
     };
 
     // Reset permissions to default
-    const handleResetDefaults = () => {
+    const handleResetDefaults = async () => {
         if (activeTab === "matrix") {
-            if (!window.confirm("Reset permissions for ALL roles to system defaults?")) return;
+            const ok = await window.rfConfirm({
+                title: "Reset All Permissions?",
+                description: "Reset permissions for ALL roles to system defaults?",
+                confirmLabel: "Reset Defaults",
+                variant: "danger",
+            });
+            if (!ok) return;
             const resetAll = {};
             SYSTEM_ROLES.forEach(r => {
                 resetAll[r.key] = getDefaultPermissionsForRole(r.key);
             });
             setAllPermissions(resetAll);
         } else {
-            if (!window.confirm(`Reset permissions for ${activeTab.replace('_', ' ').toUpperCase()} to system defaults?`)) return;
+            const ok = await window.rfConfirm({
+                title: "Reset Role Permissions?",
+                description: `Reset permissions for ${activeTab.replace('_', ' ').toUpperCase()} to system defaults?`,
+                confirmLabel: "Reset Defaults",
+                variant: "danger",
+            });
+            if (!ok) return;
             const defaults = getDefaultPermissionsForRole(activeTab);
             setAllPermissions(prev => ({
                 ...prev,

@@ -526,198 +526,196 @@ const InventoryReport = () => {
         <title>Inventory Report | RootFin</title>
       </Helmet>
 
-      <div className="min-h-screen bg-[#f8f9fa]">
-        <Headers title={"Inventory Report"} />
+      <div className="invoice-page-wrapper min-h-screen bg-[#FAFAFA] text-[#1B1B1B]">
+        <div className="no-print">
+          <Headers title={"Inventory Report"} />
+        </div>
 
         <div
           className={`transition-all duration-300 ${
             isSidebarOpen ? "ml-[240px]" : "ml-0"
           }`}
         >
-          <div className="p-6 md:p-8 space-y-6">
-            {/* Top Control & Filter Container */}
-            <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
-              <div className="flex flex-wrap items-end justify-between gap-4">
-                {/* Left Controls: Store, Report Type, Category/Dates, Action */}
-                <div className="flex flex-wrap items-end gap-4">
-                  {/* Store Selector */}
-                  <div className="flex flex-col gap-1.5 min-w-[200px]">
-                    <label className="text-xs font-semibold text-gray-600 tracking-wide">
-                      Store
-                    </label>
-                    {canChooseStore ? (
-                      <Select classNamePrefix="rf-select"
-                        options={
-                          isClusterManager
-                            ? [
-                                { value: "All Stores", label: "All My Stores" },
-                                ...storeOptions.filter((s) =>
-                                  clusterAllowedLocCodes.includes(s.value)
-                                ),
-                              ]
-                            : storeOptions
-                        }
-                        value={
-                          storeOptions.find((s) => s.value === selectedStore) || {
-                            value: selectedStore,
-                            label: selectedStore,
-                          }
-                        }
-                        onChange={(opt) => setSelectedStore(opt.value)}
-                        isSearchable
-                        placeholder="Select Store..."
-                        styles={appSelectStyles}
-                      />
-                    ) : (
-                      <div className="px-3.5 py-2 text-sm text-gray-800 bg-gray-50 border border-gray-300 rounded-lg">
-                        {currentUserStore.label || selectedStore}
-                      </div>
-                    )}
-                  </div>
+          {/* Clean Page Title Header */}
+          <div className="no-print bg-white px-6 md:px-8 py-4 border-b border-[#E5E5E5] flex items-center justify-between">
+            <h1 className="text-[18px] font-semibold text-[#1B1B1B]">
+              Inventory Report
+            </h1>
+          </div>
 
-                  {/* Report Type */}
-                  <div className="flex flex-col gap-1.5 min-w-[210px]">
-                    <label className="text-xs font-semibold text-gray-600 tracking-wide">
-                      Report Type
-                    </label>
-                    <Select classNamePrefix="rf-select"
-                      options={reportTypeOptions}
-                      value={reportTypeOptions.find((r) => r.value === reportType)}
-                      onChange={(opt) => setReportType(opt.value)}
+          <div className="px-6 md:px-8 pt-6 pb-10 space-y-5">
+            {/* Top Control & Filter Bar */}
+            <div className="no-print flex flex-wrap items-end justify-between gap-4">
+              {/* Left Controls: Store, Report Type, Category/Dates, Action */}
+              <div className="flex flex-wrap items-end gap-3">
+                {/* Store Selector */}
+                <div className="rf-form-field !mb-0 min-w-[195px]">
+                  <label className="rf-field-label">Store</label>
+                  {canChooseStore ? (
+                    <Select
+                      classNamePrefix="rf-select"
+                      options={
+                        isClusterManager
+                          ? [
+                              { value: "All Stores", label: "All My Stores" },
+                              ...storeOptions.filter((s) =>
+                                clusterAllowedLocCodes.includes(s.value)
+                              ),
+                            ]
+                          : storeOptions
+                      }
+                      value={
+                        storeOptions.find((s) => s.value === selectedStore) || {
+                          value: selectedStore,
+                          label: selectedStore,
+                        }
+                      }
+                      onChange={(opt) => setSelectedStore(opt.value)}
+                      isSearchable
+                      placeholder="Select Store..."
+                      styles={appSelectStyles}
+                    />
+                  ) : (
+                    <div className="h-[40px] flex items-center px-3.5 text-[13px] text-[#525252] bg-[#F4F4F5] border border-[#E5E5E5] rounded-[10px]">
+                      {currentUserStore.label || selectedStore}
+                    </div>
+                  )}
+                </div>
+
+                {/* Report Type */}
+                <div className="rf-form-field !mb-0 min-w-[210px]">
+                  <label className="rf-field-label">Report Type</label>
+                  <Select
+                    classNamePrefix="rf-select"
+                    options={reportTypeOptions}
+                    value={reportTypeOptions.find((r) => r.value === reportType)}
+                    onChange={(opt) => setReportType(opt.value)}
+                    styles={appSelectStyles}
+                  />
+                </div>
+
+                {/* Category Filter (Stock Summary only) */}
+                {reportType === "stock-summary" && (
+                  <div className="rf-form-field !mb-0 min-w-[180px]">
+                    <label className="rf-field-label">Category</label>
+                    <Select
+                      classNamePrefix="rf-select"
+                      options={categoryOptions}
+                      value={categoryOptions.find((c) => c.value === selectedCategory)}
+                      onChange={(opt) => setSelectedCategory(opt.value)}
                       styles={appSelectStyles}
                     />
                   </div>
+                )}
 
-                  {/* Category Filter (Stock Summary only) */}
-                  {reportType === "stock-summary" && (
-                    <div className="flex flex-col gap-1.5 min-w-[180px]">
-                      <label className="text-xs font-semibold text-gray-600 tracking-wide">
-                        Category
-                      </label>
-                      <Select classNamePrefix="rf-select"
-                        options={categoryOptions}
-                        value={categoryOptions.find((c) => c.value === selectedCategory)}
-                        onChange={(opt) => setSelectedCategory(opt.value)}
-                        styles={appSelectStyles}
+                {/* Month Picker (Opening Stock only) */}
+                {reportType === "opening-stock" && (
+                  <div className="rf-form-field !mb-0">
+                    <label className="rf-field-label">Select Month</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="month"
+                        value={selectedMonth}
+                        onChange={(e) => setSelectedMonth(e.target.value)}
+                        className="rf-input !w-[172px] !h-[40px] !rounded-[10px]"
+                      />
+                      {selectedMonth && (
+                        <button
+                          type="button"
+                          data-no-confirm="true"
+                          onClick={() => setSelectedMonth("")}
+                          className="h-[40px] px-3.5 text-[12px] font-medium text-[#1B1B1B] bg-[#EFEFF1] hover:bg-[#E4E4E7] rounded-[10px] transition-colors cursor-pointer"
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Date Range Picker (Stock On Hand only) */}
+                {reportType === "stock-on-hand" && (
+                  <>
+                    <div className="rf-form-field !mb-0">
+                      <label className="rf-field-label">Start Date</label>
+                      <input
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        className="rf-input !w-[162px] !h-[40px] !rounded-[10px]"
                       />
                     </div>
-                  )}
 
-                  {/* Month Picker (Opening Stock only) */}
-                  {reportType === "opening-stock" && (
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-semibold text-gray-600 tracking-wide">
-                        Select Month
-                      </label>
+                    <div className="rf-form-field !mb-0">
+                      <label className="rf-field-label">End Date</label>
                       <div className="flex items-center gap-2">
                         <input
-                          type="month"
-                          value={selectedMonth}
-                          onChange={(e) => setSelectedMonth(e.target.value)}
-                          className="w-44 px-3.5 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 shadow-sm transition-all"
+                          type="date"
+                          value={endDate}
+                          onChange={(e) => setEndDate(e.target.value)}
+                          className="rf-input !w-[162px] !h-[40px] !rounded-[10px]"
                         />
-                        {selectedMonth && (
-                          <button
-                            type="button"
-                            onClick={() => setSelectedMonth("")}
-                            className="px-3 py-2 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg border border-gray-300 transition-colors cursor-pointer"
-                          >
-                            Clear
-                          </button>
-                        )}
+                        <button
+                          type="button"
+                          data-no-confirm="true"
+                          onClick={() => {
+                            const today = new Date();
+                            setEndDate(today.toISOString().split("T")[0]);
+                          }}
+                          className="h-[40px] px-3.5 text-[12px] font-medium text-[#9D43D6] bg-[#FAF5FF] hover:bg-[#F3E8FF] rounded-[10px] border border-[#E9D5FF] transition-colors cursor-pointer whitespace-nowrap"
+                        >
+                          Today
+                        </button>
                       </div>
                     </div>
-                  )}
+                  </>
+                )}
 
-                  {/* Date Range Picker (Stock On Hand only) */}
-                  {reportType === "stock-on-hand" && (
-                    <>
-                      <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-semibold text-gray-600 tracking-wide">
-                          Start Date (Optional)
-                        </label>
-                        <input
-                          type="date"
-                          value={startDate}
-                          onChange={(e) => setStartDate(e.target.value)}
-                          className="w-40 px-3.5 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 shadow-sm transition-all"
-                        />
-                      </div>
+                {/* Fetch Data Button */}
+                <button
+                  type="button"
+                  data-no-confirm="true"
+                  onClick={fetchReport}
+                  disabled={loading}
+                  className="rf-btn-primary !h-[40px] !px-6 !rounded-[10px] !bg-[#9D43D6] hover:!bg-[#8732BE] !text-[13px] !font-medium inline-flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer shadow-[0_2px_8px_rgba(157,67,214,0.24)]"
+                >
+                  {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+                  <span>{loading ? "Fetching..." : "Fetch Data"}</span>
+                </button>
+              </div>
 
-                      <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-semibold text-gray-600 tracking-wide">
-                          End Date
-                        </label>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="date"
-                            value={endDate}
-                            onChange={(e) => setEndDate(e.target.value)}
-                            className="w-40 px-3.5 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 shadow-sm transition-all"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const today = new Date();
-                              setEndDate(today.toISOString().split("T")[0]);
-                            }}
-                            className="px-3 py-2 text-xs font-medium text-purple-700 bg-purple-50 hover:bg-purple-100 rounded-lg border border-purple-200 transition-colors cursor-pointer whitespace-nowrap"
-                          >
-                            Today
-                          </button>
-                        </div>
-                      </div>
-                    </>
-                  )}
-
-                  {/* Generate / Fetch Report Button */}
+              {/* Right Controls: Export CSV & Print PDF */}
+              <div className="flex items-center gap-2.5">
+                {csvData.length > 0 ? (
+                  <CSVLink
+                    data={csvData}
+                    filename={`inventory-report-${reportType}-${new Date().toISOString().split("T")[0]}.csv`}
+                    className="rf-btn-cancel !h-[40px] !px-5 !rounded-[10px] !bg-[#EFEFF1] hover:!bg-[#E4E4E7] !text-[#1B1B1B] !text-[13px] !font-medium !border-0 inline-flex items-center gap-2 transition-colors no-underline cursor-pointer"
+                  >
+                    <span>Export CSV</span>
+                    <FiDownload className="w-4 h-4 text-[#1B1B1B]" />
+                  </CSVLink>
+                ) : (
                   <button
                     type="button"
-                    onClick={fetchReport}
-                    disabled={loading}
-                    className="px-6 py-2 text-sm font-medium text-white bg-[#9333ea] hover:bg-[#7e22ce] active:bg-[#6b21a8] rounded-lg shadow-sm hover:shadow transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
+                    disabled
+                    className="rf-btn-cancel !h-[40px] !px-5 !rounded-[10px] !bg-[#EFEFF1] !text-[#8A8A8A] !text-[13px] !font-medium !border-0 inline-flex items-center gap-2 cursor-not-allowed opacity-70"
                   >
-                    {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                    <span>{loading ? "Generating..." : "Generate Report"}</span>
+                    <span>Export CSV</span>
+                    <FiDownload className="w-4 h-4 text-[#8A8A8A]" />
                   </button>
-                </div>
+                )}
 
-                {/* Right Controls: Export CSV & Print PDF */}
-                <div className="flex items-center gap-3">
-                  {csvData.length > 0 ? (
-                    <CSVLink
-                      data={csvData}
-                      filename={`inventory-report-${reportType}-${new Date().toISOString().split("T")[0]}.csv`}
-                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 border border-gray-300 rounded-lg shadow-sm transition-all flex items-center gap-2 cursor-pointer"
-                    >
-                      <FiDownload className="w-4 h-4 text-gray-500" />
-                      <span>Export CSV</span>
-                    </CSVLink>
-                  ) : (
-                    <button
-                      type="button"
-                      disabled
-                      className="px-4 py-2 text-sm font-medium text-gray-400 bg-gray-50 border border-gray-200 rounded-lg flex items-center gap-2 cursor-not-allowed opacity-60"
-                    >
-                      <FiDownload className="w-4 h-4 text-gray-400" />
-                      <span>Export CSV</span>
-                    </button>
-                  )}
-
-                  <button
-                    type="button"
-                    onClick={() => window.print()}
-                    disabled={!reportData}
-                    className={`px-4 py-2 text-sm font-medium rounded-lg border flex items-center gap-2 transition-all ${
-                      reportData
-                        ? "text-gray-700 bg-white hover:bg-gray-50 border-gray-300 shadow-sm cursor-pointer"
-                        : "text-gray-400 bg-gray-50 border-gray-200 cursor-not-allowed opacity-60"
-                    }`}
-                  >
-                    <Printer className="w-4 h-4 text-gray-500" />
-                    <span>Print PDF</span>
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  data-no-confirm="true"
+                  onClick={() => window.print()}
+                  disabled={!reportData}
+                  className="rf-btn-cancel !h-[40px] !px-5 !rounded-[10px] !bg-[#EFEFF1] hover:!bg-[#E4E4E7] !text-[#1B1B1B] !text-[13px] !font-medium !border-0 inline-flex items-center gap-2 transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  <span>Print PDF</span>
+                  <Printer className="w-4 h-4 text-[#1B1B1B]" />
+                </button>
               </div>
             </div>
 

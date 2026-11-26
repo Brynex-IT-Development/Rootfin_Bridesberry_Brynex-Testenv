@@ -382,225 +382,206 @@ const Security = () => {
       <Helmet>
         <title>Security Report | RootFin</title>
       </Helmet>
-      <div>
+      <div className="invoice-page-wrapper min-h-screen bg-[#FAFAFA] text-[#1B1B1B]">
         <Headers title="Security Report" />
-        <div className={`transition-all duration-300 min-h-screen bg-[#f8fafc] p-6 md:p-8 ${isSidebarOpen ? "ml-64" : "ml-0"}`}>
-          {/* Controls Bar */}
-          <div className="flex flex-col lg:flex-row items-start lg:items-end justify-between gap-4 mb-6">
-            {/* Left Controls: From Date, To Date, Store, Fetch Button */}
-            <div className="flex flex-wrap items-end gap-3">
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-gray-500">From Date</label>
-                <input
-                  type="date"
-                  value={fromDate}
-                  onChange={(e) => setFromDate(e.target.value)}
-                  className="h-[38px] rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-800 shadow-sm focus:border-[#8B5CF6] focus:outline-none"
-                />
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-gray-500">To Date</label>
-                <input
-                  type="date"
-                  value={toDate}
-                  onChange={(e) => setToDate(e.target.value)}
-                  className="h-[38px] rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-800 shadow-sm focus:border-[#8B5CF6] focus:outline-none"
-                />
-              </div>
-
-              <div className="flex flex-col gap-1 min-w-[180px]">
-                <label className="text-xs font-semibold text-gray-500">Store</label>
-                <AppSelect
-                  value={selectedStore}
-                  onChange={(e) => setSelectedStore(e.target.value)}
-                  className="h-[38px] rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-800 shadow-sm focus:border-[#8B5CF6] focus:outline-none"
-                >
-                  <option value="current">
-                    {getStoreName(user.locCode)}
-                  </option>
-                  {isClusterManager && clusterStores.length > 0 && (
-                    <option value="cluster">My Stores (All Assigned)</option>
-                  )}
-                  {(user.power || "").toLowerCase() === "admin" && (
-                    <option value="all">All Stores (Totals)</option>
-                  )}
-                </AppSelect>
-              </div>
-
-              <button
-                onClick={handleFetch}
-                disabled={loading}
-                className="h-[38px] px-5 rounded-lg bg-[#8B5CF6] hover:bg-[#7C3AED] text-white text-sm font-medium shadow-sm transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70"
-              >
-                {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                <span>{loading ? "Fetching..." : "Fetch Data"}</span>
-              </button>
-            </div>
-
-            {/* Right Controls: Export CSV, Print PDF */}
-            <div className="flex items-center gap-2.5">
-              <button
-                type="button"
-                onClick={handleExportCSV}
-                className="h-[38px] px-4 rounded-lg bg-[#EEEEEE] hover:bg-[#E2E2E2] text-gray-800 text-sm font-medium border border-gray-200 flex items-center gap-2 transition-colors cursor-pointer shadow-sm"
-              >
-                <span>Export CSV</span>
-                <Download className="w-4 h-4 text-gray-700" />
-              </button>
-              <button
-                type="button"
-                onClick={handlePrint}
-                className="h-[38px] px-4 rounded-lg bg-[#EEEEEE] hover:bg-[#E2E2E2] text-gray-800 text-sm font-medium border border-gray-200 flex items-center gap-2 transition-colors cursor-pointer shadow-sm"
-              >
-                <span>Print PDF</span>
-                <Printer className="w-4 h-4 text-gray-700" />
-              </button>
-            </div>
+        <div className={`transition-all duration-300 ${isSidebarOpen ? "ml-[240px]" : "ml-0"}`}>
+          {/* Clean Page Title Header */}
+          <div className="bg-white px-6 md:px-8 py-4 border-b border-[#E5E5E5] flex items-center justify-between">
+            <h1 className="text-[18px] font-semibold text-[#1B1B1B]">Security Report</h1>
           </div>
 
-          {/* Table Card */}
-          <div className="rounded-none border border-gray-200 bg-white shadow-sm overflow-hidden" ref={printRef}>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse min-w-full text-left text-xs">
-                <thead style={{ position: "sticky", top: 0, zIndex: 2 }}>
-                  <tr className="bg-[#1e1e1e] text-white text-xs uppercase tracking-wide font-bold">
-                    {selectedStore === "all" || selectedStore === "cluster" ? (
-                      <>
-                        <th scope="col" className="px-4 py-3 text-left border-r border-[#333333]">
-                          STORE
-                        </th>
-                        <th scope="col" className="px-4 py-3 text-left border-r border-[#333333]">
-                          LOCCODE
-                        </th>
-                        <th scope="col" className="px-4 py-3 text-right border-r border-[#333333]">
-                          SECURITY IN
-                        </th>
-                        <th scope="col" className="px-4 py-3 text-right border-r border-[#333333]">
-                          SECURITY OUT (CASH)
-                        </th>
-                        <th scope="col" className="px-4 py-3 text-right border-r border-[#333333]">
-                          SECURITY OUT (RBL)
-                        </th>
-                        <th scope="col" className="px-4 py-3 text-right">
-                          DIFFERENCE
-                        </th>
-                      </>
-                    ) : (
-                      <>
-                        <th scope="col" className="px-4 py-3 text-left border-r border-[#333333]">
-                          DATE
-                        </th>
-                        <th scope="col" className="px-4 py-3 text-left border-r border-[#333333]">
-                          INVOICE NO.
-                        </th>
-                        <th scope="col" className="px-4 py-3 text-left border-r border-[#333333]">
-                          CUSTOMER NAME
-                        </th>
-                        <th scope="col" className="px-4 py-3 text-left border-r border-[#333333]">
-                          CATEGORY
-                        </th>
-                        <th scope="col" className="px-4 py-3 text-left border-r border-[#333333]">
-                          SUB CATEGORY
-                        </th>
-                        <th scope="col" className="px-4 py-3 text-right border-r border-[#333333]">
-                          SECURITY IN
-                        </th>
-                        <th scope="col" className="px-4 py-3 text-right border-r border-[#333333]">
-                          SECURITY OUT (CASH)
-                        </th>
-                        <th scope="col" className="px-4 py-3 text-right border-r border-[#333333]">
-                          SECURITY OUT (RBL)
-                        </th>
-                        <th scope="col" className="px-4 py-3 text-right">
-                          DIFFERENCE
-                        </th>
-                      </>
+          <div className="px-6 md:px-8 pt-6 pb-8">
+            {/* Controls Bar */}
+            <div className="flex flex-wrap items-end justify-between gap-4 mb-5">
+              {/* Left Controls: From Date, To Date, Store, Fetch Button */}
+              <div className="flex flex-wrap items-end gap-3">
+                <div className="rf-form-field !mb-0">
+                  <label className="rf-field-label">From Date</label>
+                  <input
+                    type="date"
+                    value={fromDate}
+                    onChange={(e) => setFromDate(e.target.value)}
+                    className="rf-input !w-[168px] !h-[40px] !rounded-[10px]"
+                  />
+                </div>
+
+                <div className="rf-form-field !mb-0">
+                  <label className="rf-field-label">To Date</label>
+                  <input
+                    type="date"
+                    value={toDate}
+                    onChange={(e) => setToDate(e.target.value)}
+                    className="rf-input !w-[168px] !h-[40px] !rounded-[10px]"
+                  />
+                </div>
+
+                <div className="rf-form-field !mb-0 w-[195px]">
+                  <label className="rf-field-label">Store</label>
+                  <AppSelect
+                    value={selectedStore}
+                    onChange={(e) => setSelectedStore(e.target.value)}
+                    className="rf-input !w-full !h-[40px] !rounded-[10px] bg-white cursor-pointer"
+                  >
+                    <option value="current">
+                      {getStoreName(user.locCode)}
+                    </option>
+                    {isClusterManager && clusterStores.length > 0 && (
+                      <option value="cluster">My Stores (All Assigned)</option>
                     )}
-                  </tr>
-                </thead>
+                    {(user.power || "").toLowerCase() === "admin" && (
+                      <option value="all">All Stores (Totals)</option>
+                    )}
+                  </AppSelect>
+                </div>
 
-                <tbody className="divide-y divide-gray-100 text-xs">
-                  {/* Opening Cash Row */}
-                  {selectedStore === "current" && openingCash !== 0 && (
-                    <tr className="bg-gray-50/80 font-bold border-b border-gray-200">
-                      <td className="px-4 py-3 text-gray-900 uppercase tracking-wider font-bold">Total</td>
-                      <td colSpan={4} className="px-4 py-3 text-gray-400"></td>
-                      <td className="px-4 py-3 text-right text-gray-900 font-bold">{formatNum(openingCash)}</td>
-                      <td className="px-4 py-3 text-right text-gray-700 font-bold">0</td>
-                      <td className="px-4 py-3 text-right text-gray-700 font-bold">0</td>
-                      <td className="px-4 py-3 text-right text-gray-700 font-bold">0</td>
+                <button
+                  type="button"
+                  data-no-confirm="true"
+                  onClick={handleFetch}
+                  disabled={loading}
+                  className="rf-btn-primary !h-[40px] !px-6 !rounded-[10px] !bg-[#9D43D6] hover:!bg-[#8732BE] !text-[13px] !font-medium inline-flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 shadow-[0_2px_8px_rgba(157,67,214,0.24)]"
+                >
+                  {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+                  <span>{loading ? "Fetching..." : "Fetch Data"}</span>
+                </button>
+              </div>
+
+              {/* Right Controls: Export CSV, Print PDF */}
+              <div className="flex items-center gap-2.5">
+                <button
+                  type="button"
+                  data-no-confirm="true"
+                  onClick={handleExportCSV}
+                  className="rf-btn-cancel !h-[40px] !px-5 !rounded-[10px] !bg-[#EFEFF1] hover:!bg-[#E4E4E7] !text-[#1B1B1B] !text-[13px] !font-medium !border-0 inline-flex items-center gap-2 transition-colors cursor-pointer"
+                >
+                  <span>Export CSV</span>
+                  <Download className="w-4 h-4 text-[#1B1B1B]" />
+                </button>
+                <button
+                  type="button"
+                  data-no-confirm="true"
+                  onClick={handlePrint}
+                  className="rf-btn-cancel !h-[40px] !px-5 !rounded-[10px] !bg-[#EFEFF1] hover:!bg-[#E4E4E7] !text-[#1B1B1B] !text-[13px] !font-medium !border-0 inline-flex items-center gap-2 transition-colors cursor-pointer"
+                >
+                  <span>Print PDF</span>
+                  <Printer className="w-4 h-4 text-[#1B1B1B]" />
+                </button>
+              </div>
+            </div>
+
+            {/* Table Card */}
+            <div className="rounded-[10px] border border-[#EAEAEA] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.02)] overflow-hidden" ref={printRef}>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse min-w-full text-left text-[13px]">
+                  <thead style={{ position: "sticky", top: 0, zIndex: 2 }}>
+                    <tr className="bg-[#1B1B1B] text-white text-[11px] uppercase tracking-[0.04em] font-semibold">
+                      {selectedStore === "all" || selectedStore === "cluster" ? (
+                        <>
+                          <th scope="col" className="px-4 py-3.5 text-left">STORE</th>
+                          <th scope="col" className="px-4 py-3.5 text-left">LOCCODE</th>
+                          <th scope="col" className="px-4 py-3.5 text-center">SECURITY IN</th>
+                          <th scope="col" className="px-4 py-3.5 text-center">SECURITY OUT (CASH)</th>
+                          <th scope="col" className="px-4 py-3.5 text-center">SECURITY OUT (RBL)</th>
+                          <th scope="col" className="px-4 py-3.5 text-center">DIFFERENCE</th>
+                        </>
+                      ) : (
+                        <>
+                          <th scope="col" className="px-4 py-3.5 text-left">DATE</th>
+                          <th scope="col" className="px-4 py-3.5 text-left">INVOICE NO.</th>
+                          <th scope="col" className="px-4 py-3.5 text-left">CUSTOMER NAME</th>
+                          <th scope="col" className="px-4 py-3.5 text-left">CATEGORY</th>
+                          <th scope="col" className="px-4 py-3.5 text-left">SUB CATEGORY</th>
+                          <th scope="col" className="px-4 py-3.5 text-center">SECURITY IN</th>
+                          <th scope="col" className="px-4 py-3.5 text-center">SECURITY OUT (CASH)</th>
+                          <th scope="col" className="px-4 py-3.5 text-center">SECURITY OUT (RBL)</th>
+                          <th scope="col" className="px-4 py-3.5 text-center">DIFFERENCE</th>
+                        </>
+                      )}
                     </tr>
-                  )}
+                  </thead>
 
-                  {tableRows.length ? (
-                    tableRows.map((r, i) => {
-                      if (selectedStore === "all" || selectedStore === "cluster") {
+                  <tbody className="divide-y divide-[#F0F0F0] text-[13px] text-[#3F3F46]">
+                    {/* Opening Cash Row */}
+                    {selectedStore === "current" && openingCash !== 0 && (
+                      <tr className="bg-[#FAFAFA] font-semibold border-b border-[#EAEAEA]">
+                        <td className="px-4 py-3 border-r border-[#F5F5F5] text-[#1B1B1B] uppercase tracking-wider text-[11px]">Opening Cash</td>
+                        <td colSpan={4} className="px-4 py-3 border-r border-[#F5F5F5]"></td>
+                        <td className="px-4 py-3 border-r border-[#F5F5F5] text-center text-[#1B1B1B] tabular-nums">{formatNum(openingCash)}</td>
+                        <td className="px-4 py-3 border-r border-[#F5F5F5] text-center text-[#6A6A6A] tabular-nums">0</td>
+                        <td className="px-4 py-3 border-r border-[#F5F5F5] text-center text-[#6A6A6A] tabular-nums">0</td>
+                        <td className="px-4 py-3 text-center text-[#6A6A6A] tabular-nums">0</td>
+                      </tr>
+                    )}
+
+                    {tableRows.length ? (
+                      tableRows.map((r, i) => {
+                        if (selectedStore === "all" || selectedStore === "cluster") {
+                          return (
+                            <tr key={i} className="hover:bg-[#FAF5FF]/60 transition-colors">
+                              <td className="px-4 py-3.5 border-r border-[#F5F5F5] text-[#212121] font-medium whitespace-nowrap">{r.store}</td>
+                              <td className="px-4 py-3.5 border-r border-[#F5F5F5] text-[#6A6A6A] tabular-nums">{r.locCode}</td>
+                              <td className="px-4 py-3.5 border-r border-[#F5F5F5] text-center tabular-nums">{formatNum(r.secIn)}</td>
+                              <td className="px-4 py-3.5 border-r border-[#F5F5F5] text-center tabular-nums">{formatNum(r.secOutCash)}</td>
+                              <td className="px-4 py-3.5 border-r border-[#F5F5F5] text-center tabular-nums">{formatNum(r.secOutRbl)}</td>
+                              <td className="px-4 py-3.5 text-center text-[#1B1B1B] font-semibold tabular-nums">{formatNum(r.diff)}</td>
+                            </tr>
+                          );
+                        }
+
+                        const { dateFormatted, timeFormatted } = formatDateTime(r.date);
+                        const returnDt = r.returnDate ? formatDateTime(r.returnDate) : null;
+
                         return (
-                          <tr key={i} className="border-b border-gray-100 hover:bg-[#f8fafc] transition-colors">
-                            <td className="px-4 py-3.5 text-gray-900 font-medium whitespace-nowrap">{r.store}</td>
-                            <td className="px-4 py-3.5 text-gray-600 font-mono">{r.locCode}</td>
-                            <td className="px-4 py-3.5 text-right text-gray-700 font-medium">{formatNum(r.secIn)}</td>
-                            <td className="px-4 py-3.5 text-right text-gray-700 font-medium">{formatNum(r.secOutCash)}</td>
-                            <td className="px-4 py-3.5 text-right text-gray-700 font-medium">{formatNum(r.secOutRbl)}</td>
-                            <td className="px-4 py-3.5 text-right text-gray-900 font-semibold">{formatNum(r.diff)}</td>
+                          <tr key={i} className="hover:bg-[#FAF5FF]/60 transition-colors">
+                            <td className="px-4 py-3.5 border-r border-[#F5F5F5] whitespace-nowrap">
+                              <div className="font-medium text-[#212121]">{dateFormatted}</div>
+                              {timeFormatted && <div className="text-[11px] text-[#9A9A9A] mt-0.5">{timeFormatted}</div>}
+                              {r.merged && returnDt && (
+                                <div className="text-[11px] text-[#9D43D6] mt-0.5">↩ Return: {returnDt.dateFormatted}</div>
+                              )}
+                            </td>
+                            <td className="px-4 py-3.5 border-r border-[#F5F5F5] tabular-nums whitespace-nowrap">{r.invoice || "-"}</td>
+                            <td className="px-4 py-3.5 border-r border-[#F5F5F5] text-[#212121] whitespace-nowrap">{r.customer || "-"}</td>
+                            <td className="px-4 py-3.5 border-r border-[#F5F5F5] whitespace-nowrap">{r.category || "-"}</td>
+                            <td className="px-4 py-3.5 border-r border-[#F5F5F5] whitespace-nowrap">{r.sub || "-"}</td>
+                            <td className="px-4 py-3.5 border-r border-[#F5F5F5] text-center tabular-nums">
+                              {r.secIn ? formatNum(r.secIn) : ""}
+                            </td>
+                            <td className="px-4 py-3.5 border-r border-[#F5F5F5] text-center tabular-nums">
+                              {r.secOutCash ? formatNum(r.secOutCash) : ""}
+                            </td>
+                            <td className="px-4 py-3.5 border-r border-[#F5F5F5] text-center tabular-nums">
+                              {r.secOutRbl ? formatNum(r.secOutRbl) : ""}
+                            </td>
+                            <td className="px-4 py-3.5 text-center text-[#1B1B1B] font-semibold tabular-nums">
+                              {formatNum(r.secIn - (r.secOutCash + r.secOutRbl))}
+                            </td>
                           </tr>
                         );
-                      }
+                      })
+                    ) : (
+                      <tr>
+                        <td colSpan={selectedStore === "all" || selectedStore === "cluster" ? 6 : 9} className="px-4 py-14 text-center text-[#8A8A8A] font-medium">
+                          No transactions found for the selected period.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
 
-                      const { dateFormatted, timeFormatted } = formatDateTime(r.date);
-                      const returnDt = r.returnDate ? formatDateTime(r.returnDate) : null;
-
-                      return (
-                        <tr key={i} className="border-b border-gray-100 hover:bg-[#f8fafc] transition-colors">
-                          <td className="px-4 py-3.5 text-gray-700 whitespace-nowrap">
-                            <div>{dateFormatted}</div>
-                            {timeFormatted && <div className="text-[11px] text-gray-400">{timeFormatted}</div>}
-                            {r.merged && returnDt && (
-                              <div className="text-[11px] text-purple-600 mt-0.5">↩ Return: {returnDt.dateFormatted}</div>
-                            )}
-                          </td>
-                          <td className="px-4 py-3.5 text-gray-700 font-mono whitespace-nowrap">{r.invoice || "-"}</td>
-                          <td className="px-4 py-3.5 text-gray-900 font-medium whitespace-nowrap">{r.customer || "-"}</td>
-                          <td className="px-4 py-3.5 text-gray-700 whitespace-nowrap">{r.category || "-"}</td>
-                          <td className="px-4 py-3.5 text-gray-700 whitespace-nowrap">{r.sub || "-"}</td>
-                          <td className="px-4 py-3.5 text-right text-gray-700 font-medium">
-                            {r.secIn ? formatNum(r.secIn) : ""}
-                          </td>
-                          <td className="px-4 py-3.5 text-right text-gray-700 font-medium">
-                            {r.secOutCash ? formatNum(r.secOutCash) : ""}
-                          </td>
-                          <td className="px-4 py-3.5 text-right text-gray-700 font-medium">
-                            {r.secOutRbl ? formatNum(r.secOutRbl) : ""}
-                          </td>
-                          <td className="px-4 py-3.5 text-right text-gray-900 font-semibold">
-                            {formatNum(r.secIn - (r.secOutCash + r.secOutRbl))}
-                          </td>
-                        </tr>
-                      );
-                    })
-                  ) : (
-                    <tr>
-                      <td colSpan={selectedStore === "all" || selectedStore === "cluster" ? 6 : 9} className="px-4 py-12 text-center text-gray-500">
-                        No transactions found for the selected period.
+                  {/* Footer Totals */}
+                  <tfoot style={{ position: "sticky", bottom: 0, zIndex: 1 }}>
+                    <tr className="bg-[#EAECEF] font-semibold text-[13px] text-[#1B1B1B] border-t border-[#E2E4E8]">
+                      <td colSpan={selectedStore === "all" || selectedStore === "cluster" ? 2 : 5} className="px-4 py-3.5 text-left border-r border-[#D8DADF]">
+                        Total
                       </td>
+                      <td className="px-4 py-3.5 text-center font-bold border-r border-[#D8DADF] tabular-nums">{formatNum(adjIn)}</td>
+                      <td className="px-4 py-3.5 text-center font-bold border-r border-[#D8DADF] tabular-nums">{formatNum(totOutCash)}</td>
+                      <td className="px-4 py-3.5 text-center font-bold border-r border-[#D8DADF] tabular-nums">{formatNum(totOutRbl)}</td>
+                      <td className="px-4 py-3.5 text-center font-bold tabular-nums">{formatNum(adjIn - totOut)}</td>
                     </tr>
-                  )}
-                </tbody>
-
-                {/* Footer Totals */}
-                <tfoot style={{ position: "sticky", bottom: 0, zIndex: 1 }}>
-                  <tr className="bg-[#e5e7eb] font-bold text-xs text-gray-900 border-t border-gray-300">
-                    <td colSpan={selectedStore === "all" || selectedStore === "cluster" ? 2 : 5} className="px-4 py-3.5 text-left uppercase tracking-wider font-bold">
-                      Total
-                    </td>
-                    <td className="px-4 py-3.5 text-right font-bold">{formatNum(adjIn)}</td>
-                    <td className="px-4 py-3.5 text-right font-bold">{formatNum(totOutCash)}</td>
-                    <td className="px-4 py-3.5 text-right font-bold">{formatNum(totOutRbl)}</td>
-                    <td className="px-4 py-3.5 text-right font-bold">{formatNum(adjIn - totOut)}</td>
-                  </tr>
-                </tfoot>
-              </table>
+                  </tfoot>
+                </table>
+              </div>
             </div>
           </div>
         </div>

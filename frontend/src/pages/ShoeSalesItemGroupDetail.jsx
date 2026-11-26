@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Edit, X, Building2, ChevronDown, Package } from "lucide-react";
+import { ArrowLeft, Edit, X, Building2, ChevronDown, Package, Trash2, Check } from "lucide-react";
+import RootfinConfirmModal from "../components/RootfinModal";
 import Header from "../components/Header";
 import ImageUpload from "../components/ImageUpload";
 import AttachmentDisplay from "../components/AttachmentDisplay";
@@ -991,68 +992,32 @@ const ShoeSalesItemGroupDetail = () => {
       </div>
 
       {/* Delete Confirmation Modal */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-          <div className="relative w-full max-w-md rounded-[10px] border border-[#E5E7EB] bg-white shadow-2xl">
-            <div className="px-6 py-4 border-b border-[#E5E7EB]">
-              <h2 className="text-sm font-bold uppercase tracking-wider text-[#111827]">Delete Item Group</h2>
-            </div>
-            <div className="p-6">
-              <p className="text-xs font-medium text-[#4B5563] leading-relaxed">
-                Are you sure you want to delete <span className="font-bold text-[#111827]">"{itemGroup?.name}"</span>? This action cannot be undone and will delete all items in this group.
-              </p>
-            </div>
-            <div className="px-6 py-4 border-t border-[#E5E7EB] bg-[#F9FAFB] flex items-center justify-end gap-3">
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                disabled={loading}
-                className="h-9 px-4 rounded-[10px] border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] transition-colors disabled:opacity-50 cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDelete}
-                disabled={loading}
-                className="h-9 px-4 rounded-[10px] bg-[#EF4444] hover:bg-[#DC2626] text-xs font-bold uppercase tracking-wider text-white transition-colors disabled:opacity-50 cursor-pointer"
-              >
-                {loading ? "Deleting..." : "Delete Group"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <RootfinConfirmModal
+        open={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDelete}
+        title="Delete this item group?"
+        description={`Are you sure you want to delete "${itemGroup?.name}"? This action cannot be undone and will delete all items in this group.`}
+        cancelLabel="Cancel"
+        confirmLabel={loading ? "Deleting..." : "Delete"}
+        confirmIcon={!loading ? <Trash2 size={15} /> : null}
+        variant="danger"
+        loading={loading}
+      />
 
       {/* Mark as Inactive Confirmation Modal */}
-      {showInactiveModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-          <div className="relative w-full max-w-md rounded-[10px] border border-[#E5E7EB] bg-white shadow-2xl">
-            <div className="px-6 py-4 border-b border-[#E5E7EB]">
-              <h2 className="text-sm font-bold uppercase tracking-wider text-[#111827]">Mark as Inactive</h2>
-            </div>
-            <div className="p-6">
-              <p className="text-xs font-medium text-[#4B5563] leading-relaxed">
-                Are you sure you want to mark <span className="font-bold text-[#111827]">"{itemGroup?.name}"</span> as inactive? This will hide the group from active lists.
-              </p>
-            </div>
-            <div className="px-6 py-4 border-t border-[#E5E7EB] bg-[#F9FAFB] flex items-center justify-end gap-3">
-              <button
-                onClick={() => setShowInactiveModal(false)}
-                disabled={loading}
-                className="h-9 px-4 rounded-[10px] border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] transition-colors disabled:opacity-50 cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleMarkAsInactive}
-                disabled={loading}
-                className="h-9 px-4 rounded-[10px] bg-[#8B5CF6] hover:bg-[#7C3AED] text-xs font-bold uppercase tracking-wider text-white transition-colors disabled:opacity-50 cursor-pointer"
-              >
-                {loading ? "Updating..." : "Mark as Inactive"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <RootfinConfirmModal
+        open={showInactiveModal}
+        onClose={() => setShowInactiveModal(false)}
+        onConfirm={handleMarkAsInactive}
+        title="Mark as Inactive?"
+        description={`Are you sure you want to mark "${itemGroup?.name}" as inactive? This will hide the group from active lists.`}
+        cancelLabel="Cancel"
+        confirmLabel={loading ? "Updating..." : "Mark as Inactive"}
+        confirmIcon={!loading ? <Check size={15} /> : null}
+        variant="primary"
+        loading={loading}
+      />
 
       {/* Opening Stock Distribution Modal */}
       {showOpeningStockModal && (

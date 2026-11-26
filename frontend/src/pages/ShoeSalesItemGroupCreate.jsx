@@ -1543,8 +1543,13 @@ const ShoeSalesItemGroupCreate = () => {
                           </td>
                           <td className="px-3 py-2.5">
                             <button
-                              onClick={() => {
-                                const confirmDelete = window.confirm(`Are you sure you want to delete "${item.name || "this item"}"?`);
+                              onClick={async () => {
+                                const confirmDelete = await window.rfConfirm({
+                                  title: "Delete this item?",
+                                  description: `Are you sure you want to delete "${item.name || "this item"}"?`,
+                                  confirmLabel: "Delete",
+                                  variant: "danger",
+                                });
                                 if (confirmDelete) {
                                   setItemRows(itemRows.filter((_, i) => i !== idx));
                                 }
@@ -1739,8 +1744,13 @@ const ShoeSalesItemGroupCreate = () => {
                         </td>
                         <td className="px-3 py-2.5">
                           <button 
-                            onClick={() => {
-                              const confirmDelete = window.confirm(`Are you sure you want to delete "${displayName}"?`);
+                            onClick={async () => {
+                              const confirmDelete = await window.rfConfirm({
+                                title: "Delete this item?",
+                                description: `Are you sure you want to delete "${displayName}"?`,
+                                confirmLabel: "Delete",
+                                variant: "danger",
+                              });
                               if (confirmDelete) {
                                 const updated = generatedItems.filter((_, i) => i !== idx);
                                 setGeneratedItems(updated);

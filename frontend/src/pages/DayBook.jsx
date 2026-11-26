@@ -186,148 +186,166 @@ const DayBook = () => {
             </Helmet>
             
             <Header title="Rent Out Report" />
-            <div className={`transition-all duration-300 min-h-screen bg-white ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
-                
-                {/* Filters Section */}
-                <div className="pt-6 px-8 flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
-                    <div className="flex flex-wrap items-end gap-6">
-                        <div className="flex flex-col gap-1.5 w-[160px]">
-                            <label className="text-[12px] font-medium text-gray-400">From Date</label>
-                            <div className="relative">
-                                <input 
-                                    type="date" 
-                                    value={fromDate}
-                                    onChange={(e) => setFromDate(e.target.value)}
-                                    className="w-full border border-gray-200 rounded-md h-[38px] pl-3 pr-10 text-sm focus:outline-none focus:border-purple-500 transition-colors z-10 bg-transparent"
-                                />
-                                
-                            </div>
-                        </div>
-                        <div className="flex flex-col gap-1.5 w-[160px]">
-                            <label className="text-[12px] font-medium text-gray-400">To Date</label>
-                            <div className="relative">
-                                <input 
-                                    type="date" 
-                                    value={toDate}
-                                    onChange={(e) => setToDate(e.target.value)}
-                                    className="w-full border border-gray-200 rounded-md h-[38px] pl-3 pr-10 text-sm focus:outline-none focus:border-purple-500 transition-colors z-10 bg-transparent"
-                                />
-                                
-                            </div>
-                        </div>
-                        
-                        <button 
-                            onClick={handleFetch}
-                            disabled={isLoading}
-                            className="h-[38px] px-6 bg-[#a855f7] hover:bg-[#9333ea] text-white text-sm font-medium rounded-md transition-colors flex items-center justify-center disabled:opacity-70"
-                        >
-                            {isLoading ? (
-                                <><svg className="animate-spin h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-                                </svg>Fetching...</>
-                            ) : 'Fetch Data'}
-                        </button>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                        <button onClick={handleExportCSV} className="h-[38px] px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-md transition-colors flex items-center gap-2">
-                            Export CSV <Download size={16} />
-                        </button>
-                        <button onClick={handlePrintPDF} className="h-[38px] px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-md transition-colors flex items-center gap-2">
-                            Print PDF <Printer size={16} />
-                        </button>
-                    </div>
+            <div className={`invoice-page-wrapper transition-all duration-300 min-h-screen bg-[#FAFAFA] text-[#1B1B1B] ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
+                {/* Clean Page Title Header */}
+                <div className="no-print bg-white px-6 md:px-8 py-4 border-b border-[#E5E5E5] flex items-center justify-between">
+                    <h1 className="text-[18px] font-semibold text-[#1B1B1B]">Rent Out Report</h1>
                 </div>
 
-                <div className="px-4 pb-8" id="report-table-container">
-                    <div className="border border-gray-200 rounded-md overflow-x-auto bg-white">
-                        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "11px" }}>
-                            <thead className="bg-[#1f2937]">
-                                <tr>
-                                    <th style={{ padding: "8px 6px", textAlign: "left", fontSize: "10px", fontWeight: 600, color: "white", textTransform: "uppercase", whiteSpace: "nowrap" }}>Date</th>
-                                    <th style={{ padding: "8px 6px", textAlign: "left", fontSize: "10px", fontWeight: 600, color: "white", textTransform: "uppercase", whiteSpace: "nowrap" }}>Invoice No.</th>
-                                    <th style={{ padding: "8px 6px", textAlign: "left", fontSize: "10px", fontWeight: 600, color: "white", textTransform: "uppercase", whiteSpace: "nowrap" }}>Customer Name</th>
-                                    <th style={{ padding: "8px 6px", textAlign: "center", fontSize: "10px", fontWeight: 600, color: "white", textTransform: "uppercase", whiteSpace: "nowrap" }}>Qty</th>
-                                    <th style={{ padding: "8px 6px", textAlign: "center", fontSize: "10px", fontWeight: 600, color: "white", textTransform: "uppercase", whiteSpace: "nowrap" }}>Bill Value</th>
-                                    <th style={{ padding: "8px 6px", textAlign: "center", fontSize: "10px", fontWeight: 600, color: "white", textTransform: "uppercase", whiteSpace: "nowrap" }}>Cash</th>
-                                    <th style={{ padding: "8px 6px", textAlign: "center", fontSize: "10px", fontWeight: 600, color: "white", textTransform: "uppercase", whiteSpace: "nowrap" }}>Razorpay</th>
-                                    <th style={{ padding: "8px 6px", textAlign: "center", fontSize: "10px", fontWeight: 600, color: "white", textTransform: "uppercase", whiteSpace: "nowrap" }}>Card/Bank</th>
-                                    <th style={{ padding: "8px 6px", textAlign: "center", fontSize: "10px", fontWeight: 600, color: "white", textTransform: "uppercase", whiteSpace: "nowrap" }}>UPI</th>
-                                    <th style={{ padding: "8px 6px", textAlign: "center", fontSize: "10px", fontWeight: 600, color: "white", textTransform: "uppercase", whiteSpace: "nowrap" }}>Total Amount</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100">
-                                {allTransactions.length > 0 ? (
-                                    allTransactions.map((transaction, index) => (
-                                        <tr key={index} style={{ borderBottom: "1px solid #f1f3f4" }}>
-                                            <td style={{ padding: "6px 6px", whiteSpace: "nowrap", fontSize: "11px", color: "#374151" }}>
-                                                {formatDate(transaction.date)}
-                                            </td>
-                                            <td style={{ padding: "6px 6px", whiteSpace: "nowrap", fontSize: "11px", color: "#374151" }}>
-                                                {transaction.invoiceNo || transaction._id || transaction.locCode || "-"}
-                                            </td>
-                                            <td style={{ padding: "6px 6px", whiteSpace: "nowrap", fontSize: "11px", color: "#374151" }}>
-                                                {transaction.customerName || "-"}
-                                            </td>
-                                            <td style={{ padding: "6px 6px", whiteSpace: "nowrap", fontSize: "11px", color: "#374151", textAlign: "center" }}>
-                                                {transaction.quantity || 1}
-                                            </td>
-                                            <td style={{ padding: "6px 6px", whiteSpace: "nowrap", fontSize: "11px", color: "#374151", textAlign: "center" }}>
-                                                {formatNumber(transaction.billValue)}
-                                            </td>
-                                            <td style={{ padding: "6px 6px", whiteSpace: "nowrap", fontSize: "11px", color: "#374151", textAlign: "center" }}>
-                                                {formatNumber(transaction.cash)}
-                                            </td>
-                                            <td style={{ padding: "6px 6px", whiteSpace: "nowrap", fontSize: "11px", color: "#374151", textAlign: "center" }}>
-                                                {formatNumber(transaction.rbl)}
-                                            </td>
-                                            <td style={{ padding: "6px 6px", whiteSpace: "nowrap", fontSize: "11px", color: "#374151", textAlign: "center" }}>
-                                                {formatNumber(transaction.bank)}
-                                            </td>
-                                            <td style={{ padding: "6px 6px", whiteSpace: "nowrap", fontSize: "11px", color: "#374151", textAlign: "center" }}>
-                                                {formatNumber(transaction.upi)}
-                                            </td>
-                                            <td style={{ padding: "6px 6px", whiteSpace: "nowrap", fontSize: "11px", color: "#374151", textAlign: "center" }}>
-                                                {formatNumber(transaction.amount)}
-                                            </td>
+                <div className="px-6 md:px-8 pt-6 pb-8">
+                    {/* Filters Section */}
+                    <div className="no-print flex flex-wrap items-end justify-between gap-4 mb-5">
+                        <div className="flex flex-wrap items-end gap-3">
+                            <div className="rf-form-field !mb-0">
+                                <label className="rf-field-label">From Date</label>
+                                <input
+                                    type="date"
+                                    value={fromDate}
+                                    onChange={(e) => setFromDate(e.target.value)}
+                                    className="rf-input !w-[172px] !h-[40px] !rounded-[10px]"
+                                />
+                            </div>
+                            <div className="rf-form-field !mb-0">
+                                <label className="rf-field-label">To Date</label>
+                                <input
+                                    type="date"
+                                    value={toDate}
+                                    onChange={(e) => setToDate(e.target.value)}
+                                    className="rf-input !w-[172px] !h-[40px] !rounded-[10px]"
+                                />
+                            </div>
+
+                            <button
+                                type="button"
+                                data-no-confirm="true"
+                                onClick={handleFetch}
+                                disabled={isLoading}
+                                className="rf-btn-primary !h-[40px] !px-6 !rounded-[10px] !bg-[#9D43D6] hover:!bg-[#8732BE] !text-[13px] !font-medium inline-flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer shadow-[0_2px_8px_rgba(157,67,214,0.24)]"
+                            >
+                                {isLoading ? (
+                                    <><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                                    </svg>Fetching...</>
+                                ) : 'Fetch Data'}
+                            </button>
+                        </div>
+
+                        <div className="flex items-center gap-2.5">
+                            <button
+                                type="button"
+                                data-no-confirm="true"
+                                onClick={handleExportCSV}
+                                disabled={allTransactions.length === 0}
+                                className="rf-btn-cancel !h-[40px] !px-5 !rounded-[10px] !bg-[#EFEFF1] hover:!bg-[#E4E4E7] !text-[#1B1B1B] !text-[13px] !font-medium !border-0 inline-flex items-center gap-2 transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+                            >
+                                <span>Export CSV</span>
+                                <Download size={15} />
+                            </button>
+                            <button
+                                type="button"
+                                data-no-confirm="true"
+                                onClick={handlePrintPDF}
+                                disabled={allTransactions.length === 0}
+                                className="rf-btn-cancel !h-[40px] !px-5 !rounded-[10px] !bg-[#EFEFF1] hover:!bg-[#E4E4E7] !text-[#1B1B1B] !text-[13px] !font-medium !border-0 inline-flex items-center gap-2 transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+                            >
+                                <span>Print PDF</span>
+                                <Printer size={15} />
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="report-table-container">
+                        <div className="bg-white rounded-[10px] border border-[#EAEAEA] overflow-hidden shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left border-collapse text-[13px]">
+                                    <thead>
+                                        <tr className="bg-[#1B1B1B] text-white text-[11px] font-semibold uppercase tracking-[0.04em]">
+                                            <th className="py-3.5 px-4 text-left whitespace-nowrap">DATE</th>
+                                            <th className="py-3.5 px-4 text-left whitespace-nowrap">INVOICE NO.</th>
+                                            <th className="py-3.5 px-4 text-left whitespace-nowrap">CUSTOMER NAME</th>
+                                            <th className="py-3.5 px-4 text-center whitespace-nowrap">QTY</th>
+                                            <th className="py-3.5 px-4 text-center whitespace-nowrap">BILL VALUE</th>
+                                            <th className="py-3.5 px-4 text-center whitespace-nowrap">CASH</th>
+                                            <th className="py-3.5 px-4 text-center whitespace-nowrap">RAZORPAY</th>
+                                            <th className="py-3.5 px-4 text-center whitespace-nowrap">CARD/BANK</th>
+                                            <th className="py-3.5 px-4 text-center whitespace-nowrap">UPI</th>
+                                            <th className="py-3.5 px-4 text-center whitespace-nowrap">TOTAL AMOUNT</th>
                                         </tr>
-                                    ))
-                                ) : (
-                                    <tr>
-                                        <td colSpan="10" className="px-6 py-12 text-center text-gray-500 text-sm">
-                                            {!toDate || !fromDate
-                                                ? "Select a date range and click Fetch Data"
-                                                : "No transactions found"}
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                            {allTransactions.length > 0 && (
-                                <tfoot style={{ backgroundColor: "#e5e7eb" }}>
-                                    <tr>
-                                        <td colSpan="5" style={{ padding: "8px 6px", fontSize: "11px", fontWeight: 700, color: "#1f2937", textTransform: "uppercase" }}>
-                                            Total
-                                        </td>
-                                        <td style={{ padding: "8px 6px", fontSize: "11px", fontWeight: 700, color: "#1f2937", textAlign: "center" }}>
-                                            {formatNumber(calculateTotal('cash'))}
-                                        </td>
-                                        <td style={{ padding: "8px 6px", fontSize: "11px", fontWeight: 700, color: "#1f2937", textAlign: "center" }}>
-                                            {formatNumber(calculateTotal('rbl'))}
-                                        </td>
-                                        <td style={{ padding: "8px 6px", fontSize: "11px", fontWeight: 700, color: "#1f2937", textAlign: "center" }}>
-                                            {formatNumber(calculateTotal('bank'))}
-                                        </td>
-                                        <td style={{ padding: "8px 6px", fontSize: "11px", fontWeight: 700, color: "#1f2937", textAlign: "center" }}>
-                                            {formatNumber(calculateTotal('upi'))}
-                                        </td>
-                                        <td style={{ padding: "8px 6px", fontSize: "11px", fontWeight: 700, color: "#1f2937", textAlign: "center" }}>
-                                            {formatNumber(calculateTotal('amount'))}
-                                        </td>
-                                    </tr>
-                                </tfoot>
-                            )}
-                        </table>
+                                    </thead>
+                                    <tbody className="divide-y divide-[#F0F0F0] text-[#3F3F46] bg-white">
+                                        {allTransactions.length > 0 ? (
+                                            allTransactions.map((transaction, index) => (
+                                                <tr key={index} className="hover:bg-[#FAF5FF]/60 transition-colors">
+                                                    <td className="py-3.5 px-4 border-r border-[#F5F5F5] whitespace-nowrap font-medium text-[#212121]">
+                                                        {formatDate(transaction.date)}
+                                                    </td>
+                                                    <td className="py-3.5 px-4 border-r border-[#F5F5F5] whitespace-nowrap tabular-nums">
+                                                        {transaction.invoiceNo || transaction._id || transaction.locCode || "-"}
+                                                    </td>
+                                                    <td className="py-3.5 px-4 border-r border-[#F5F5F5] whitespace-nowrap text-[#212121]">
+                                                        {transaction.customerName || "-"}
+                                                    </td>
+                                                    <td className="py-3.5 px-4 border-r border-[#F5F5F5] text-center whitespace-nowrap tabular-nums">
+                                                        {transaction.quantity || 1}
+                                                    </td>
+                                                    <td className="py-3.5 px-4 border-r border-[#F5F5F5] text-center whitespace-nowrap tabular-nums">
+                                                        {formatNumber(transaction.billValue)}
+                                                    </td>
+                                                    <td className="py-3.5 px-4 border-r border-[#F5F5F5] text-center whitespace-nowrap tabular-nums">
+                                                        {formatNumber(transaction.cash)}
+                                                    </td>
+                                                    <td className="py-3.5 px-4 border-r border-[#F5F5F5] text-center whitespace-nowrap tabular-nums">
+                                                        {formatNumber(transaction.rbl)}
+                                                    </td>
+                                                    <td className="py-3.5 px-4 border-r border-[#F5F5F5] text-center whitespace-nowrap tabular-nums">
+                                                        {formatNumber(transaction.bank)}
+                                                    </td>
+                                                    <td className="py-3.5 px-4 border-r border-[#F5F5F5] text-center whitespace-nowrap tabular-nums">
+                                                        {formatNumber(transaction.upi)}
+                                                    </td>
+                                                    <td className="py-3.5 px-4 text-center whitespace-nowrap font-semibold text-[#1B1B1B] tabular-nums">
+                                                        {formatNumber(transaction.amount)}
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        ) : (
+                                            <tr>
+                                                <td colSpan="10" className="px-6 py-14 text-center text-[#8A8A8A] text-[13px] font-medium">
+                                                    {!toDate || !fromDate
+                                                        ? "Select a date range and click Fetch Data"
+                                                        : "No transactions found"}
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                    {allTransactions.length > 0 && (
+                                        <tfoot>
+                                            <tr className="bg-[#EAECEF] font-semibold text-[#1B1B1B] text-[13px] border-t border-[#E2E4E8]">
+                                                <td colSpan="5" className="py-3.5 px-4 text-left border-r border-[#D8DADF]">
+                                                    Total
+                                                </td>
+                                                <td className="py-3.5 px-4 text-center font-bold border-r border-[#D8DADF] tabular-nums">
+                                                    {formatNumber(calculateTotal('cash'))}
+                                                </td>
+                                                <td className="py-3.5 px-4 text-center font-bold border-r border-[#D8DADF] tabular-nums">
+                                                    {formatNumber(calculateTotal('rbl'))}
+                                                </td>
+                                                <td className="py-3.5 px-4 text-center font-bold border-r border-[#D8DADF] tabular-nums">
+                                                    {formatNumber(calculateTotal('bank'))}
+                                                </td>
+                                                <td className="py-3.5 px-4 text-center font-bold border-r border-[#D8DADF] tabular-nums">
+                                                    {formatNumber(calculateTotal('upi'))}
+                                                </td>
+                                                <td className="py-3.5 px-4 text-center font-bold tabular-nums">
+                                                    {formatNumber(calculateTotal('amount'))}
+                                                </td>
+                                            </tr>
+                                        </tfoot>
+                                    )}
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Link, useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { Edit, X, Building2, Info, Camera, Settings, Star, Warehouse, ChevronDown, Plus, Copy, Pause, Trash2, ArrowUpRight, XCircle, ArrowLeft, Clock, Barcode } from "lucide-react";
+import { Edit, X, Building2, Info, Camera, Settings, Star, Warehouse, ChevronDown, Plus, Copy, Pause, Trash2, ArrowUpRight, XCircle, ArrowLeft, Clock, Barcode, Check } from "lucide-react";
+import RootfinConfirmModal from "../components/RootfinModal";
 import Header from "../components/Header";
 import { mapLocNameToWarehouse as mapWarehouse } from "../utils/warehouseMapping";
 import AttachmentDisplay from "../components/AttachmentDisplay";
@@ -1783,68 +1784,32 @@ const ShoeSalesItemDetailFromGroup = () => {
         </div>
 
         {/* Delete Confirmation Modal */}
-        {showDeleteModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-            <div className="relative w-full max-w-md rounded-[10px] border border-[#E5E7EB] bg-white shadow-2xl">
-              <div className="px-6 py-4 border-b border-[#E5E7EB] bg-[#F9FAFB]">
-                <h2 className="text-xs font-bold uppercase tracking-wider text-[#111827]">Delete Item</h2>
-              </div>
-              <div className="px-6 py-5">
-                <p className="text-xs text-[#4B5563] leading-relaxed">
-                  Are you sure you want to delete <span className="font-bold text-[#111827]">"{item?.name}"</span>? This action cannot be undone.
-                </p>
-              </div>
-              <div className="px-6 py-4 border-t border-[#E5E7EB] bg-[#F9FAFB] flex items-center justify-end gap-2.5">
-                <button
-                  onClick={() => setShowDeleteModal(false)}
-                  disabled={loading}
-                  className="h-9 px-4 rounded-[10px] border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs transition-colors cursor-pointer disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleDelete}
-                  disabled={loading}
-                  className="h-9 px-4 rounded-[10px] bg-red-600 hover:bg-red-700 text-xs font-bold uppercase tracking-wider text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50"
-                >
-                  {loading ? "Deleting..." : "Delete"}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <RootfinConfirmModal
+          open={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
+          onConfirm={handleDelete}
+          title="Delete this item?"
+          description={`Are you sure you want to delete "${item?.name}"? This action cannot be undone.`}
+          cancelLabel="Cancel"
+          confirmLabel={loading ? "Deleting..." : "Delete"}
+          confirmIcon={!loading ? <Trash2 size={15} /> : null}
+          variant="danger"
+          loading={loading}
+        />
 
         {/* Mark as Inactive Confirmation Modal */}
-        {showInactiveModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-            <div className="relative w-full max-w-md rounded-[10px] border border-[#E5E7EB] bg-white shadow-2xl">
-              <div className="px-6 py-4 border-b border-[#E5E7EB] bg-[#F9FAFB]">
-                <h2 className="text-xs font-bold uppercase tracking-wider text-[#111827]">Mark as Inactive</h2>
-              </div>
-              <div className="px-6 py-5">
-                <p className="text-xs text-[#4B5563] leading-relaxed">
-                  Are you sure you want to mark <span className="font-bold text-[#111827]">"{item?.name}"</span> as inactive? This will remove the item from the group.
-                </p>
-              </div>
-              <div className="px-6 py-4 border-t border-[#E5E7EB] bg-[#F9FAFB] flex items-center justify-end gap-2.5">
-                <button
-                  onClick={() => setShowInactiveModal(false)}
-                  disabled={loading}
-                  className="h-9 px-4 rounded-[10px] border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs transition-colors cursor-pointer disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleMarkAsInactive}
-                  disabled={loading}
-                  className="h-9 px-4 rounded-[10px] bg-[#8B5CF6] hover:bg-[#7C3AED] text-xs font-bold uppercase tracking-wider text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50"
-                >
-                  {loading ? "Updating..." : "Mark as Inactive"}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <RootfinConfirmModal
+          open={showInactiveModal}
+          onClose={() => setShowInactiveModal(false)}
+          onConfirm={handleMarkAsInactive}
+          title="Mark as Inactive?"
+          description={`Are you sure you want to mark "${item?.name}" as inactive? This will remove the item from the group.`}
+          cancelLabel="Cancel"
+          confirmLabel={loading ? "Updating..." : "Mark as Inactive"}
+          confirmIcon={!loading ? <Check size={15} /> : null}
+          variant="primary"
+          loading={loading}
+        />
 
         {/* Move to Another Group Modal */}
         {showMoveModal && (
@@ -1902,36 +1867,18 @@ const ShoeSalesItemDetailFromGroup = () => {
         )}
 
         {/* Remove from Item Group Modal */}
-        {showRemoveModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-            <div className="relative w-full max-w-md rounded-[10px] border border-[#E5E7EB] bg-white shadow-2xl">
-              <div className="px-6 py-4 border-b border-[#E5E7EB] bg-[#F9FAFB]">
-                <h2 className="text-xs font-bold uppercase tracking-wider text-[#111827]">Remove from Item Group</h2>
-              </div>
-              <div className="px-6 py-5">
-                <p className="text-xs text-[#4B5563] leading-relaxed">
-                  Are you sure you want to remove <span className="font-bold text-[#111827]">"{item?.name}"</span> from this item group? This action cannot be undone.
-                </p>
-              </div>
-              <div className="px-6 py-4 border-t border-[#E5E7EB] bg-[#F9FAFB] flex items-center justify-end gap-2.5">
-                <button
-                  onClick={() => setShowRemoveModal(false)}
-                  disabled={loading}
-                  className="h-9 px-4 rounded-[10px] border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs transition-colors cursor-pointer disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleMarkAsInactive}
-                  disabled={loading}
-                  className="h-9 px-4 rounded-[10px] bg-[#8B5CF6] hover:bg-[#7C3AED] text-xs font-bold uppercase tracking-wider text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50"
-                >
-                  {loading ? "Removing..." : "Remove"}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <RootfinConfirmModal
+          open={showRemoveModal}
+          onClose={() => setShowRemoveModal(false)}
+          onConfirm={handleMarkAsInactive}
+          title="Remove from Item Group?"
+          description={`Are you sure you want to remove "${item?.name}" from this item group? This action cannot be undone.`}
+          cancelLabel="Cancel"
+          confirmLabel={loading ? "Removing..." : "Remove"}
+          confirmIcon={!loading ? <Trash2 size={15} /> : null}
+          variant="danger"
+          loading={loading}
+        />
         </div>
       </div>
     </div>

@@ -14,14 +14,13 @@ const NativeSelect = ({ value, onChange, options, placeholder }) => (
     <AppSelect
       value={value || ""}
       onChange={(e) => onChange(e.target.value || null)}
-      className="w-full h-[40px] border border-gray-300 rounded-md pl-3 pr-9 text-sm text-gray-700 bg-white focus:outline-none focus:border-purple-500 appearance-none"
+      className="rf-input !w-full !h-[40px] !rounded-[10px] !text-[13px] !text-[#1B1B1B] bg-white cursor-pointer"
     >
       <option value="">{placeholder}</option>
       {options.map(o => (
         <option key={o.value || "__null__"} value={o.value || ""}>{o.label}</option>
       ))}
     </AppSelect>
-    
   </div>
 );
 
@@ -142,42 +141,50 @@ const SalesByInvoiceReport = () => {
 
   const paymentBadgeStyle = (method) => {
     const m = (method || "").toLowerCase();
-    if (m.includes("upi")) return "bg-purple-100 text-purple-700";
-    if (m.includes("card") || m.includes("bank")) return "bg-blue-100 text-blue-700";
-    if (m.includes("cash")) return "bg-green-100 text-green-700";
-    return "bg-gray-100 text-gray-600";
+    if (m.includes("cash")) return "bg-[#DCFCE7] text-[#16A34A]";
+    if (m.includes("upi") || m.includes("card") || m.includes("bank")) return "bg-[#F3E8FF] text-[#9D43D6]";
+    return "bg-[#F4F4F5] text-[#525252]";
   };
 
   return (
     <>
       <Helmet><title>Sales by Invoice Report | RootFin</title></Helmet>
-      <Headers />
-      <div className={`transition-all duration-300 min-h-screen bg-white ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
+      <Headers title="Sales By Invoice Report" />
+      <div className={`invoice-page-wrapper transition-all duration-300 min-h-screen bg-[#FAFAFA] text-[#1B1B1B] ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
+
+        {/* Clean Page Title Header */}
+        <div className="bg-white px-6 md:px-8 py-4 border-b border-[#E5E5E5] flex items-center justify-between">
+          <h1 className="text-[18px] font-semibold text-[#1B1B1B]">Sales By Invoice Report</h1>
+        </div>
 
         {/* ── Row 1: Primary Filters ── */}
-        <div className="flex items-end justify-between px-6 pt-5 pb-4 border-b border-gray-100">
-          <div className="flex items-end gap-4">
+        <div className={`flex flex-wrap items-end justify-between gap-4 px-6 md:px-8 pt-5 pb-4 ${!showAdvancedFilters ? 'border-b border-[#EAEAEA]' : ''}`}>
+          <div className="flex flex-wrap items-end gap-3.5">
             {/* From Date */}
-            <div className="flex flex-col gap-1">
-              <label className="text-[12px] font-medium text-gray-500">From Date</label>
-              <div className="relative">
-                <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)}
-                  className="w-[150px] h-[40px] border border-gray-300 rounded-md pl-3 pr-10 text-sm text-gray-700 bg-white focus:outline-none focus:border-purple-500 z-10" />
-                <Calendar size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none z-0" />
-              </div>
+            <div className="rf-form-field !mb-0">
+              <label className="rf-field-label">From Date</label>
+              <input
+                type="date"
+                value={fromDate}
+                onChange={e => setFromDate(e.target.value)}
+                className="rf-input !w-[168px] !h-[40px] !rounded-[10px]"
+              />
             </div>
+
             {/* To Date */}
-            <div className="flex flex-col gap-1">
-              <label className="text-[12px] font-medium text-gray-500">To Date</label>
-              <div className="relative">
-                <input type="date" value={toDate} onChange={e => setToDate(e.target.value)}
-                  className="w-[150px] h-[40px] border border-gray-300 rounded-md pl-3 pr-10 text-sm text-gray-700 bg-white focus:outline-none focus:border-purple-500 z-10" />
-                <Calendar size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none z-0" />
-              </div>
+            <div className="rf-form-field !mb-0">
+              <label className="rf-field-label">To Date</label>
+              <input
+                type="date"
+                value={toDate}
+                onChange={e => setToDate(e.target.value)}
+                className="rf-input !w-[168px] !h-[40px] !rounded-[10px]"
+              />
             </div>
+
             {/* Store */}
-            <div className="flex flex-col gap-1">
-              <label className="text-[12px] font-medium text-gray-500">Store</label>
+            <div className="rf-form-field !mb-0 w-[190px]">
+              <label className="rf-field-label">Store</label>
               {canSelectStore ? (
                 <NativeSelect
                   value={selectedStore}
@@ -188,14 +195,20 @@ const SalesByInvoiceReport = () => {
                     : storeOptions}
                 />
               ) : (
-                <div className="h-[40px] flex items-center px-3 border border-gray-300 rounded-md text-sm text-gray-700 bg-gray-50 w-[170px]">
+                <div className="h-[40px] flex items-center px-3.5 border border-[#E5E5E5] rounded-[10px] text-[13px] text-[#525252] bg-[#F4F4F5] w-full">
                   {storeOptions.find(s => s.value === selectedStore)?.label || selectedStore}
                 </div>
               )}
             </div>
+
             {/* Fetch */}
-            <button onClick={fetchReport} disabled={loading}
-              className="h-[40px] px-7 bg-[#a855f7] hover:bg-[#9333ea] text-white text-sm font-semibold rounded-md transition-colors flex items-center gap-2 disabled:opacity-60">
+            <button
+              type="button"
+              data-no-confirm="true"
+              onClick={fetchReport}
+              disabled={loading}
+              className="rf-btn-primary !h-[40px] !px-6 !rounded-[10px] !bg-[#9D43D6] hover:!bg-[#8732BE] !text-[13px] !font-medium inline-flex items-center gap-2 disabled:opacity-60 cursor-pointer shadow-[0_2px_8px_rgba(157,67,214,0.24)]"
+            >
               {loading ? (
                 <><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
@@ -204,157 +217,238 @@ const SalesByInvoiceReport = () => {
               ) : 'Fetch Data'}
             </button>
           </div>
+
           {/* Filters toggle */}
-          <button onClick={() => setShowAdvancedFilters(v => !v)}
-            className="h-[38px] px-4 border border-gray-300 bg-gray-100 hover:bg-gray-200 text-gray-800 text-[13px] font-medium rounded-lg flex items-center gap-2 transition-colors shadow-sm">
-            Filters <SlidersHorizontal size={14} strokeWidth={2} />
+          <button
+            type="button"
+            data-no-confirm="true"
+            onClick={() => setShowAdvancedFilters(v => !v)}
+            className={`h-[40px] px-4 rounded-[10px] text-[13px] font-medium inline-flex items-center gap-2 transition-colors cursor-pointer ${
+              showAdvancedFilters
+                ? 'bg-white border border-[#9D43D6] text-[#1B1B1B] shadow-[0_0_0_2px_rgba(157,67,214,0.12)]'
+                : 'bg-[#EFEFF1] hover:bg-[#E4E4E7] text-[#1B1B1B] border border-transparent'
+            }`}
+          >
+            <span>Filters</span>
+            <SlidersHorizontal size={14} strokeWidth={2} />
           </button>
         </div>
 
         {/* ── Row 2: Advanced Filters (collapsible) ── */}
         {showAdvancedFilters && (
-          <div className="flex flex-wrap items-end gap-4 px-6 py-4 border-b border-gray-100 bg-gray-50">
+          <div className="flex flex-wrap items-end gap-3.5 px-6 md:px-8 pb-5 pt-1 border-b border-[#EAEAEA]">
             {/* Category */}
-            <div className="flex flex-col gap-1 w-[200px]">
-              <label className="text-[12px] font-medium text-gray-500">Category</label>
+            <div className="rf-form-field !mb-0 flex-1 min-w-[180px] max-w-[230px]">
+              <label className="rf-field-label">Category</label>
               <NativeSelect value={categoryFilter} onChange={setCategoryFilter} placeholder="All Categories" options={categoryOptions} />
             </div>
+
             {/* Size */}
-            <div className="flex flex-col gap-1 w-[170px]">
-              <label className="text-[12px] font-medium text-gray-500">Size</label>
+            <div className="rf-form-field !mb-0 flex-1 min-w-[160px] max-w-[210px]">
+              <label className="rf-field-label">Size</label>
               <NativeSelect value={sizeFilter} onChange={setSizeFilter} placeholder="All Size" options={sizeOptions} />
             </div>
+
             {/* Item SKU */}
-            <div className="flex flex-col gap-1 w-[200px]">
-              <label className="text-[12px] font-medium text-gray-500">Item SKU</label>
-              <div className="relative">
-                <input type="text" value={skuSearch} onChange={e => setSkuSearch(e.target.value)} placeholder="Search by SKU"
-                  className="w-full h-[40px] border border-gray-300 rounded-md pl-3 pr-9 text-sm text-gray-700 bg-white focus:outline-none focus:border-purple-500" />
-                <ChevronDown size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
-              </div>
+            <div className="rf-form-field !mb-0 flex-1 min-w-[190px] max-w-[240px]">
+              <label className="rf-field-label">Item SKU</label>
+              <input
+                type="text"
+                value={skuSearch}
+                onChange={e => setSkuSearch(e.target.value)}
+                placeholder="Search by SKU"
+                className="rf-input !w-full !h-[40px] !rounded-[10px]"
+              />
             </div>
+
             {/* Customer */}
-            <div className="flex flex-col gap-1 w-[220px]">
-              <label className="text-[12px] font-medium text-gray-500">Customer</label>
-              <div className="relative">
-                <input type="text" value={customerSearch} onChange={e => setCustomerSearch(e.target.value)} placeholder="Search Customer"
-                  className="w-full h-[40px] border border-gray-300 rounded-md pl-3 pr-9 text-sm text-gray-700 bg-white focus:outline-none focus:border-purple-500" />
-                <ChevronDown size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
-              </div>
+            <div className="rf-form-field !mb-0 flex-1 min-w-[190px] max-w-[240px]">
+              <label className="rf-field-label">Customer</label>
+              <input
+                type="text"
+                value={customerSearch}
+                onChange={e => setCustomerSearch(e.target.value)}
+                placeholder="Search Customer"
+                className="rf-input !w-full !h-[40px] !rounded-[10px]"
+              />
             </div>
-            {/* Clear */}
-            {hasActiveFilters && (
-              <button onClick={clearFilters}
-                className="h-[38px] px-5 border border-purple-500 text-purple-600 text-[13px] font-medium rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors flex items-center">
-                Clear all Filters
-              </button>
-            )}
+
+            {/* Clear all Filters */}
+            <button
+              type="button"
+              data-no-confirm="true"
+              onClick={clearFilters}
+              disabled={!hasActiveFilters}
+              className="h-[40px] px-5 rounded-[10px] border border-[#9D43D6] text-[#9D43D6] text-[13px] font-medium bg-white hover:bg-[#FAF5FF] transition-colors inline-flex items-center cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Clear all Filters
+            </button>
           </div>
         )}
 
         {/* ── Body ── */}
-        <div className="px-6 py-5">
+        <div className="px-6 md:px-8 py-5">
           {reportData ? (
             <>
-              {/* Summary + Export row */}
-              <div className="flex items-end justify-between mb-5">
-                <div className="flex items-center gap-10">
-                  <div>
-                    <div className="text-[11px] font-semibold tracking-widest text-gray-400 uppercase mb-1">Total Invoices</div>
-                    <div className="text-2xl font-bold text-gray-900">{fmt(reportData.summary?.totalInvoices)}</div>
+              {/* Summary Stats + Export CSV Row */}
+              <div className="flex flex-wrap items-end justify-between gap-4 mb-5">
+                <div className="flex flex-wrap items-center divide-x divide-[#EAEAEA]">
+                  <div className="pr-8 md:pr-12">
+                    <div className="text-[11px] font-semibold tracking-[0.06em] text-[#7A7A7A] uppercase mb-1">
+                      TOTAL INVOICES
+                    </div>
+                    <div className="text-[22px] font-bold text-[#1B1B1B] tabular-nums">
+                      {fmt(reportData.summary?.totalInvoices)}
+                    </div>
                   </div>
-                  <div>
-                    <div className="text-[11px] font-semibold tracking-widest text-gray-400 uppercase mb-1">Total Sales</div>
-                    <div className="text-2xl font-bold text-gray-900">{fmt(reportData.summary?.totalSales)}</div>
+                  <div className="px-8 md:px-12">
+                    <div className="text-[11px] font-semibold tracking-[0.06em] text-[#7A7A7A] uppercase mb-1">
+                      TOTAL SALES
+                    </div>
+                    <div className="text-[22px] font-bold text-[#1B1B1B] tabular-nums">
+                      {fmtRs(reportData.summary?.totalSales)}
+                    </div>
                   </div>
-                  <div>
-                    <div className="text-[11px] font-semibold tracking-widest text-gray-400 uppercase mb-1">Total Items</div>
-                    <div className="text-2xl font-bold text-gray-900">{fmt(reportData.summary?.totalItems)}</div>
+                  <div className="px-8 md:px-12">
+                    <div className="text-[11px] font-semibold tracking-[0.06em] text-[#7A7A7A] uppercase mb-1">
+                      TOTAL ITEMS
+                    </div>
+                    <div className="text-[22px] font-bold text-[#1B1B1B] tabular-nums">
+                      {fmt(reportData.summary?.totalItems)}
+                    </div>
                   </div>
-                  <div>
-                    <div className="text-[11px] font-semibold tracking-widest text-gray-400 uppercase mb-1">Avg Invoice Value</div>
-                    <div className="text-2xl font-bold text-gray-900">{fmt(reportData.summary?.avgInvoiceValue)}</div>
+                  <div className="pl-8 md:pl-12 pr-4">
+                    <div className="text-[11px] font-semibold tracking-[0.06em] text-[#7A7A7A] uppercase mb-1">
+                      AVG INVOICE VALUE
+                    </div>
+                    <div className="text-[22px] font-bold text-[#1B1B1B] tabular-nums">
+                      {fmtRs(Math.round(reportData.summary?.avgInvoiceValue || 0))}
+                    </div>
                   </div>
                   {reportData.summary?.returnedCount > 0 && (
-                    <div>
-                      <div className="text-[11px] font-semibold tracking-widest text-red-400 uppercase mb-1">Returns (Excluded)</div>
-                      <div className="text-2xl font-bold text-red-500">{fmt(reportData.summary?.returnedCount)}</div>
+                    <div className="pl-8 md:pl-12">
+                      <div className="text-[11px] font-semibold tracking-[0.06em] text-[#EF4444] uppercase mb-1">
+                        RETURNS (EXCLUDED)
+                      </div>
+                      <div className="text-[22px] font-bold text-[#EF4444] tabular-nums">
+                        {fmt(reportData.summary?.returnedCount)}
+                      </div>
                     </div>
                   )}
                 </div>
+
                 {csvData.length > 0 && (
-                  <CSVLink data={csvData} filename={`sales-by-invoice-${fromDate}-to-${toDate}.csv`}
-                    className="h-[40px] px-5 border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-md transition-colors flex items-center gap-2 no-underline">
-                    Export CSV <Download size={15} />
+                  <CSVLink
+                    data={csvData}
+                    filename={`sales-by-invoice-${fromDate}-to-${toDate}.csv`}
+                    className="rf-btn-cancel !h-[40px] !px-5 !rounded-[10px] !bg-[#EFEFF1] hover:!bg-[#E4E4E7] !text-[#1B1B1B] !text-[13px] !font-medium !border-0 inline-flex items-center gap-2 transition-colors no-underline cursor-pointer"
+                  >
+                    <span>Export CSV</span>
+                    <Download size={15} />
                   </CSVLink>
                 )}
               </div>
 
               {/* Table */}
-              <div className="border border-gray-200 overflow-x-auto">
-                <table className="w-full text-sm min-w-max">
-                  <thead>
-                    <tr className="bg-[#1a1f2e]">
-                      <th className="px-4 py-3 text-left text-[11px] font-semibold tracking-widest text-white uppercase whitespace-nowrap">Date</th>
-                      <th className="px-4 py-3 text-left text-[11px] font-semibold tracking-widest text-white uppercase whitespace-nowrap">Invoice No.</th>
-                      <th className="px-4 py-3 text-left text-[11px] font-semibold tracking-widest text-white uppercase whitespace-nowrap">Customer Name</th>
-                      <th className="px-4 py-3 text-left text-[11px] font-semibold tracking-widest text-white uppercase whitespace-nowrap">SKU</th>
-                      <th className="px-4 py-3 text-left text-[11px] font-semibold tracking-widest text-white uppercase whitespace-nowrap">Category</th>
-                      <th className="px-4 py-3 text-left text-[11px] font-semibold tracking-widest text-white uppercase whitespace-nowrap">Items</th>
-                      <th className="px-4 py-3 text-left text-[11px] font-semibold tracking-widest text-white uppercase whitespace-nowrap">Amount</th>
-                      <th className="px-4 py-3 text-left text-[11px] font-semibold tracking-widest text-white uppercase whitespace-nowrap">Discount</th>
-                      <th className="px-4 py-3 text-left text-[11px] font-semibold tracking-widest text-white uppercase whitespace-nowrap">Net Amount</th>
-                      <th className="px-4 py-3 text-left text-[11px] font-semibold tracking-widest text-white uppercase whitespace-nowrap">Payment</th>
-                      <th className="px-4 py-3 text-left text-[11px] font-semibold tracking-widest text-white uppercase whitespace-nowrap">Branch</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {reportData.invoices?.length > 0 ? reportData.invoices.map((inv, idx) => {
-                      const isReturned = inv.itemCount === 0;
-                      return (
-                        <tr key={idx} className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${isReturned ? 'bg-red-50' : 'bg-white'}`}>
-                          <td className="px-4 py-3 text-gray-700 whitespace-nowrap">{inv.date}</td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <span className={`font-medium ${isReturned ? 'text-red-500' : 'text-gray-700'}`}>{inv.invoiceNumber}</span>
-                            {isReturned && <span className="ml-2 px-1.5 py-0.5 bg-red-500 text-white text-[9px] font-bold rounded">RETURNED</span>}
-                          </td>
-                          <td className="px-4 py-3 text-gray-700 whitespace-nowrap">{inv.customer}</td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <span className="text-purple-500 font-mono text-xs">{inv.skus || "N/A"}</span>
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <span className="px-2.5 py-0.5 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">{inv.category}</span>
-                          </td>
-                          <td className="px-4 py-3 text-gray-700 whitespace-nowrap font-medium">{inv.itemCount}</td>
-                          <td className="px-4 py-3 text-gray-700 whitespace-nowrap">₹{fmt(inv.totalAmount)}</td>
-                          <td className="px-4 py-3 text-gray-700 whitespace-nowrap">₹{fmt(inv.discount)}</td>
-                          <td className="px-4 py-3 font-semibold text-green-600 whitespace-nowrap">₹{fmt(inv.netAmount)}</td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <span className={`px-2.5 py-0.5 text-xs font-medium rounded-full ${paymentBadgeStyle(inv.paymentMethod)}`}>
-                              {inv.paymentMethod}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-gray-700 whitespace-nowrap">{inv.branch}</td>
-                        </tr>
-                      );
-                    }) : (
-                      <tr>
-                        <td colSpan="11" className="px-4 py-14 text-center text-gray-400 text-sm">No invoices found for the selected criteria</td>
+              <div className="bg-white rounded-[10px] border border-[#EAEAEA] overflow-hidden shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-[13px] min-w-max border-collapse">
+                    <thead>
+                      <tr className="bg-[#1B1B1B] text-white text-[11px] font-semibold uppercase tracking-[0.04em]">
+                        <th className="px-4 py-3.5 text-left whitespace-nowrap">DATE</th>
+                        <th className="px-4 py-3.5 text-left whitespace-nowrap">INVOICE NO.</th>
+                        <th className="px-4 py-3.5 text-left whitespace-nowrap">CUSTOMER NAME</th>
+                        <th className="px-4 py-3.5 text-center whitespace-nowrap">SKU</th>
+                        <th className="px-4 py-3.5 text-center whitespace-nowrap">CATEGORY</th>
+                        <th className="px-4 py-3.5 text-center whitespace-nowrap">ITEMS</th>
+                        <th className="px-4 py-3.5 text-center whitespace-nowrap">AMOUNT</th>
+                        <th className="px-4 py-3.5 text-center whitespace-nowrap">DISCOUNT</th>
+                        <th className="px-4 py-3.5 text-center whitespace-nowrap">NET AMOUNT</th>
+                        <th className="px-4 py-3.5 text-center whitespace-nowrap">PAYMENT</th>
+                        <th className="px-4 py-3.5 text-center whitespace-nowrap">BRANCH</th>
                       </tr>
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-[#F0F0F0]">
+                      {reportData.invoices?.length > 0 ? reportData.invoices.map((inv, idx) => {
+                        const isReturned = inv.itemCount === 0;
+                        return (
+                          <tr
+                            key={idx}
+                            className={`transition-colors ${
+                              isReturned
+                                ? 'bg-[#FEF2F2] hover:bg-[#FEE2E2]/60'
+                                : 'bg-white hover:bg-[#FAF5FF]/60'
+                            }`}
+                          >
+                            <td className="px-4 py-3.5 border-r border-[#F5F5F5] text-[#212121] whitespace-nowrap">
+                              {inv.date}
+                            </td>
+                            <td className="px-4 py-3.5 border-r border-[#F5F5F5] whitespace-nowrap">
+                              <span className={`font-medium ${isReturned ? 'text-[#EF4444]' : 'text-[#212121]'}`}>
+                                {inv.invoiceNumber}
+                              </span>
+                              {isReturned && (
+                                <span className="ml-2 px-1.5 py-0.5 bg-[#EF4444] text-white text-[9px] font-bold rounded">
+                                  RETURNED
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-4 py-3.5 border-r border-[#F5F5F5] text-[#3F3F46] whitespace-nowrap">
+                              {inv.customer}
+                            </td>
+                            <td className="px-4 py-3.5 border-r border-[#F5F5F5] text-center whitespace-nowrap">
+                              <span className="text-[#9D43D6] font-medium text-[12.5px]">
+                                {inv.skus || "N/A"}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3.5 border-r border-[#F5F5F5] text-center whitespace-nowrap">
+                              <span className="inline-block min-w-[82px] px-3.5 py-1 bg-[#F3E8FF] text-[#9D43D6] text-[12px] font-medium rounded-[8px] text-center">
+                                {inv.category}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3.5 border-r border-[#F5F5F5] text-center text-[#3F3F46] whitespace-nowrap font-medium tabular-nums">
+                              {inv.itemCount}
+                            </td>
+                            <td className="px-4 py-3.5 border-r border-[#F5F5F5] text-center text-[#212121] whitespace-nowrap tabular-nums">
+                              ₹{fmt(inv.totalAmount)}
+                            </td>
+                            <td className="px-4 py-3.5 border-r border-[#F5F5F5] text-center text-[#3F3F46] whitespace-nowrap tabular-nums">
+                              ₹{fmt(inv.discount)}
+                            </td>
+                            <td className="px-4 py-3.5 border-r border-[#F5F5F5] text-center font-semibold text-[#16A34A] whitespace-nowrap tabular-nums">
+                              ₹{fmt(inv.netAmount)}
+                            </td>
+                            <td className="px-4 py-3.5 border-r border-[#F5F5F5] text-center whitespace-nowrap">
+                              <span className={`inline-block min-w-[78px] px-3.5 py-1 text-[12px] font-medium rounded-[8px] text-center ${paymentBadgeStyle(inv.paymentMethod)}`}>
+                                {inv.paymentMethod}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3.5 text-center text-[#3F3F46] whitespace-nowrap">
+                              {inv.branch}
+                            </td>
+                          </tr>
+                        );
+                      }) : (
+                        <tr>
+                          <td colSpan="11" className="px-4 py-14 text-center text-[#8A8A8A] text-[13px]">
+                            No invoices found for the selected criteria
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </>
           ) : (
-            <div className="flex flex-col items-center justify-center py-24 text-gray-400">
+            <div className="bg-white rounded-[12px] border border-[#EAEAEA] flex flex-col items-center justify-center py-24 text-[#8A8A8A]">
               {loading ? (
-                <><svg className="animate-spin h-8 w-8 text-purple-400 mb-3" viewBox="0 0 24 24" fill="none">
+                <><svg className="animate-spin h-7 w-7 text-[#9D43D6] mb-3" viewBox="0 0 24 24" fill="none">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-                </svg><span className="text-sm">Loading report...</span></>
+                </svg><span className="text-[13px] font-medium">Loading report...</span></>
               ) : (
-                <><span className="text-4xl mb-3">📊</span><span className="text-sm">Select a date range and click Fetch Data</span></>
+                <span className="text-[13px] font-medium">Select a date range and click Fetch Data</span>
               )}
             </div>
           )}

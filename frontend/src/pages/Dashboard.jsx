@@ -656,7 +656,7 @@ const Dashboard = () => {
           isSidebarOpen ? "ml-[240px]" : "ml-0"
         }`}
       >
-        <div className="p-5 md:p-6 max-w-[1600px] mx-auto">
+        <div className="px-6 md:px-8 py-6 max-w-[1600px] mx-auto">
           {error && (
             <div className="mb-4 rounded-[12px] border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 text-[13px] text-[#DC2626] flex items-center justify-between">
               <span>{error}</span>

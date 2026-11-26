@@ -1018,7 +1018,13 @@ const TransferOrderView = () => {
       return;
     }
     
-    if (!confirm("Are you sure you want to receive this transfer order? This will update the stock in your warehouse.")) {
+    const confirmed = await window.rfConfirm({
+      title: "Receive Transfer Order?",
+      description: "Are you sure you want to receive this transfer order? This will update the stock in your warehouse.",
+      confirmLabel: "Receive Order",
+      variant: "primary",
+    });
+    if (!confirmed) {
       return;
     }
     

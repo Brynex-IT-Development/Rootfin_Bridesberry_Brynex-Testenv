@@ -4,7 +4,8 @@ import Select from "react-select";
 import baseUrl from '../api/api.js';
 import { CSVLink } from 'react-csv';
 import { Helmet } from "react-helmet";
-import { FiDownload, FiSearch, FiChevronDown, FiChevronUp } from "react-icons/fi";
+import { FiDownload, FiPrinter } from "react-icons/fi";
+import { Loader2 } from "lucide-react";
 import useSidebar from '../hooks/useSidebar.js';
 import { fetchActiveStores } from '../utils/storeService.js';
 
@@ -207,1347 +208,576 @@ const SalesReport = () => {
     setCsvData(csv);
   };
 
+  const formatMoney = (val) =>
+    `₹${(Number(val) || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+  const handlePrint = () => {
+    if (!reportData) {
+      alert("No data available to print.");
+      return;
+    }
+    window.print();
+  };
+
   return (
     <>
       <Helmet>
-        <title>Sales Report</title>
+        <title>Sales Report | RootFin</title>
       </Helmet>
-      <Headers />
-      <div className={`transition-all duration-300 p-3 sm:p-6 bg-white min-h-screen ${isSidebarOpen ? 'ml-[240px] ml-0' : 'ml-0'}`}>
-        {/* Page Header */}
-        <div style={{ 
-          marginBottom: "32px",
-          paddingBottom: "16px",
-          borderBottom: "2px solid #e9ecef"
-        }}>
-          <h1 style={{ 
-            margin: 0,
-            fontSize: "28px",
-            fontWeight: "600",
-            color: "#2c3e50",
-            letterSpacing: "-0.5px"
-          }}>Sales Report</h1>
-          <p style={{ 
-            margin: "8px 0 0 0",
-            color: "#6c757d",
-            fontSize: "14px"
-          }}>Generate comprehensive sales analytics and insights</p>
+      <div className="no-print">
+        <Headers title="Sales Report" />
+      </div>
+
+      <div
+        className={`invoice-page-wrapper transition-all duration-300 bg-[#FAFAFA] min-h-screen text-[#1B1B1B] ${
+          isSidebarOpen ? "ml-[240px]" : "ml-0"
+        }`}
+      >
+        {/* Clean Page Title Header */}
+        <div className="no-print bg-white px-6 md:px-8 py-4 border-b border-[#E5E5E5] flex items-center justify-between">
+          <h1 className="text-[18px] font-semibold text-[#1B1B1B]">Sales Report</h1>
         </div>
 
-        {/* Main Filters Card */}
-        <div style={{ 
-          backgroundColor: "white",
-          borderRadius: "12px",
-          padding: "24px",
-          marginBottom: "24px",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-          border: "1px solid #e9ecef",
-          transition: "box-shadow 0.3s ease"
-        }}>
-          <h3 style={{ 
-            margin: "0 0 20px 0",
-            fontSize: "16px",
-            fontWeight: "600",
-            color: "#495057"
-          }}>Filter Options</h3>
-          
-          <div style={{ 
-            display: "grid", 
-            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", 
-            gap: "20px"
-          }}>
-            <div style={{ position: "relative" }}>
-              <label style={{ 
-                display: "block", 
-                marginBottom: "8px", 
-                fontWeight: "500",
-                color: "#495057",
-                fontSize: "14px"
-              }}>From Date</label>
-              <input
-                type="date"
-                value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
-                style={{ 
-                  width: "100%", 
-                  padding: "12px 16px", 
-                  borderRadius: "8px", 
-                  border: "1px solid #dee2e6",
-                  fontSize: "14px",
-                  transition: "border-color 0.2s ease, box-shadow 0.2s ease",
-                  outline: "none"
-                }}
-                onFocus={(e) => e.target.style.borderColor = "#a855f7"}
-                onBlur={(e) => e.target.style.borderColor = "#dee2e6"}
-              />
-            </div>
-            
-            <div style={{ position: "relative" }}>
-              <label style={{ 
-                display: "block", 
-                marginBottom: "8px", 
-                fontWeight: "500",
-                color: "#495057",
-                fontSize: "14px"
-              }}>To Date</label>
-              <input
-                type="date"
-                value={toDate}
-                onChange={(e) => setToDate(e.target.value)}
-                style={{ 
-                  width: "100%", 
-                  padding: "12px 16px", 
-                  borderRadius: "8px", 
-                  border: "1px solid #dee2e6",
-                  fontSize: "14px",
-                  transition: "border-color 0.2s ease, box-shadow 0.2s ease",
-                  outline: "none"
-                }}
-                onFocus={(e) => e.target.style.borderColor = "#a855f7"}
-                onBlur={(e) => e.target.style.borderColor = "#dee2e6"}
-              />
-            </div>
-            
-            {canSelectStore ? (
-              <div>
-                <label style={{ 
-                  display: "block", 
-                  marginBottom: "8px", 
-                  fontWeight: "500",
-                  color: "#495057",
-                  fontSize: "14px"
-                }}>Store</label>
-                <Select classNamePrefix="rf-select"
-                  options={isClusterManager
-                    ? [{ value: "all", label: "All My Stores" }, ...storeOptions.filter(s => clusterAllowedLocCodes.includes(s.value))]
-                    : storeOptions
-                  }
-                  value={storeOptions.find(s => s.value === selectedStore) || { value: selectedStore, label: selectedStore }}
-                  onChange={(opt) => {
-                    setSelectedStore(opt.value);
-                  }}
-                  isSearchable
-                  placeholder="Select Store..."
+        <div className="px-6 md:px-8 pt-6 pb-10 space-y-5">
+          {/* Top Filter & Action Bar */}
+          <div className="no-print flex flex-wrap items-end justify-between gap-4">
+            <div className="flex flex-wrap items-end gap-3">
+              {/* From Date */}
+              <div className="rf-form-field !mb-0">
+                <label className="rf-field-label">From Date</label>
+                <input
+                  type="date"
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                  className="rf-input !w-[168px] !h-[40px] !rounded-[10px]"
+                />
+              </div>
+
+              {/* To Date */}
+              <div className="rf-form-field !mb-0">
+                <label className="rf-field-label">To Date</label>
+                <input
+                  type="date"
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                  className="rf-input !w-[168px] !h-[40px] !rounded-[10px]"
+                />
+              </div>
+
+              {/* Store */}
+              <div className="rf-form-field !mb-0 w-[195px]">
+                <label className="rf-field-label">Store</label>
+                {canSelectStore ? (
+                  <Select
+                    classNamePrefix="rf-select"
+                    options={
+                      isClusterManager
+                        ? [
+                            { value: "all", label: "All My Stores" },
+                            ...storeOptions.filter((s) => clusterAllowedLocCodes.includes(s.value)),
+                          ]
+                        : storeOptions
+                    }
+                    value={
+                      storeOptions.find((s) => s.value === selectedStore) || {
+                        value: selectedStore,
+                        label: selectedStore,
+                      }
+                    }
+                    onChange={(opt) => setSelectedStore(opt.value)}
+                    isSearchable
+                    placeholder="Select Store..."
+                    styles={appSelectStyles}
+                  />
+                ) : (
+                  <div className="h-[40px] flex items-center px-3.5 border border-[#E5E5E5] rounded-[10px] text-[13px] text-[#525252] bg-[#F4F4F5]">
+                    {storeOptions.find((s) => s.value === selectedStore)?.label || selectedStore}
+                  </div>
+                )}
+              </div>
+
+              {/* Report Type */}
+              <div className="rf-form-field !mb-0 w-[180px]">
+                <label className="rf-field-label">Report Type</label>
+                <Select
+                  classNamePrefix="rf-select"
+                  options={reportTypeOptions}
+                  value={reportTypeOptions.find((r) => r.value === reportType)}
+                  onChange={(opt) => setReportType(opt.value)}
                   styles={appSelectStyles}
                 />
               </div>
-            ) : (
-              <div>
-                <label style={{ 
-                  display: "block", 
-                  marginBottom: "8px", 
-                  fontWeight: "500",
-                  color: "#495057",
-                  fontSize: "14px"
-                }}>Store</label>
-                <div style={{ 
-                  padding: "12px 16px", 
-                  borderRadius: "8px", 
-                  border: "1px solid #dee2e6", 
-                  backgroundColor: "#1a1f2e",
-                  color: "#6c757d",
-                  fontSize: "14px"
-                }}>
-                  {storeOptions.find(s => s.value === selectedStore)?.label || selectedStore}
-                </div>
-              </div>
-            )}
-            
-            <div>
-              <label style={{ 
-                display: "block", 
-                marginBottom: "8px", 
-                fontWeight: "500",
-                color: "#495057",
-                fontSize: "14px"
-              }}>Report Type</label>
-              <Select classNamePrefix="rf-select"
-                options={reportTypeOptions}
-                value={reportTypeOptions.find(r => r.value === reportType)}
-                onChange={(opt) => setReportType(opt.value)}
-                styles={appSelectStyles}
-              />
+
+              {/* Fetch Data Button */}
+              <button
+                type="button"
+                data-no-confirm="true"
+                onClick={fetchReport}
+                disabled={loading}
+                className="rf-btn-primary !h-[40px] !px-6 !rounded-[10px] !bg-[#9D43D6] hover:!bg-[#8732BE] !text-[13px] !font-medium inline-flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer shadow-[0_2px_8px_rgba(157,67,214,0.24)]"
+              >
+                {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+                <span>{loading ? "Fetching..." : "Fetch Data"}</span>
+              </button>
+            </div>
+
+            {/* Right Action Buttons: Export CSV & Print PDF */}
+            <div className="flex items-center gap-2.5">
+              {csvData.length > 0 ? (
+                <CSVLink
+                  data={csvData}
+                  filename={`sales-report-${fromDate}-to-${toDate}.csv`}
+                  className="rf-btn-cancel !h-[40px] !px-5 !rounded-[10px] !bg-[#EFEFF1] hover:!bg-[#E4E4E7] !text-[#1B1B1B] !text-[13px] !font-medium !border-0 inline-flex items-center gap-2 transition-colors no-underline cursor-pointer"
+                >
+                  <span>Export CSV</span>
+                  <FiDownload className="w-4 h-4 text-[#1B1B1B]" />
+                </CSVLink>
+              ) : (
+                <button
+                  type="button"
+                  disabled
+                  className="rf-btn-cancel !h-[40px] !px-5 !rounded-[10px] !bg-[#EFEFF1] !text-[#8A8A8A] !text-[13px] !font-medium !border-0 inline-flex items-center gap-2 cursor-not-allowed opacity-70"
+                >
+                  <span>Export CSV</span>
+                  <FiDownload className="w-4 h-4 text-[#8A8A8A]" />
+                </button>
+              )}
+
+              <button
+                type="button"
+                data-no-confirm="true"
+                onClick={handlePrint}
+                disabled={!reportData}
+                className="rf-btn-cancel !h-[40px] !px-5 !rounded-[10px] !bg-[#EFEFF1] hover:!bg-[#E4E4E7] !text-[#1B1B1B] !text-[13px] !font-medium !border-0 inline-flex items-center gap-2 transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+              >
+                <span>Print PDF</span>
+                <FiPrinter className="w-4 h-4 text-[#1B1B1B]" />
+              </button>
             </div>
           </div>
-        </div>
 
-        {/* Action Buttons */}
-        <div style={{ 
-          display: "flex", 
-          gap: "12px", 
-          marginBottom: "32px",
-          alignItems: "center"
-        }}>
-          <button
-            onClick={fetchReport}
-            disabled={loading}
-            style={{
-              padding: "12px 24px",
-              backgroundColor: "#a855f7",
-              color: "white",
-              border: "none",
-              borderRadius: "8px",
-              cursor: loading ? "not-allowed" : "pointer",
-              opacity: loading ? 0.6 : 1,
-              fontSize: "14px",
-              fontWeight: "500",
-              transition: "all 0.2s ease",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              boxShadow: "0 2px 4px rgba(168,85,247,0.2)"
-            }}
-            onMouseEnter={(e) => {
-              if (!loading) {
-                e.target.style.backgroundColor = "#9333ea";
-                e.target.style.transform = "translateY(-1px)";
-                e.target.style.boxShadow = "0 4px 8px rgba(168,85,247,0.3)";
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!loading) {
-                e.target.style.backgroundColor = "#a855f7";
-                e.target.style.transform = "translateY(0)";
-                e.target.style.boxShadow = "0 2px 4px rgba(168,85,247,0.2)";
-              }
-            }}
-          >
-            <FiSearch />
-            {loading ? "Generating..." : "Generate Report"}
-          </button>
-          
-          {csvData.length > 0 && (
-            <CSVLink
-              data={csvData}
-              filename={`sales-report-${fromDate}-to-${toDate}.csv`}
-              style={{
-                padding: "12px 24px",
-                backgroundColor: "#a855f7",
-                color: "white",
-                border: "none",
-                borderRadius: "8px",
-                cursor: "pointer",
-                textDecoration: "none",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                fontSize: "14px",
-                fontWeight: "500",
-                transition: "all 0.2s ease",
-                boxShadow: "0 2px 4px rgba(168,85,247,0.2)"
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.backgroundColor = "#9333ea";
-                e.target.style.transform = "translateY(-1px)";
-                e.target.style.boxShadow = "0 4px 8px rgba(168,85,247,0.3)";
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.backgroundColor = "#a855f7";
-                e.target.style.transform = "translateY(0)";
-                e.target.style.boxShadow = "0 2px 4px rgba(168,85,247,0.2)";
-              }}
-            >
-              <FiDownload /> Export CSV
-            </CSVLink>
-          )}
-        </div>
-
-        {/* Report Display */}
-        {reportData && (
-          <div style={{ 
-            backgroundColor: "white",
-            borderRadius: "12px",
-            padding: "32px",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-            border: "1px solid #e9ecef",
-            animation: "fadeIn 0.5s ease-in-out"
-          }}>
-            {reportType === "summary" && (
-              <>
-                <div style={{ 
-                  marginBottom: "32px",
-                  paddingBottom: "20px",
-                  borderBottom: "2px solid #f8f9fa"
-                }}>
-                  <h2 style={{ 
-                    margin: "0 0 8px 0",
-                    fontSize: "24px",
-                    fontWeight: "600",
-                    color: "#2c3e50"
-                  }}>Sales Summary</h2>
-                  <p style={{ 
-                    margin: 0,
-                    color: "#6c757d",
-                    fontSize: "14px"
-                  }}>Overview of sales performance for the selected period</p>
-                </div>
-
-                {/* Summary Cards */}
-                <div style={{ 
-                  display: "grid", 
-                  gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", 
-                  gap: "20px", 
-                  marginBottom: "40px"
-                }}>
-                  <div style={{ 
-                    backgroundColor: "#ffffff", 
-                    padding: "24px", 
-                    borderRadius: "12px", 
-                    border: "1px solid #e9ecef",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-                    transition: "transform 0.2s ease, box-shadow 0.2s ease",
-                    cursor: "default"
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                    e.currentTarget.style.boxShadow = "0 6px 20px rgba(0,0,0,0.12)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)";
-                  }}>
-                    <div style={{ 
-                      fontSize: "11px", 
-                      color: "#6c757d", 
-                      fontWeight: "600",
-                      marginBottom: "10px",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.8px"
-                    }}>Total Invoices</div>
-                    <div style={{ 
-                      fontSize: "32px", 
-                      fontWeight: "700",
-                      color: "#1a1f2e",
-                      lineHeight: "1"
-                    }}>{reportData.summary?.totalInvoices || 0}</div>
-                  </div>
-                  
-                  <div style={{ 
-                    backgroundColor: "#ffffff", 
-                    padding: "24px", 
-                    borderRadius: "12px", 
-                    border: "1px solid #e9ecef",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-                    transition: "transform 0.2s ease, box-shadow 0.2s ease",
-                    cursor: "default"
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                    e.currentTarget.style.boxShadow = "0 6px 20px rgba(0,0,0,0.12)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)";
-                  }}>
-                    <div style={{ 
-                      fontSize: "11px", 
-                      color: "#6c757d", 
-                      fontWeight: "600",
-                      marginBottom: "10px",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.8px"
-                    }}>Total Sales</div>
-                    <div style={{ 
-                      fontSize: "32px", 
-                      fontWeight: "700",
-                      color: "#a855f7",
-                      lineHeight: "1"
-                    }}>₹{(reportData.summary?.totalSales || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
-                  </div>
-                  
-                  <div style={{ 
-                    backgroundColor: "#ffffff", 
-                    padding: "24px", 
-                    borderRadius: "12px", 
-                    border: "1px solid #e9ecef",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-                    transition: "transform 0.2s ease, box-shadow 0.2s ease",
-                    cursor: "default"
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                    e.currentTarget.style.boxShadow = "0 6px 20px rgba(0,0,0,0.12)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)";
-                  }}>
-                    <div style={{ 
-                      fontSize: "11px", 
-                      color: "#6c757d", 
-                      fontWeight: "600",
-                      marginBottom: "10px",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.8px"
-                    }}>Total Discount</div>
-                    <div style={{ 
-                      fontSize: "32px", 
-                      fontWeight: "700",
-                      color: "#dc3545",
-                      lineHeight: "1"
-                    }}>₹{(reportData.summary?.totalDiscount || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
-                  </div>
-                  
-                  <div style={{ 
-                    backgroundColor: "#ffffff", 
-                    padding: "24px", 
-                    borderRadius: "12px", 
-                    border: "1px solid #e9ecef",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-                    transition: "transform 0.2s ease, box-shadow 0.2s ease",
-                    cursor: "default"
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                    e.currentTarget.style.boxShadow = "0 6px 20px rgba(0,0,0,0.12)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)";
-                  }}>
-                    <div style={{ 
-                      fontSize: "11px", 
-                      color: "#6c757d", 
-                      fontWeight: "600",
-                      marginBottom: "10px",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.8px"
-                    }}>Net Sales</div>
-                    <div style={{ 
-                      fontSize: "32px", 
-                      fontWeight: "700",
-                      color: "#16a34a",
-                      lineHeight: "1"
-                    }}>₹{(reportData.summary?.netSales || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
-                  </div>
-                </div>
-
-                {/* Payment Breakdown - Collapsible */}
-                {/* COMMENTED OUT - UI hidden, logic preserved
-                <div style={{ marginBottom: "40px" }}>
-                  <div style={{ 
-                    display: "flex", 
-                    alignItems: "center", 
-                    justifyContent: "space-between",
-                    marginBottom: "20px"
-                  }}>
-                    <h3 style={{ 
-                      margin: 0,
-                      fontSize: "20px",
-                      fontWeight: "600",
-                      color: "#495057"
-                    }}>Payment Breakdown</h3>
-                    
-                    <button
-                      onClick={() => setShowPaymentBreakdown(!showPaymentBreakdown)}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                        padding: "8px 16px",
-                        backgroundColor: showPaymentBreakdown ? "#a855f7" : "#f8f9fa",
-                        color: showPaymentBreakdown ? "white" : "#495057",
-                        border: "1px solid #dee2e6",
-                        borderRadius: "8px",
-                        cursor: "pointer",
-                        fontSize: "14px",
-                        fontWeight: "500",
-                        transition: "all 0.3s ease",
-                        outline: "none"
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!showPaymentBreakdown) {
-                          e.target.style.backgroundColor = "#e9ecef";
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!showPaymentBreakdown) {
-                          e.target.style.backgroundColor = "#f8f9fa";
-                        }
-                      }}
-                    >
-                      {showPaymentBreakdown ? "Hide Details" : "Show Details"}
-                      {showPaymentBreakdown ? <FiChevronUp /> : <FiChevronDown />}
-                    </button>
-                  </div>
-                  
-                  {showPaymentBreakdown && (
-                    <div 
-                      className="payment-breakdown-enter"
-                      style={{ 
-                        overflow: "hidden",
-                        transition: "all 0.4s ease-out"
-                      }}
-                    >
-                      <div style={{ 
-                        display: "grid", 
-                        gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", 
-                        gap: "16px"
-                      }}>
-                        {[
-                          { label: "Cash", value: reportData.summary?.paymentBreakdown?.cash || 0, color: "#a855f7" },
-                          { label: "Bank", value: reportData.summary?.paymentBreakdown?.bank || 0, color: "#a855f7" },
-                          { label: "UPI", value: reportData.summary?.paymentBreakdown?.upi || 0, color: "#6f42c1" },
-                          { label: "RBL", value: reportData.summary?.paymentBreakdown?.rbl || 0, color: "#fd7e14" }
-                        ].map((payment, idx) => (
-                          <div style={{ 
-                            backgroundColor: "#ffffff", 
-                            padding: "20px", 
-                            borderRadius: "10px",
-                            border: "1px solid #e9ecef",
-                            boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
-                            textAlign: "center",
-                            transition: "transform 0.2s ease",
-                            animation: `slideIn 0.5s ease-out ${idx * 0.1}s both`
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.02)"}
-                          onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
-                        >
-                            <div style={{ 
-                              fontSize: "12px", 
-                              color: "#6c757d", 
-                              fontWeight: "500",
-                              marginBottom: "8px",
-                              textTransform: "uppercase"
-                            }}>{payment.label}</div>
-                            <div style={{ 
-                              fontSize: "20px", 
-                              fontWeight: "700",
-                              color: payment.color
-                            }}>₹{(Number(payment.value) || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
-                          </div>
-                        ))}
+          {/* Report Display */}
+          {reportData ? (
+            <div className="space-y-6">
+              {reportType === "summary" && (
+                <>
+                  {/* Divided Summary Stats Row */}
+                  <div className="flex flex-wrap items-end justify-between gap-4 pt-1 pb-2 border-b border-[#EAEAEA]">
+                    <div className="flex flex-wrap items-center divide-x divide-[#EAEAEA]">
+                      <div className="pr-8 md:pr-12">
+                        <div className="text-[11px] font-semibold tracking-[0.06em] text-[#7A7A7A] uppercase mb-1">
+                          TOTAL INVOICES
+                        </div>
+                        <div className="text-[22px] font-bold text-[#1B1B1B] tabular-nums">
+                          {(reportData.summary?.totalInvoices || 0).toLocaleString("en-IN")}
+                        </div>
+                      </div>
+                      <div className="px-8 md:px-12">
+                        <div className="text-[11px] font-semibold tracking-[0.06em] text-[#7A7A7A] uppercase mb-1">
+                          TOTAL SALES
+                        </div>
+                        <div className="text-[22px] font-bold text-[#1B1B1B] tabular-nums">
+                          {formatMoney(reportData.summary?.totalSales)}
+                        </div>
+                      </div>
+                      <div className="px-8 md:px-12">
+                        <div className="text-[11px] font-semibold tracking-[0.06em] text-[#7A7A7A] uppercase mb-1">
+                          TOTAL DISCOUNT
+                        </div>
+                        <div className="text-[22px] font-bold text-[#1B1B1B] tabular-nums">
+                          {formatMoney(reportData.summary?.totalDiscount)}
+                        </div>
+                      </div>
+                      <div className="pl-8 md:pl-12">
+                        <div className="text-[11px] font-semibold tracking-[0.06em] text-[#7A7A7A] uppercase mb-1">
+                          NET SALES
+                        </div>
+                        <div className="text-[22px] font-bold text-[#16A34A] tabular-nums">
+                          {formatMoney(reportData.summary?.netSales)}
+                        </div>
                       </div>
                     </div>
-                  )}
-                </div>
-                END COMMENT */}
+                  </div>
 
-                {/* Sales by Category */}
-                <div style={{ marginBottom: "40px" }}>
-                  <h3 style={{ 
-                    margin: "0 0 20px 0",
-                    fontSize: "20px",
-                    fontWeight: "600",
-                    color: "#495057"
-                  }}>Sales by Category</h3>
-                  <div style={{ 
-                    backgroundColor: "#1a1f2e",
-                    borderRadius: "10px",
-                    overflow: "hidden",
-                    border: "1px solid #e9ecef"
-                  }}>
-                    <table style={{ 
-                      width: "100%", 
-                      borderCollapse: "collapse",
-                      backgroundColor: "white"
-                    }}>
-                      <thead>
-                        <tr style={{ backgroundColor: "#1a1f2e" }}>
-                          <th style={{ 
-                            padding: "16px 20px", 
-                            textAlign: "left", 
-                            fontWeight: "600",
-                            color: "white",
-                            fontSize: "14px",
-                            borderBottom: "2px solid #dee2e6"
-                          }}>Category</th>
-                          <th style={{ 
-                            padding: "16px 20px", 
-                            textAlign: "right", 
-                            fontWeight: "600",
-                            color: "white",
-                            fontSize: "14px",
-                            borderBottom: "2px solid #dee2e6"
-                          }}>Count</th>
-                          <th style={{ 
-                            padding: "16px 20px", 
-                            textAlign: "right", 
-                            fontWeight: "600",
-                            color: "white",
-                            fontSize: "14px",
-                            borderBottom: "2px solid #dee2e6"
-                          }}>Amount</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {reportData.salesByCategory?.map((cat, idx) => (
-                          <tr key={idx} style={{ 
-                            borderBottom: "1px solid #f1f3f4",
-                            transition: "background-color 0.2s ease"
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#f8f9fa"}
-                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "white"}>
-                            <td style={{ 
-                              padding: "16px 20px",
-                              fontWeight: "500",
-                              color: "#495057"
-                            }}>{cat.category}</td>
-                            <td style={{ 
-                              padding: "16px 20px", 
-                              textAlign: "right",
-                              fontWeight: "600",
-                              color: "#6c757d"
-                            }}>{cat.count}</td>
-                            <td style={{ 
-                              padding: "16px 20px", 
-                              textAlign: "right",
-                              fontWeight: "600",
-                              color: "#a855f7"
-                            }}>₹{(Number(cat.amount) || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                  {/* Sales by Category Table */}
+                  <div>
+                    <h3 className="text-[14px] font-semibold text-[#1B1B1B] mb-2.5">
+                      Sales by Category
+                    </h3>
+                    <div className="bg-white rounded-[10px] border border-[#EAEAEA] overflow-hidden shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse text-[13px]">
+                          <thead>
+                            <tr className="bg-[#1B1B1B] text-white text-[11px] font-semibold uppercase tracking-[0.04em]">
+                              <th className="py-3.5 px-4 text-left">CATEGORY</th>
+                              <th className="py-3.5 px-4 text-center">COUNT</th>
+                              <th className="py-3.5 px-4 text-center w-[220px]">AMOUNT</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-[#F0F0F0] text-[#3F3F46]">
+                            {reportData.salesByCategory?.length > 0 ? (
+                              reportData.salesByCategory.map((cat, idx) => (
+                                <tr key={idx} className="hover:bg-[#FAF5FF]/60 transition-colors">
+                                  <td className="py-3.5 px-4 border-r border-[#F5F5F5] font-medium text-[#212121]">
+                                    {cat.category}
+                                  </td>
+                                  <td className="py-3.5 px-4 border-r border-[#F5F5F5] text-center tabular-nums">
+                                    {cat.count}
+                                  </td>
+                                  <td className="py-3.5 px-4 text-center font-medium text-[#212121] tabular-nums">
+                                    {formatMoney(cat.amount)}
+                                  </td>
+                                </tr>
+                              ))
+                            ) : (
+                              <tr>
+                                <td colSpan={3} className="py-10 text-center text-[#8A8A8A]">
+                                  No category records found.
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                          {reportData.salesByCategory?.length > 0 && (
+                            <tfoot>
+                              <tr className="bg-[#EAECEF] font-semibold text-[#1B1B1B] text-[13px] border-t border-[#E2E4E8]">
+                                <td className="py-3.5 px-4 border-r border-[#D8DADF]">Total</td>
+                                <td className="py-3.5 px-4 text-center border-r border-[#D8DADF] tabular-nums">
+                                  {reportData.salesByCategory.reduce((s, c) => s + (Number(c.count) || 0), 0)}
+                                </td>
+                                <td className="py-3.5 px-4 text-center font-bold tabular-nums">
+                                  {formatMoney(
+                                    reportData.salesByCategory.reduce((s, c) => s + (Number(c.amount) || 0), 0)
+                                  )}
+                                </td>
+                              </tr>
+                            </tfoot>
+                          )}
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Top Sales Persons Table */}
+                  <div>
+                    <h3 className="text-[14px] font-semibold text-[#1B1B1B] mb-2.5">
+                      Top Sales Persons
+                    </h3>
+                    <div className="bg-white rounded-[10px] border border-[#EAEAEA] overflow-hidden shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse text-[13px]">
+                          <thead>
+                            <tr className="bg-[#1B1B1B] text-white text-[11px] font-semibold uppercase tracking-[0.04em]">
+                              <th className="py-3.5 px-4 text-left">NAME</th>
+                              <th className="py-3.5 px-4 text-center">NUMBER OF SALES</th>
+                              <th className="py-3.5 px-4 text-left">STORE</th>
+                              <th className="py-3.5 px-4 text-center w-[220px]">SALES AMOUNT</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-[#F0F0F0] text-[#3F3F46]">
+                            {reportData.topSalesPersons?.length > 0 ? (
+                              reportData.topSalesPersons.map((person, idx) => (
+                                <tr key={idx} className="hover:bg-[#FAF5FF]/60 transition-colors">
+                                  <td className="py-3.5 px-4 border-r border-[#F5F5F5] font-medium text-[#212121]">
+                                    <div className="flex items-center gap-2.5">
+                                      <span className="w-7 h-7 rounded-full bg-[#F3E8FF] text-[#9D43D6] text-[12px] font-semibold inline-flex items-center justify-center shrink-0">
+                                        {(person.name || "?").charAt(0).toUpperCase()}
+                                      </span>
+                                      <span>{person.name}</span>
+                                    </div>
+                                  </td>
+                                  <td className="py-3.5 px-4 border-r border-[#F5F5F5] text-center">
+                                    <span className="inline-block min-w-[44px] px-3 py-0.5 rounded-[8px] bg-[#F3E8FF] text-[#9D43D6] text-[12px] font-semibold tabular-nums">
+                                      {person.count}
+                                    </span>
+                                  </td>
+                                  <td className="py-3.5 px-4 border-r border-[#F5F5F5] text-[#3F3F46]">
+                                    {person.store}
+                                  </td>
+                                  <td className="py-3.5 px-4 text-center font-semibold text-[#16A34A] tabular-nums">
+                                    {formatMoney(person.amount)}
+                                  </td>
+                                </tr>
+                              ))
+                            ) : (
+                              <tr>
+                                <td colSpan={4} className="py-10 text-center text-[#8A8A8A]">
+                                  No sales person records found.
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {reportType === "by-item" && (
+                <>
+                  {/* Divided Summary Stats Row */}
+                  <div className="flex flex-wrap items-end justify-between gap-4 pt-1 pb-2 border-b border-[#EAEAEA]">
+                    <div className="flex flex-wrap items-center divide-x divide-[#EAEAEA]">
+                      <div className="pr-8 md:pr-12">
+                        <div className="text-[11px] font-semibold tracking-[0.06em] text-[#7A7A7A] uppercase mb-1">
+                          TOTAL ITEMS
+                        </div>
+                        <div className="text-[22px] font-bold text-[#1B1B1B] tabular-nums">
+                          {(reportData.totalItems || 0).toLocaleString("en-IN")}
+                        </div>
+                      </div>
+                      <div className="px-8 md:px-12">
+                        <div className="text-[11px] font-semibold tracking-[0.06em] text-[#7A7A7A] uppercase mb-1">
+                          TOTAL QUANTITY
+                        </div>
+                        <div className="text-[22px] font-bold text-[#1B1B1B] tabular-nums">
+                          {(reportData.totalQuantity || 0).toLocaleString("en-IN")}
+                        </div>
+                      </div>
+                      <div className="pl-8 md:pl-12">
+                        <div className="text-[11px] font-semibold tracking-[0.06em] text-[#7A7A7A] uppercase mb-1">
+                          TOTAL AMOUNT
+                        </div>
+                        <div className="text-[22px] font-bold text-[#16A34A] tabular-nums">
+                          {formatMoney(reportData.totalAmount)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Item Details Table */}
+                  <div className="bg-white rounded-[10px] border border-[#EAEAEA] overflow-hidden shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse text-[13px] min-w-[820px]">
+                        <thead>
+                          <tr className="bg-[#1B1B1B] text-white text-[11px] font-semibold uppercase tracking-[0.04em]">
+                            <th className="py-3.5 px-4 text-left whitespace-nowrap">ITEM NAME</th>
+                            <th className="py-3.5 px-4 text-center whitespace-nowrap">SKU</th>
+                            <th className="py-3.5 px-4 text-center whitespace-nowrap">CATEGORY</th>
+                            <th className="py-3.5 px-4 text-center whitespace-nowrap">SIZE</th>
+                            <th className="py-3.5 px-4 text-center whitespace-nowrap">QUANTITY</th>
+                            <th className="py-3.5 px-4 text-center whitespace-nowrap">UNIT PRICE</th>
+                            <th className="py-3.5 px-4 text-center whitespace-nowrap">TOTAL AMOUNT</th>
+                            <th className="py-3.5 px-4 text-center whitespace-nowrap">INVOICES</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody className="divide-y divide-[#F0F0F0] text-[#3F3F46]">
+                          {reportData.items?.length > 0 ? (
+                            reportData.items.map((item, idx) => (
+                              <tr key={idx} className="hover:bg-[#FAF5FF]/60 transition-colors">
+                                <td className="py-3.5 px-4 border-r border-[#F5F5F5] font-medium text-[#212121] max-w-[220px] truncate">
+                                  {item.name}
+                                </td>
+                                <td className="py-3.5 px-4 border-r border-[#F5F5F5] text-center text-[#9D43D6] font-medium whitespace-nowrap">
+                                  {item.sku || "-"}
+                                </td>
+                                <td className="py-3.5 px-4 border-r border-[#F5F5F5] text-center whitespace-nowrap">
+                                  <span className="inline-block min-w-[78px] px-3 py-1 rounded-[8px] bg-[#F3E8FF] text-[#9D43D6] text-[12px] font-medium">
+                                    {item.category}
+                                  </span>
+                                </td>
+                                <td className="py-3.5 px-4 border-r border-[#F5F5F5] text-center whitespace-nowrap">
+                                  {item.size || "-"}
+                                </td>
+                                <td className="py-3.5 px-4 border-r border-[#F5F5F5] text-center font-medium text-[#212121] tabular-nums">
+                                  {item.quantity}
+                                </td>
+                                <td className="py-3.5 px-4 border-r border-[#F5F5F5] text-center tabular-nums">
+                                  {formatMoney(item.unitPrice)}
+                                </td>
+                                <td className="py-3.5 px-4 border-r border-[#F5F5F5] text-center font-semibold text-[#16A34A] tabular-nums">
+                                  {formatMoney(item.totalAmount)}
+                                </td>
+                                <td className="py-3.5 px-4 text-center tabular-nums font-medium">
+                                  {item.invoiceCount}
+                                </td>
+                              </tr>
+                            ))
+                          ) : (
+                            <tr>
+                              <td colSpan={8} className="py-12 text-center text-[#8A8A8A]">
+                                No item records found.
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                        {reportData.items?.length > 0 && (
+                          <tfoot>
+                            <tr className="bg-[#EAECEF] font-semibold text-[#1B1B1B] text-[13px] border-t border-[#E2E4E8]">
+                              <td colSpan={4} className="py-3.5 px-4 border-r border-[#D8DADF]">
+                                Total
+                              </td>
+                              <td className="py-3.5 px-4 text-center border-r border-[#D8DADF] tabular-nums">
+                                {(reportData.totalQuantity || 0).toLocaleString("en-IN")}
+                              </td>
+                              <td className="py-3.5 px-4 border-r border-[#D8DADF]" />
+                              <td className="py-3.5 px-4 text-center font-bold border-r border-[#D8DADF] tabular-nums">
+                                {formatMoney(reportData.totalAmount)}
+                              </td>
+                              <td className="py-3.5 px-4" />
+                            </tr>
+                          </tfoot>
+                        )}
+                      </table>
+                    </div>
                   </div>
-                </div>
+                </>
+              )}
 
-                {/* Top Sales Persons */}
-                <div style={{ marginBottom: "40px" }}>
-                  <h3 style={{ 
-                    margin: "0 0 20px 0",
-                    fontSize: "20px",
-                    fontWeight: "600",
-                    color: "#495057"
-                  }}>Top Sales Persons</h3>
-                  <div style={{ 
-                    backgroundColor: "#1a1f2e",
-                    borderRadius: "10px",
-                    overflow: "hidden",
-                    border: "1px solid #e9ecef"
-                  }}>
-                    <table style={{ 
-                      width: "100%", 
-                      borderCollapse: "collapse",
-                      backgroundColor: "white"
-                    }}>
-                      <thead>
-                        <tr style={{ backgroundColor: "#1a1f2e" }}>
-                          <th style={{ 
-                            padding: "16px 20px", 
-                            textAlign: "left", 
-                            fontWeight: "600",
-                            color: "white",
-                            fontSize: "14px",
-                            borderBottom: "2px solid #dee2e6"
-                          }}>Name</th>
-                          <th style={{ 
-                            padding: "16px 20px", 
-                            textAlign: "right", 
-                            fontWeight: "600",
-                            color: "white",
-                            fontSize: "14px",
-                            borderBottom: "2px solid #dee2e6"
-                          }}>Number of Sales</th>
-                          <th style={{ 
-                            padding: "16px 20px", 
-                            textAlign: "left", 
-                            fontWeight: "600",
-                            color: "white",
-                            fontSize: "14px",
-                            borderBottom: "2px solid #dee2e6"
-                          }}>Store</th>
-                          <th style={{ 
-                            padding: "16px 20px", 
-                            textAlign: "right", 
-                            fontWeight: "600",
-                            color: "white",
-                            fontSize: "14px",
-                            borderBottom: "2px solid #dee2e6"
-                          }}>Sales Amount</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {reportData.topSalesPersons?.map((person, idx) => (
-                          <tr key={idx} style={{ 
-                            borderBottom: "1px solid #f1f3f4",
-                            transition: "background-color 0.2s ease"
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#f8f9fa"}
-                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "white"}>
-                            <td style={{ 
-                              padding: "16px 20px",
-                              fontWeight: "600",
-                              color: "#495057"
-                            }}>
-                              <div style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "12px"
-                              }}>
-                                <div style={{
-                                  width: "32px",
-                                  height: "32px",
-                                  borderRadius: "50%",
-                                  backgroundColor: "#a855f7",
-                                  color: "white",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  fontSize: "14px",
-                                  fontWeight: "600"
-                                }}>
-                                  {person.name.charAt(0).toUpperCase()}
-                                </div>
-                                {person.name}
-                              </div>
-                            </td>
-                            <td style={{ 
-                              padding: "16px 20px", 
-                              textAlign: "right",
-                              fontWeight: "600",
-                              color: "#6c757d"
-                            }}>
-                              <span style={{
-                                backgroundColor: "#e3f2fd",
-                                color: "#1976d2",
-                                padding: "4px 12px",
-                                borderRadius: "20px",
-                                fontSize: "13px",
-                                fontWeight: "600"
-                              }}>
-                                {person.count}
-                              </span>
-                            </td>
-                            <td style={{ 
-                              padding: "16px 20px",
-                              color: "#6c757d",
-                              fontSize: "14px"
-                            }}>{person.store}</td>
-                            <td style={{ 
-                              padding: "16px 20px", 
-                              textAlign: "right",
-                              fontWeight: "700",
-                              color: "#a855f7",
-                              fontSize: "16px"
-                            }}>₹{(Number(person.amount) || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+              {reportType === "returns" && (
+                <>
+                  {/* Divided Summary Stats Row */}
+                  <div className="flex flex-wrap items-end justify-between gap-4 pt-1 pb-2 border-b border-[#EAEAEA]">
+                    <div className="flex flex-wrap items-center divide-x divide-[#EAEAEA]">
+                      <div className="pr-8 md:pr-12">
+                        <div className="text-[11px] font-semibold tracking-[0.06em] text-[#7A7A7A] uppercase mb-1">
+                          TOTAL RETURNS
+                        </div>
+                        <div className="text-[22px] font-bold text-[#DC2626] tabular-nums">
+                          {(reportData.summary?.totalReturns || 0).toLocaleString("en-IN")}
+                        </div>
+                      </div>
+                      <div className="px-8 md:px-12">
+                        <div className="text-[11px] font-semibold tracking-[0.06em] text-[#7A7A7A] uppercase mb-1">
+                          TOTAL RETURN AMOUNT
+                        </div>
+                        <div className="text-[22px] font-bold text-[#DC2626] tabular-nums">
+                          {formatMoney(reportData.summary?.totalReturnAmount)}
+                        </div>
+                      </div>
+                      <div className="pl-8 md:pl-12">
+                        <div className="text-[11px] font-semibold tracking-[0.06em] text-[#7A7A7A] uppercase mb-1">
+                          AVERAGE RETURN
+                        </div>
+                        <div className="text-[22px] font-bold text-[#1B1B1B] tabular-nums">
+                          {formatMoney(reportData.summary?.averageReturnAmount)}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </>
-            )}
 
-            {reportType === "by-item" && (
-              <>
-                <div style={{ 
-                  marginBottom: "32px",
-                  paddingBottom: "20px",
-                  borderBottom: "2px solid #f8f9fa"
-                }}>
-                  <h2 style={{ 
-                    margin: "0 0 8px 0",
-                    fontSize: "24px",
-                    fontWeight: "600",
-                    color: "#2c3e50"
-                  }}>Sales by Item</h2>
-                  <p style={{ 
-                    margin: 0,
-                    color: "#6c757d",
-                    fontSize: "14px"
-                  }}>Detailed breakdown of individual item performance</p>
-                </div>
+                  {/* Returns by Reason */}
+                  <div>
+                    <h3 className="text-[14px] font-semibold text-[#1B1B1B] mb-2.5">
+                      Returns by Reason
+                    </h3>
+                    <div className="bg-white rounded-[10px] border border-[#EAEAEA] overflow-hidden shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse text-[13px]">
+                          <thead>
+                            <tr className="bg-[#1B1B1B] text-white text-[11px] font-semibold uppercase tracking-[0.04em]">
+                              <th className="py-3.5 px-4 text-left">REASON</th>
+                              <th className="py-3.5 px-4 text-center">COUNT</th>
+                              <th className="py-3.5 px-4 text-center w-[220px]">AMOUNT</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-[#F0F0F0] text-[#3F3F46]">
+                            {reportData.returnsByReason?.length > 0 ? (
+                              reportData.returnsByReason.map((reason, idx) => (
+                                <tr key={idx} className="hover:bg-[#FAF5FF]/60 transition-colors">
+                                  <td className="py-3.5 px-4 border-r border-[#F5F5F5] font-medium text-[#212121]">
+                                    {reason.reason}
+                                  </td>
+                                  <td className="py-3.5 px-4 border-r border-[#F5F5F5] text-center tabular-nums">
+                                    {reason.count}
+                                  </td>
+                                  <td className="py-3.5 px-4 text-center font-semibold text-[#DC2626] tabular-nums">
+                                    {formatMoney(reason.amount)}
+                                  </td>
+                                </tr>
+                              ))
+                            ) : (
+                              <tr>
+                                <td colSpan={3} className="py-10 text-center text-[#8A8A8A]">
+                                  No return reasons found.
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
 
-                {/* Summary Cards */}
-                <div style={{ 
-                  display: "grid", 
-                  gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", 
-                  gap: "20px", 
-                  marginBottom: "40px"
-                }}>
-                  <div style={{ 
-                    backgroundColor: "#1a1f2e", 
-                    padding: "24px", 
-                    borderRadius: "12px", 
-                    border: "1px solid #e9ecef",
-                    transition: "transform 0.2s ease, box-shadow 0.2s ease",
-                    cursor: "default"
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                    e.currentTarget.style.boxShadow = "0 6px 20px rgba(0,0,0,0.1)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "none";
-                  }}>
-                    <div style={{ 
-                      fontSize: "13px", 
-                      color: "#6c757d", 
-                      fontWeight: "500",
-                      marginBottom: "8px",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.5px"
-                    }}>Total Items</div>
-                    <div style={{ 
-                      fontSize: "32px", 
-                      fontWeight: "700",
-                      color: "#2c3e50",
-                      lineHeight: "1"
-                    }}>{reportData.totalItems || 0}</div>
+                  {/* Return Details */}
+                  <div>
+                    <h3 className="text-[14px] font-semibold text-[#1B1B1B] mb-2.5">
+                      Return Details
+                    </h3>
+                    <div className="bg-white rounded-[10px] border border-[#EAEAEA] overflow-hidden shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse text-[13px]">
+                          <thead>
+                            <tr className="bg-[#1B1B1B] text-white text-[11px] font-semibold uppercase tracking-[0.04em]">
+                              <th className="py-3.5 px-4 text-left">DATE</th>
+                              <th className="py-3.5 px-4 text-left">INVOICE NO.</th>
+                              <th className="py-3.5 px-4 text-left">CUSTOMER</th>
+                              <th className="py-3.5 px-4 text-center">AMOUNT</th>
+                              <th className="py-3.5 px-4 text-left">REASON</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-[#F0F0F0] text-[#3F3F46]">
+                            {reportData.returns?.length > 0 ? (
+                              reportData.returns.map((ret, idx) => (
+                                <tr key={idx} className="hover:bg-[#FAF5FF]/60 transition-colors">
+                                  <td className="py-3.5 px-4 border-r border-[#F5F5F5] whitespace-nowrap text-[#212121]">
+                                    {ret.date}
+                                  </td>
+                                  <td className="py-3.5 px-4 border-r border-[#F5F5F5] font-medium text-[#212121] whitespace-nowrap tabular-nums">
+                                    {ret.invoiceNumber}
+                                  </td>
+                                  <td className="py-3.5 px-4 border-r border-[#F5F5F5] whitespace-nowrap">
+                                    {ret.customer}
+                                  </td>
+                                  <td className="py-3.5 px-4 border-r border-[#F5F5F5] text-center font-semibold text-[#DC2626] tabular-nums whitespace-nowrap">
+                                    {formatMoney(ret.amount)}
+                                  </td>
+                                  <td className="py-3.5 px-4">{ret.reason}</td>
+                                </tr>
+                              ))
+                            ) : (
+                              <tr>
+                                <td colSpan={5} className="py-10 text-center text-[#8A8A8A]">
+                                  No return records found.
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                          {reportData.returns?.length > 0 && (
+                            <tfoot>
+                              <tr className="bg-[#EAECEF] font-semibold text-[#1B1B1B] text-[13px] border-t border-[#E2E4E8]">
+                                <td colSpan={3} className="py-3.5 px-4 border-r border-[#D8DADF]">
+                                  Total
+                                </td>
+                                <td className="py-3.5 px-4 text-center font-bold border-r border-[#D8DADF] tabular-nums">
+                                  {formatMoney(reportData.summary?.totalReturnAmount)}
+                                </td>
+                                <td className="py-3.5 px-4" />
+                              </tr>
+                            </tfoot>
+                          )}
+                        </table>
+                      </div>
+                    </div>
                   </div>
-                  
-                  <div style={{ 
-                    backgroundColor: "#1a1f2e", 
-                    padding: "24px", 
-                    borderRadius: "12px", 
-                    border: "1px solid #e9ecef",
-                    transition: "transform 0.2s ease, box-shadow 0.2s ease",
-                    cursor: "default"
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                    e.currentTarget.style.boxShadow = "0 6px 20px rgba(0,0,0,0.1)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "none";
-                  }}>
-                    <div style={{ 
-                      fontSize: "13px", 
-                      color: "#6c757d", 
-                      fontWeight: "500",
-                      marginBottom: "8px",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.5px"
-                    }}>Total Quantity</div>
-                    <div style={{ 
-                      fontSize: "32px", 
-                      fontWeight: "700",
-                      color: "#a855f7",
-                      lineHeight: "1"
-                    }}>{reportData.totalQuantity || 0}</div>
-                  </div>
-                  
-                  <div style={{ 
-                    backgroundColor: "#1a1f2e", 
-                    padding: "24px", 
-                    borderRadius: "12px", 
-                    border: "1px solid #e9ecef",
-                    transition: "transform 0.2s ease, box-shadow 0.2s ease",
-                    cursor: "default"
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                    e.currentTarget.style.boxShadow = "0 6px 20px rgba(0,0,0,0.1)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "none";
-                  }}>
-                    <div style={{ 
-                      fontSize: "13px", 
-                      color: "#6c757d", 
-                      fontWeight: "500",
-                      marginBottom: "8px",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.5px"
-                    }}>Total Amount</div>
-                    <div style={{ 
-                      fontSize: "32px", 
-                      fontWeight: "700",
-                      color: "#a855f7",
-                      lineHeight: "1"
-                    }}>₹{(reportData.totalAmount || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
-                  </div>
+                </>
+              )}
+            </div>
+          ) : (
+            <div className="bg-white rounded-[12px] border border-[#EAEAEA] flex flex-col items-center justify-center py-24 text-[#8A8A8A]">
+              {loading ? (
+                <div className="flex flex-col items-center gap-3">
+                  <Loader2 className="w-7 h-7 animate-spin text-[#9D43D6]" />
+                  <span className="text-[13px] font-medium">Fetching sales report...</span>
                 </div>
-                
-                <h3 style={{ 
-                  margin: "0 0 20px 0",
-                  fontSize: "20px",
-                  fontWeight: "600",
-                  color: "#495057"
-                }}>Item Details</h3>
-                <div style={{ 
-                  backgroundColor: "#1a1f2e",
-                  borderRadius: "10px",
-                  overflow: "hidden",
-                  border: "1px solid #e9ecef"
-                }}>
-                  <div style={{ overflowX: "auto" }}>
-                    <table style={{ 
-                      width: "100%", 
-                      borderCollapse: "collapse", 
-                      backgroundColor: "white",
-                      minWidth: "800px"
-                    }}>
-                      <thead>
-                        <tr style={{ backgroundColor: "#1a1f2e" }}>
-                          <th style={{ 
-                            padding: "16px 20px", 
-                            textAlign: "left", 
-                            fontWeight: "600",
-                            color: "white",
-                            fontSize: "14px",
-                            borderBottom: "2px solid #dee2e6",
-                            whiteSpace: "nowrap"
-                          }}>Item Name</th>
-                          <th style={{ 
-                            padding: "16px 20px", 
-                            textAlign: "left", 
-                            fontWeight: "600",
-                            color: "white",
-                            fontSize: "14px",
-                            borderBottom: "2px solid #dee2e6",
-                            whiteSpace: "nowrap"
-                          }}>SKU</th>
-                          <th style={{ 
-                            padding: "16px 20px", 
-                            textAlign: "left", 
-                            fontWeight: "600",
-                            color: "white",
-                            fontSize: "14px",
-                            borderBottom: "2px solid #dee2e6",
-                            whiteSpace: "nowrap"
-                          }}>Category</th>
-                          <th style={{ 
-                            padding: "16px 20px", 
-                            textAlign: "center", 
-                            fontWeight: "600",
-                            color: "white",
-                            fontSize: "14px",
-                            borderBottom: "2px solid #dee2e6",
-                            whiteSpace: "nowrap"
-                          }}>Size</th>
-                          <th style={{ 
-                            padding: "16px 20px", 
-                            textAlign: "right", 
-                            fontWeight: "600",
-                            color: "white",
-                            fontSize: "14px",
-                            borderBottom: "2px solid #dee2e6",
-                            whiteSpace: "nowrap"
-                          }}>Quantity</th>
-                          <th style={{ 
-                            padding: "16px 20px", 
-                            textAlign: "right", 
-                            fontWeight: "600",
-                            color: "white",
-                            fontSize: "14px",
-                            borderBottom: "2px solid #dee2e6",
-                            whiteSpace: "nowrap"
-                          }}>Unit Price</th>
-                          <th style={{ 
-                            padding: "16px 20px", 
-                            textAlign: "right", 
-                            fontWeight: "600",
-                            color: "white",
-                            fontSize: "14px",
-                            borderBottom: "2px solid #dee2e6",
-                            whiteSpace: "nowrap"
-                          }}>Total Amount</th>
-                          <th style={{ 
-                            padding: "16px 20px", 
-                            textAlign: "center", 
-                            fontWeight: "600",
-                            color: "white",
-                            fontSize: "14px",
-                            borderBottom: "2px solid #dee2e6",
-                            whiteSpace: "nowrap"
-                          }}>Invoices</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {reportData.items?.map((item, idx) => (
-                          <tr key={idx} style={{ 
-                            borderBottom: "1px solid #f1f3f4",
-                            transition: "background-color 0.2s ease"
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#f8f9fa"}
-                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "white"}>
-                            <td style={{ 
-                              padding: "16px 20px", 
-                              fontWeight: "500",
-                              color: "#495057",
-                              maxWidth: "200px",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              whiteSpace: "nowrap"
-                            }}>{item.name}</td>
-                            <td style={{ 
-                              padding: "16px 20px", 
-                              fontFamily: "monospace", 
-                              fontSize: "13px",
-                              color: "#6c757d",
-                              backgroundColor: "#1a1f2e",
-                              borderRadius: "4px"
-                            }}>{item.sku}</td>
-                            <td style={{ padding: "16px 20px" }}>
-                              <span style={{ 
-                                padding: "4px 12px", 
-                                backgroundColor: "#e9ecef", 
-                                borderRadius: "20px", 
-                                fontSize: "12px",
-                                fontWeight: "500",
-                                color: "#495057"
-                              }}>
-                                {item.category}
-                              </span>
-                            </td>
-                            <td style={{ padding: "16px 20px", textAlign: "center" }}>
-                              <span style={{ 
-                                padding: "4px 8px", 
-                                backgroundColor: "#1a1f2e", 
-                                border: "1px solid #dee2e6",
-                                borderRadius: "6px", 
-                                fontSize: "12px",
-                                fontWeight: "500",
-                                color: "#495057"
-                              }}>
-                                {item.size}
-                              </span>
-                            </td>
-                            <td style={{ 
-                              padding: "16px 20px", 
-                              textAlign: "right", 
-                              fontWeight: "600",
-                              color: "#a855f7"
-                            }}>{item.quantity}</td>
-                            <td style={{ 
-                              padding: "16px 20px", 
-                              textAlign: "right",
-                              color: "#6c757d"
-                            }}>₹{(Number(item.unitPrice) || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
-                            <td style={{ 
-                              padding: "16px 20px", 
-                              textAlign: "right", 
-                              fontWeight: "700", 
-                              color: "#a855f7",
-                              fontSize: "15px"
-                            }}>₹{(Number(item.totalAmount) || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
-                            <td style={{ padding: "16px 20px", textAlign: "center" }}>
-                              <span style={{ 
-                                padding: "4px 12px", 
-                                backgroundColor: "#d1ecf1", 
-                                color: "#0c5460",
-                                borderRadius: "20px", 
-                                fontSize: "12px",
-                                fontWeight: "600"
-                              }}>
-                                {item.invoiceCount}
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </>
-            )}
-
-            {reportType === "returns" && (
-              <>
-                <div style={{ 
-                  marginBottom: "32px",
-                  paddingBottom: "20px",
-                  borderBottom: "2px solid #f8f9fa"
-                }}>
-                  <h2 style={{ 
-                    margin: "0 0 8px 0",
-                    fontSize: "24px",
-                    fontWeight: "600",
-                    color: "#2c3e50"
-                  }}>Return Summary</h2>
-                  <p style={{ 
-                    margin: 0,
-                    color: "#6c757d",
-                    fontSize: "14px"
-                  }}>Analysis of returned items and refund patterns</p>
-                </div>
-
-                {/* Summary Cards */}
-                <div style={{ 
-                  display: "grid", 
-                  gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", 
-                  gap: "20px", 
-                  marginBottom: "40px"
-                }}>
-                  <div style={{ 
-                    backgroundColor: "#1a1f2e", 
-                    padding: "24px", 
-                    borderRadius: "12px", 
-                    border: "1px solid #e9ecef",
-                    transition: "transform 0.2s ease, box-shadow 0.2s ease",
-                    cursor: "default"
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                    e.currentTarget.style.boxShadow = "0 6px 20px rgba(0,0,0,0.1)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "none";
-                  }}>
-                    <div style={{ 
-                      fontSize: "13px", 
-                      color: "#6c757d", 
-                      fontWeight: "500",
-                      marginBottom: "8px",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.5px"
-                    }}>Total Returns</div>
-                    <div style={{ 
-                      fontSize: "32px", 
-                      fontWeight: "700",
-                      color: "#dc3545",
-                      lineHeight: "1"
-                    }}>{reportData.summary?.totalReturns || 0}</div>
-                  </div>
-                  
-                  <div style={{ 
-                    backgroundColor: "#1a1f2e", 
-                    padding: "24px", 
-                    borderRadius: "12px", 
-                    border: "1px solid #e9ecef",
-                    transition: "transform 0.2s ease, box-shadow 0.2s ease",
-                    cursor: "default"
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                    e.currentTarget.style.boxShadow = "0 6px 20px rgba(0,0,0,0.1)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "none";
-                  }}>
-                    <div style={{ 
-                      fontSize: "13px", 
-                      color: "#6c757d", 
-                      fontWeight: "500",
-                      marginBottom: "8px",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.5px"
-                    }}>Total Return Amount</div>
-                    <div style={{ 
-                      fontSize: "32px", 
-                      fontWeight: "700",
-                      color: "#dc3545",
-                      lineHeight: "1"
-                    }}>₹{(reportData.summary?.totalReturnAmount || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
-                  </div>
-                  
-                  <div style={{ 
-                    backgroundColor: "#1a1f2e", 
-                    padding: "24px", 
-                    borderRadius: "12px", 
-                    border: "1px solid #e9ecef",
-                    transition: "transform 0.2s ease, box-shadow 0.2s ease",
-                    cursor: "default"
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                    e.currentTarget.style.boxShadow = "0 6px 20px rgba(0,0,0,0.1)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "none";
-                  }}>
-                    <div style={{ 
-                      fontSize: "13px", 
-                      color: "#6c757d", 
-                      fontWeight: "500",
-                      marginBottom: "8px",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.5px"
-                    }}>Average Return</div>
-                    <div style={{ 
-                      fontSize: "32px", 
-                      fontWeight: "700",
-                      color: "#6c757d",
-                      lineHeight: "1"
-                    }}>₹{(reportData.summary?.averageReturnAmount || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
-                  </div>
-                </div>
-
-                {/* Returns by Reason */}
-                <div style={{ marginBottom: "40px" }}>
-                  <h3 style={{ 
-                    margin: "0 0 20px 0",
-                    fontSize: "20px",
-                    fontWeight: "600",
-                    color: "#495057"
-                  }}>Returns by Reason</h3>
-                  <div style={{ 
-                    backgroundColor: "#1a1f2e",
-                    borderRadius: "10px",
-                    overflow: "hidden",
-                    border: "1px solid #e9ecef"
-                  }}>
-                    <table style={{ 
-                      width: "100%", 
-                      borderCollapse: "collapse",
-                      backgroundColor: "white"
-                    }}>
-                      <thead>
-                        <tr style={{ backgroundColor: "#1a1f2e" }}>
-                          <th style={{ 
-                            padding: "16px 20px", 
-                            textAlign: "left", 
-                            fontWeight: "600",
-                            color: "white",
-                            fontSize: "14px",
-                            borderBottom: "2px solid #dee2e6"
-                          }}>Reason</th>
-                          <th style={{ 
-                            padding: "16px 20px", 
-                            textAlign: "right", 
-                            fontWeight: "600",
-                            color: "white",
-                            fontSize: "14px",
-                            borderBottom: "2px solid #dee2e6"
-                          }}>Count</th>
-                          <th style={{ 
-                            padding: "16px 20px", 
-                            textAlign: "right", 
-                            fontWeight: "600",
-                            color: "white",
-                            fontSize: "14px",
-                            borderBottom: "2px solid #dee2e6"
-                          }}>Amount</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {reportData.returnsByReason?.map((reason, idx) => (
-                          <tr key={idx} style={{ 
-                            borderBottom: "1px solid #f1f3f4",
-                            transition: "background-color 0.2s ease"
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#f8f9fa"}
-                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "white"}>
-                            <td style={{ 
-                              padding: "16px 20px",
-                              fontWeight: "500",
-                              color: "#495057"
-                            }}>{reason.reason}</td>
-                            <td style={{ 
-                              padding: "16px 20px", 
-                              textAlign: "right",
-                              fontWeight: "600",
-                              color: "#6c757d"
-                            }}>{reason.count}</td>
-                            <td style={{ 
-                              padding: "16px 20px", 
-                              textAlign: "right",
-                              fontWeight: "600",
-                              color: "#dc3545"
-                            }}>₹{(Number(reason.amount) || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-                {/* Return Details */}
-                <div style={{ marginBottom: "40px" }}>
-                  <h3 style={{ 
-                    margin: "0 0 20px 0",
-                    fontSize: "20px",
-                    fontWeight: "600",
-                    color: "#495057"
-                  }}>Return Details</h3>
-                  <div style={{ 
-                    backgroundColor: "#1a1f2e",
-                    borderRadius: "10px",
-                    overflow: "hidden",
-                    border: "1px solid #e9ecef"
-                  }}>
-                    <table style={{ 
-                      width: "100%", 
-                      borderCollapse: "collapse",
-                      backgroundColor: "white"
-                    }}>
-                      <thead>
-                        <tr style={{ backgroundColor: "#1a1f2e" }}>
-                          <th style={{ 
-                            padding: "16px 20px", 
-                            textAlign: "left", 
-                            fontWeight: "600",
-                            color: "white",
-                            fontSize: "14px",
-                            borderBottom: "2px solid #dee2e6"
-                          }}>Date</th>
-                          <th style={{ 
-                            padding: "16px 20px", 
-                            textAlign: "left", 
-                            fontWeight: "600",
-                            color: "white",
-                            fontSize: "14px",
-                            borderBottom: "2px solid #dee2e6"
-                          }}>Invoice No</th>
-                          <th style={{ 
-                            padding: "16px 20px", 
-                            textAlign: "left", 
-                            fontWeight: "600",
-                            color: "white",
-                            fontSize: "14px",
-                            borderBottom: "2px solid #dee2e6"
-                          }}>Customer</th>
-                          <th style={{ 
-                            padding: "16px 20px", 
-                            textAlign: "right", 
-                            fontWeight: "600",
-                            color: "white",
-                            fontSize: "14px",
-                            borderBottom: "2px solid #dee2e6"
-                          }}>Amount</th>
-                          <th style={{ 
-                            padding: "16px 20px", 
-                            textAlign: "left", 
-                            fontWeight: "600",
-                            color: "white",
-                            fontSize: "14px",
-                            borderBottom: "2px solid #dee2e6"
-                          }}>Reason</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {reportData.returns?.map((ret, idx) => (
-                          <tr key={idx} style={{ 
-                            borderBottom: "1px solid #f1f3f4",
-                            transition: "background-color 0.2s ease"
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#f8f9fa"}
-                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "white"}>
-                            <td style={{ 
-                              padding: "16px 20px",
-                              color: "#6c757d",
-                              fontSize: "14px"
-                            }}>{ret.date}</td>
-                            <td style={{ 
-                              padding: "16px 20px",
-                              fontWeight: "500",
-                              color: "#495057",
-                              fontFamily: "monospace"
-                            }}>{ret.invoiceNumber}</td>
-                            <td style={{ 
-                              padding: "16px 20px",
-                              color: "#495057"
-                            }}>{ret.customer}</td>
-                            <td style={{ 
-                              padding: "16px 20px", 
-                              textAlign: "right",
-                              fontWeight: "600",
-                              color: "#dc3545"
-                            }}>₹{(Number(ret.amount) || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
-                            <td style={{ 
-                              padding: "16px 20px",
-                              color: "#6c757d",
-                              fontSize: "14px"
-                            }}>{ret.reason}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-        )}
+              ) : (
+                <span className="text-[13px] font-medium">
+                  Select a date range and click Fetch Data
+                </span>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </>
   );

@@ -9,7 +9,7 @@ const ShoeSalesPriceListCreate = () => {
   const [showExamples, setShowExamples] = useState(false);
 
   return (
-    <div className={`transition-all duration-300 p-6 bg-[#f5f7fb] min-h-screen ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+    <div className={`transition-all duration-300 p-6 bg-[#f5f7fb] min-h-screen ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
       <Head
         title="New Price List"
         description="Set pricing rules that automatically apply across sales or purchase workflows."

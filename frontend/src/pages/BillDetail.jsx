@@ -4,6 +4,7 @@ import { X, Edit, Check, ChevronRight, Download, Trash2 } from "lucide-react";
 import baseUrl from "../api/api";
 import AttachmentDisplay from "../components/AttachmentDisplay";
 import useSidebar from "../hooks/useSidebar";
+import RootfinConfirmModal from "../components/RootfinModal";
 
 const formatCurrency = (value) => {
   return new Intl.NumberFormat("en-IN", {
@@ -298,7 +299,7 @@ const BillDetail = () => {
 
   if (loading) {
     return (
-      <div className={`transition-all duration-300 min-h-screen bg-[#f5f7fb] flex items-center justify-center ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+      <div className={`transition-all duration-300 min-h-screen bg-[#f5f7fb] flex items-center justify-center ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
         <div className="text-center">Loading...</div>
       </div>
     );
@@ -306,7 +307,7 @@ const BillDetail = () => {
 
   if (!bill) {
     return (
-      <div className={`transition-all duration-300 min-h-screen bg-[#f5f7fb] flex items-center justify-center ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+      <div className={`transition-all duration-300 min-h-screen bg-[#f5f7fb] flex items-center justify-center ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
         <div className="text-center">
           <p className="text-lg text-[#64748b] mb-4">Bill not found</p>
           <Link to="/purchase/bills" className="text-[#2563eb] hover:underline">
@@ -409,7 +410,7 @@ const BillDetail = () => {
   });
 
   return (
-    <div className={`transition-all duration-300 min-h-screen bg-[#f5f7fb] flex ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+    <div className={`transition-all duration-300 min-h-screen bg-[#f5f7fb] flex ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
       {/* Left Sidebar - Bills List */}
       <div className="w-80 bg-white border-r border-[#e6eafb] flex flex-col">
         {/* Header */}
@@ -777,41 +778,22 @@ const BillDetail = () => {
       </div>
 
       {/* Delete Confirmation Modal */}
-      {deleteConfirm.show && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-            <div className="p-6">
-              <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full bg-red-100">
-                <Trash2 className="text-red-600" size={24} />
-              </div>
-              <h3 className="text-lg font-semibold text-[#1e293b] text-center mb-2">
-                {deleteConfirm.step === 1 ? "Delete Bill?" : "Are you absolutely sure?"}
-              </h3>
-              <p className="text-sm text-[#64748b] text-center mb-6">
-                {deleteConfirm.step === 1 
-                  ? "This action will delete the bill and reverse the stock changes. This cannot be undone."
-                  : "This will permanently delete the bill and affect the stock in the group. This action cannot be reversed."}
-              </p>
-              <div className="flex gap-3">
-                <button
-                  onClick={handleDeleteCancel}
-                  disabled={deleting}
-                  className="flex-1 px-4 py-2.5 rounded-lg border border-[#e2e8f0] text-sm font-medium text-[#475569] hover:bg-[#f8fafc] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleDeleteConfirm}
-                  disabled={deleting}
-                  className="flex-1 px-4 py-2.5 rounded-lg bg-red-600 text-sm font-medium text-white hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {deleting ? "Deleting..." : deleteConfirm.step === 1 ? "Yes, Delete" : "Yes, Delete Permanently"}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <RootfinConfirmModal
+        open={deleteConfirm.show}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        title={deleteConfirm.step === 1 ? "Delete this bill?" : "Are you absolutely sure?"}
+        description={
+          deleteConfirm.step === 1
+            ? "This action will delete the bill and reverse the stock changes. This cannot be undone."
+            : "This will permanently delete the bill and affect the stock in the group. This action cannot be reversed."
+        }
+        cancelLabel="Cancel"
+        confirmLabel={deleting ? "Deleting..." : deleteConfirm.step === 1 ? "Delete" : "Delete Permanently"}
+        confirmIcon={!deleting ? <Trash2 size={15} /> : null}
+        variant="danger"
+        loading={deleting}
+      />
     </div>
   );
 };
