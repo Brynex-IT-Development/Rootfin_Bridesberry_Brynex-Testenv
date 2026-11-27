@@ -9,6 +9,8 @@ import { useSidebar } from "../hooks/useSidebar.js";
 
 import AppSelect from "../components/AppSelect.jsx";
 import RootfinConfirmModal from "../components/RootfinModal";
+import { isWarehouseStore, getUserStoreName } from "../utils/storeService";
+import { isAdminOrSuperAdmin } from "../utils/roleUtils";
 const columns = [
   { key: "select", label: "" },
   { key: "name", label: "NAME" },
@@ -50,14 +52,13 @@ const ShoeSalesItems = () => {
   const userStr = localStorage.getItem("rootfinuser");
   const user = userStr ? JSON.parse(userStr) : null;
   const userEmail = user?.email || user?.username || "";
-  const adminEmails = ['officerootments@gmail.com'];
   const userRole = (user?.role || "").toLowerCase();
-  const isAdminEmail = userEmail && adminEmails.some(email => userEmail.toLowerCase() === email.toLowerCase());
+  const isAdminEmail = isAdminOrSuperAdmin(user);
   const isAdmin = isAdminEmail ||
                   userRole === "super_admin" ||
                   userRole === "admin" ||
                   user?.power === "admin" || 
-                  (user?.locCode && (user.locCode === '858' || user.locCode === '103'));
+                  (user?.locCode && isWarehouseStore(user.locCode));
   
   const fallbackLocations = [];
   
@@ -69,7 +70,7 @@ const ShoeSalesItems = () => {
     }
   }
   if (!userLocName) {
-    userLocName = user?.username || user?.locName || "";
+    userLocName = getUserStoreName(user);
   }
   
   const mapLocNameToWarehouse = (locName) => {
@@ -339,7 +340,7 @@ const ShoeSalesItems = () => {
               {selectedItems.size > 0 && (
                 <button
                   onClick={handleOpenAddToGroupModal}
-                  className="inline-flex h-[40px] items-center gap-2 rounded-[10px] bg-[#6D2898] hover:bg-[#5B1F82] px-4 text-[13px] font-semibold text-white shadow-xs transition-colors cursor-pointer"
+                  className="inline-flex h-[40px] items-center gap-2 rounded-[10px] bg-[#B23614] hover:bg-[#8C2B12] px-4 text-[13px] font-semibold text-white shadow-xs transition-colors cursor-pointer"
                 >
                   <FolderPlus size={15} />
                   <span>Add to Group ({selectedItems.size})</span>
@@ -387,7 +388,7 @@ const ShoeSalesItems = () => {
                     <th scope="col" className="py-3.5 px-4 w-12 text-center">
                       <input
                         type="checkbox"
-                        className="h-4 w-4 rounded-[4px] border-gray-500 accent-[#9D43D6] cursor-pointer align-middle"
+                        className="h-4 w-4 rounded-[4px] border-gray-500 accent-[#F2572B] cursor-pointer align-middle"
                         checked={items.length > 0 && items.every(item => !item._id || selectedItems.has(item._id))}
                         onChange={(e) => handleSelectAll(e.target.checked)}
                       />
@@ -438,7 +439,7 @@ const ShoeSalesItems = () => {
                         <tr>
                           <td colSpan={5} className="py-14 text-center">
                             <div className="flex flex-col items-center gap-3">
-                              <div className="w-12 h-12 rounded-[12px] bg-[#F3E8FF] flex items-center justify-center text-[#9D43D6]">
+                              <div className="w-12 h-12 rounded-[12px] bg-[#FDE3D9] flex items-center justify-center text-[#F2572B]">
                                 <Layers size={22} />
                               </div>
                               <p className="text-[14px] font-semibold text-[#1B1B1B]">
@@ -476,7 +477,7 @@ const ShoeSalesItems = () => {
                                 <div className="flex items-center justify-center gap-1.5">
                                   <input
                                     type="checkbox"
-                                    className="h-4 w-4 rounded-[4px] border-[#D4D4D8] accent-[#9D43D6] cursor-pointer align-middle"
+                                    className="h-4 w-4 rounded-[4px] border-[#D4D4D8] accent-[#F2572B] cursor-pointer align-middle"
                                     checked={selectedItems.has(item._id)}
                                     onChange={(e) => handleCheckboxChange(item._id, e.target.checked)}
                                   />
@@ -514,18 +515,18 @@ const ShoeSalesItems = () => {
                                       );
                                     }
                                     return (
-                                      <div className="w-10 h-10 rounded-[8px] bg-[#D4D4D8]/80 flex-shrink-0 flex items-center justify-center text-[#525252] font-semibold text-[13px] group-hover:bg-[#F3E8FF] group-hover:text-[#9D43D6] transition-colors uppercase">
+                                      <div className="w-10 h-10 rounded-[8px] bg-[#D4D4D8]/80 flex-shrink-0 flex items-center justify-center text-[#525252] font-semibold text-[13px] group-hover:bg-[#FDE3D9] group-hover:text-[#F2572B] transition-colors uppercase">
                                         {(item.itemName || item.name || "?")[0]}
                                       </div>
                                     );
                                   })()}
                                   <div className="min-w-0">
                                     <div className="flex items-center gap-2">
-                                      <p className="text-[13px] font-semibold text-[#1B1B1B] group-hover:text-[#9D43D6] transition-colors truncate">
+                                      <p className="text-[13px] font-semibold text-[#1B1B1B] group-hover:text-[#F2572B] transition-colors truncate">
                                         {item.itemName || item.name}
                                       </p>
                                       {item.isFromGroup && (
-                                        <span className="inline-flex items-center rounded-[6px] bg-[#F3E8FF] px-1.5 py-0.5 text-[10px] font-semibold text-[#9D43D6]">
+                                        <span className="inline-flex items-center rounded-[6px] bg-[#FDE3D9] px-1.5 py-0.5 text-[10px] font-semibold text-[#F2572B]">
                                           GROUP
                                         </span>
                                       )}
@@ -668,7 +669,7 @@ const ShoeSalesItems = () => {
             {/* Modal Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-[#F0F0F0] bg-white">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-[10px] bg-[#F3E8FF] flex items-center justify-center text-[#9D43D6]">
+                <div className="w-9 h-9 rounded-[10px] bg-[#FDE3D9] flex items-center justify-center text-[#F2572B]">
                   <FolderPlus size={18} />
                 </div>
                 <div>
@@ -704,7 +705,7 @@ const ShoeSalesItems = () => {
                       >
                         <span className="truncate max-w-[170px] font-semibold">{it.itemName || it.name}</span>
                         {it.sku && (
-                          <span className="text-[10px] font-mono text-[#9D43D6] bg-[#F3E8FF] px-1.5 py-0.5 rounded-[4px]">
+                          <span className="text-[10px] font-mono text-[#F2572B] bg-[#FDE3D9] px-1.5 py-0.5 rounded-[4px]">
                             {it.sku}
                           </span>
                         )}
@@ -722,7 +723,7 @@ const ShoeSalesItems = () => {
                     onClick={() => setGroupOption("existing")}
                     className={`flex items-center justify-center gap-2 py-2 text-[12px] font-semibold rounded-[8px] transition-all cursor-pointer ${
                       groupOption === "existing"
-                        ? "bg-white text-[#9D43D6] shadow-xs"
+                        ? "bg-white text-[#F2572B] shadow-xs"
                         : "text-[#525252] hover:text-[#1B1B1B]"
                     }`}
                   >
@@ -735,7 +736,7 @@ const ShoeSalesItems = () => {
                       onClick={() => setGroupOption("new")}
                       className={`flex items-center justify-center gap-2 py-2 text-[12px] font-semibold rounded-[8px] transition-all cursor-pointer ${
                         groupOption === "new"
-                          ? "bg-white text-[#9D43D6] shadow-xs"
+                          ? "bg-white text-[#F2572B] shadow-xs"
                           : "text-[#525252] hover:text-[#1B1B1B]"
                       }`}
                     >
@@ -790,7 +791,7 @@ const ShoeSalesItems = () => {
                               onClick={() => setSelectedGroupId(grp._id || grp.id)}
                               className={`p-2.5 rounded-[8px] border flex items-center justify-between cursor-pointer transition-all ${
                                 isSelected
-                                  ? "bg-[#F3E8FF]/60 border-[#9D43D6]"
+                                  ? "bg-[#FDE3D9]/60 border-[#F2572B]"
                                   : "bg-white border-[#E5E5E5] hover:border-[#D4D4D8]"
                               }`}
                             >
@@ -804,7 +805,7 @@ const ShoeSalesItems = () => {
                                 {grp.sku && <p className="text-[11px] text-[#7A7A7A] font-mono mt-0.5">SKU: {grp.sku}</p>}
                               </div>
                               {isSelected && (
-                                <div className="w-5 h-5 rounded-[6px] bg-[#9D43D6] text-white flex items-center justify-center shrink-0">
+                                <div className="w-5 h-5 rounded-[6px] bg-[#F2572B] text-white flex items-center justify-center shrink-0">
                                   <Check size={12} strokeWidth={3} />
                                 </div>
                               )}

@@ -250,7 +250,7 @@ const ManageStores = () => {
                                     type="text"
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
-                                    placeholder="e.g., G.MG Road"
+                                    placeholder="Store name"
                                     className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#016E5B] focus:border-none outline-none"
                                     required
                                 />
@@ -300,7 +300,7 @@ const ManageStores = () => {
                                     type="text"
                                     value={locCode}
                                     onChange={(e) => setLocCode(e.target.value)}
-                                    placeholder="e.g., 718"
+                                    placeholder="Enter location code"
                                     className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#016E5B] focus:border-none outline-none"
                                 />
                             </div>
@@ -312,7 +312,7 @@ const ManageStores = () => {
                                 <textarea
                                     value={address}
                                     onChange={(e) => setAddress(e.target.value)}
-                                    placeholder="e.g., MG Road, Kochi, Kerala - 682016"
+                                    placeholder="Full address"
                                     rows="3"
                                     className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#016E5B] focus:border-none outline-none resize-none"
                                 />

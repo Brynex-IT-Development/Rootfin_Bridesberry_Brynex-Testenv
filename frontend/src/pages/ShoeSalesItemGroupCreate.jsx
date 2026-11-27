@@ -6,6 +6,9 @@ import Header from "../components/Header";
 import ImageUpload from "../components/ImageUpload";
 import baseUrl from "../api/api";
 import useSidebar from "../hooks/useSidebar";
+import { isWarehouseStore, findStore, getUserStoreName } from "../utils/storeService";
+import { mapLocNameToWarehouse as mapWarehouseShared, getWarehouseName } from "../utils/warehouseMapping";
+import { isAdminOrSuperAdmin } from "../utils/roleUtils";
 
 const STORAGE_KEYS = {
   manufacturers: "shoeSalesManufacturers",
@@ -55,18 +58,13 @@ const ShoeSalesItemGroupCreate = () => {
   const userRole = (user?.role || "").toLowerCase().trim();
   const userPower = (user?.power || "").toLowerCase().trim();
   const userEmail = (user?.email || user?.username || "").toLowerCase().trim();
-  const adminEmails = [
-    "officerootments@gmail.com",
-    "operationsrootments@gmail.com",
-    "headoffice01@gmail.com"
-  ];
-  const isAdminEmail = adminEmails.includes(userEmail);
+  const isAdminEmail = isAdminOrSuperAdmin(user);
   const isAdmin = isAdminEmail ||
                   userPower === "admin" || 
                   userPower === "super_admin" || 
                   userRole === "admin" || 
                   userRole === "superadmin" ||
-                  (user?.locCode && (String(user.locCode) === '858' || String(user.locCode) === '103'));
+                  (user?.locCode && isWarehouseStore(user.locCode));
 
   useEffect(() => {
     if (!isAdmin) {
@@ -849,19 +847,11 @@ const ShoeSalesItemGroupCreate = () => {
 
       // Get user's warehouse information
       const currentUser = JSON.parse(localStorage.getItem("rootfinuser")) || {};
-      const userLocName = currentUser.username || currentUser.locName || "";
+      const userLocName = getUserStoreName(currentUser);
       
-      // Helper function to map locName to warehouse name
-      const mapLocNameToWarehouse = (locName) => {
-        if (!locName) return "Warehouse";
-        // Remove prefixes like "G.", "Z.", "SG."
-        let warehouse = locName.replace(/^[A-Z]\.?\s*/i, "").trim();
-        // Add "Branch" if not already present and not "Warehouse"
-        if (warehouse && warehouse.toLowerCase() !== "warehouse" && !warehouse.toLowerCase().includes("branch")) {
-          warehouse = `${warehouse} Branch`;
-        }
-        return warehouse || "Warehouse";
-      };
+      // Stock location = the user's backend store, else the backend name, else the warehouse store
+      const mapLocNameToWarehouse = (locName) =>
+        findStore(currentUser.locCode)?.locName || mapWarehouseShared(locName) || getWarehouseName();
       
       const userWarehouse = mapLocNameToWarehouse(userLocName);
       
@@ -1008,7 +998,7 @@ const ShoeSalesItemGroupCreate = () => {
               <textarea
                 rows={3}
                 placeholder="Enter description"
-                className="w-full rounded-[10px] border border-[#E5E5E5] bg-white p-3.5 text-[13px] text-[#212121] placeholder:text-[#A1A1AA] focus:border-[#9D43D6] focus:ring-2 focus:ring-[#9D43D6]/15 focus:outline-none transition resize-none"
+                className="w-full rounded-[10px] border border-[#E5E5E5] bg-white p-3.5 text-[13px] text-[#212121] placeholder:text-[#A1A1AA] focus:border-[#F2572B] focus:ring-2 focus:ring-[#F2572B]/15 focus:outline-none transition resize-none"
               />
             </div>
 
@@ -1054,7 +1044,7 @@ const ShoeSalesItemGroupCreate = () => {
 
             {/* Row 5: Tax Preference */}
             <div className="pt-1 space-y-2.5">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-[#9D43D6]">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-[#F2572B]">
                 TAX PREFERENCE
               </div>
               <div className="flex flex-wrap items-center gap-6">
@@ -1068,7 +1058,7 @@ const ShoeSalesItemGroupCreate = () => {
                       setTaxPreference(e.target.value);
                       setExemptionReason("");
                     }}
-                    className="w-4 h-4 accent-[#9D43D6] cursor-pointer"
+                    className="w-4 h-4 accent-[#F2572B] cursor-pointer"
                   />
                   <span>Taxable</span>
                 </label>
@@ -1079,7 +1069,7 @@ const ShoeSalesItemGroupCreate = () => {
                     value="non-taxable"
                     checked={taxPreference === "non-taxable"}
                     onChange={(e) => setTaxPreference(e.target.value)}
-                    className="w-4 h-4 accent-[#9D43D6] cursor-pointer"
+                    className="w-4 h-4 accent-[#F2572B] cursor-pointer"
                   />
                   <span>Non taxable</span>
                 </label>
@@ -1105,7 +1095,7 @@ const ShoeSalesItemGroupCreate = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-stretch">
             {/* Left Card: Default Tax Rates */}
             <div className="bg-white border border-[#E5E5E5] rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.03)] p-6 space-y-4">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-[#9D43D6]">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-[#F2572B]">
                 DEFAULT TAX RATES
               </div>
               {taxPreference === "taxable" ? (
@@ -1128,7 +1118,7 @@ const ShoeSalesItemGroupCreate = () => {
                     <label className="inline-flex items-center gap-2 text-[13px] font-medium text-[#212121] cursor-pointer select-none">
                       <input
                         type="checkbox"
-                        className="h-4 w-4 rounded-[4px] border-[#D4D4D8] accent-[#9D43D6] cursor-pointer"
+                        className="h-4 w-4 rounded-[4px] border-[#D4D4D8] accent-[#F2572B] cursor-pointer"
                         checked={priceIncludesGST}
                         onChange={(e) => setPriceIncludesGST(e.target.checked)}
                       />
@@ -1159,7 +1149,7 @@ const ShoeSalesItemGroupCreate = () => {
           {/* Card 3: Create Attribute & Options */}
           <div className="bg-white border border-[#E5E5E5] rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.03)] p-6 space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-[#9D43D6]">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-[#F2572B]">
                 CREATE ATTRIBUTE &amp; OPTIONS
               </div>
               <label className="inline-flex items-center gap-2 text-[13px] font-medium text-[#212121] cursor-pointer select-none">
@@ -1167,7 +1157,7 @@ const ShoeSalesItemGroupCreate = () => {
                   type="checkbox"
                   checked={createAttributes}
                   onChange={(e) => handleCreateAttributesToggle(e.target.checked)}
-                  className="h-4 w-4 rounded-[4px] border-[#D4D4D8] accent-[#9D43D6] cursor-pointer"
+                  className="h-4 w-4 rounded-[4px] border-[#D4D4D8] accent-[#F2572B] cursor-pointer"
                 />
                 <span>Enable Attributes</span>
               </label>
@@ -1201,11 +1191,11 @@ const ShoeSalesItemGroupCreate = () => {
                       <label className="rf-field-label">
                         Options <span className="text-[#EF4444]">*</span>
                       </label>
-                      <div className="flex flex-wrap items-center gap-1.5 rounded-[10px] border border-[#E5E5E5] bg-white px-3 py-1.5 min-h-[38px] focus-within:border-[#9D43D6] focus-within:ring-2 focus-within:ring-[#9D43D6]/15 transition">
+                      <div className="flex flex-wrap items-center gap-1.5 rounded-[10px] border border-[#E5E5E5] bg-white px-3 py-1.5 min-h-[38px] focus-within:border-[#F2572B] focus-within:ring-2 focus-within:ring-[#F2572B]/15 transition">
                         {row.options.map((opt, idx) => (
                           <span
                             key={idx}
-                            className="inline-flex items-center gap-1 rounded-[6px] bg-[#F3E8FF] px-2 py-0.5 text-[11px] font-semibold text-[#9D43D6]"
+                            className="inline-flex items-center gap-1 rounded-[6px] bg-[#FDE3D9] px-2 py-0.5 text-[11px] font-semibold text-[#F2572B]"
                           >
                             {opt}
                             <button
@@ -1215,7 +1205,7 @@ const ShoeSalesItemGroupCreate = () => {
                                 updated[rowIndex].options = updated[rowIndex].options.filter((_, i) => i !== idx);
                                 setAttributeRows(updated);
                               }}
-                              className="hover:text-[#6D2898] transition cursor-pointer"
+                              className="hover:text-[#B23614] transition cursor-pointer"
                             >
                               <X size={11} />
                             </button>
@@ -1285,7 +1275,7 @@ const ShoeSalesItemGroupCreate = () => {
                     type="checkbox"
                     checked={sellable}
                     onChange={(e) => setSellable(e.target.checked)}
-                    className="h-4 w-4 rounded-[4px] border-[#D4D4D8] accent-[#9D43D6] cursor-pointer"
+                    className="h-4 w-4 rounded-[4px] border-[#D4D4D8] accent-[#F2572B] cursor-pointer"
                   />
                   <span>Sellable</span>
                 </label>
@@ -1294,7 +1284,7 @@ const ShoeSalesItemGroupCreate = () => {
                     type="checkbox"
                     checked={purchasable}
                     onChange={(e) => setPurchasable(e.target.checked)}
-                    className="h-4 w-4 rounded-[4px] border-[#D4D4D8] accent-[#9D43D6] cursor-pointer"
+                    className="h-4 w-4 rounded-[4px] border-[#D4D4D8] accent-[#F2572B] cursor-pointer"
                   />
                   <span>Purchasable</span>
                 </label>

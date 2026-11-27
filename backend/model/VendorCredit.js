@@ -5,7 +5,7 @@ const vendorCreditSchema = new mongoose.Schema(
     // Vendor Information
     vendorId: { type: String, default: null }, // UUID string from PostgreSQL Vendor
     vendorName: { type: String, required: true },
-    branch: { type: String, default: "Head Office" },
+    branch: { type: String, default: "" },
     
     // Credit Details
     creditNoteNumber: { type: String, required: true },

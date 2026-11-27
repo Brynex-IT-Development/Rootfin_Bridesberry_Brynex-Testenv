@@ -131,7 +131,7 @@ const ReorderAlerts = () => {
         title="Mark as Resolved?"
         description="Are you sure you want to mark this stock issue as resolved?"
         confirmLabel={<><Check size={14} />Mark as Resolved</>}
-        confirmStyle={{ background: "#9D43D6", color: "white" }}
+        confirmStyle={{ background: "#F2572B", color: "white" }}
       />
       <ConfirmModal
         open={!!notifyModal}
@@ -140,7 +140,7 @@ const ReorderAlerts = () => {
         title="Notify about low stock?"
         description="Send a notification to the responsible team about the low stock for this item?"
         confirmLabel={<><BellRing size={14} />Notify</>}
-        confirmStyle={{ background: "#9D43D6", color: "white" }}
+        confirmStyle={{ background: "#F2572B", color: "white" }}
       />
 
       <div className={`transition-all duration-300 ${isSidebarOpen ? "ml-[240px]" : "ml-0"}`}>
@@ -152,7 +152,7 @@ const ReorderAlerts = () => {
             onClick={() => setShowTestEmail(!showTestEmail)}
             className="h-[38px] px-4 rounded-[10px] border border-[#E5E5E5] bg-white hover:bg-[#FAFAFA] text-[13px] font-medium text-[#212121] inline-flex items-center gap-2 cursor-pointer transition-colors"
           >
-            <Mail size={15} className="text-[#9D43D6] shrink-0" />
+            <Mail size={15} className="text-[#F2572B] shrink-0" />
             <span>Test Email</span>
           </button>
         </div>
@@ -224,7 +224,7 @@ const ReorderAlerts = () => {
                     <span>{label}</span>
                     <span
                       className={`inline-flex items-center justify-center rounded-full px-1.5 min-w-[20px] h-[18px] text-[10px] font-semibold tabular-nums ${
-                        isActive ? "bg-[#9D43D6] text-white" : "bg-[#F3E8FF] text-[#9D43D6]"
+                        isActive ? "bg-[#F2572B] text-white" : "bg-[#FDE3D9] text-[#F2572B]"
                       }`}
                     >
                       {count}
@@ -268,8 +268,8 @@ const ReorderAlerts = () => {
                   ) : displayedAlerts.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="py-16 text-center">
-                        <div className="w-12 h-12 rounded-[12px] bg-[#F3E8FF] flex items-center justify-center mx-auto mb-3">
-                          <BellRing size={22} className="text-[#9D43D6]" />
+                        <div className="w-12 h-12 rounded-[12px] bg-[#FDE3D9] flex items-center justify-center mx-auto mb-3">
+                          <BellRing size={22} className="text-[#F2572B]" />
                         </div>
                         <p className="text-[14px] font-semibold text-[#1B1B1B]">
                           {searchTerm ? "No alerts match your search" : filter === "active" ? "No active reorder alerts" : "No resolved alerts"}
@@ -284,7 +284,7 @@ const ReorderAlerts = () => {
                           {/* Item Details */}
                           <td className="px-5 py-4 border-r border-[#F5F5F5] align-middle">
                             {alert.itemSku && (
-                              <span className="inline-block px-2.5 py-0.5 text-[11px] font-semibold rounded-[6px] bg-[#F3E8FF] text-[#1B1B1B] mb-1.5">
+                              <span className="inline-block px-2.5 py-0.5 text-[11px] font-semibold rounded-[6px] bg-[#FDE3D9] text-[#1B1B1B] mb-1.5">
                                 SKU : {alert.itemSku}
                               </span>
                             )}
@@ -299,7 +299,7 @@ const ReorderAlerts = () => {
                           {/* Warehouse Location */}
                           <td className="px-5 py-4 border-r border-[#F5F5F5] align-middle">
                             <div className="inline-flex items-center gap-2 text-[13px] text-[#525252]">
-                              <MapPin size={15} className="text-[#9D43D6] shrink-0" />
+                              <MapPin size={15} className="text-[#F2572B] shrink-0" />
                               <span>{alert.warehouse || "—"}</span>
                             </div>
                           </td>
@@ -330,7 +330,7 @@ const ReorderAlerts = () => {
                                 <button
                                   type="button"
                                   onClick={() => setResolveModal(alert._id)}
-                                  className="w-[34px] h-[34px] rounded-[8px] bg-[#F4F4F5] hover:bg-[#F3E8FF] text-[#9D43D6] flex items-center justify-center transition-colors cursor-pointer"
+                                  className="w-[34px] h-[34px] rounded-[8px] bg-[#F4F4F5] hover:bg-[#FDE3D9] text-[#F2572B] flex items-center justify-center transition-colors cursor-pointer"
                                   title="Mark as Resolved"
                                 >
                                   <Check size={14} />
@@ -340,7 +340,7 @@ const ReorderAlerts = () => {
                                 <button
                                   type="button"
                                   onClick={() => setNotifyModal(alert._id)}
-                                  className="w-[34px] h-[34px] rounded-[8px] bg-[#9D43D6] hover:bg-[#8732BE] text-white flex items-center justify-center transition-colors cursor-pointer shadow-xs"
+                                  className="w-[34px] h-[34px] rounded-[8px] bg-[#F2572B] hover:bg-[#D9431A] text-white flex items-center justify-center transition-colors cursor-pointer shadow-xs"
                                   title="Notify"
                                 >
                                   <BellRing size={14} />

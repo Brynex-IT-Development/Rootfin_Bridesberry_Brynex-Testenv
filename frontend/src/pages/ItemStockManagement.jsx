@@ -7,11 +7,9 @@ import baseUrl from "../api/api";
 import useSidebar from "../hooks/useSidebar";
 
 import AppSelect from "../components/AppSelect.jsx";
-// Warehouse names for the dropdown - restricted to Warehouse and Brides Berry
-const WAREHOUSES = [
-  "Warehouse",
-  "Brides Berry"
-];
+import { getActiveStores } from "../utils/storeService";
+// Store names for the dropdown come from the backend store list
+const getWarehouses = () => getActiveStores().map((st) => st.locName).filter(Boolean);
 
 const ItemStockManagement = () => {
   const isSidebarOpen = useSidebar();
@@ -31,7 +29,7 @@ const ItemStockManagement = () => {
   // Set warehouses to the specified list
   useEffect(() => {
     // Sort warehouses: "Warehouse" first, then alphabetically
-    const sortedWarehouses = [...WAREHOUSES].sort((a, b) => {
+    const sortedWarehouses = [...getWarehouses()].sort((a, b) => {
       if (a === "Warehouse") return -1;
       if (b === "Warehouse") return 1;
       return a.localeCompare(b);
@@ -61,7 +59,7 @@ const ItemStockManagement = () => {
             // Load existing warehouse stocks if available
             if (foundItem.warehouseStocks && Array.isArray(foundItem.warehouseStocks) && foundItem.warehouseStocks.length > 0) {
               const existingRows = foundItem.warehouseStocks
-                .filter(stock => stock.warehouse && WAREHOUSES.includes(stock.warehouse))
+                .filter(stock => stock.warehouse && getWarehouses().includes(stock.warehouse))
                 .map(stock => {
                   const stockOnHandValue = parseFloat(stock.stockOnHand) || 0;
                   const physicalStockOnHandValue = parseFloat(stock.physicalStockOnHand) || 0;
@@ -116,7 +114,7 @@ const ItemStockManagement = () => {
                 setItem(foundItem);
                 if (foundItem.warehouseStocks && Array.isArray(foundItem.warehouseStocks) && foundItem.warehouseStocks.length > 0) {
                   const existingRows = foundItem.warehouseStocks
-                    .filter(stock => stock.warehouse && WAREHOUSES.includes(stock.warehouse))
+                    .filter(stock => stock.warehouse && getWarehouses().includes(stock.warehouse))
                     .map(stock => {
                       const stockOnHandValue = parseFloat(stock.stockOnHand) || 0;
                       const physicalStockOnHandValue = parseFloat(stock.physicalStockOnHand) || 0;
@@ -207,7 +205,7 @@ const ItemStockManagement = () => {
 
       // Editable warehouses removed from the form are set to 0
       const formWarehouses = new Set(stockRows.map(r => r.warehouse).filter(Boolean));
-      WAREHOUSES.forEach(wh => {
+      getWarehouses().forEach(wh => {
         if (byWarehouse.has(wh) && !formWarehouses.has(wh)) setStock(wh, 0);
       });
 
@@ -319,7 +317,7 @@ const ItemStockManagement = () => {
           {/* Header */}
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#F0F0F0] px-6 py-5 bg-white">
             <div className="flex items-center gap-3.5">
-              <div className="w-10 h-10 rounded-[10px] bg-[#F3E8FF] text-[#9D43D6] flex items-center justify-center">
+              <div className="w-10 h-10 rounded-[10px] bg-[#FDE3D9] text-[#F2572B] flex items-center justify-center">
                 <Store size={19} />
               </div>
               <div>
@@ -328,7 +326,7 @@ const ItemStockManagement = () => {
                     {item.name || item.itemName || "Item Stock Management"}
                   </h1>
                   {item.sku && (
-                    <span className="text-[11px] font-semibold uppercase tracking-wider bg-[#F3E8FF] text-[#9D43D6] px-2 py-0.5 rounded-[6px]">
+                    <span className="text-[11px] font-semibold uppercase tracking-wider bg-[#FDE3D9] text-[#F2572B] px-2 py-0.5 rounded-[6px]">
                       SKU: {item.sku}
                     </span>
                   )}
@@ -361,7 +359,7 @@ const ItemStockManagement = () => {
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-[#7A7A7A]">Configured Locations</p>
                 <p className="text-[18px] font-bold text-[#1B1B1B] mt-0.5 tabular-nums">{configuredBranchesCount} / {warehouses.length}</p>
               </div>
-              <div className="w-8 h-8 rounded-[8px] bg-[#F3E8FF] text-[#9D43D6] flex items-center justify-center">
+              <div className="w-8 h-8 rounded-[8px] bg-[#FDE3D9] text-[#F2572B] flex items-center justify-center">
                 <Store size={16} />
               </div>
             </div>

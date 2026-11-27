@@ -24,6 +24,7 @@ import useSidebar from "../hooks/useSidebar";
 import Header from "../components/Header";
 import { mapLocNameToWarehouse as mapWarehouse } from "../utils/warehouseMapping";
 import { daybookToday } from "../utils/daybookDates";
+import { locCodeForStore } from "../utils/storeService";
 
 const SalesInvoiceDetail = () => {
   const isSidebarOpen = useSidebar();
@@ -52,60 +53,8 @@ const SalesInvoiceDetail = () => {
 
   const API_URL = baseUrl?.baseUrl?.replace(/\/$/, "") || "http://localhost:7000";
 
-  // Branch to location code mapping
-  const branchToLocCodeMap = {
-    "G-Edappally": "702",
-    "G-Edappal": "707",
-    "G-Calicut": "712",
-    "SG-Trivandrum": "700",
-    "G-Kottakkal": "711",
-    "Z-Edappal": "100",
-    "Z-Perinthalmanna": "133",
-    "Z-Kottakkal": "122",
-    "G-Kottayam": "701",
-    "G-Perumbavoor": "703",
-    "G-Thrissur": "704",
-    "G-Chavakkad": "706",
-    "G-Vadakara": "708",
-    "G-Perinthalmanna": "709",
-    "G-Manjeri": "710",
-    "G-Palakkad": "705",
-    "G-Kalpetta": "717",
-    "G-Kannur": "716",
-    "G-Mg Road": "718",
-    "Z-Edapally": "144",
-    "HEAD OFFICE01": "759",
-    "Warehouse": "858",
-    "Production": "101",
-    "Office": "102",
-    "WAREHOUSE": "103",
-    "Dappr Squad": "555",
-    "Edapally Branch": "702",
-    "Calicut Branch": "712",
-    "Chavakkad Branch": "706",
-    "Edappal Branch": "707",
-    "Kalpetta Branch": "717",
-    "Kannur Branch": "716",
-    "Kottakkal Branch": "711",
-    "Kottayam Branch": "701",
-    "Manjery Branch": "710",
-    "Palakkad Branch": "705",
-    "Perinthalmanna Branch": "709",
-    "Perumbavoor Branch": "703",
-    "GPerumbavoor": "703",
-    "GPerumbavoorStore": "703",
-    "SuitorGuy MG Road": "718",
-    "Thrissur Branch": "704",
-    "Vadakara Branch": "708",
-    "Z-Edapally1 Branch": "144",
-    "Z-Edappal Branch": "100",
-    "Z-Perinthalmanna Branch": "133",
-    "Z-Kottakkal Branch": "122",
-  };
-
-  const getLocCodeForBranch = (branchName) => {
-    return branchToLocCodeMap[branchName] || null;
-  };
+  // Stores come only from the backend.
+  const getLocCodeForBranch = (branchName) => locCodeForStore(branchName);
 
   const getUserInfo = () => {
     try {
@@ -286,7 +235,8 @@ const SalesInvoiceDetail = () => {
     const fetchStoreInfo = async () => {
       if (!invoice || !invoice.branch) return;
       
-      const branchLocCode = getLocCodeForBranch(invoice.branch);
+      // Prefer the current backend store for the branch; older invoices may carry a stale locCode.
+      const branchLocCode = getLocCodeForBranch(invoice.branch) || invoice.locCode;
       if (!branchLocCode) {
         return;
       }
@@ -477,7 +427,7 @@ const SalesInvoiceDetail = () => {
         terms: "Due on Receipt",
         branch: invoice.branch,
         warehouse: invoice.warehouse,
-        locCode: invoice.locCode || user?.locCode || getLocCodeForBranch(invoice.branch) || "",
+        locCode: getLocCodeForBranch(invoice.branch) || invoice.locCode || user?.locCode || "",
         salesperson: invoice.salesperson,
         category: "Return",
         originalInvoiceId: invoice._id,
@@ -599,7 +549,7 @@ const SalesInvoiceDetail = () => {
   
     const message =
       `Hello,\n\n` +
-      `Here is your invoice from ${invoice.branch || "Bridesberry"}.\n` +
+      `Here is your invoice from ${invoice.branch || ""}.\n` +
       `Invoice No: ${invoice.invoiceNumber}\n` +
       `Invoice Date: ${formatDate(invoice.invoiceDate)}\n` +
       `Customer: ${invoice.customer}\n` +
@@ -620,7 +570,7 @@ const SalesInvoiceDetail = () => {
     return (
       <div className="min-h-screen bg-[#F9FAFB] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin w-8 h-8 border-2 border-[#8B5CF6] border-t-transparent rounded-full mx-auto mb-3" />
+          <div className="animate-spin w-8 h-8 border-2 border-[#F46A43] border-t-transparent rounded-full mx-auto mb-3" />
           <p className="text-xs font-semibold text-[#6B7280] uppercase tracking-wider">Loading invoice details...</p>
         </div>
       </div>
@@ -652,7 +602,7 @@ const SalesInvoiceDetail = () => {
           <p className="text-sm font-semibold text-[#111827] mb-4">Invoice Not Found</p>
           <button
             onClick={() => navigate("/sales/invoices")}
-            className="px-4 py-2 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white text-xs font-bold uppercase tracking-wider cursor-pointer"
+            className="px-4 py-2 bg-[#F46A43] hover:bg-[#F2572B] text-white text-xs font-bold uppercase tracking-wider cursor-pointer"
           >
             View All Invoices
           </button>
@@ -798,7 +748,7 @@ const SalesInvoiceDetail = () => {
                 </h2>
                 <Link
                   to="/sales/invoices/new"
-                  className="inline-flex items-center gap-1 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white px-3 py-1.5 rounded-none text-xs font-bold uppercase tracking-wider shadow-sm transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1 bg-[#F46A43] hover:bg-[#F2572B] text-white px-3 py-1.5 rounded-none text-xs font-bold uppercase tracking-wider shadow-sm transition-colors cursor-pointer"
                 >
                   <Plus size={13} className="text-white" />
                   New
@@ -812,7 +762,7 @@ const SalesInvoiceDetail = () => {
                   placeholder="Filter invoices..."
                   value={invoiceSearch}
                   onChange={(e) => setInvoiceSearch(e.target.value)}
-                  className="w-full h-8 pl-8 pr-2.5 rounded-none border border-[#E5E7EB] bg-[#F9FAFB] text-xs text-[#111827] placeholder:text-[#9CA3AF] focus:border-[#8B5CF6] focus:bg-white focus:outline-none transition-colors"
+                  className="w-full h-8 pl-8 pr-2.5 rounded-none border border-[#E5E7EB] bg-[#F9FAFB] text-xs text-[#111827] placeholder:text-[#9CA3AF] focus:border-[#F46A43] focus:bg-white focus:outline-none transition-colors"
                 />
                 <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
               </div>
@@ -821,7 +771,7 @@ const SalesInvoiceDetail = () => {
             <div className="p-2">
               {loadingList ? (
                 <div className="text-center py-10">
-                  <div className="inline-block animate-spin h-5 w-5 border-2 border-[#8B5CF6] border-t-transparent mb-2" />
+                  <div className="inline-block animate-spin h-5 w-5 border-2 border-[#F46A43] border-t-transparent mb-2" />
                   <div className="text-xs text-[#6B7280]">Loading invoices...</div>
                 </div>
               ) : filteredSidebarInvoices.length === 0 ? (
@@ -836,20 +786,20 @@ const SalesInvoiceDetail = () => {
                       to={`/sales/invoices/${inv._id}`}
                       className={`block p-3 rounded-none border transition-all cursor-pointer ${
                         inv._id === id
-                          ? 'bg-[#F5F3FF] border-[#DDD6FE] border-l-4 border-l-[#8B5CF6] shadow-xs'
+                          ? 'bg-[#F5F3FF] border-[#DDD6FE] border-l-4 border-l-[#F46A43] shadow-xs'
                           : 'bg-white border-[#E5E7EB] hover:bg-[#F9FAFB] text-[#111827]'
                       }`}
                     >
                       <div className="flex items-start gap-2.5">
                         {/* Customer Avatar Initials */}
                         <div className={`w-8 h-8 rounded-none flex items-center justify-center font-bold text-xs shrink-0 ${
-                          inv._id === id ? 'bg-[#8B5CF6] text-white' : 'bg-[#F3F4F6] text-[#4B5563]'
+                          inv._id === id ? 'bg-[#F46A43] text-white' : 'bg-[#F3F4F6] text-[#4B5563]'
                         }`}>
                           {(inv.customer || "C").slice(0, 2).toUpperCase()}
                         </div>
 
                         <div className="flex-1 min-w-0">
-                          <div className={`text-xs font-bold truncate ${inv._id === id ? 'text-[#7C3AED]' : 'text-[#111827]'}`}>
+                          <div className={`text-xs font-bold truncate ${inv._id === id ? 'text-[#F2572B]' : 'text-[#111827]'}`}>
                             {inv.customer || "Walk-in Customer"}
                           </div>
                           <div className="text-[11px] font-semibold text-[#6B7280] font-mono mt-0.5">
@@ -872,7 +822,7 @@ const SalesInvoiceDetail = () => {
                                 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                                 : inv.status?.toLowerCase() === 'draft'
                                 ? 'bg-gray-100 text-gray-700 border border-gray-200'
-                                : 'bg-[#F5F3FF] text-[#7C3AED] border border-[#DDD6FE]'
+                                : 'bg-[#F5F3FF] text-[#F2572B] border border-[#DDD6FE]'
                             }`}
                           >
                             {inv.returnStatus === 'full' ? 'RETURNED' : (inv.status || 'SENT').toUpperCase()}
@@ -956,7 +906,7 @@ const SalesInvoiceDetail = () => {
                 {isAdminOrWarehouse && (
                   <Link
                     to={`/sales/invoices/${id}/edit`}
-                    className="inline-flex items-center gap-1.5 h-9 px-4 rounded-none bg-[#8B5CF6] hover:bg-[#7C3AED] text-white text-xs font-bold uppercase tracking-wider shadow-xs transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-1.5 h-9 px-4 rounded-none bg-[#F46A43] hover:bg-[#F2572B] text-white text-xs font-bold uppercase tracking-wider shadow-xs transition-colors cursor-pointer"
                   >
                     <Edit size={14} className="text-white" />
                     <span>Edit</span>
@@ -976,7 +926,7 @@ const SalesInvoiceDetail = () => {
             <div id="printable-invoice" className="bg-white border border-[#E5E7EB] shadow-md max-w-4xl mx-auto rounded-none overflow-hidden my-4">
               
               {/* Brand Top Accent Line */}
-              <div className="h-1.5 bg-[#8B5CF6] w-full" />
+              <div className="h-1.5 bg-[#F46A43] w-full" />
 
               <div className="p-8 space-y-7">
                 {/* 1. Document Header: Company & Tax Invoice */}
@@ -984,9 +934,9 @@ const SalesInvoiceDetail = () => {
                   {/* Company Info */}
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-2">
-                      <Building2 size={20} className="text-[#8B5CF6]" />
+                      <Building2 size={20} className="text-[#F46A43]" />
                       <h1 className="text-xl font-extrabold tracking-tight text-[#111827] uppercase">
-                        {storeInfo?.name || invoice.branch || "Bridesberry"}
+                        {storeInfo?.name || invoice.branch || ""}
                       </h1>
                     </div>
                     <div className="text-xs text-[#4B5563] space-y-0.5 leading-relaxed">
@@ -1025,8 +975,8 @@ const SalesInvoiceDetail = () => {
                           PAID
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-violet-50 text-[#7C3AED] border border-[#DDD6FE] text-[10px] font-bold uppercase tracking-wider rounded-none">
-                          <span className="w-1.5 h-1.5 bg-[#8B5CF6] rounded-full" />
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-violet-50 text-[#F2572B] border border-[#DDD6FE] text-[10px] font-bold uppercase tracking-wider rounded-none">
+                          <span className="w-1.5 h-1.5 bg-[#F46A43] rounded-full" />
                           {(invoice.status || "SENT").toUpperCase()}
                         </span>
                       )}
@@ -1256,8 +1206,8 @@ const SalesInvoiceDetail = () => {
                     </div>
 
                     <div className="bg-[#F5F3FF] border border-[#DDD6FE] p-3.5 mt-3 flex justify-between items-center">
-                      <span className="text-xs font-bold uppercase tracking-wider text-[#7C3AED]">Balance Due</span>
-                      <span className="text-lg font-black text-[#7C3AED]">{formatCurrency(displayFinalTotal)}</span>
+                      <span className="text-xs font-bold uppercase tracking-wider text-[#F2572B]">Balance Due</span>
+                      <span className="text-lg font-black text-[#F2572B]">{formatCurrency(displayFinalTotal)}</span>
                     </div>
                   </div>
                 </div>
@@ -1273,7 +1223,7 @@ const SalesInvoiceDetail = () => {
                       Authorised Signature
                     </div>
                     <div className="text-[11px] text-[#6B7280] mt-0.5">
-                      For {storeInfo?.name || invoice.branch || "Bridesberry"}
+                      For {storeInfo?.name || invoice.branch || ""}
                     </div>
                   </div>
                 </div>
@@ -1315,7 +1265,7 @@ const SalesInvoiceDetail = () => {
                     value={returnReason}
                     onChange={(e) => setReturnReason(e.target.value)}
                     placeholder="e.g., Damaged product, Wrong item, Customer request..."
-                    className="w-full px-3 py-2 border border-[#E5E7EB] rounded-none text-xs text-[#111827] placeholder:text-[#9CA3AF] focus:border-[#8B5CF6] focus:outline-none transition-colors"
+                    className="w-full px-3 py-2 border border-[#E5E7EB] rounded-none text-xs text-[#111827] placeholder:text-[#9CA3AF] focus:border-[#F46A43] focus:outline-none transition-colors"
                     rows="3"
                   />
                 </div>
@@ -1333,7 +1283,7 @@ const SalesInvoiceDetail = () => {
                         value="Cash"
                         checked={returnPaymentMethod === "Cash"}
                         onChange={(e) => setReturnPaymentMethod(e.target.value)}
-                        className="w-4 h-4 accent-[#8B5CF6]"
+                        className="w-4 h-4 accent-[#F46A43]"
                       />
                       <span>Cash</span>
                     </label>
@@ -1344,7 +1294,7 @@ const SalesInvoiceDetail = () => {
                         value="RBL"
                         checked={returnPaymentMethod === "RBL"}
                         onChange={(e) => setReturnPaymentMethod(e.target.value)}
-                        className="w-4 h-4 accent-[#8B5CF6]"
+                        className="w-4 h-4 accent-[#F46A43]"
                       />
                       <span>Razorpay</span>
                     </label>
@@ -1407,7 +1357,7 @@ const SalesInvoiceDetail = () => {
                               disabled={!isReturnable}
                               className={`w-24 px-2.5 py-1.5 border rounded-none text-xs focus:outline-none ${
                                 isReturnable
-                                  ? "border-[#E5E7EB] text-[#111827] focus:border-[#8B5CF6]"
+                                  ? "border-[#E5E7EB] text-[#111827] focus:border-[#F46A43]"
                                   : "border-red-200 bg-red-100/50 text-red-800 cursor-not-allowed opacity-60"
                               }`}
                               title={!isReturnable ? `Item "${item.item || item.itemData?.itemName || 'Unknown'}" cannot be returned. Enable "Returnable Item" in product settings.` : ""}

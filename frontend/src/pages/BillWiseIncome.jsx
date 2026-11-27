@@ -1338,7 +1338,7 @@ const DayBookInc = ({ admin = false }) => {
                                         </thead>
                                         <tbody className="divide-y divide-[#EFEFEF] text-[13px]">
                                             {/* Special Row: OPENING BALANCE */}
-                                            <tr className="bg-[#FAFAFA] font-medium text-[#212121] h-[44px] hover:bg-[#FBF5FC] transition-colors border-b border-[#EFEFEF]">
+                                            <tr className="bg-[#FAFAFA] font-medium text-[#212121] h-[44px] hover:bg-[#FEF3EE] transition-colors border-b border-[#EFEFEF]">
                                                 <td colSpan="6" className="h-[44px] px-3.5 font-semibold text-[12px] uppercase tracking-wider text-[#212121] border-r border-[#F3F3F3]">
                                                     OPENING BALANCE
                                                 </td>
@@ -1379,7 +1379,7 @@ const DayBookInc = ({ admin = false }) => {
                                                     const displayUpi = tx.upi != null ? tx.upi : 0;
 
                                                     return (
-                                                        <tr key={tx._id || idx} className="h-[46px] bg-white hover:bg-[#FBF5FC] transition-colors text-[#212121]">
+                                                        <tr key={tx._id || idx} className="h-[46px] bg-white hover:bg-[#FEF3EE] transition-colors text-[#212121]">
                                                             <td className="h-[46px] px-3.5 text-[13px] text-[#4A4A4A] border-r border-[#F3F3F3] whitespace-nowrap">{displayTime}</td>
                                                             <td className="h-[46px] px-3.5 text-[13px] text-[#212121] border-r border-[#F3F3F3] whitespace-nowrap">{displayInvoice}</td>
                                                             <td className="h-[46px] px-3.5 text-[13px] text-[#212121] border-r border-[#F3F3F3] whitespace-nowrap">{displayCustomer}</td>
@@ -1392,7 +1392,7 @@ const DayBookInc = ({ admin = false }) => {
                                                                         type="number"
                                                                         value={editedTransaction.amount}
                                                                         onChange={(e) => handleInputChange("amount", e.target.value)}
-                                                                        className="w-20 p-1 border border-[#E5E5E5] rounded-[6px] text-xs text-right outline-none focus:border-[#9B48D7]"
+                                                                        className="w-20 p-1 border border-[#E5E5E5] rounded-[6px] text-xs text-right outline-none focus:border-[#F2572B]"
                                                                     />
                                                                 ) : displayAmount}
                                                             </td>
@@ -1402,7 +1402,7 @@ const DayBookInc = ({ admin = false }) => {
                                                                         type="number"
                                                                         value={editedTransaction.totalTransaction}
                                                                         onChange={(e) => handleInputChange("totalTransaction", e.target.value)}
-                                                                        className="w-20 p-1 border border-[#E5E5E5] rounded-[6px] text-xs text-right outline-none focus:border-[#9B48D7]"
+                                                                        className="w-20 p-1 border border-[#E5E5E5] rounded-[6px] text-xs text-right outline-none focus:border-[#F2572B]"
                                                                     />
                                                                 ) : displayTotalTxn}
                                                             </td>
@@ -1418,7 +1418,7 @@ const DayBookInc = ({ admin = false }) => {
                                                                         type="number"
                                                                         value={editedTransaction.cash}
                                                                         onChange={(e) => handleInputChange("cash", e.target.value)}
-                                                                        className="w-16 p-1 border border-[#E5E5E5] rounded-[6px] text-xs text-right outline-none focus:border-[#9B48D7]"
+                                                                        className="w-16 p-1 border border-[#E5E5E5] rounded-[6px] text-xs text-right outline-none focus:border-[#F2572B]"
                                                                         aria-label="Cash amount"
                                                                     />
                                                                 ) : displayCash}
@@ -1429,7 +1429,7 @@ const DayBookInc = ({ admin = false }) => {
                                                                         type="number"
                                                                         value={editedTransaction.rbl}
                                                                         onChange={(e) => handleInputChange("rbl", e.target.value)}
-                                                                        className="w-16 p-1 border border-[#E5E5E5] rounded-[6px] text-xs text-right outline-none focus:border-[#9B48D7]"
+                                                                        className="w-16 p-1 border border-[#E5E5E5] rounded-[6px] text-xs text-right outline-none focus:border-[#F2572B]"
                                                                         aria-label="Razorpay amount"
                                                                     />
                                                                 ) : displayRazorpay}
@@ -1440,7 +1440,7 @@ const DayBookInc = ({ admin = false }) => {
                                                                         type="number"
                                                                         value={editedTransaction.bank}
                                                                         onChange={(e) => handleInputChange("bank", e.target.value)}
-                                                                        className="w-16 p-1 border border-[#E5E5E5] rounded-[6px] text-xs text-right outline-none focus:border-[#9B48D7]"
+                                                                        className="w-16 p-1 border border-[#E5E5E5] rounded-[6px] text-xs text-right outline-none focus:border-[#F2572B]"
                                                                         aria-label="Card or bank amount"
                                                                     />
                                                                 ) : displayBank}
@@ -1451,7 +1451,7 @@ const DayBookInc = ({ admin = false }) => {
                                                                         type="number"
                                                                         value={editedTransaction.upi}
                                                                         onChange={(e) => handleInputChange("upi", e.target.value)}
-                                                                        className="w-16 p-1 border border-[#E5E5E5] rounded-[6px] text-xs text-right outline-none focus:border-[#9B48D7]"
+                                                                        className="w-16 p-1 border border-[#E5E5E5] rounded-[6px] text-xs text-right outline-none focus:border-[#F2572B]"
                                                                         aria-label="UPI amount"
                                                                     />
                                                                 ) : displayUpi}
@@ -1537,7 +1537,7 @@ const DayBookInc = ({ admin = false }) => {
                                         {denominations.map((denom, index) => {
                                             const amt = (parseInt(quantities[index], 10) || 0) * denom.value;
                                             return (
-                                                <div key={denom.label} className="px-6 py-3 flex justify-between items-center hover:bg-[#FBF5FC] transition-colors">
+                                                <div key={denom.label} className="px-6 py-3 flex justify-between items-center hover:bg-[#FEF3EE] transition-colors">
                                                     <span className="text-[13px] font-medium text-[#4A4A4A] w-1/3 text-center">{denom.label}</span>
                                                     <div className="w-1/3 flex justify-center">
                                                         <div className="inline-flex items-center border border-[#E5E5E5] rounded-lg overflow-hidden bg-white">

@@ -8,8 +8,8 @@
   --font-family-sans: 'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
 
   /* Color System */
-  --color-rootfin-primary: #9D43D6;
-  --color-rootfin-primary-hover: #8B3CBD;
+  --color-rootfin-primary: #F2572B;
+  --color-rootfin-primary-hover: #D9431A;
   --color-rootfin-sidebar: #1B1B1B;
   --color-rootfin-heading: #212121;
   --color-rootfin-secondary: #6A6A6A;
@@ -18,11 +18,46 @@
   --color-rootfin-success: #16A34A;
   --color-rootfin-danger: #DC2626;
   --color-rootfin-warning: #EA580C;
+
+  /* Brand accent: Tailwind purple/violet/fuchsia remapped to the RootFin orange scale (#F2572B) */
+  --color-purple-50: #FEF3EE;
+  --color-purple-100: #FDE3D9;
+  --color-purple-200: #FCCAB9;
+  --color-purple-300: #F9A88E;
+  --color-purple-400: #F6825F;
+  --color-purple-500: #F46A43;
+  --color-purple-600: #F2572B;
+  --color-purple-700: #D9431A;
+  --color-purple-800: #B23614;
+  --color-purple-900: #8C2B12;
+  --color-purple-950: #4A160A;
+  --color-violet-50: #FEF3EE;
+  --color-violet-100: #FDE3D9;
+  --color-violet-200: #FCCAB9;
+  --color-violet-300: #F9A88E;
+  --color-violet-400: #F6825F;
+  --color-violet-500: #F46A43;
+  --color-violet-600: #F2572B;
+  --color-violet-700: #D9431A;
+  --color-violet-800: #B23614;
+  --color-violet-900: #8C2B12;
+  --color-violet-950: #4A160A;
+  --color-fuchsia-50: #FEF3EE;
+  --color-fuchsia-100: #FDE3D9;
+  --color-fuchsia-200: #FCCAB9;
+  --color-fuchsia-300: #F9A88E;
+  --color-fuchsia-400: #F6825F;
+  --color-fuchsia-500: #F46A43;
+  --color-fuchsia-600: #F2572B;
+  --color-fuchsia-700: #D9431A;
+  --color-fuchsia-800: #B23614;
+  --color-fuchsia-900: #8C2B12;
+  --color-fuchsia-950: #4A160A;
 }
 
 :root {
-  --rf-primary: #9D43D6;
-  --rf-primary-hover: #8B3CBD;
+  --rf-primary: #F2572B;
+  --rf-primary-hover: #D9431A;
   --rf-sidebar: #1B1B1B;
   --rf-heading: #212121;
   --rf-secondary: #6A6A6A;
@@ -72,7 +107,7 @@ label {
    RootFin UI Kit: Buttons (Section 3)
    ───────────────────────────────────────────────────────────── */
 .rf-btn-primary {
-  background-color: #9D43D6 !important;
+  background-color: #F2572B !important;
   color: #ffffff !important;
   font-size: 13px !important;
   font-weight: 500 !important;
@@ -89,7 +124,7 @@ label {
 }
 
 .rf-btn-primary:hover {
-  background-color: #8B3CBD !important;
+  background-color: #D9431A !important;
 }
 
 .rf-btn-secondary {
@@ -237,7 +272,7 @@ label {
 /* ─────────────────────────────────────────────────────────────
    RootFin UI Kit: Global Standardization Across All Pages
    ───────────────────────────────────────────────────────────── */
-/* Standardize legacy blue buttons to RootFin Primary #9D43D6 */
+/* Standardize legacy blue buttons to RootFin Primary #F2572B */
 button.bg-blue-600,
 button.bg-blue-700,
 button.bg-blue-800,
@@ -246,7 +281,7 @@ button.bg-purple-700,
 a.bg-blue-600,
 a.bg-blue-700,
 a.bg-purple-600 {
-  background-color: #9D43D6 !important;
+  background-color: #F2572B !important;
   color: #ffffff !important;
   font-size: 13px !important;
   font-weight: 500 !important;
@@ -261,7 +296,7 @@ button.bg-purple-700:hover,
 a.bg-blue-600:hover,
 a.bg-blue-700:hover,
 a.bg-purple-600:hover {
-  background-color: #8B3CBD !important;
+  background-color: #D9431A !important;
 }
 
 /* Standardize table headers globally to #1B1B1B with white text */
@@ -279,15 +314,15 @@ table thead th {
 }
 
 table tbody tr:hover {
-  background-color: #FBF5FC !important;
+  background-color: #FEF3EE !important;
 }
 
 /* Standardize form inputs focus state globally */
 input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="button"]):not([type="submit"]):not([type="hidden"]):focus,
 select:focus,
 textarea:focus {
-  border-color: #9B48D7 !important;
-  box-shadow: 0 0 0 1px #9B48D7 !important;
+  border-color: #F2572B !important;
+  box-shadow: 0 0 0 1px #F2572B !important;
 }
 
 /* Standardize input placeholders globally */
@@ -357,88 +392,59 @@ textarea::placeholder {
 /* ─────────────────────────────────────────────────────────────
    RootFin UI Kit: Section 4 - Sidebar Navigation
    ───────────────────────────────────────────────────────────── */
-.rf-sidebar {
-  width: 240px !important;
-  background-color: #1B1B1B !important;
+/* Sidebar (Nav.jsx). Colours/layout live in Tailwind classes; these cover
+   transitions and animations that must not be overridden by global button rules. */
+.rf-nav {
+  transition: width 300ms cubic-bezier(.4, 0, .2, 1), transform 300ms cubic-bezier(.4, 0, .2, 1);
 }
 
-.rf-sidebar-item {
-  height: 40px !important;
-  border-radius: 10px !important;
-  padding: 0 14px !important;
-  font-size: 13px !important;
-  color: #A1A1AA !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 12px !important;
-  transition: all 0.15s ease-in-out !important;
+.rf-nav-backdrop {
+  transition: opacity 300ms cubic-bezier(.4, 0, .2, 1);
 }
 
-.rf-sidebar-item:hover {
-  color: #ffffff !important;
-  background-color: rgba(255, 255, 255, 0.04) !important;
+.rf-nav-press {
+  transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease, box-shadow 200ms ease, transform 120ms ease;
 }
 
-.rf-sidebar-item.active {
-  background-color: #9D43D6 !important;
-  color: #ffffff !important;
-  font-weight: 500 !important;
+.rf-nav-press:active {
+  transform: scale(0.96);
 }
 
-.rf-sidebar-item .rf-icon {
-  width: 16px !important;
-  height: 16px !important;
+.rf-nav-chevron {
+  transition: transform 200ms ease;
 }
 
-.rf-sidebar-subitem {
-  height: 34px !important;
-  border-radius: 8px !important;
-  padding: 0 12px !important;
-  font-size: 12px !important;
-  font-weight: 500 !important;
-  color: #E4E4E7 !important;
-  display: flex !important;
-  align-items: center !important;
-  text-decoration: none !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  transition: all 0.15s ease-in-out !important;
+.rf-nav-logo {
+  transition: transform 200ms ease;
 }
 
-.rf-sidebar-subgroup {
-  margin-top: 4px !important;
-  margin-bottom: 4px !important;
-  margin-left: 16px !important;
-  padding-left: 12px !important;
-  border-left: 2px solid #3F3F46 !important;
+.rf-nav-logo:hover {
+  transform: scale(1.05);
 }
 
-.rf-sidebar-subitem span {
-  color: #E4E4E7 !important;
-  font-size: 12px !important;
-  font-weight: 500 !important;
-  visibility: visible !important;
-  opacity: 1 !important;
+@keyframes rfNavFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.rf-sidebar-subitem:hover {
-  color: #ffffff !important;
-  background-color: rgba(255, 255, 255, 0.08) !important;
+.rf-nav-sub {
+  animation: rfNavFadeUp 220ms cubic-bezier(.4, 0, .2, 1) both;
 }
 
-.rf-sidebar-subitem:hover span {
-  color: #ffffff !important;
-}
-
-.rf-sidebar-subitem.active {
-  background-color: #9D43D6 !important;
-  color: #ffffff !important;
-  font-weight: 500 !important;
-}
-
-.rf-sidebar-subitem.active span {
-  color: #ffffff !important;
-  font-weight: 500 !important;
+@media (prefers-reduced-motion: reduce) {
+  .rf-nav,
+  .rf-nav *,
+  .rf-nav-backdrop,
+  .rf-sidebar-root * {
+    transition: none !important;
+    animation: none !important;
+  }
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -491,9 +497,9 @@ select.rf-input {
 input.rf-input:focus,
 select.rf-input:focus,
 textarea.rf-textarea:focus {
-  border-color: #9B48D7 !important;
-  /* Focus border: #9B48D7 */
-  box-shadow: 0 0 0 1px #9B48D7 !important;
+  border-color: #F2572B !important;
+  /* Focus border: #F2572B */
+  box-shadow: 0 0 0 1px #F2572B !important;
 }
 
 .rf-input::placeholder,
@@ -570,8 +576,8 @@ textarea.rf-textarea {
 
 .rf-table-row:hover,
 .rf-table tbody tr:hover {
-  background-color: #FBF5FC !important;
-  /* Row Hover: #FBF5FC */
+  background-color: #FEF3EE !important;
+  /* Row Hover: #FEF3EE */
 }
 
 .rf-table-cell,
@@ -594,7 +600,7 @@ textarea.rf-textarea {
 }
 
 .rf-link-cell {
-  color: #9D43D6 !important;
+  color: #F2572B !important;
   font-weight: 500 !important;
   cursor: pointer !important;
 }
@@ -780,7 +786,7 @@ a.inline-flex {
   display: inline-flex !important;
 }
 
-/* Remove universal blue button override rule so components can use custom colors like #9B48D7 */
+/* Remove universal blue button override rule so components can use custom colors like #F2572B */
 
 /* Invoice page specific styles */
 
@@ -825,17 +831,8 @@ a.no-blue-button {
 }
 
 .sidebar-button {
-  background-color: transparent;
-  color: inherit !important;
-  border-color: transparent !important;
-  box-shadow: none !important;
   min-width: unset !important;
   min-height: unset !important;
-}
-
-.sidebar-button.active {
-  background-color: #9D43D6 !important;
-  color: #ffffff !important;
 }
 
 .table-link-button {
@@ -945,7 +942,7 @@ button:focus:not(:focus-visible) {
 }
 
 button:focus-visible {
-  outline: 2px solid #8b5cf6;
+  outline: 2px solid #F46A43;
   outline-offset: 2px;
 }
 
@@ -1168,16 +1165,16 @@ button.action-delete-btn:hover {
 
 .payment-method-btn:hover,
 .invoice-page-wrapper .payment-method-btn:hover {
-  border-color: #c084fc !important;
-  background-color: #faf5ff !important;
+  border-color: #F6825F !important;
+  background-color: #FEF3EE !important;
 }
 
 .payment-method-btn.payment-method-selected,
 .invoice-page-wrapper .payment-method-btn.payment-method-selected {
-  border: 2px solid #8b5cf6 !important;
+  border: 2px solid #F46A43 !important;
   background-color: #f5f3ff !important;
   color: #111827 !important;
-  box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.2) !important;
+  box-shadow: 0 0 0 1px rgba(244, 106, 67, 0.2) !important;
 }
 
 .invoice-page-wrapper input,
@@ -1188,8 +1185,8 @@ button.action-delete-btn:hover {
 
 .invoice-page-wrapper input:focus,
 .invoice-page-wrapper select:focus {
-  border-color: #8b5cf6 !important;
-  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.12) !important;
+  border-color: #F46A43 !important;
+  box-shadow: 0 0 0 2px rgba(244, 106, 67, 0.12) !important;
   outline: none !important;
 }
 
@@ -1207,25 +1204,18 @@ button.action-delete-btn:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
 }
 
-/* High-specificity Global Sidebar responsive margin rules for Header and all Page Containers */
-html body.sidebar-closed nav.bg-white,
-html body.sidebar-closed header.bg-white,
-html body.sidebar-closed div[class*="ml-"]:not(nav *):not(.rf-sidebar *),
-html body.sidebar-closed .ml-64:not(nav *):not(.rf-sidebar *),
-html body.sidebar-closed [class*="ml-[240px]"]:not(nav *):not(.rf-sidebar *),
-html body.sidebar-closed [class*="ml-[290px]"]:not(nav *):not(.rf-sidebar *) {
+/* Page offset for the sidebar. Pages render ml-[240px] / ml-64 while the body has
+   `sidebar-open` (always set by Nav.jsx). Remap that to the 76px icon rail on desktop;
+   below lg the sidebar is an off-canvas drawer, so pages take the full width. */
+html body.sidebar-open :is(nav.bg-white, header.bg-white, .ml-64, [class*="ml-[240px]"], [class*="ml-[290px]"]):not(.rf-sidebar *) {
   margin-left: 0 !important;
   transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-html body.sidebar-open nav.bg-white,
-html body.sidebar-open header.bg-white,
-html body.sidebar-open div[class*="ml-"]:not(nav *):not(.rf-sidebar *),
-html body.sidebar-open .ml-64:not(nav *):not(.rf-sidebar *),
-html body.sidebar-open [class*="ml-[240px]"]:not(nav *):not(.rf-sidebar *),
-html body.sidebar-open [class*="ml-[290px]"]:not(nav *):not(.rf-sidebar *) {
-  margin-left: 240px !important;
-  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+@media (min-width: 1024px) {
+  html body.sidebar-open :is(nav.bg-white, header.bg-white, .ml-64, [class*="ml-[240px]"], [class*="ml-[290px]"]):not(.rf-sidebar *) {
+    margin-left: 76px !important;
+  }
 }
 
 /* Standardized Dropdown Menu Scrollbar (matching Day Book Category dropdown) */
@@ -1251,19 +1241,19 @@ html body.sidebar-open [class*="ml-[290px]"]:not(nav *):not(.rf-sidebar *) {
 @keyframes rfLogoArrowMove {
   0% {
     clip-path: inset(0 49.5% 0 0);
-    filter: drop-shadow(0 0 0 rgba(157, 67, 214, 0));
+    filter: drop-shadow(0 0 0 rgba(242, 87, 43, 0));
   }
   55% {
     clip-path: inset(0 26% 0 0);
-    filter: drop-shadow(0 0 5px rgba(157, 67, 214, 0.7));
+    filter: drop-shadow(0 0 5px rgba(242, 87, 43, 0.7));
   }
   82% {
     clip-path: inset(0 26% 0 0);
-    filter: drop-shadow(0 0 3px rgba(157, 67, 214, 0.35));
+    filter: drop-shadow(0 0 3px rgba(242, 87, 43, 0.35));
   }
   100% {
     clip-path: inset(0 49.5% 0 0);
-    filter: drop-shadow(0 0 0 rgba(157, 67, 214, 0));
+    filter: drop-shadow(0 0 0 rgba(242, 87, 43, 0));
   }
 }
 
@@ -1276,19 +1266,19 @@ html body.sidebar-open [class*="ml-[290px]"]:not(nav *):not(.rf-sidebar *) {
 @keyframes rfLoaderArrowGrow {
   0% {
     clip-path: inset(0 49.5% 0 0);
-    filter: drop-shadow(0 0 0 rgba(157, 67, 214, 0));
+    filter: drop-shadow(0 0 0 rgba(242, 87, 43, 0));
   }
   65% {
     clip-path: inset(0 26% 0 0);
-    filter: drop-shadow(0 0 8px rgba(157, 67, 214, 0.75));
+    filter: drop-shadow(0 0 8px rgba(242, 87, 43, 0.75));
   }
   88% {
     clip-path: inset(0 26% 0 0);
-    filter: drop-shadow(0 0 4px rgba(157, 67, 214, 0.35));
+    filter: drop-shadow(0 0 4px rgba(242, 87, 43, 0.35));
   }
   100% {
     clip-path: inset(0 49.5% 0 0);
-    filter: drop-shadow(0 0 0 rgba(157, 67, 214, 0));
+    filter: drop-shadow(0 0 0 rgba(242, 87, 43, 0));
   }
 }
 

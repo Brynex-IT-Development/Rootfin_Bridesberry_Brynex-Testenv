@@ -24,7 +24,7 @@ const salesInvoiceSchema = new mongoose.Schema(
     },
     branch: {
       type: String,
-      default: "Head Office",
+      default: "",
     },
     orderNumber: {
       type: String,

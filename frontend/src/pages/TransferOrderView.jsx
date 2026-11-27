@@ -20,6 +20,8 @@ import Head from "../components/Head";
 import baseUrl from "../api/api";
 import { mapLocNameToWarehouse } from "../utils/warehouseMapping";
 import useSidebar from "../hooks/useSidebar";
+import { isWarehouseStore, getUserStoreName } from "../utils/storeService";
+import { isAdminOrSuperAdmin } from "../utils/roleUtils";
 
 const TransferOrderView = () => {
   const isSidebarOpen = useSidebar();
@@ -32,8 +34,7 @@ const TransferOrderView = () => {
   const user = userStr ? JSON.parse(userStr) : null;
   const userLocCode = user?.locCode || "";
   const userEmail = user?.email || user?.username || "";
-  const adminEmails = ['officerootments@gmail.com'];
-  const isAdminEmail = userEmail && adminEmails.some(email => userEmail.toLowerCase() === email.toLowerCase());
+  const isAdminEmail = isAdminOrSuperAdmin(user);
   const isAdmin = isAdminEmail || user?.power === "admin";
   const isWarehouseUser = user?.power === "warehouse";
   
@@ -49,12 +50,12 @@ const TransferOrderView = () => {
     }
   }
   if (!userLocName) {
-    userLocName = user?.username || user?.locName || "";
+    userLocName = getUserStoreName(user);
   }
 
   const userWarehouse = mapLocNameToWarehouse(userLocName);
   const isWarehouseSelection = (userWarehouse || "").toString().toLowerCase().trim() === "warehouse" ||
-    userLocCode === '858' || userLocCode === '103';
+    isWarehouseStore(userLocCode);
   const shouldEnforceStoreContext = !isWarehouseUser && !(isAdmin && isWarehouseSelection);
 
   const matchesWarehouse = (orderWarehouse, targetWarehouse) => {
@@ -1156,7 +1157,7 @@ const TransferOrderView = () => {
           <p className="text-[#64748b] mb-4">Transfer order not found</p>
           <Link
             to="/inventory/transfer-orders"
-            className="text-[#9D43D6] hover:underline"
+            className="text-[#F2572B] hover:underline"
           >
             Back to Transfer Orders
           </Link>
@@ -1217,7 +1218,7 @@ const TransferOrderView = () => {
               {!showScanner ? (
                 <button
                   onClick={startScanner}
-                  className="inline-flex items-center gap-2 rounded-md bg-[#9D43D6] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#8732BE]"
+                  className="inline-flex items-center gap-2 rounded-md bg-[#F2572B] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#D9431A]"
                 >
                   <Scan size={16} />
                   Start Scanning
@@ -1252,7 +1253,7 @@ const TransferOrderView = () => {
             />
             Show PDF View
           </label>
-          <button className="inline-flex items-center gap-2 rounded-md bg-[#9D43D6] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#8732BE]">
+          <button className="inline-flex items-center gap-2 rounded-md bg-[#F2572B] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#D9431A]">
             Customize
           </button>
         </div>
@@ -1278,7 +1279,7 @@ const TransferOrderView = () => {
           )}
           {transferOrder.status === "in_transit" && (
             <div 
-              className="absolute top-0 left-0 bg-[#9D43D6] text-white px-16 py-2 text-xs font-bold uppercase tracking-wider shadow-lg z-10"
+              className="absolute top-0 left-0 bg-[#F2572B] text-white px-16 py-2 text-xs font-bold uppercase tracking-wider shadow-lg z-10"
               style={{
                 transform: 'rotate(-45deg)',
                 transformOrigin: 'top left',
@@ -1632,7 +1633,7 @@ const TransferOrderView = () => {
                   type="text"
                   onKeyDown={handleExternalScannerInput}
                   placeholder="Focus here to scan with external scanner..."
-                  className="w-full px-3 py-2 text-sm border border-[#d7dcf5] rounded-md focus:border-[#9D43D6] focus:outline-none focus:ring-1 focus:ring-[#9D43D6]"
+                  className="w-full px-3 py-2 text-sm border border-[#d7dcf5] rounded-md focus:border-[#F2572B] focus:outline-none focus:ring-1 focus:ring-[#F2572B]"
                   autoFocus
                 />
                 <p className="text-xs text-[#64748b] mt-1">
@@ -1696,7 +1697,7 @@ const TransferOrderView = () => {
                 </button>
                 <button
                   onClick={stopScanner}
-                  className="px-3 py-1.5 text-xs font-medium bg-[#9D43D6] text-white rounded-md hover:bg-[#8732BE]"
+                  className="px-3 py-1.5 text-xs font-medium bg-[#F2572B] text-white rounded-md hover:bg-[#D9431A]"
                 >
                   Close
                 </button>

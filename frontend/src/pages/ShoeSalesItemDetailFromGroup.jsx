@@ -7,118 +7,21 @@ import { mapLocNameToWarehouse as mapWarehouse } from "../utils/warehouseMapping
 import AttachmentDisplay from "../components/AttachmentDisplay";
 import baseUrl from "../api/api";
 import useSidebar from "../hooks/useSidebar";
-import { getActiveStores, isAllowedStoreNameOrCode } from "../utils/storeService.js";
+import { getActiveStores, isAllowedStoreNameOrCode, isWarehouseStore, getUserStoreName } from "../utils/storeService.js";
 
 import AppSelect from "../components/AppSelect.jsx";
-// Warehouse name mapping: actual names from API -> display names for Stocks page
-const WAREHOUSE_NAME_MAPPING = {
-  // Actual API names -> Display names
-  "G.Palakkad": "Palakkad Branch",
-  "G-Palakkad": "Palakkad Branch",
-  "G.Palakkad ": "Palakkad Branch",
-  "GPalakkad": "Palakkad Branch",
-  "Palakkad Branch": "Palakkad Branch",
-  "Warehouse": "Warehouse",
-  "G.Calicut": "Calicut",
-  "G-Calicut": "Calicut",
-  "G.Calicut ": "Calicut",
-  "GCalicut": "Calicut",
-  "Calicut": "Calicut",
-  "G.Manjeri": "Manjery Branch",
-  "G-Manjeri": "Manjery Branch",
-  "G.Manjery": "Manjery Branch",
-  "G-Manjery": "Manjery Branch",
-  "GManjeri": "Manjery Branch",
-  "GManjery": "Manjery Branch",
-  "Manjery Branch": "Manjery Branch",
-  "G.Kannur": "Kannur Branch",
-  "G-Kannur": "Kannur Branch",
-  "GKannur": "Kannur Branch",
-  "Kannur Branch": "Kannur Branch",
-  "G.Edappal": "Edappal Branch",
-  "G-Edappal": "Edappal Branch",
-  "GEdappal": "Edappal Branch",
-  "Edappal Branch": "Edappal Branch",
-  "G.Kalpetta": "Kalpetta Branch",
-  "G-Kalpetta": "Kalpetta Branch",
-  "GKalpetta": "Kalpetta Branch",
-  "Kalpetta Branch": "Kalpetta Branch",
-  "G.Kottakkal": "Kottakkal Branch",
-  "G-Kottakkal": "Kottakkal Branch",
-  "GKottakkal": "Kottakkal Branch",
-  "Kottakkal Branch": "Kottakkal Branch",
-  "Z.Kottakkal": "Kottakkal Branch",
-  "Z-Kottakkal": "Kottakkal Branch",
-  "G.Perinthalmanna": "Perinthalmanna Branch",
-  "G-Perinthalmanna": "Perinthalmanna Branch",
-  "GPerinthalmanna": "Perinthalmanna Branch",
-  "Perinthalmanna Branch": "Perinthalmanna Branch",
-  "Z.Perinthalmanna": "Perinthalmanna Branch",
-  "Z-Perinthalmanna": "Perinthalmanna Branch",
-  // Trivandrum variations - fix typo and add correct mapping
-  "Grooms Trivandum": "Grooms Trivandrum",
-  "Grooms Trivandrum": "Grooms Trivandrum",
-  "SG-Trivandrum": "Grooms Trivandrum",
-  "SG.Trivandrum": "Grooms Trivandrum",
-  "G.Chavakkad": "Chavakkad Branch",
-  "G-Chavakkad": "Chavakkad Branch",
-  "GChavakkad": "Chavakkad Branch",
-  "Chavakkad Branch": "Chavakkad Branch",
-  "G.Thrissur": "Thrissur Branch",
-  "G-Thrissur": "Thrissur Branch",
-  "GThrissur": "Thrissur Branch",
-  "Thrissur Branch": "Thrissur Branch",
-  "G.Perumbavoor": "Perumbavoor Branch",
-  "G-Perumbavoor": "Perumbavoor Branch",
-  "GPerumbavoor": "Perumbavoor Branch",
-  "Perumbavoor Branch": "Perumbavoor Branch",
-  "G.Kottayam": "Kottayam Branch",
-  "G-Kottayam": "Kottayam Branch",
-  "GKottayam": "Kottayam Branch",
-  "Kottayam Branch": "Kottayam Branch",
-  "G.Edappally": "Edapally Branch",
-  "G-Edappally": "Edapally Branch",
-  "GEdappally": "Edapally Branch",
-  "Edapally Branch": "Edapally Branch",
-  "Edapallyadmin Branch": "Edapally Branch",
-  "Edapallyadmin": "Edapally Branch",
-  "Z-Edapally1": "Edapally Branch",
-  "Z-Edapally1 Branch": "Edapally Branch",
-  "-Edapally1 Branch": "Edapally Branch",
-  "-Edapally1": "Edapally Branch",
-  "G.MG Road": "MG Road",
-  "G-MG Road": "MG Road",
-  "G.Mg Road": "MG Road",
-  "G-Mg Road": "MG Road",
-  "GMG Road": "MG Road",
-  "GMg Road": "MG Road",
-  "MG Road": "MG Road",
-  "SuitorGuy MG Road": "MG Road",
-  // Vadakara variations
-  "G.Vadakara": "Vadakara Branch",
-  "GVadakara": "Vadakara Branch",
-  "Vadakara Branch": "Vadakara Branch"
-};
+import { isAdminOrSuperAdmin } from "../utils/roleUtils";
 
 // Display names for the Stocks page (what users see) - restricted to active stores
 const getAllowedWarehousesDisplay = () => {
   const stores = getActiveStores();
-  return stores && stores.length > 0 ? stores.map(s => s.locName) : ["Warehouse"];
+  return (stores || []).map(s => s.locName).filter(Boolean);
 };
 
 // Get all possible actual warehouse names that map to allowed warehouses
-const getAllowedActualNames = () => {
-  const allowed = getAllowedWarehousesDisplay();
-  const actualNames = new Set();
-  Object.keys(WAREHOUSE_NAME_MAPPING).forEach(actualName => {
-    if (allowed.includes(WAREHOUSE_NAME_MAPPING[actualName])) {
-      actualNames.add(actualName);
-    }
-  });
-  return Array.from(actualNames);
-};
+const getAllowedActualNames = () => getAllowedWarehousesDisplay();
 
-// Match a name to an allowed display name ignoring spaces/case ("Brides Berry" === "BridesBerry")
+// Match a name to an allowed display name ignoring spaces/case ("Store Name" === "StoreName")
 const compactName = (n) => (n || "").toString().toLowerCase().replace(/[\s.\-_]/g, "");
 const matchAllowedWarehouse = (displayName, allowedList) => {
   if (!displayName) return null;
@@ -130,27 +33,7 @@ const matchAllowedWarehouse = (displayName, allowedList) => {
 // Helper function to normalize warehouse name to display name
 const normalizeWarehouseName = (warehouseName) => {
   if (!warehouseName) return null;
-  const trimmed = warehouseName.toString().trim();
-  
-  // Check exact match first
-  if (WAREHOUSE_NAME_MAPPING[trimmed]) {
-    return WAREHOUSE_NAME_MAPPING[trimmed];
-  }
-  
-  // Check case-insensitive match
-  const lowerName = trimmed.toLowerCase();
-  for (const [key, value] of Object.entries(WAREHOUSE_NAME_MAPPING)) {
-    if (key.toLowerCase() === lowerName) {
-      return value;
-    }
-  }
-  
-  // If it's an allowed store name (Warehouse, MG Road, or newly added store)
-  if (isAllowedStoreNameOrCode("", trimmed)) {
-    return trimmed;
-  }
-  
-  return null;
+  return mapWarehouse(warehouseName) || null; // canonical backend store name
 };
 
 const ShoeSalesItemDetailFromGroup = () => {
@@ -369,22 +252,20 @@ const ShoeSalesItemDetailFromGroup = () => {
   const userEmail = (user?.email || user?.username || "").toLowerCase().trim();
   const userLocCode = (user?.locCode || "").toString().trim();
 
-  const adminEmails = [
-    'officerootments@gmail.com', 
-    'operationsrootments@gmail.com',
-    'headoffice01@gmail.com'
-  ];
 
   const isAdmin = 
-    adminEmails.includes(userEmail) ||
+    isAdminOrSuperAdmin(user) ||
     userPower === "admin" ||
     userPower === "super_admin" ||
     userRole === "admin" ||
-    userRole === "superadmin";
+    userRole === "superadmin" ||
+    userRole === "super_admin";
 
+  // Warehouse: warehouse role/power or a warehouse-type store from the backend
   const isWarehouse = 
     userPower === "warehouse" || 
-    ['858', '103'].includes(userLocCode);
+    userRole === "warehouse_admin" || 
+    (Boolean(userLocCode) && isWarehouseStore(userLocCode));
 
   const isClusterAdmin = !isAdmin && (
     userRole === "cluster_manager" || 
@@ -398,9 +279,7 @@ const ShoeSalesItemDetailFromGroup = () => {
     userRole === "store_user" || 
     Boolean(user?.storeName) || 
     Boolean(user?.storeId) || 
-    (userLocCode && !['858', '103', '759', '101', '102'].includes(userLocCode)) || 
-    userEmail.includes("bridesberry") || 
-    (user?.username || "").toLowerCase().includes("bridesberry")
+    Boolean(userLocCode)
   );
 
   const canAccessAdminRestrictedModules = (isAdmin || isWarehouse) && !isClusterAdmin;
@@ -419,7 +298,7 @@ const ShoeSalesItemDetailFromGroup = () => {
   }
   // Fallback to username/locName if locCode lookup didn't work
   if (!userLocName) {
-    userLocName = user?.username || user?.locName || "";
+    userLocName = getUserStoreName(user);
     console.log(`Item Detail: Using username/locName fallback: "${userLocName}"`);
   }
   
@@ -1186,7 +1065,7 @@ const ShoeSalesItemDetailFromGroup = () => {
               <>
                 <Link
                   to={`/shoe-sales/item-groups/${id}/items/${itemId}/edit${searchParams.toString() ? `?${searchParams.toString()}` : ""}`}
-                  className="inline-flex items-center gap-1.5 h-9 px-4 rounded-[10px] bg-[#8B5CF6] hover:bg-[#7C3AED] text-xs font-bold uppercase tracking-wider text-white shadow-xs transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 h-9 px-4 rounded-[10px] bg-[#F46A43] hover:bg-[#F2572B] text-xs font-bold uppercase tracking-wider text-white shadow-xs transition-colors cursor-pointer"
                 >
                   <Edit size={13} className="text-white" />
                   <span>Edit</span>
@@ -1287,7 +1166,7 @@ const ShoeSalesItemDetailFromGroup = () => {
             {[
               { id: "Overview", label: "Overview", icon: Info },
               { id: "Stocks", label: "Stocks", icon: Warehouse, badge: warehouseStocks.length },
-              ...(isAdmin || user?.power === 'warehouse' ? [{ id: "History", label: "History", icon: Clock }] : [])
+              ...(isAdmin || isWarehouse ? [{ id: "History", label: "History", icon: Clock }] : [])
             ].map(({ id: tabId, label, icon: TabIcon, badge }) => {
               const isActive = activeTab === tabId;
               return (
@@ -1297,20 +1176,20 @@ const ShoeSalesItemDetailFromGroup = () => {
                   onClick={() => setActiveTab(tabId)}
                   className={`inline-flex items-center gap-2 px-4 py-3.5 text-sm font-semibold transition-all cursor-pointer border-b-2 -mb-[1px] outline-none ${
                     isActive
-                      ? "border-[#8B5CF6] text-[#7C3AED] bg-white font-bold"
+                      ? "border-[#F46A43] text-[#F2572B] bg-white font-bold"
                       : "border-transparent text-[#6B7280] hover:text-[#111827] hover:border-[#D1D5DB]"
                   }`}
                   style={{
-                    color: isActive ? "#7C3AED" : undefined,
+                    color: isActive ? "#F2572B" : undefined,
                   }}
                 >
-                  <TabIcon size={15} className={isActive ? "text-[#8B5CF6]" : "text-[#9CA3AF]"} />
+                  <TabIcon size={15} className={isActive ? "text-[#F46A43]" : "text-[#9CA3AF]"} />
                   <span>{label}</span>
                   {badge !== undefined && (
                     <span
                       className={`text-[10px] px-1.5 py-0.5 rounded-[10px] font-mono font-bold border ${
                         isActive
-                          ? "bg-[#EDE9FE] text-[#7C3AED] border-[#DDD6FE]"
+                          ? "bg-[#EDE9FE] text-[#F2572B] border-[#DDD6FE]"
                           : "bg-white text-[#6B7280] border-[#E5E7EB]"
                       }`}
                     >
@@ -1329,7 +1208,7 @@ const ShoeSalesItemDetailFromGroup = () => {
                 {/* Stock Summary Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6" key={`stock-summary-${warehouseStocks.length}-${JSON.stringify(stockTotals)}`}>
                   <div className="bg-[#EFF6FF] border border-[#DBEAFE] rounded-[10px] p-5 shadow-2xs">
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-[#9D43D6] mb-1.5">Stock on Hand</p>
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-[#F2572B] mb-1.5">Stock on Hand</p>
                     <p className="text-3xl font-extrabold text-[#1E3A8A] font-mono">{searchParams.get("pieceSku") ? "1" : stockTotals.accounting.stockOnHand.toFixed(0)}</p>
                   </div>
                   <div className="bg-[#ECFDF5] border border-[#D1FAE5] rounded-[10px] p-5 shadow-2xs">
@@ -1371,7 +1250,7 @@ const ShoeSalesItemDetailFromGroup = () => {
                         </div>
                         <div className="flex justify-between items-center py-1.5 border-b border-[#F3F4F6]">
                           <span className="text-xs font-medium text-[#6B7280]">MRP</span>
-                          <span className="text-sm font-bold text-[#7C3AED] font-mono">₹{parseFloat(item.mrp) > 0 ? parseFloat(item.mrp).toFixed(2) : (parseFloat(item.sellingPrice) || 0).toFixed(2)}</span>
+                          <span className="text-sm font-bold text-[#F2572B] font-mono">₹{parseFloat(item.mrp) > 0 ? parseFloat(item.mrp).toFixed(2) : (parseFloat(item.sellingPrice) || 0).toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between items-center py-1.5 border-b border-[#F3F4F6]">
                           <span className="text-xs font-medium text-[#6B7280]">HSN Code</span>
@@ -1521,7 +1400,7 @@ const ShoeSalesItemDetailFromGroup = () => {
                     }}
                     className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-sm font-semibold text-gray-700 shadow-sm transition-all hover:bg-gray-50 hover:border-gray-400 cursor-pointer"
                   >
-                    <Plus size={16} className="text-[#8B5CF6]" />
+                    <Plus size={16} className="text-[#F46A43]" />
                     <span>Add Stock</span>
                   </button>
                   <div className="flex items-center gap-2">
@@ -1529,7 +1408,7 @@ const ShoeSalesItemDetailFromGroup = () => {
                       onClick={() => setStockType("accounting")}
                       className={`h-8 px-3.5 text-xs font-bold uppercase tracking-wider rounded-[10px] border transition-colors cursor-pointer ${
                         stockType === "accounting"
-                          ? "bg-[#8B5CF6] text-white border-[#8B5CF6]"
+                          ? "bg-[#F46A43] text-white border-[#F46A43]"
                           : "bg-[#EEEEEE] text-[#4B5563] border-[#E5E7EB] hover:bg-[#E2E2E2]"
                       }`}
                     >
@@ -1539,7 +1418,7 @@ const ShoeSalesItemDetailFromGroup = () => {
                       onClick={() => setStockType("physical")}
                       className={`h-8 px-3.5 text-xs font-bold uppercase tracking-wider rounded-[10px] border transition-colors cursor-pointer ${
                         stockType === "physical"
-                          ? "bg-[#8B5CF6] text-white border-[#8B5CF6]"
+                          ? "bg-[#F46A43] text-white border-[#F46A43]"
                           : "bg-[#EEEEEE] text-[#4B5563] border-[#E5E7EB] hover:bg-[#E2E2E2]"
                       }`}
                     >
@@ -1704,7 +1583,7 @@ const ShoeSalesItemDetailFromGroup = () => {
               </div>
             )}
 
-            {activeTab === "History" && (isAdmin || user?.power === 'warehouse') && (
+            {activeTab === "History" && (isAdmin || isWarehouse) && (
               <div className="py-2">
                 {loadingHistory ? (
                   <div className="py-12 text-center text-xs font-bold uppercase tracking-wider text-[#6B7280]">
@@ -1832,7 +1711,7 @@ const ShoeSalesItemDetailFromGroup = () => {
                   <AppSelect
                     value={selectedTargetGroupId}
                     onChange={(e) => setSelectedTargetGroupId(e.target.value)}
-                    className="w-full rounded-[10px] border border-[#E5E7EB] bg-white px-3.5 py-2 text-xs font-bold text-[#111827] focus:border-[#8B5CF6] focus:outline-none"
+                    className="w-full rounded-[10px] border border-[#E5E7EB] bg-white px-3.5 py-2 text-xs font-bold text-[#111827] focus:border-[#F46A43] focus:outline-none"
                   >
                     <option value="">Select a group...</option>
                     {allItemGroups.map((group) => (
@@ -1857,7 +1736,7 @@ const ShoeSalesItemDetailFromGroup = () => {
                 <button
                   onClick={handleMoveToGroup}
                   disabled={loading || !selectedTargetGroupId || loadingGroups || allItemGroups.length === 0}
-                  className="h-9 px-4 rounded-[10px] bg-[#8B5CF6] hover:bg-[#7C3AED] text-xs font-bold uppercase tracking-wider text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="h-9 px-4 rounded-[10px] bg-[#F46A43] hover:bg-[#F2572B] text-xs font-bold uppercase tracking-wider text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? "Moving..." : "Move"}
                 </button>

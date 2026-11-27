@@ -165,7 +165,7 @@ const ResetUserPassword = () => {
                                     <button
                                         type="button"
                                         onClick={() => setShowNewPassword(!showNewPassword)}
-                                        className="absolute inset-y-0 right-0 pr-3.5 pl-2.5 flex items-center text-[#9D43D6] hover:text-[#8B3CBD] cursor-pointer"
+                                        className="absolute inset-y-0 right-0 pr-3.5 pl-2.5 flex items-center text-[#F2572B] hover:text-[#D9431A] cursor-pointer"
                                     >
                                         <span className="h-4 w-[1px] bg-[#E5E5E5] mr-2.5" />
                                         {showNewPassword ? <FaEyeSlash size={15} /> : <FaEye size={15} />}
@@ -190,7 +190,7 @@ const ResetUserPassword = () => {
                                     <button
                                         type="button"
                                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                        className="absolute inset-y-0 right-0 pr-3.5 pl-2.5 flex items-center text-[#9D43D6] hover:text-[#8B3CBD] cursor-pointer"
+                                        className="absolute inset-y-0 right-0 pr-3.5 pl-2.5 flex items-center text-[#F2572B] hover:text-[#D9431A] cursor-pointer"
                                     >
                                         <span className="h-4 w-[1px] bg-[#E5E5E5] mr-2.5" />
                                         {showConfirmPassword ? <FaEyeSlash size={15} /> : <FaEye size={15} />}

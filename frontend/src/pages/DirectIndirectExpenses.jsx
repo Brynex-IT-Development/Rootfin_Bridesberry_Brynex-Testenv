@@ -698,12 +698,12 @@ const DirectIndirectExpenses = ({ initialType = "direct" }) => {
                           }}
                           className={`h-[40px] px-3 rounded-lg border text-[12px] font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                             active
-                              ? "border-[#9D43D6] bg-[#FBF5FC] text-[#212121] font-semibold"
+                              ? "border-[#F2572B] bg-[#FEF3EE] text-[#212121] font-semibold"
                               : "border-[#E5E5E5] bg-white text-[#212121] hover:border-[#CCCCCC]"
                           }`}
                         >
                           {Icon ? (
-                            <Icon size={15} className={active ? "text-[#9D43D6]" : "text-[#4A4A4A]"} />
+                            <Icon size={15} className={active ? "text-[#F2572B]" : "text-[#4A4A4A]"} />
                           ) : (
                             <span className="font-extrabold italic tracking-tight text-[13px]">UPI</span>
                           )}
@@ -717,11 +717,11 @@ const DirectIndirectExpenses = ({ initialType = "direct" }) => {
                       onClick={() => setSplitPayment((prev) => !prev)}
                       className={`h-[40px] px-3 rounded-lg border text-[12px] font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                         splitPayment
-                          ? "border-[#9D43D6] bg-[#FBF5FC] text-[#212121] font-semibold"
+                          ? "border-[#F2572B] bg-[#FEF3EE] text-[#212121] font-semibold"
                           : "border-[#E5E5E5] bg-white text-[#212121] hover:border-[#CCCCCC]"
                       }`}
                     >
-                      <Code2 size={15} className={splitPayment ? "text-[#9D43D6]" : "text-[#4A4A4A]"} />
+                      <Code2 size={15} className={splitPayment ? "text-[#F2572B]" : "text-[#4A4A4A]"} />
                       <span>SPLIT</span>
                     </button>
                   </div>
@@ -813,7 +813,7 @@ const DirectIndirectExpenses = ({ initialType = "direct" }) => {
                   onDrop={handleDrop}
                   className={`flex flex-1 min-h-[205px] flex-col items-center justify-center rounded-xl border border-dashed p-6 text-center transition-colors ${
                     dragActive
-                      ? "border-[#9D43D6] bg-[#FBF5FC]"
+                      ? "border-[#F2572B] bg-[#FEF3EE]"
                       : "border-[#D4D4D4] bg-[#FAFAFA] hover:border-[#B5B5B5]"
                   }`}
                 >

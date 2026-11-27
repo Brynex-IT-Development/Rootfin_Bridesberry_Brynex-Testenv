@@ -9,6 +9,7 @@ import Select from "react-select";
 
 import { appSelectStyles } from "../components/AppSelect.jsx";
 import RootfinConfirmModal from "../components/RootfinModal";
+import { getUserStoreName } from "../utils/storeService";
 const InventoryAdjustments = () => {
   const isSidebarOpen = useSidebar();
   const navigate = useNavigate();
@@ -32,7 +33,7 @@ const InventoryAdjustments = () => {
     }
   }
   if (!userLocName) {
-    userLocName = user?.username || user?.locName || "";
+    userLocName = getUserStoreName(user);
   }
   
   const [adjustments, setAdjustments] = useState([]);
@@ -369,9 +370,9 @@ const InventoryAdjustments = () => {
       ...base,
       minHeight: '40px',
       height: '40px',
-      border: state.isFocused ? '1px solid #9B48D7' : '1px solid #E5E7EB',
+      border: state.isFocused ? '1px solid #F2572B' : '1px solid #E5E7EB',
       borderRadius: '0px',
-      boxShadow: state.isFocused ? '0 0 0 2px rgba(155,72,215,0.15)' : 'none',
+      boxShadow: state.isFocused ? '0 0 0 2px rgba(242, 87, 43,0.15)' : 'none',
       fontSize: '0.875rem',
       backgroundColor: 'white',
       transition: 'all 0.15s ease',
@@ -405,10 +406,10 @@ const InventoryAdjustments = () => {
       ...base,
       fontSize: '0.875rem',
       cursor: 'pointer',
-      backgroundColor: state.isSelected ? '#9B48D7' : state.isFocused ? '#f5f3ff' : 'white',
+      backgroundColor: state.isSelected ? '#F2572B' : state.isFocused ? '#f5f3ff' : 'white',
       color: state.isSelected ? 'white' : '#1f2937',
       padding: '10px 12px',
-      '&:active': { backgroundColor: '#9B48D7', color: 'white' }
+      '&:active': { backgroundColor: '#F2572B', color: 'white' }
     })
   };
 
@@ -523,7 +524,7 @@ const InventoryAdjustments = () => {
               />
             </div>
 
-            <span className="inline-flex items-center rounded-full bg-[#F3E8FF]/70 px-3.5 py-1.5 text-[12px] font-semibold text-[#9D43D6]">
+            <span className="inline-flex items-center rounded-full bg-[#FDE3D9]/70 px-3.5 py-1.5 text-[12px] font-semibold text-[#F2572B]">
               {filteredAdjustments.length} {filteredAdjustments.length === 1 ? "Adjustment" : "Adjustments"}
             </span>
           </div>
@@ -533,7 +534,7 @@ const InventoryAdjustments = () => {
             <div className="overflow-x-auto">
               {loading ? (
                 <div className="px-8 py-20 text-center flex flex-col items-center justify-center">
-                  <div className="inline-block animate-spin h-6 w-6 rounded-full border-2 border-[#9D43D6] border-t-transparent mb-3" />
+                  <div className="inline-block animate-spin h-6 w-6 rounded-full border-2 border-[#F2572B] border-t-transparent mb-3" />
                   <p className="text-[13px] font-medium text-[#7A7A7A]">Loading adjustments...</p>
                 </div>
               ) : filteredAdjustments.length === 0 ? (
@@ -541,31 +542,31 @@ const InventoryAdjustments = () => {
                   {/* Empty State Illustration */}
                   <div className="mb-4 select-none">
                     <svg width="160" height="116" viewBox="0 0 160 116" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <ellipse cx="82" cy="104" rx="58" ry="6" fill="#F3E8FF" />
+                      <ellipse cx="82" cy="104" rx="58" ry="6" fill="#FDE3D9" />
                       {/* Clipboard */}
-                      <rect x="64" y="16" width="56" height="78" rx="8" fill="#FAF5FF" stroke="#C084FC" strokeWidth="2" />
-                      <rect x="78" y="10" width="28" height="12" rx="4" fill="#A855F7" />
+                      <rect x="64" y="16" width="56" height="78" rx="8" fill="#FEF3EE" stroke="#F6825F" strokeWidth="2" />
+                      <rect x="78" y="10" width="28" height="12" rx="4" fill="#F46A43" />
                       <circle cx="92" cy="16" r="2" fill="#FFFFFF" />
                       {/* Sad document icon inside clipboard */}
-                      <rect x="76" y="38" width="32" height="36" rx="5" fill="#FFFFFF" stroke="#D8B4FE" strokeWidth="1.5" />
-                      <circle cx="87" cy="52" r="1.8" fill="#9D43D6" />
-                      <circle cx="97" cy="52" r="1.8" fill="#9D43D6" />
-                      <path d="M87 62C89 59.5 95 59.5 97 62" stroke="#9D43D6" strokeWidth="1.8" strokeLinecap="round" />
+                      <rect x="76" y="38" width="32" height="36" rx="5" fill="#FFFFFF" stroke="#F9A88E" strokeWidth="1.5" />
+                      <circle cx="87" cy="52" r="1.8" fill="#F2572B" />
+                      <circle cx="97" cy="52" r="1.8" fill="#F2572B" />
+                      <path d="M87 62C89 59.5 95 59.5 97 62" stroke="#F2572B" strokeWidth="1.8" strokeLinecap="round" />
                       {/* X badge */}
-                      <circle cx="107" cy="70" r="8" fill="#9D43D6" />
+                      <circle cx="107" cy="70" r="8" fill="#F2572B" />
                       <path d="M104 67L110 73M110 67L104 73" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" />
                       {/* Decorative leaves */}
-                      <path d="M128 94V66" stroke="#C084FC" strokeWidth="2" strokeLinecap="round" />
-                      <ellipse cx="135" cy="74" rx="6" ry="3.5" transform="rotate(-30 135 74)" fill="#D8B4FE" />
-                      <ellipse cx="123" cy="80" rx="5.5" ry="3" transform="rotate(28 123 80)" fill="#E9D5FF" />
+                      <path d="M128 94V66" stroke="#F6825F" strokeWidth="2" strokeLinecap="round" />
+                      <ellipse cx="135" cy="74" rx="6" ry="3.5" transform="rotate(-30 135 74)" fill="#F9A88E" />
+                      <ellipse cx="123" cy="80" rx="5.5" ry="3" transform="rotate(28 123 80)" fill="#FCCAB9" />
                       {/* Magnifying glass */}
-                      <circle cx="52" cy="50" r="13" fill="#FFFFFF" stroke="#9D43D6" strokeWidth="2.5" />
-                      <circle cx="52" cy="50" r="8" fill="#F3E8FF" />
-                      <path d="M43 60L33 72" stroke="#6D2898" strokeWidth="3.5" strokeLinecap="round" />
+                      <circle cx="52" cy="50" r="13" fill="#FFFFFF" stroke="#F2572B" strokeWidth="2.5" />
+                      <circle cx="52" cy="50" r="8" fill="#FDE3D9" />
+                      <path d="M43 60L33 72" stroke="#B23614" strokeWidth="3.5" strokeLinecap="round" />
                       {/* Sparkles */}
-                      <circle cx="32" cy="34" r="3" fill="#E9D5FF" />
+                      <circle cx="32" cy="34" r="3" fill="#FCCAB9" />
                       <circle cx="134" cy="40" r="2.5" fill="#DDD6FE" />
-                      <circle cx="142" cy="52" r="4" fill="#F3E8FF" />
+                      <circle cx="142" cy="52" r="4" fill="#FDE3D9" />
                     </svg>
                   </div>
                   <h3 className="text-[15px] font-semibold text-[#1B1B1B] mb-1">
@@ -582,7 +583,7 @@ const InventoryAdjustments = () => {
                       <th className="w-11 px-3 py-3.5 text-center border-r border-[#2E2E2E] whitespace-nowrap">
                         <input
                           type="checkbox"
-                          className="h-4 w-4 rounded-[4px] border-gray-500 accent-[#9D43D6] cursor-pointer align-middle"
+                          className="h-4 w-4 rounded-[4px] border-gray-500 accent-[#F2572B] cursor-pointer align-middle"
                           checked={filteredAdjustments.length > 0 && filteredAdjustments.every(adj => {
                             const id = adj.id || adj._id;
                             return id && selectedAdjustments.has(id);
@@ -608,14 +609,14 @@ const InventoryAdjustments = () => {
                       return (
                         <tr
                           key={adjustmentId}
-                          className={`${index % 2 === 0 ? "bg-white" : "bg-[#FAFAFA]/60"} hover:bg-[#F3E8FF]/25 transition-colors cursor-pointer group`}
+                          className={`${index % 2 === 0 ? "bg-white" : "bg-[#FAFAFA]/60"} hover:bg-[#FDE3D9]/25 transition-colors cursor-pointer group`}
                           onClick={() => handleAdjustmentClick(adjustment)}
                         >
                           <td className="px-3 py-3 text-center border-r border-[#F0F0F0]" onClick={(e) => e.stopPropagation()}>
                             <div className="flex items-center justify-center gap-2">
                               <input
                                 type="checkbox"
-                                className="h-4 w-4 rounded-[4px] border-[#D4D4D8] accent-[#9D43D6] cursor-pointer align-middle"
+                                className="h-4 w-4 rounded-[4px] border-[#D4D4D8] accent-[#F2572B] cursor-pointer align-middle"
                                 checked={selectedAdjustments.has(adjustmentId)}
                                 onChange={(e) => handleCheckboxChange(adjustmentId, e.target.checked)}
                               />
@@ -626,7 +627,7 @@ const InventoryAdjustments = () => {
                           </td>
                           <td className="px-3.5 py-3 whitespace-nowrap font-semibold border-r border-[#F0F0F0]">
                             <span
-                              className="text-[#9D43D6] hover:text-[#7E2BB3] hover:underline cursor-pointer"
+                              className="text-[#F2572B] hover:text-[#D9431A] hover:underline cursor-pointer"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleAdjustmentClick(adjustment);

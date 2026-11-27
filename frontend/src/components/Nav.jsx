@@ -3,15 +3,11 @@ import { Link, useLocation } from "react-router-dom";
 import rootfinLogoText from "../assets/rootfin-logo-text.png";
 import rootfinLogoArrow from "../assets/rootfin-logo-arrow.png";
 import {
-    FileText,
     ChevronDown,
-    ShoppingBag,
+    ChevronLeft,
     LineChart,
     DollarSign,
     FolderClosed,
-    Notebook,
-    Store,
-    Package,
     Box,
     SlidersHorizontal,
     ArrowLeftRight,
@@ -31,15 +27,15 @@ import {
     UserCog,
     KeyRound,
     Menu,
-    ChevronLeft,
     ShieldCheck,
     BookOpen,
-    ArrowLeft,
-    LayoutDashboard
+    LayoutDashboard,
+    TrendingUp
 } from "lucide-react";
 import salesInventoryAccessConfig from "../config/salesInventoryAccess.json";
 import { usePermissions } from "../utils/permissionService";
-import { isSuperAdmin, normalizeRole, getRoleLabel } from "../utils/roleUtils";
+import { isSuperAdmin, normalizeRole, getRoleLabel, isAdminOrSuperAdmin } from "../utils/roleUtils";
+import { findStore, isWarehouseStore } from "../utils/storeService";
 
 const Nav = () => {
     const location = useLocation();
@@ -51,11 +47,6 @@ const Nav = () => {
     const userEmail = currentuser?.email?.toLowerCase().trim() || "";
     const userLocCode = (currentuser?.locCode || "").toString().trim();
 
-    const adminEmails = [
-        "officerootments@gmail.com",
-        "operationsrootments@gmail.com",
-        "headoffice01@gmail.com"
-    ];
 
     // Main system administrator - ALWAYS full admin access
     const isAdmin = 
@@ -65,18 +56,12 @@ const Nav = () => {
         userRole === 'superadmin' ||
         userPower === 'admin' ||
         userPower === 'super_admin' ||
-        adminEmails.includes(userEmail);
+        isAdminOrSuperAdmin(currentuser);
 
-    // Warehouse staff (central operations)
+    // Warehouse staff (central operations): warehouse role, or a warehouse-type store from the backend
     const isWarehouse = 
-        userLocCode === '858' || 
-        userLocCode === '103';
-
-    // BridesBerry store user check
-    const isBridesBerry = 
-        userLocCode === '155' || 
-        userEmail.includes('bridesberry') || 
-        (currentuser?.username || "").toLowerCase().includes('bridesberry');
+        userRole === 'warehouse_admin' ||
+        (Boolean(userLocCode) && isWarehouseStore(userLocCode));
     
     // Cluster Admin / Cluster Manager (NEVER if main admin)
     const isClusterAdmin = !isAdmin && (
@@ -93,8 +78,7 @@ const Nav = () => {
         userRole === "store_user" ||
         Boolean(currentuser?.storeName) ||
         Boolean(currentuser?.storeId) ||
-        (userLocCode && !['858', '103', '759', '101', '102'].includes(userLocCode)) ||
-        isBridesBerry
+        Boolean(userLocCode)
     );
 
     const isStoreOrClusterAdmin = isClusterAdmin || isStoreAdmin;
@@ -107,7 +91,8 @@ const Nav = () => {
     const isInAllowedList = salesInventoryAccessConfig.allowedEmails
         .map(email => email.toLowerCase())
         .includes(userEmail);
-    const hasSalesInventoryAccess = isAdmin || isInAllowedList || isBridesBerry;
+    // Store and warehouse users of backend stores get Sales/Inventory (subject to module permissions)
+    const hasSalesInventoryAccess = isAdmin || isInAllowedList || isStoreAdmin || isWarehouse;
 
     const activePath = location.pathname;
 
@@ -141,7 +126,8 @@ const Nav = () => {
     };
 
     const isSuper = isSuperAdmin(currentuser);
-    const isLocationName = currentuser?.username === "Warehouse" || currentuser?.username === "SuitorGuy MG Road" || currentuser?.username === "Brides Berry";
+    // Username is just a store name (from the backend store list), not a person
+    const isLocationName = Boolean(findStore(currentuser?.username));
     const userDisplayName = isSuper ? "Brynex Admin" : ((!isLocationName && currentuser?.username) || currentuser?.name || (isAdmin ? "Brynex Admin" : "User"));
     const userEmailDisplay = currentuser?.email || "admin@gmail.com";
     const getUserRoleTitle = () => {
@@ -150,41 +136,56 @@ const Nav = () => {
         return getRoleLabel(currentuser?.role);
     };
 
-    const [isOpen, setIsOpen] = useState(true);
+    // ── Sidebar layout state ──
+    // Desktop (lg+): a 76px icon rail that expands to 256px on hover, overlaying the page.
+    // Mobile/tablet: an off-canvas drawer opened from a floating menu button.
+    const DESKTOP_QUERY = "(min-width: 1024px)";
+    const [isDesktop, setIsDesktop] = useState(() =>
+        typeof window !== "undefined" && window.matchMedia(DESKTOP_QUERY).matches
+    );
+    const [isHovered, setIsHovered] = useState(false);
+    const [mobileOpen, setMobileOpen] = useState(false);
 
     useEffect(() => {
-        if (isOpen) {
-            document.body.classList.add("sidebar-open");
-            document.body.classList.remove("sidebar-closed");
-        } else {
-            document.body.classList.add("sidebar-closed");
-            document.body.classList.remove("sidebar-open");
-        }
-        window.dispatchEvent(new CustomEvent("sidebar-changed", { detail: { isOpen } }));
-    }, [isOpen]);
-
-    useEffect(() => {
-        const handleToggle = () => setIsOpen((prev) => !prev);
-        window.addEventListener("toggle-sidebar", handleToggle);
-        return () => window.removeEventListener("toggle-sidebar", handleToggle);
+        const mq = window.matchMedia(DESKTOP_QUERY);
+        const handleChange = (e) => {
+            setIsDesktop(e.matches);
+            if (e.matches) setMobileOpen(false);
+            else setIsHovered(false);
+        };
+        mq.addEventListener("change", handleChange);
+        return () => mq.removeEventListener("change", handleChange);
     }, []);
 
-    // Auto-open sidebar whenever the pointer reaches the left side of the screen
+    // Pages size themselves from the `sidebar-open` body class (they render ml-[240px]);
+    // index.css remaps that offset to the 76px rail on desktop and 0 on mobile.
     useEffect(() => {
-        if (isOpen) return;
-        const handleMouseMove = (e) => {
-            if (e.clientX <= 20) {
-                setIsOpen(true);
-            }
+        document.body.classList.add("sidebar-open");
+        document.body.classList.remove("sidebar-closed");
+        window.dispatchEvent(new CustomEvent("sidebar-changed", { detail: { isOpen: true } }));
+    }, []);
+
+    // Close the drawer after navigating.
+    useEffect(() => {
+        setMobileOpen(false);
+    }, [location.pathname]);
+
+    // Lock body scroll and allow Escape while the drawer is open.
+    useEffect(() => {
+        if (!mobileOpen) return;
+        const prevOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        const handleKey = (e) => { if (e.key === "Escape") setMobileOpen(false); };
+        document.addEventListener("keydown", handleKey);
+        return () => {
+            document.body.style.overflow = prevOverflow;
+            document.removeEventListener("keydown", handleKey);
         };
-        window.addEventListener("mousemove", handleMouseMove);
-        return () => window.removeEventListener("mousemove", handleMouseMove);
-    }, [isOpen]);
+    }, [mobileOpen]);
 
-    const [isHovered, setIsHovered] = useState(false);
-    const [isPinned, setIsPinned] = useState(() => localStorage.getItem("rootfin_sidebar_pinned") !== "false");
-
-    const showSidebar = isPinned || isHovered;
+    // The drawer is always full width; the desktop rail expands on hover
+    // (and stays expanded while the profile popover is open).
+    const expanded = isDesktop ? (isHovered || showUserMenu) : true;
 
     const getInitialSection = useMemo(() => {
         if (activePath === "/reports/sales" || activePath === "/reports/sales-by-invoice" || activePath === "/reports/inventory" || activePath === "/reports/income-expense" || activePath === "/securityReport" || activePath === "/Revenuereport" || activePath === "/BookingReport" || activePath === "/RentOutReport" || activePath === "/reports/sales-by-group") {
@@ -292,22 +293,26 @@ const Nav = () => {
         return activePath === path;
     };
 
+    // ── Row styles ──
+    const rowLayout = expanded
+        ? "w-full px-4 py-2.5 gap-3.5"
+        : "w-[52px] h-[52px] mx-auto justify-center";
+    const rowState = (active) => active
+        ? "bg-[#F2572B] text-black font-semibold shadow-sm shadow-[#F2572B]/25"
+        : "text-zinc-400 font-medium hover:text-white hover:bg-[#27272a]/70";
+
     const renderSingleItem = (to, label, IconComponent) => {
         const isActive = isLinkActive(to);
         return (
             <Link
                 key={to}
                 to={to}
-                style={{
-                    backgroundColor: isActive ? '#9D43D6' : 'transparent',
-                    color: isActive ? '#ffffff' : '#A1A1AA'
-                }}
-                className={`rf-sidebar-item ${isActive ? 'active' : ''} h-[40px] px-[14px] rounded-[10px] flex items-center gap-3 transition-colors hover:text-white hover:bg-white/[0.04] group`}
+                aria-label={expanded ? undefined : label}
+                aria-current={isActive ? "page" : undefined}
+                className={`rf-nav-press flex items-center rounded-[16px] text-[14px] whitespace-nowrap ${rowLayout} ${rowState(isActive)}`}
             >
-                <IconComponent size={16} className={`shrink-0 transition-colors ${isActive ? "text-white" : "text-zinc-400 group-hover:text-white"}`} />
-                <span className={`text-[13px] truncate ${isActive ? "text-white font-medium" : "text-zinc-300 group-hover:text-white font-normal"}`}>
-                    {label}
-                </span>
+                <IconComponent size={18} className="shrink-0" />
+                {expanded && <span className="truncate">{label}</span>}
             </Link>
         );
     };
@@ -318,47 +323,37 @@ const Nav = () => {
                 <button
                     type="button"
                     onClick={onToggle}
-                    style={{
-                        backgroundColor: isActiveGroup ? '#9D43D6' : 'transparent',
-                        color: isActiveGroup ? '#ffffff' : '#A1A1AA'
-                    }}
-                    className={`rf-sidebar-item ${isActiveGroup ? 'active' : ''} sidebar-button w-full h-[40px] px-[14px] rounded-[10px] flex items-center justify-between transition-colors cursor-pointer group hover:text-white hover:bg-white/[0.04]`}
+                    aria-expanded={isOpenGroup}
+                    aria-label={expanded ? undefined : label}
+                    className={`sidebar-button rf-nav-press flex items-center rounded-[16px] text-[14px] text-left whitespace-nowrap cursor-pointer ${rowLayout} ${rowState(isActiveGroup)}`}
                 >
-                    <div className="flex items-center gap-3 min-w-0">
-                        <IconComponent size={16} className={`shrink-0 transition-colors ${isActiveGroup ? "text-white" : "text-zinc-400 group-hover:text-white"}`} />
-                        <span className={`text-[13px] truncate ${isActiveGroup ? "text-white font-medium" : "text-zinc-300 group-hover:text-white font-normal"}`}>
-                            {label}
-                        </span>
-                    </div>
-                    <ChevronDown
-                        size={14}
-                        className={`shrink-0 transition-transform duration-200 ${
-                            isActiveGroup ? "text-white" : "text-zinc-400 group-hover:text-white"
-                        } ${isOpenGroup ? "rotate-180" : "rotate-0"}`}
-                    />
+                    <IconComponent size={18} className="shrink-0" />
+                    {expanded && (
+                        <>
+                            <span className="flex-1 min-w-0 truncate">{label}</span>
+                            <ChevronDown
+                                size={16}
+                                className={`rf-nav-chevron shrink-0 ${isOpenGroup ? "rotate-180" : "rotate-0"}`}
+                            />
+                        </>
+                    )}
                 </button>
-                {isOpenGroup && (
-                    <div 
-                        className="rf-sidebar-subgroup mt-1 mb-1 pl-3 space-y-1"
-                        style={{ borderColor: '#3F3F46', borderLeft: '2px solid #3F3F46', marginLeft: '16px' }}
-                    >
+                {expanded && isOpenGroup && (
+                    <div className="rf-nav-sub mt-1 space-y-0.5 ml-[25px] border-l border-[#27272a]">
                         {links.map(({ to, label: itemLabel }) => {
                             const isSubActive = activePath === to;
                             return (
                                 <Link
                                     key={to}
                                     to={to}
-                                    style={{
-                                        color: isSubActive ? '#ffffff' : '#E4E4E7',
-                                        backgroundColor: isSubActive ? '#9D43D6' : 'transparent',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        visibility: 'visible',
-                                        opacity: 1
-                                    }}
-                                    className={`rf-sidebar-subitem ${isSubActive ? 'active' : ''} h-[34px] px-3 flex items-center text-[12px] font-medium truncate rounded-[8px] transition-colors hover:text-white hover:bg-white/[0.08]`}
+                                    aria-current={isSubActive ? "page" : undefined}
+                                    className={`rf-nav-press block pl-6 pr-4 py-2.5 text-[13px] rounded-full truncate ${
+                                        isSubActive
+                                            ? "bg-[#F2572B] text-black font-semibold"
+                                            : "text-zinc-400 hover:text-white hover:bg-[#27272a]/40"
+                                    }`}
                                 >
-                                    <span style={{ color: isSubActive ? '#ffffff' : '#E4E4E7', visibility: 'visible', opacity: 1 }}>{itemLabel}</span>
+                                    {itemLabel}
                                 </Link>
                             );
                         })}
@@ -368,57 +363,83 @@ const Nav = () => {
         );
     };
 
-    const isInvoiceCreatePage = activePath === "/sales/invoices/new" || activePath.startsWith("/sales/invoices/edit");
-    const sidebarWidth = "w-[240px]";
-    const sidebarTranslate = "-translate-x-[240px]";
+    if (location.pathname === "/login") return null;
+
+    const userInitial = (userDisplayName || "A").charAt(0).toUpperCase();
 
     return (
-        <div className={`flex ${location.pathname === "/login" ? "hidden" : "block"}`}>
-            {/* Invisible hover strip to auto-open sidebar when mouse reaches the left edge */}
-            {!isOpen && (
-                <div
-                    onMouseEnter={() => setIsOpen(true)}
-                    className="fixed top-0 left-0 w-3 h-full z-[99998] bg-transparent cursor-pointer"
-                    title="Move pointer here to open sidebar"
-                />
+        <div className="rf-sidebar-root print:hidden">
+            {/* Mobile menu button */}
+            {!mobileOpen && (
+                <div className="lg:hidden fixed top-3 left-3 z-[99998]">
+                    <button
+                        type="button"
+                        onClick={() => setMobileOpen(true)}
+                        aria-label="Open menu"
+                        className="sidebar-button rf-nav-press w-10 h-10 rounded-xl bg-[#15171D] text-[#F2572B] flex items-center justify-center shadow-lg cursor-pointer"
+                    >
+                        <Menu size={20} />
+                    </button>
+                </div>
             )}
 
-            {/* Sidebar */}
+            {/* Mobile backdrop */}
             <div
-                className={`fixed top-0 left-0 h-full ${sidebarWidth} z-[99999] transform flex flex-col justify-between bg-[#1B1B1B] text-white transition-transform duration-300 shadow-2xl ${
-                    isOpen ? "translate-x-0" : sidebarTranslate
+                onClick={() => setMobileOpen(false)}
+                aria-hidden="true"
+                className={`rf-nav-backdrop lg:hidden fixed inset-0 z-[99998] bg-black/50 backdrop-blur-[1px] ${
+                    mobileOpen ? "opacity-100" : "opacity-0 pointer-events-none"
                 }`}
+            />
+
+            {/* Sidebar */}
+            <aside
+                aria-label="Main navigation"
+                onMouseEnter={() => isDesktop && setIsHovered(true)}
+                onMouseLeave={() => isDesktop && setIsHovered(false)}
+                className={`rf-sidebar rf-nav fixed top-0 left-0 h-full z-[99999] flex flex-col overflow-hidden bg-[#0E0E10] text-white shadow-2xl border-r border-white/[0.06] w-64 max-w-[85vw] lg:max-w-none ${
+                    expanded ? "lg:w-64" : "lg:w-[76px]"
+                } ${mobileOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0`}
             >
-                <div className="flex flex-col flex-1 overflow-hidden">
-                    {/* Sidebar Header with Logo and Collapse Arrow (Height: 56px) */}
-                    <div className="h-[56px] pl-6 pr-4 flex items-center justify-between border-b border-[#242424]/60 shrink-0">
-                        <Link to="/" className="relative inline-flex items-center select-none h-[19px] shrink-0" aria-label="RootFin Home">
-                            <img
-                                src={rootfinLogoText}
-                                alt="ROOTFIN"
-                                className="h-[19px] w-auto object-contain block pointer-events-none"
-                                draggable={false}
-                            />
-                            <img
-                                src={rootfinLogoArrow}
-                                alt=""
-                                aria-hidden="true"
-                                className="rf-logo-arrow absolute inset-0 h-[19px] w-auto object-contain pointer-events-none"
-                                draggable={false}
-                            />
-                        </Link>
+                {/* Logo */}
+                <div className={`shrink-0 pt-6 pb-8 flex items-center ${expanded ? "pl-6 pr-5 justify-between" : "justify-center"}`}>
+                    <Link to="/" aria-label="RootFin Home" className="rf-nav-logo inline-flex items-center select-none">
+                        {expanded ? (
+                            <span className="relative inline-flex items-center h-[22px]">
+                                <img
+                                    src={rootfinLogoText}
+                                    alt="ROOTFIN"
+                                    className="h-[22px] w-auto object-contain block pointer-events-none"
+                                    draggable={false}
+                                />
+                                <img
+                                    src={rootfinLogoArrow}
+                                    alt=""
+                                    aria-hidden="true"
+                                    className="rf-logo-arrow absolute inset-0 h-[22px] w-auto object-contain pointer-events-none"
+                                    draggable={false}
+                                />
+                            </span>
+                        ) : (
+                            <span className="w-11 h-11 rounded-[14px] bg-[#F2572B] text-black inline-flex items-center justify-center shadow-sm shadow-[#F2572B]/25">
+                                <TrendingUp size={22} strokeWidth={2.5} />
+                            </span>
+                        )}
+                    </Link>
+                    {!isDesktop && (
                         <button
-                            onClick={() => setIsOpen(false)}
-                            title="Collapse Sidebar"
-                            className="w-7 h-7 rounded-lg bg-[#27272a] hover:bg-[#323236] text-gray-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                            type="button"
+                            onClick={() => setMobileOpen(false)}
+                            aria-label="Close menu"
+                            className="sidebar-button rf-nav-press w-8 h-8 rounded-lg text-zinc-400 hover:text-white hover:bg-[#27272a]/70 flex items-center justify-center cursor-pointer"
                         >
-                            <ArrowLeft size={14} />
+                            <ChevronLeft size={18} />
                         </button>
-                    </div>
+                    )}
+                </div>
 
-                    {/* Navigation Items */}
-                    <nav className="space-y-1 p-2.5 overflow-y-auto pb-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-
+                {/* Menu */}
+                <nav className={`flex-1 min-h-0 overflow-y-auto overflow-x-hidden space-y-1.5 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${expanded ? "px-3" : "px-2"}`}>
                     {/* ── CLUSTER MANAGER: Dashboard + Financial Summary + Reports ── */}
                     {isClusterManager ? (
                         <>
@@ -503,7 +524,7 @@ const Nav = () => {
                             {hasModule("close_report") && (isAdmin || isSuperAdminUser) && renderSingleItem("/CloseReport", "Close Report", FolderClosed)}
 
                             {/* Admin Close */}
-                            {hasModule("admin_close") && (isAdmin || isSuperAdminUser || currentuser?.locCode === '102') && renderSingleItem(
+                            {hasModule("admin_close") && (isAdmin || isSuperAdminUser) && renderSingleItem(
                                 "/AdminClose",
                                 "Admin Close",
                                 ShieldCheck
@@ -520,82 +541,54 @@ const Nav = () => {
                             )}
                         </>
                     )}
-                    </nav>
-                </div>
-                
-                {/* Fixed User Profile at bottom */}
-                <div className="p-3 relative" ref={userMenuRef}>
-                    {/* Floating Logout Popup Card */}
-                    {showUserMenu && (
-                        <div className="absolute bottom-full left-3 right-3 mb-2 p-4 bg-[#1B1B1B] border border-[#2e2e34] rounded-2xl shadow-2xl z-50 text-white animate-in fade-in zoom-in-95 duration-150">
+                </nav>
+
+                {/* Profile */}
+                <div ref={userMenuRef} className={`relative shrink-0 bg-[#0E0E10] ${expanded ? "p-4" : "p-2.5"}`}>
+                    {showUserMenu && expanded && (
+                        <div className="rf-nav-sub absolute bottom-full left-4 right-4 mb-2 p-4 bg-[#18181b] border border-zinc-700 rounded-2xl shadow-2xl z-50 text-white">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-[#27272a] border border-[#323236] flex items-center justify-center shrink-0 shadow-inner">
-                                    <span className="text-white font-bold text-base">
-                                        {(userDisplayName || "A").charAt(0).toUpperCase()}
-                                    </span>
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#F2572B] to-[#D9431A] flex items-center justify-center shrink-0">
+                                    <span className="text-black font-bold text-base">{userInitial}</span>
                                 </div>
-                                <div className="flex flex-col overflow-hidden min-w-0">
-                                    <span className="text-[13px] font-semibold text-white truncate">
-                                        {userDisplayName}
-                                    </span>
-                                    <span className="text-[11px] font-medium text-[#9D43D6] truncate">
-                                        {getUserRoleTitle()}
-                                    </span>
+                                <div className="flex flex-col min-w-0">
+                                    <span className="text-[13px] font-semibold text-white truncate">{userDisplayName}</span>
+                                    <span className="text-[11px] font-medium text-purple-400 truncate">{getUserRoleTitle()}</span>
                                 </div>
                             </div>
-
-                            <div className="my-3 border-b border-[#2e2e34]" />
-
                             <button
                                 type="button"
                                 onClick={handleLogout}
-                                className="w-full py-2 px-4 bg-[#DC2626] hover:bg-[#b91c1c] text-white font-medium rounded-xl text-[13px] transition-colors text-center cursor-pointer shadow-sm"
+                                className="sidebar-button rf-nav-press mt-4 w-full flex items-center justify-center py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-semibold cursor-pointer"
                             >
                                 Logout
                             </button>
                         </div>
                     )}
 
-                    {/* Bottom Profile Row */}
-                    <div 
-                        onClick={() => setShowUserMenu(prev => !prev)}
-                        className={`flex items-center gap-3 p-2 rounded-xl transition-colors cursor-pointer select-none ${
-                            showUserMenu ? 'bg-white/[0.08]' : 'hover:bg-white/[0.04]'
-                        }`}
+                    <button
+                        type="button"
+                        onClick={() => setShowUserMenu((prev) => !prev)}
+                        aria-expanded={showUserMenu}
+                        aria-label={expanded ? undefined : `Account: ${userDisplayName}`}
+                        className={`sidebar-button rf-nav-press flex items-center gap-3 rounded-full border cursor-pointer text-left ${
+                            showUserMenu ? "border-[#F2572B]/50" : "border-transparent"
+                        } ${expanded ? "w-full p-1.5 pr-4 bg-[#27272a] hover:bg-[#3f3f46]" : "mx-auto p-0 bg-transparent"}`}
                     >
-                        <div className="w-9 h-9 rounded-full bg-[#27272a] border border-[#323236] flex items-center justify-center shrink-0 shadow-inner">
-                            <span className="text-white font-bold text-sm">
-                                {(userDisplayName || "A").charAt(0).toUpperCase()}
+                        <span className="w-9 h-9 rounded-full bg-gradient-to-br from-[#F2572B] to-[#D9431A] flex items-center justify-center shrink-0">
+                            <span className="text-black font-bold text-sm">{userInitial}</span>
+                        </span>
+                        {expanded && (
+                            <span className="flex flex-col min-w-0">
+                                <span className="text-[13px] font-semibold text-white truncate leading-snug">{userDisplayName}</span>
+                                <span className="text-[11px] text-zinc-400 truncate leading-tight">{userEmailDisplay}</span>
                             </span>
-                        </div>
-                        <div className="flex flex-col overflow-hidden min-w-0">
-                            <span className="text-[13px] font-semibold text-white truncate leading-snug">
-                                {userDisplayName}
-                            </span>
-                            <span className="text-[11px] font-medium text-[#6A6A6A] truncate leading-tight">
-                                {userEmailDisplay}
-                            </span>
-                        </div>
-                    </div>
+                        )}
+                    </button>
                 </div>
-            </div>
+            </aside>
         </div>
-    )
-}
+    );
+};
 
-export default Nav
-
-
-
-
-
-// import { IoPersonCircleOutline } from "react-icons/io5";
-
-
-
-
-
-
-
-
-
+export default Nav;

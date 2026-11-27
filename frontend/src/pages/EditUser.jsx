@@ -89,8 +89,8 @@ const EditUser = () => {
             return;
         }
 
-        const derivedLocCode = isStore ? locCode.trim() : (isWarehouse ? (locCode.trim() || "858") : "");
-        const derivedStoreName = isStore ? username.trim() : (isWarehouse ? (username.trim() || "Warehouse") : undefined);
+        const derivedLocCode = isStore ? locCode.trim() : (isWarehouse ? locCode.trim() : "");
+        const derivedStoreName = isStore ? username.trim() : (isWarehouse ? username.trim() : undefined);
 
         const payload = {
             username: (isStore || isWarehouse) ? (username.trim() || (isWarehouse ? "Warehouse" : email.split('@')[0])) : email.split('@')[0],
@@ -180,9 +180,6 @@ const EditUser = () => {
                                         setLocCode("");
                                         setGst("");
                                         setAddress("");
-                                    } else if (e.target.value === "warehouse_admin") {
-                                        if (!locCode) setLocCode("858");
-                                        if (!username) setUsername("Warehouse");
                                     }
                                     if (e.target.value !== "cluster_admin") {
                                         setAllowedLocCodes([]);
@@ -212,7 +209,7 @@ const EditUser = () => {
                                     type="text"
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
-                                    placeholder={isWarehouse ? "e.g., Warehouse" : "e.g., Brides Berry"}
+                                    placeholder={isWarehouse ? "Warehouse name" : "Store name"}
                                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-sm"
                                     required
                                 />
@@ -257,7 +254,7 @@ const EditUser = () => {
                                         type="text"
                                         value={locCode}
                                         onChange={(e) => setLocCode(e.target.value)}
-                                        placeholder={isWarehouse ? "e.g., 858" : "e.g., 155"}
+                                        placeholder="Enter location code"
                                         className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-sm"
                                         required
                                     />
@@ -283,7 +280,7 @@ const EditUser = () => {
                                     <textarea
                                         value={address}
                                         onChange={(e) => setAddress(e.target.value)}
-                                        placeholder={isWarehouse ? "e.g., Warehouse, Central Hub" : "e.g., MG Road, Kochi, Kerala - 682016"}
+                                        placeholder="Full address"
                                         rows="3"
                                         className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none resize-none text-sm"
                                     />
@@ -354,7 +351,7 @@ const EditUser = () => {
                                 type="submit"
                                 className={`w-[40%] py-3 rounded-xl text-white font-medium text-sm transition-colors cursor-pointer ${loading
                                     ? "bg-gray-400 cursor-not-allowed"
-                                    : "bg-[#a855f7] hover:bg-[#9333ea]"
+                                    : "bg-[#F46A43] hover:bg-[#F2572B]"
                                     }`}
                                 disabled={loading}
                             >

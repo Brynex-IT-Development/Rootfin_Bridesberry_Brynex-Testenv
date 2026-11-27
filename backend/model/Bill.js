@@ -5,7 +5,7 @@ const billSchema = new mongoose.Schema(
     // Vendor Information
     vendorId: { type: String, default: null }, // UUID string from PostgreSQL Vendor
     vendorName: { type: String, required: true },
-    branch: { type: String, default: "Head Office" },
+    branch: { type: String, default: "" },
     
     // Bill Details
     billNumber: { type: String, required: true },

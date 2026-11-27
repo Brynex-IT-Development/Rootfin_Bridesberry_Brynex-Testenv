@@ -6,6 +6,7 @@ import { useSidebar } from '../hooks/useSidebar.js';
 import { ArrowLeft, Calendar, Download, Printer } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import html2pdf from 'html2pdf.js';
+import ReportStoreFilter, { useReportStoreFilter } from '../components/ReportStoreFilter.jsx';
 
 const DayBook = () => {
     const navigate = useNavigate();
@@ -16,6 +17,7 @@ const DayBook = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [data1, setData1] = useState(null);
     const currentusers = JSON.parse(localStorage.getItem("rootfinuser"));
+    const storeFilter = useReportStoreFilter();
     const abortControllerRef = useRef(null);
 
     const processData = (rentoutData) => {
@@ -56,9 +58,10 @@ const DayBook = () => {
             return alert("select date ");
         }
 
-        const rentoutU = `${twsBase}/GetRentoutList?LocCode=${currentusers?.locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
-
-        dataCache.delete?.(rentoutU);
+        // Admin/Super Admin can pick a store or "All Stores"; others use their own store
+        const codes = storeFilter.locCodesToQuery();
+        const urlFor = (code) => `${twsBase}/GetRentoutList?LocCode=${code}&DateFrom=${fromDate}&DateTo=${toDate}`;
+        codes.forEach((code) => dataCache.delete?.(urlFor(code)));
 
         if (abortControllerRef.current) {
             abortControllerRef.current.abort();
@@ -70,10 +73,14 @@ const DayBook = () => {
         setIsLoading(true);
 
         try {
-            const rentoutRes = await fetch(rentoutU, { signal });
-            const rentoutData = await rentoutRes.json();
-
-            dataCache.set(rentoutU, rentoutData);
+            const perStore = await Promise.all(codes.map(async (code) => {
+                const res = await fetch(urlFor(code), { signal });
+                const json = await res.json();
+                dataCache.set(urlFor(code), json);
+                const storeName = storeFilter.storeLabel(code);
+                return (json?.dataSet?.data || []).map((item) => ({ ...item, storeName }));
+            }));
+            const rentoutData = { dataSet: { data: perStore.flat() } };
             setData1(rentoutData);
             processData(rentoutData);
         } catch (err) {
@@ -157,7 +164,7 @@ const DayBook = () => {
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);
-        const storeName = (currentusers.locName || currentusers.locCode || "Store").replace(/[^a-zA-Z0-9]/g, "_");
+        const storeName = (storeFilter.isAllStores ? "All Stores" : (storeFilter.storeLabel(storeFilter.selectedStore) || currentusers.locCode || "Store")).replace(/[^a-zA-Z0-9]/g, "_");
         const dateRange = fromDate === toDate ? fromDate : `${fromDate}_to_${toDate}`;
         link.setAttribute("download", `Rentout_Report_${dateRange}.csv`);
         document.body.appendChild(link);
@@ -167,7 +174,7 @@ const DayBook = () => {
 
     const handlePrintPDF = () => {
         const element = document.getElementById('report-table-container');
-        const storeName = (currentusers.locName || currentusers.locCode || "Store").replace(/[^a-zA-Z0-9]/g, "_");
+        const storeName = (storeFilter.isAllStores ? "All Stores" : (storeFilter.storeLabel(storeFilter.selectedStore) || currentusers.locCode || "Store")).replace(/[^a-zA-Z0-9]/g, "_");
         const dateRange = fromDate === toDate ? fromDate : `${fromDate}_to_${toDate}`;
         const opt = {
             margin: [0.3, 0.3, 0.3, 0.3],
@@ -215,12 +222,14 @@ const DayBook = () => {
                                 />
                             </div>
 
+                            <ReportStoreFilter filter={storeFilter} />
+
                             <button
                                 type="button"
                                 data-no-confirm="true"
                                 onClick={handleFetch}
                                 disabled={isLoading}
-                                className="rf-btn-primary !h-[40px] !px-6 !rounded-[10px] !bg-[#9D43D6] hover:!bg-[#8732BE] !text-[13px] !font-medium inline-flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer shadow-[0_2px_8px_rgba(157,67,214,0.24)]"
+                                className="rf-btn-primary !h-[40px] !px-6 !rounded-[10px] !bg-[#F2572B] hover:!bg-[#D9431A] !text-[13px] !font-medium inline-flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer shadow-[0_2px_8px_rgba(242, 87, 43,0.24)]"
                             >
                                 {isLoading ? (
                                     <><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
@@ -276,12 +285,15 @@ const DayBook = () => {
                                     <tbody className="divide-y divide-[#F0F0F0] text-[#3F3F46] bg-white">
                                         {allTransactions.length > 0 ? (
                                             allTransactions.map((transaction, index) => (
-                                                <tr key={index} className="hover:bg-[#FAF5FF]/60 transition-colors">
+                                                <tr key={index} className="hover:bg-[#FEF3EE]/60 transition-colors">
                                                     <td className="py-3.5 px-4 border-r border-[#F5F5F5] whitespace-nowrap font-medium text-[#212121]">
                                                         {formatDate(transaction.date)}
                                                     </td>
                                                     <td className="py-3.5 px-4 border-r border-[#F5F5F5] whitespace-nowrap tabular-nums">
                                                         {transaction.invoiceNo || transaction._id || transaction.locCode || "-"}
+                                                        {storeFilter.isAllStores && transaction.storeName && (
+                                                            <div className="text-[11px] text-[#8A8A8A] font-normal">{transaction.storeName}</div>
+                                                        )}
                                                     </td>
                                                     <td className="py-3.5 px-4 border-r border-[#F5F5F5] whitespace-nowrap text-[#212121]">
                                                         {transaction.customerName || "-"}

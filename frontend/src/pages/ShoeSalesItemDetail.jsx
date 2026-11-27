@@ -26,12 +26,13 @@ import {
 import RootfinConfirmModal from "../components/RootfinModal";
 import baseUrl from "../api/api";
 import { mapLocNameToWarehouse as mapWarehouse } from "../utils/warehouseMapping";
-import { getActiveStores } from "../utils/storeService.js";
+import { getActiveStores, isWarehouseStore, getUserStoreName } from "../utils/storeService.js";
 import ImageUpload from "../components/ImageUpload";
 import AttachmentDisplay from "../components/AttachmentDisplay";
 import useSidebar from "../hooks/useSidebar";
 
 import AppSelect from "../components/AppSelect.jsx";
+import { isAdminOrSuperAdmin } from "../utils/roleUtils";
 const API_ROOT = (baseUrl?.baseUrl || "").replace(/\/$/, "");
 
 const unitOptions = [
@@ -51,85 +52,12 @@ const unitOptions = [
   "PCS",
 ];
 
-// Warehouse name mapping: actual names from API -> display names for Stocks page
-const WAREHOUSE_NAME_MAPPING = {
-  "G.Palakkad": "Palakkad Branch",
-  "G.Palakkad ": "Palakkad Branch",
-  "GPalakkad": "Palakkad Branch",
-  "Palakkad Branch": "Palakkad Branch",
-  "Warehouse": "Warehouse",
-  "BridesBerry": "Brides Berry",
-  "Bridesberry": "Brides Berry",
-  "Brides Berry": "Brides Berry",
-  "G.Calicut": "Calicut",
-  "G.Calicut ": "Calicut",
-  "GCalicut": "Calicut",
-  "Calicut": "Calicut",
-  "G.Manjeri": "Manjery Branch",
-  "G.Manjery": "Manjery Branch",
-  "GManjeri": "Manjery Branch",
-  "GManjery": "Manjery Branch",
-  "Manjery Branch": "Manjery Branch",
-  "G.Kannur": "Kannur Branch",
-  "GKannur": "Kannur Branch",
-  "Kannur Branch": "Kannur Branch",
-  "G.Edappal": "Edappal Branch",
-  "GEdappal": "Edappal Branch",
-  "Edappal Branch": "Edappal Branch",
-  "G.Kalpetta": "Kalpetta Branch",
-  "GKalpetta": "Kalpetta Branch",
-  "Kalpetta Branch": "Kalpetta Branch",
-  "G.Kottakkal": "Kottakkal Branch",
-  "GKottakkal": "Kottakkal Branch",
-  "Kottakkal Branch": "Kottakkal Branch",
-  "G.Perinthalmanna": "Perinthalmanna Branch",
-  "GPerinthalmanna": "Perinthalmanna Branch",
-  "Perinthalmanna Branch": "Perinthalmanna Branch",
-  "Grooms Trivandum": "Grooms Trivandum",
-  "SG-Trivandrum": "Grooms Trivandum",
-  "g-tvm":"Grooms Trivandum",
-  "G.Chavakkad": "Chavakkad Branch",
-  "GChavakkad": "Chavakkad Branch",
-  "Chavakkad Branch": "Chavakkad Branch",
-  "G.Thrissur": "Thrissur Branch",
-  "GThrissur": "Thrissur Branch",
-  "Thrissur Branch": "Thrissur Branch",
-  "G.Perumbavoor": "Perumbavoor Branch",
-  "GPerumbavoor": "Perumbavoor Branch",
-  "Perumbavoor Branch": "Perumbavoor Branch",
-  "G.Kottayam": "Kottayam Branch",
-  "GKottayam": "Kottayam Branch",
-  "Kottayam Branch": "Kottayam Branch",
-  "G.Edappally": "Edapally Branch",
-  "GEdappally": "Edapally Branch",
-  "Edapally Branch": "Edapally Branch",
-  "Edapallyadmin Branch": "Edapally Branch",
-  "Edapallyadmin": "Edapally Branch",
-  "Z-Edapally1": "Edapally Branch",
-  "Z-Edapally1 Branch": "Edapally Branch",
-  "-Edapally1 Branch": "Edapally Branch",
-  "-Edapally1": "Edapally Branch",
-  // MG Road variations
-  "SuitorGuy MG Road": "MG Road",
-  "G.MG Road": "MG Road",
-  "G.Mg Road": "MG Road",
-  "GMG Road": "MG Road",
-  "GMg Road": "MG Road",
-  "MG Road": "MG Road",
-  // Vadakara variations
-  "G.Vadakara": "Vadakara Branch",
-  "GVadakara": "Vadakara Branch",
-  "Vadakara Branch": "Vadakara Branch"
-};
 
 // Display names used by the standalone stock editor and item detail page.
-const ALLOWED_WAREHOUSES_DISPLAY = [
-  "Warehouse",
-  "Brides Berry"
-];
+const getAllowedWarehousesDisplay = () => getActiveStores().map((st) => st.locName).filter(Boolean); // backend stores only
 
 // Helper function to normalize warehouse name to display name
-// Match a name to an allowed display name ignoring spaces/case ("Brides Berry" === "BridesBerry")
+// Match a name to an allowed display name ignoring spaces/case ("Store Name" === "StoreName")
 const compactName = (n) => (n || "").toString().toLowerCase().replace(/[\s._-]+/g, "");
 const matchAllowedWarehouse = (displayName, allowedList) => {
   if (!displayName) return null;
@@ -140,22 +68,7 @@ const matchAllowedWarehouse = (displayName, allowedList) => {
 
 const normalizeWarehouseName = (warehouseName) => {
   if (!warehouseName) return null;
-  // Check exact match first
-  if (WAREHOUSE_NAME_MAPPING[warehouseName]) {
-    return WAREHOUSE_NAME_MAPPING[warehouseName];
-  }
-  // Check case-insensitive match
-  const lowerName = warehouseName.toLowerCase().trim();
-  for (const [key, value] of Object.entries(WAREHOUSE_NAME_MAPPING)) {
-    if (key.toLowerCase().trim() === lowerName) {
-      return value;
-    }
-  }
-  // If it's already a display name, return it
-  if (ALLOWED_WAREHOUSES_DISPLAY.includes(warehouseName)) {
-    return warehouseName;
-  }
-  return null;
+  return matchAllowedWarehouse(mapWarehouse(warehouseName), getAllowedWarehousesDisplay());
 };
 
 const formatCurrency = (value) => {
@@ -196,22 +109,20 @@ const ShoeSalesItemDetail = () => {
   const userEmail = (user?.email || user?.username || "").toLowerCase().trim();
   const userLocCode = (user?.locCode || "").toString().trim();
 
-  const adminEmails = [
-    'officerootments@gmail.com', 
-    'operationsrootments@gmail.com',
-    'headoffice01@gmail.com'
-  ];
 
   const isAdmin = 
-    adminEmails.includes(userEmail) ||
+    isAdminOrSuperAdmin(user) ||
     userPower === "admin" ||
     userPower === "super_admin" ||
     userRole === "admin" ||
-    userRole === "superadmin";
+    userRole === "superadmin" ||
+    userRole === "super_admin";
 
+  // Warehouse: warehouse role/power or a warehouse-type store from the backend
   const isWarehouse = 
     userPower === "warehouse" || 
-    ['858', '103'].includes(userLocCode);
+    userRole === "warehouse_admin" || 
+    (Boolean(userLocCode) && isWarehouseStore(userLocCode));
 
   const isClusterAdmin = !isAdmin && (
     userRole === "cluster_manager" || 
@@ -225,9 +136,7 @@ const ShoeSalesItemDetail = () => {
     userRole === "store_user" || 
     Boolean(user?.storeName) || 
     Boolean(user?.storeId) || 
-    (userLocCode && !['858', '103', '759', '101', '102'].includes(userLocCode)) || 
-    userEmail.includes("bridesberry") || 
-    (user?.username || "").toLowerCase().includes("bridesberry")
+    Boolean(userLocCode)
   );
 
   const canAccessAdminRestrictedModules = (isAdmin || isWarehouse) && !isClusterAdmin;
@@ -244,7 +153,7 @@ const ShoeSalesItemDetail = () => {
     }
   }
   if (!userLocName) {
-    userLocName = user?.username || user?.locName || "";
+    userLocName = getUserStoreName(user);
   }
   
   // Helper function to map locName to warehouse name
@@ -851,7 +760,7 @@ const ShoeSalesItemDetail = () => {
   // Fetch all warehouses from account settings and filter to only allowed ones
   const fetchAllWarehouses = useCallback(async () => {
     // Always use the display names for the Stocks page
-    const sortedWarehouses = [...ALLOWED_WAREHOUSES_DISPLAY].sort((a, b) => {
+    const sortedWarehouses = [...getAllowedWarehousesDisplay()].sort((a, b) => {
       if (a === "Warehouse") return -1;
       if (b === "Warehouse") return 1;
       return a.localeCompare(b);
@@ -954,7 +863,7 @@ const ShoeSalesItemDetail = () => {
       itemWarehouseStocks.forEach(stock => {
         if (stock.warehouse) {
           // Normalize the warehouse name to display name
-          const displayName = matchAllowedWarehouse(normalizeWarehouseName(stock.warehouse) || stock.warehouse, ALLOWED_WAREHOUSES_DISPLAY);
+          const displayName = matchAllowedWarehouse(normalizeWarehouseName(stock.warehouse) || stock.warehouse, getAllowedWarehousesDisplay());
           console.log(`  Normalizing "${stock.warehouse}" -> "${displayName}"`);
           if (displayName) {
             // Store with display name as key, but keep original stock data
@@ -964,7 +873,7 @@ const ShoeSalesItemDetail = () => {
             });
             console.log(`    ✅ Added to stockMap: ${displayName} with stockOnHand: ${stock.stockOnHand || stock.openingStock || 0}`);
           } else {
-            console.log(`    ❌ Skipped: "${displayName}" not in ALLOWED_WAREHOUSES_DISPLAY`);
+            console.log(`    ❌ Skipped: "${displayName}" not in getAllowedWarehousesDisplay()`);
           }
         }
       });
@@ -976,7 +885,7 @@ const ShoeSalesItemDetail = () => {
       })));
       
       // Determine which warehouses to show
-      let warehousesToShow = [...ALLOWED_WAREHOUSES_DISPLAY];
+      let warehousesToShow = [...getAllowedWarehousesDisplay()];
       
       // For non-admin users, filter to only show their warehouse
       if (!isAdmin && userWarehouse) {
@@ -1023,7 +932,7 @@ const ShoeSalesItemDetail = () => {
       const stockMap = new Map();
       item.warehouseStocks.forEach(stock => {
         if (stock.warehouse) {
-          const displayName = matchAllowedWarehouse(normalizeWarehouseName(stock.warehouse) || stock.warehouse, ALLOWED_WAREHOUSES_DISPLAY);
+          const displayName = matchAllowedWarehouse(normalizeWarehouseName(stock.warehouse) || stock.warehouse, getAllowedWarehousesDisplay());
           if (displayName) {
             stockMap.set(displayName, {
               ...stock,
@@ -1034,7 +943,7 @@ const ShoeSalesItemDetail = () => {
       });
       
       // Determine which warehouses to show
-      let warehousesToShow = [...ALLOWED_WAREHOUSES_DISPLAY];
+      let warehousesToShow = [...getAllowedWarehousesDisplay()];
       
       // For non-admin users, filter to only show their warehouse
       if (!isAdmin && userWarehouse) {
@@ -1230,7 +1139,7 @@ const ShoeSalesItemDetail = () => {
           <p className="mt-2 text-sm text-[#6b7280]">{error || "Please try again or pick a different item."}</p>
           <button
             onClick={() => navigate("/shoe-sales/items")}
-            className="mt-4 inline-flex items-center gap-2 rounded-md bg-[#9D43D6] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#2748c9]"
+            className="mt-4 inline-flex items-center gap-2 rounded-md bg-[#F2572B] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#2748c9]"
           >
             <ArrowLeft size={16} />
             Back to Items
@@ -1256,7 +1165,7 @@ const ShoeSalesItemDetail = () => {
             {isAdmin && (
               <Link
                 to="/shoe-sales/items/new"
-                className="inline-flex h-8 items-center justify-center rounded-md bg-[#9D43D6] px-2 text-xs font-semibold text-white transition hover:bg-[#2748c9]"
+                className="inline-flex h-8 items-center justify-center rounded-md bg-[#F2572B] px-2 text-xs font-semibold text-white transition hover:bg-[#2748c9]"
               >
                 + New
               </Link>
@@ -1325,7 +1234,7 @@ const ShoeSalesItemDetail = () => {
             <div className="flex items-center justify-between">
               <Link
                 to="/shoe-sales/items"
-                className="inline-flex items-center gap-2 text-sm font-medium text-[#9D43D6] hover:text-[#1d4ed8] transition-colors"
+                className="inline-flex items-center gap-2 text-sm font-medium text-[#F2572B] hover:text-[#1d4ed8] transition-colors"
               >
                 <ArrowLeft size={16} /> Back to Items
               </Link>
@@ -1454,7 +1363,7 @@ const ShoeSalesItemDetail = () => {
           {/* Tabs - Clean Underline Style */}
           <div>
             <div className="flex items-center gap-8">
-              {["Overview", "Stocks", ...(isAdmin || user?.power === 'warehouse' ? ["History"] : [])].map((tab) => (
+              {["Overview", "Stocks", ...(isAdmin || isWarehouse ? ["History"] : [])].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -1501,7 +1410,7 @@ const ShoeSalesItemDetail = () => {
                         </div>
                         <div className="flex justify-between items-center py-2">
                           <span className="text-sm text-[#64748b]">MRP</span>
-                          <span className="text-sm font-semibold text-[#7C3AED]">{formatCurrency(item.mrp ?? item.sellingPrice)}</span>
+                          <span className="text-sm font-semibold text-[#F2572B]">{formatCurrency(item.mrp ?? item.sellingPrice)}</span>
                         </div>
                         <div className="flex justify-between items-center py-2">
                           <span className="text-sm text-[#64748b]">HSN Code</span>
@@ -1629,7 +1538,7 @@ const ShoeSalesItemDetail = () => {
               {activeTab === "Stocks" && (
                 <div className="space-y-6">
                   {/* Stock Location Header - Only for Admin and Warehouse */}
-                  {(isAdmin || user?.power === 'warehouse') && (
+                  {(isAdmin || isWarehouse) && (
                     <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-[#e4e6f2]">
                       <button
                         onClick={() => {
@@ -1637,7 +1546,7 @@ const ShoeSalesItemDetail = () => {
                         }}
                         className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-sm font-semibold text-gray-700 shadow-sm transition-all hover:bg-gray-50 hover:border-gray-400 cursor-pointer"
                       >
-                        <Plus size={16} className="text-[#8B5CF6]" />
+                        <Plus size={16} className="text-[#F46A43]" />
                         <span>Add Stock</span>
                       </button>
                       
@@ -1733,7 +1642,7 @@ const ShoeSalesItemDetail = () => {
                       <Warehouse size={48} className="mx-auto mb-4 text-[#94a3b8]" />
                       <p className="text-sm font-medium text-[#475569] mb-2">No stock locations added yet</p>
                       <p className="text-xs text-[#64748b] mb-4">Click "Stock Locations" above to add stocks to warehouses</p>
-                      {(isAdmin || user?.power === 'warehouse') && (
+                      {(isAdmin || isWarehouse) && (
                         <button
                           onClick={() => navigate(`/shoe-sales/items/${itemId}/stocks`)}
                           className="no-blue-button inline-flex items-center gap-2 rounded-lg border border-[#d7dcf5] bg-white px-4 py-2 text-sm font-medium text-[#475569] shadow-sm transition-all duration-200 hover:bg-[#FAFAFA] hover:border-[#cbd5f5] hover:shadow-md"
@@ -1747,7 +1656,7 @@ const ShoeSalesItemDetail = () => {
                 </div>
               )}
 
-              {activeTab === "History" && (isAdmin || user?.power === 'warehouse') && (
+              {activeTab === "History" && (isAdmin || isWarehouse) && (
                 <div className="py-6">
                   {loadingHistory ? (
                     <div className="py-12 text-center text-sm text-[#64748b]">
@@ -2123,7 +2032,7 @@ const StatusIndicator = ({ label, active }) => (
   <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em]">
     <span
       className={`flex h-4 w-4 items-center justify-center rounded border ${
-        active ? "border-[#9D43D6] bg-[#9D43D6]" : "border-[#cbd5f5] bg-white"
+        active ? "border-[#F2572B] bg-[#F2572B]" : "border-[#cbd5f5] bg-white"
       }`}
     >
       {active && <span className="h-2 w-2 rounded-full bg-white" />}
@@ -2155,7 +2064,7 @@ const UploadPlaceholder = () => (
     <p className="mt-2 text-xs leading-5">
       You can add up to 15 images, each not exceeding 5 MB in size and 7000 x 7000 pixels resolution.
     </p>
-    <button className="mt-4 rounded-full border border-[#cbd5f5] px-4 py-2 text-sm font-medium text-[#9D43D6] hover:bg-[#eef2ff]">
+    <button className="mt-4 rounded-full border border-[#cbd5f5] px-4 py-2 text-sm font-medium text-[#F2572B] hover:bg-[#eef2ff]">
       Upload
     </button>
   </>

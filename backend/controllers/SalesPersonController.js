@@ -2,6 +2,7 @@ import SalesPerson from "../model/SalesPerson.js";
 import Store from "../model/Store.js";
 import User from "../model/UserModel.js";
 import mongoose from "mongoose";
+import { storeCode, storeName, warehouseName } from "../utils/storeResolver.js";
 
 // Create a new sales person
 export const createSalesPerson = async (req, res) => {
@@ -38,8 +39,11 @@ export const createSalesPerson = async (req, res) => {
     }
     if (!store) {
       // Auto-create store if it's a known or new location code
-      const code = targetLocCode || "858";
-      const name = salesPersonData.storeName || (code === "858" ? "Warehouse" : code === "155" ? "BridesBerry" : `Store ${code}`);
+      const code = targetLocCode || storeCode(warehouseName());
+      if (!code) {
+        return res.status(400).json({ message: "A valid store (locCode) is required for the sales person." });
+      }
+      const name = salesPersonData.storeName || storeName(code) || `Store ${code}`;
       try {
         store = await Store.findOneAndUpdate(
           { locCode: code },
@@ -118,7 +122,7 @@ export const getSalesPersons = async (req, res) => {
   }
 };
 
-// Get sales persons by location code (e.g., Edapally)
+// Get sales persons by location code
 export const getSalesPersonsByLocCode = async (req, res) => {
   try {
     const { locCode } = req.params;
@@ -126,8 +130,8 @@ export const getSalesPersonsByLocCode = async (req, res) => {
     
     let store = await Store.findOne({ locCode });
     if (!store) {
-      // Try to auto-create store if it's Warehouse, BridesBerry, or a valid locCode
-      const name = locCode === "858" ? "Warehouse" : locCode === "155" ? "BridesBerry" : `Store ${locCode}`;
+      // Auto-create a store record for this locCode (name from the backend store list when known)
+      const name = storeName(locCode) || `Store ${locCode}`;
       try {
         store = await Store.findOneAndUpdate(
           { locCode },
@@ -186,7 +190,7 @@ export const getSalesPersonsByLocCode = async (req, res) => {
       message: `Sales persons for ${store?.name || locCode} (${locCode}) retrieved successfully`,
       store: {
         id: store?._id || locCode,
-        name: store?.name || (locCode === "858" ? "Warehouse" : locCode === "155" ? "BridesBerry" : `Store ${locCode}`),
+        name: store?.name || storeName(locCode) || `Store ${locCode}`,
         locCode: store?.locCode || locCode,
       },
       salesPersons: combinedSalesPersons,

@@ -6,6 +6,7 @@ import { CSVLink } from "react-csv";
 import { FiDownload, FiPrinter } from "react-icons/fi";
 import { Loader2 } from "lucide-react";
 import baseUrl from "../api/api.js";
+import ReportStoreFilter, { useReportStoreFilter } from "../components/ReportStoreFilter.jsx";
 
 // Helper to format date into "01 Sep, 2026" format
 const formatDisplayDate = (dateStr) => {
@@ -53,7 +54,7 @@ const Booking = () => {
   const [hasFetched, setHasFetched] = useState(false);
 
   const printRef = useRef(null);
-  const currentUser = JSON.parse(localStorage.getItem("rootfinuser") || "{}");
+  const storeFilter = useReportStoreFilter();
 
   const handleFetch = async () => {
     if (!fromDate || !toDate) {
@@ -70,7 +71,8 @@ const Booking = () => {
     setHasFetched(true);
 
     try {
-      const locCode = currentUser?.locCode || "";
+      // Admin/Super Admin can pick a store or "All Stores"; others use their own store
+      const fetchForStore = async (locCode) => {
       const twsBase = "https://rentalapi.rootments.live/api/GetBooking";
       const bookingUrl = `${twsBase}/GetBookingList?LocCode=${locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
 
@@ -105,7 +107,7 @@ const Booking = () => {
       const resData = await response.json();
       const rawList = resData?.dataSet?.data || [];
 
-      const formattedList = rawList.map((item) => {
+      return rawList.map((item) => {
         const invKey = String(item.invoiceNo || "").trim();
         const override = editedMap.get(`${invKey}-booking`) || editedMap.get(invKey);
 
@@ -147,9 +149,14 @@ const Booking = () => {
           bank,
           upi,
           totalAmount,
+          storeName: storeFilter.storeLabel(locCode),
         };
       });
+      };
 
+      const codes = storeFilter.locCodesToQuery();
+      const perStore = await Promise.all(codes.map((code) => fetchForStore(code)));
+      const formattedList = perStore.flat().sort((a, b) => String(a.rawDate).localeCompare(String(b.rawDate)));
       setBookingData(formattedList);
     } catch (error) {
       console.error("Error fetching booking data:", error);
@@ -329,13 +336,15 @@ const Booking = () => {
                   />
                 </div>
 
+                <ReportStoreFilter filter={storeFilter} />
+
                 {/* Fetch Data Button */}
                 <button
                   type="button"
                   data-no-confirm="true"
                   onClick={handleFetch}
                   disabled={loading}
-                  className="rf-btn-primary !h-[40px] !px-6 !rounded-[10px] !bg-[#9D43D6] hover:!bg-[#8732BE] !text-[13px] !font-medium inline-flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer shadow-[0_2px_8px_rgba(157,67,214,0.24)]"
+                  className="rf-btn-primary !h-[40px] !px-6 !rounded-[10px] !bg-[#F2572B] hover:!bg-[#D9431A] !text-[13px] !font-medium inline-flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer shadow-[0_2px_8px_rgba(242, 87, 43,0.24)]"
                 >
                   {loading && <Loader2 className="w-4 h-4 animate-spin" />}
                   <span>{loading ? "Fetching..." : "Fetch Data"}</span>
@@ -423,7 +432,7 @@ const Booking = () => {
                       <tr>
                         <td colSpan={10} className="py-16 text-center text-[#6A6A6A]">
                           <div className="flex flex-col items-center justify-center gap-3">
-                            <Loader2 className="w-7 h-7 animate-spin text-[#9D43D6]" />
+                            <Loader2 className="w-7 h-7 animate-spin text-[#F2572B]" />
                             <span className="text-[13px] font-medium">
                               Fetching booking records...
                             </span>
@@ -432,12 +441,15 @@ const Booking = () => {
                       </tr>
                     ) : bookingData.length > 0 ? (
                       bookingData.map((row, idx) => (
-                        <tr key={idx} className="hover:bg-[#FAF5FF]/60 transition-colors">
+                        <tr key={idx} className="hover:bg-[#FEF3EE]/60 transition-colors">
                           <td className="py-3.5 px-4 border-r border-[#F5F5F5] whitespace-nowrap font-medium text-[#212121]">
                             {row.date}
                           </td>
                           <td className="py-3.5 px-4 border-r border-[#F5F5F5] whitespace-nowrap text-[#3F3F46] tabular-nums">
                             {row.invoiceNo}
+                            {storeFilter.isAllStores && row.storeName && (
+                              <div className="text-[11px] text-[#8A8A8A] font-normal">{row.storeName}</div>
+                            )}
                           </td>
                           <td className="py-3.5 px-4 border-r border-[#F5F5F5] whitespace-nowrap text-[#212121]">
                             {row.customerName}

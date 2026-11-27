@@ -217,7 +217,7 @@ const Expenses = () => {
         <main className="p-5 md:p-6 max-w-[1200px] w-full">
           <section className="rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-[0_2px_10px_rgba(0,0,0,0.03)]">
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-[#9D43D6]">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-[#F2572B]">
                 EXPENSE DETAILS
               </div>
 
@@ -320,7 +320,7 @@ const Expenses = () => {
 
               {/* Way of Payment */}
               <div className="border-t border-[#F0F0F0] pt-5">
-                <p className="text-[11px] font-bold uppercase tracking-wider text-[#9D43D6] mb-3">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-[#F2572B] mb-3">
                   WAY OF PAYMENT
                 </p>
                 <div className="flex flex-wrap items-center gap-3">
@@ -343,7 +343,7 @@ const Expenses = () => {
                         key={id}
                         className={`flex h-[42px] cursor-pointer select-none items-center gap-2 rounded-[10px] border px-4 text-[13px] font-medium transition-colors ${
                           active
-                            ? "border-[#9D43D6] bg-[#FBF5FC] text-[#9D43D6]"
+                            ? "border-[#F2572B] bg-[#FEF3EE] text-[#F2572B]"
                             : "border-[#E5E5E5] bg-white text-[#212121] hover:bg-[#FAFAFA]"
                         }`}
                       >
@@ -356,7 +356,7 @@ const Expenses = () => {
                             setPaymentMethod(id);
                             setSplitPayment(false);
                           }}
-                          className="h-4 w-4 accent-[#9D43D6] cursor-pointer"
+                          className="h-4 w-4 accent-[#F2572B] cursor-pointer"
                         />
                         <span className="flex items-center gap-1.5">
                           {icon} {label}
@@ -369,7 +369,7 @@ const Expenses = () => {
                     <label
                       className={`flex h-[42px] cursor-pointer select-none items-center gap-2 rounded-[10px] border px-4 text-[13px] font-medium transition-colors ${
                         splitPayment
-                          ? "border-[#9D43D6] bg-[#FBF5FC] text-[#9D43D6]"
+                          ? "border-[#F2572B] bg-[#FEF3EE] text-[#F2572B]"
                           : "border-[#E5E5E5] bg-white text-[#212121] hover:bg-[#FAFAFA]"
                       }`}
                     >
@@ -377,7 +377,7 @@ const Expenses = () => {
                         type="checkbox"
                         checked={splitPayment}
                         onChange={(event) => setSplitPayment(event.target.checked)}
-                        className="h-4 w-4 rounded-[4px] accent-[#9D43D6] cursor-pointer"
+                        className="h-4 w-4 rounded-[4px] accent-[#F2572B] cursor-pointer"
                       />
                       <span>Split Payment (Cash + Bank + UPI)</span>
                     </label>
@@ -447,7 +447,7 @@ const Expenses = () => {
                     onChange={(event) => setRemark(event.target.value)}
                     required
                     placeholder="Enter your transaction details here..."
-                    className="h-[130px] w-full resize-none rounded-[10px] border border-[#E5E5E5] bg-white px-3.5 py-2.5 text-[13px] text-[#212121] outline-none transition placeholder:text-[#A1A1AA] focus:border-[#9D43D6] focus:ring-2 focus:ring-[#9D43D6]/15"
+                    className="h-[130px] w-full resize-none rounded-[10px] border border-[#E5E5E5] bg-white px-3.5 py-2.5 text-[13px] text-[#212121] outline-none transition placeholder:text-[#A1A1AA] focus:border-[#F2572B] focus:ring-2 focus:ring-[#F2572B]/15"
                   />
                 </div>
 

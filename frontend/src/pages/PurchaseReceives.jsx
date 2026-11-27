@@ -5,6 +5,8 @@ import Header from "../components/Header";
 import baseUrl from "../api/api";
 import { mapLocNameToWarehouse as mapWarehouse } from "../utils/warehouseMapping";
 import useSidebar from "../hooks/useSidebar";
+import { isWarehouseStore } from "../utils/storeService";
+import { isAdminOrSuperAdmin } from "../utils/roleUtils";
 
 const currency = (value) =>
   new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 }).format(value || 0);
@@ -32,11 +34,10 @@ const PurchaseReceives = () => {
 
         if (!userId) { setReceives([]); setLoading(false); return; }
 
-        const adminEmails = ['officerootments@gmail.com'];
-        const isAdminEmail = adminEmails.some(e => userId.toLowerCase() === e.toLowerCase());
+        const isAdminEmail = isAdminOrSuperAdmin(user);
         const isAdmin = isAdminEmail ||
           (userPower && (userPower.toLowerCase() === 'admin' || userPower.toLowerCase() === 'super_admin')) ||
-          (user?.locCode && (String(user.locCode) === '858' || String(user.locCode) === '103'));
+          (user?.locCode && isWarehouseStore(user.locCode));
 
         const params = new URLSearchParams({ userId });
         if (userPower) params.append("userPower", userPower);
@@ -168,14 +169,14 @@ const PurchaseReceives = () => {
               )}
             </div>
 
-            <span className="inline-flex items-center px-3.5 py-1.5 rounded-full bg-[#F3E8FF] text-[#9D43D6] text-[12px] font-medium">
+            <span className="inline-flex items-center px-3.5 py-1.5 rounded-full bg-[#FDE3D9] text-[#F2572B] text-[12px] font-medium">
               {filteredReceives.length} {filteredReceives.length === 1 ? "Receive" : "Receives"}
             </span>
           </div>
 
           {loading ? (
             <div className="bg-white rounded-[16px] border border-[#E5E5E5] py-24 flex flex-col items-center justify-center gap-3">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#9D43D6] border-t-transparent" />
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#F2572B] border-t-transparent" />
               <p className="text-[13px] font-medium text-[#7A7A7A]">Loading purchase receives...</p>
             </div>
 
@@ -191,25 +192,25 @@ const PurchaseReceives = () => {
                 className="mb-5"
                 aria-hidden="true"
               >
-                <ellipse cx="85" cy="108" rx="62" ry="6" fill="#F3E8FF" />
+                <ellipse cx="85" cy="108" rx="62" ry="6" fill="#FDE3D9" />
                 <path d="M132 104C132 90 140 80 148 76C146 88 140 97 132 104Z" fill="#C4B5FD" />
-                <path d="M130 104C128 92 132 82 137 74C138 85 135 95 130 104Z" fill="#A78BFA" />
+                <path d="M130 104C128 92 132 82 137 74C138 85 135 95 130 104Z" fill="#F6825F" />
                 <path d="M124 104C121 96 121 89 124 83C127 89 127 97 124 104Z" fill="#DDD6FE" />
                 <rect x="68" y="20" width="54" height="84" rx="8" fill="#EDE9FE" stroke="#C4B5FD" strokeWidth="2" />
                 <rect x="74" y="27" width="42" height="70" rx="5" fill="#FFFFFF" />
-                <rect x="85" y="14" width="20" height="10" rx="4" fill="#9D43D6" />
+                <rect x="85" y="14" width="20" height="10" rx="4" fill="#F2572B" />
                 <circle cx="95" cy="19" r="2" fill="#FFFFFF" />
-                <rect x="83" y="42" width="24" height="32" rx="3" fill="#F5F3FF" stroke="#A78BFA" strokeWidth="1.5" />
-                <circle cx="91" cy="54" r="1.5" fill="#9D43D6" />
-                <circle cx="99" cy="54" r="1.5" fill="#9D43D6" />
-                <path d="M90 62C92.5 59.5 97.5 59.5 100 62" stroke="#9D43D6" strokeWidth="1.5" strokeLinecap="round" />
-                <circle cx="107" cy="70" r="7" fill="#9D43D6" />
+                <rect x="83" y="42" width="24" height="32" rx="3" fill="#F5F3FF" stroke="#F6825F" strokeWidth="1.5" />
+                <circle cx="91" cy="54" r="1.5" fill="#F2572B" />
+                <circle cx="99" cy="54" r="1.5" fill="#F2572B" />
+                <path d="M90 62C92.5 59.5 97.5 59.5 100 62" stroke="#F2572B" strokeWidth="1.5" strokeLinecap="round" />
+                <circle cx="107" cy="70" r="7" fill="#F2572B" />
                 <path d="M104.5 67.5L109.5 72.5M109.5 67.5L104.5 72.5" stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round" />
-                <circle cx="66" cy="48" r="13" fill="#F3E8FF" fillOpacity="0.65" stroke="#7C3AED" strokeWidth="2.5" />
-                <line x1="56.5" y1="57.5" x2="47" y2="67" stroke="#7C3AED" strokeWidth="3.5" strokeLinecap="round" />
-                <circle cx="44" cy="42" r="8" fill="#2E1065" />
-                <path d="M30 78C30 62 36 54 46 54C54 54 58 60 60 72L52 80H30V78Z" fill="#A78BFA" />
-                <path d="M32 78L52 78L62 96H34L32 78Z" fill="#4C1D95" />
+                <circle cx="66" cy="48" r="13" fill="#FDE3D9" fillOpacity="0.65" stroke="#F2572B" strokeWidth="2.5" />
+                <line x1="56.5" y1="57.5" x2="47" y2="67" stroke="#F2572B" strokeWidth="3.5" strokeLinecap="round" />
+                <circle cx="44" cy="42" r="8" fill="#4A160A" />
+                <path d="M30 78C30 62 36 54 46 54C54 54 58 60 60 72L52 80H30V78Z" fill="#F6825F" />
+                <path d="M32 78L52 78L62 96H34L32 78Z" fill="#8C2B12" />
                 <rect x="34" y="96" width="28" height="8" rx="4" fill="#DDD6FE" />
               </svg>
 
@@ -245,7 +246,7 @@ const PurchaseReceives = () => {
                         <td className="py-3.5 px-4 whitespace-nowrap">
                           <Link
                             to={`/purchase/receives/${receive._id || receive.id}`}
-                            className="text-[13px] font-semibold text-[#9D43D6] hover:text-[#7E22CE] hover:underline"
+                            className="text-[13px] font-semibold text-[#F2572B] hover:text-[#D9431A] hover:underline"
                           >
                             {receive.receiveNumber}
                           </Link>
@@ -270,7 +271,7 @@ const PurchaseReceives = () => {
                               type="button"
                               onClick={() => handleSendReceive(receive._id || receive.id)}
                               disabled={sending[receive._id || receive.id]}
-                              className="inline-flex items-center gap-1.5 h-[32px] px-3 rounded-[8px] border border-[#E9D5FF] bg-[#F3E8FF] text-[#9D43D6] text-[12px] font-medium hover:bg-[#E9D5FF] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                              className="inline-flex items-center gap-1.5 h-[32px] px-3 rounded-[8px] border border-[#FCCAB9] bg-[#FDE3D9] text-[#F2572B] text-[12px] font-medium hover:bg-[#FCCAB9] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                             >
                               <Send size={12} />
                               <span>{sending[receive._id || receive.id] ? "Sending..." : "Send"}</span>

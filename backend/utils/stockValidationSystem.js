@@ -2,6 +2,7 @@
 import mongoose from 'mongoose';
 import ItemGroup from '../model/ItemGroup.js';
 import ShoeItem from '../model/ShoeItem.js';
+import { sameStore } from "./storeResolver.js";
 
 /**
  * Stock Validation System Class
@@ -248,23 +249,8 @@ export class StockValidationSystem {
    * Check if warehouse names match (handles variations)
    */
   isWarehouseMatch(warehouseName1, warehouseName2) {
-    if (!warehouseName1 || !warehouseName2) return false;
-    
-    const w1 = warehouseName1.toLowerCase().trim();
-    const w2 = warehouseName2.toLowerCase().trim();
-    
-    // Exact match
-    if (w1 === w2) return true;
-    
-    // Handle Trivandrum variations
-    const trivandumVariations = ['grooms trivandrum', 'sg-trivandrum', 'sg.trivandrum', 'trivandrum'];
-    const isTrivandrum1 = trivandumVariations.some(v => w1.includes(v) || v.includes(w1));
-    const isTrivandrum2 = trivandumVariations.some(v => w2.includes(v) || v.includes(w2));
-    
-    if (isTrivandrum1 && isTrivandrum2) return true;
-    
-    // Partial match
-    return w1.includes(w2) || w2.includes(w1);
+    // Stores are matched only via the backend Store collection
+    return sameStore(warehouseName1, warehouseName2);
   }
 
   /**

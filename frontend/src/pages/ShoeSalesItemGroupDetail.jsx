@@ -8,14 +8,13 @@ import AttachmentDisplay from "../components/AttachmentDisplay";
 import { mapLocNameToWarehouse as mapWarehouse } from "../utils/warehouseMapping";
 import baseUrl from "../api/api";
 import useSidebar from "../hooks/useSidebar";
+import { isWarehouseStore, getActiveStores } from "../utils/storeService";
+import { isAdminOrSuperAdmin } from "../utils/roleUtils";
 
-// All warehouses/stores in the system - restricted to Warehouse and Brides Berry
-const ALL_WAREHOUSES = [
-  "Warehouse",
-  "Brides Berry",
-];
+// All stores in the system come from the backend store list
+const getAllWarehouses = () => getActiveStores().map((st) => st.locName).filter(Boolean);
 
-// Compare store names ignoring spaces/case ("Brides Berry" === "BridesBerry")
+// Compare store names ignoring spaces/case ("Store Name" === "StoreName")
 const compactName = (n) => (n || "").toString().toLowerCase().replace(/[\s.\-_]/g, "");
 
 const ShoeSalesItemGroupDetail = () => {
@@ -54,11 +53,10 @@ const ShoeSalesItemGroupDetail = () => {
   const userStr = localStorage.getItem("rootfinuser");
   const user = userStr ? JSON.parse(userStr) : null;
   const userEmail = user?.email || user?.username || "";
-  const adminEmails = ['officerootments@gmail.com'];
-  const isAdminEmail = userEmail && adminEmails.some(email => userEmail.toLowerCase() === email.toLowerCase());
+  const isAdminEmail = isAdminOrSuperAdmin(user);
   const isAdmin = isAdminEmail ||
                   user?.power === "admin" || 
-                  (user?.locCode && (user.locCode === '858' || user.locCode === '103'));
+                  (user?.locCode && isWarehouseStore(user.locCode));
   
   // Fallback locations mapping
   const fallbackLocations = [];
@@ -79,7 +77,7 @@ const ShoeSalesItemGroupDetail = () => {
   // Initialize all warehouses list
   useEffect(() => {
     // Sort warehouses: "Warehouse" first, then alphabetically
-    const sortedWarehouses = [...ALL_WAREHOUSES].sort((a, b) => {
+    const sortedWarehouses = [...getAllWarehouses()].sort((a, b) => {
       if (a === "Warehouse") return -1;
       if (b === "Warehouse") return 1;
       return a.localeCompare(b);
@@ -215,7 +213,7 @@ const ShoeSalesItemGroupDetail = () => {
             <p className="text-base font-bold text-[#111827] uppercase">Item Group Not Found</p>
             <Link
               to="/shoe-sales/item-groups"
-              className="mt-4 inline-block px-4 py-2 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white text-xs font-bold uppercase tracking-wider rounded-[10px] transition-colors"
+              className="mt-4 inline-block px-4 py-2 bg-[#F46A43] hover:bg-[#F2572B] text-white text-xs font-bold uppercase tracking-wider rounded-[10px] transition-colors"
             >
               Back to Item Groups
             </Link>
@@ -311,8 +309,8 @@ const ShoeSalesItemGroupDetail = () => {
     
     // Only ever show the real, allowed warehouses. Any other name found in the
     // data (e.g. "ridesBerry Branch", "rynex Admin Branch", "arehouse" - corrupted
-    // leftovers, or old MG Road) is ignored so it never appears as a fake branch.
-    const allowedList = allWarehouses.length > 0 ? allWarehouses : ALL_WAREHOUSES;
+    // leftovers) is ignored so it never appears as a fake branch.
+    const allowedList = allWarehouses.length > 0 ? allWarehouses : getAllWarehouses();
     const allowedKeys = new Set(allowedList.map(compactName));
 
     // Get warehouses that have stock data from items (restricted to allowed ones)
@@ -329,8 +327,8 @@ const ShoeSalesItemGroupDetail = () => {
     
     // Combine all warehouses from the system with warehouses that have stock
     // This ensures we show all stores, even if they don't have stock yet
-    const warehousesToShow = allWarehouses.length > 0 ? allWarehouses : ALL_WAREHOUSES;
-    // Merge, de-duplicating names that differ only by spacing/case (e.g. "BridesBerry" vs "Brides Berry")
+    const warehousesToShow = allWarehouses.length > 0 ? allWarehouses : getAllWarehouses();
+    // Merge, de-duplicating names that differ only by spacing/case (e.g. "StoreName" vs "Store Name")
     const seen = new Set();
     const allWarehousesSet = new Set();
     [...warehousesToShow, ...warehousesWithStock].forEach(wh => {
@@ -620,7 +618,7 @@ const ShoeSalesItemGroupDetail = () => {
               <>
                 <Link
                   to={`/shoe-sales/item-groups/${id}/edit`}
-                  className="inline-flex items-center gap-1.5 h-9 px-4 rounded-[10px] bg-[#8B5CF6] hover:bg-[#7C3AED] text-xs font-bold uppercase tracking-wider text-white shadow-xs transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 h-9 px-4 rounded-[10px] bg-[#F46A43] hover:bg-[#F2572B] text-xs font-bold uppercase tracking-wider text-white shadow-xs transition-colors cursor-pointer"
                 >
                   <Edit size={13} className="text-white" />
                   <span>Edit</span>
@@ -788,7 +786,7 @@ const ShoeSalesItemGroupDetail = () => {
               <div className="bg-white border border-[#E5E7EB] rounded-[10px] shadow-xs overflow-hidden">
                 <div className="px-6 py-4 border-b border-[#E5E7EB] flex items-center justify-between bg-white">
                   <div className="flex items-center gap-2">
-                    <Package size={15} className="text-[#8B5CF6]" />
+                    <Package size={15} className="text-[#F46A43]" />
                     <h3 className="text-xs font-bold uppercase tracking-wider text-[#111827]">
                       Items in Group
                     </h3>
@@ -874,7 +872,7 @@ const ShoeSalesItemGroupDetail = () => {
                             <td className="px-6 py-4 text-xs font-mono font-bold text-[#10B981]">
                               ₹{typeof item.sellingPrice === 'number' ? item.sellingPrice.toFixed(2) : (item.sellingPrice || "0.00")}
                             </td>
-                            <td className="px-6 py-4 text-xs font-mono font-bold text-[#7C3AED]">
+                            <td className="px-6 py-4 text-xs font-mono font-bold text-[#F2572B]">
                               ₹{parseFloat(item.mrp) > 0 ? parseFloat(item.mrp).toFixed(2) : (parseFloat(item.sellingPrice) || 0).toFixed(2)}
                             </td>
                             <td className="px-6 py-4 text-xs font-mono font-bold text-[#111827]">{Math.round(itemStock)}</td>
@@ -924,7 +922,7 @@ const ShoeSalesItemGroupDetail = () => {
               <div className="bg-[#F9FAFB] px-6 py-6 border-b border-[#E5E7EB]">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <Building2 size={16} className="text-[#8B5CF6]" />
+                    <Building2 size={16} className="text-[#F46A43]" />
                     <h3 className="text-xs font-bold uppercase tracking-wider text-[#6B7280]">
                       Opening Stock
                     </h3>
@@ -1039,7 +1037,7 @@ const ShoeSalesItemGroupDetail = () => {
                       setSelectedMonth(e.target.value);
                       setEditingStock({});
                     }}
-                    className="px-2.5 py-1 border border-[#E5E7EB] rounded-[10px] text-xs font-bold bg-[#F9FAFB] focus:outline-none focus:border-[#8B5CF6]"
+                    className="px-2.5 py-1 border border-[#E5E7EB] rounded-[10px] text-xs font-bold bg-[#F9FAFB] focus:outline-none focus:border-[#F46A43]"
                   />
                 </div>
               </div>
@@ -1094,13 +1092,13 @@ const ShoeSalesItemGroupDetail = () => {
                                 <div className="text-[11px] font-mono text-[#6B7280] mt-0.5">SKU: {itemData.itemSku || "No SKU"}</div>
                               </div>
                             </td>
-                            <td className="px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-[#7C3AED] border-r border-[#E5E7EB]">
+                            <td className="px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-[#F2572B] border-r border-[#E5E7EB]">
                               Warehouse (total)
                             </td>
                             <td className="px-4 py-2.5 text-xs font-mono font-bold text-[#111827] text-right border-r border-[#E5E7EB]">
                               {Math.round(itemData.openingStock)}
                             </td>
-                            <td className="px-4 py-2.5 text-xs font-mono font-bold text-[#7C3AED] text-right">
+                            <td className="px-4 py-2.5 text-xs font-mono font-bold text-[#F2572B] text-right">
                               ₹{itemData.openingStockValue.toFixed(2)}
                             </td>
                           </tr>
@@ -1126,7 +1124,7 @@ const ShoeSalesItemGroupDetail = () => {
                                   min="0"
                                   value={isEditing ? (isEditing.openingStock || '') : Math.round(warehouseEntry.openingStock)}
                                   onChange={(e) => handleStockChange(warehouseEntry.itemId, warehouseEntry.warehouse, 'openingStock', e.target.value, warehouseEntry.itemSellingPrice)}
-                                  className="w-24 px-2 py-1 text-right border border-[#E5E7EB] rounded-[10px] text-xs font-mono font-bold bg-[#F9FAFB] focus:bg-white focus:outline-none focus:border-[#8B5CF6]"
+                                  className="w-24 px-2 py-1 text-right border border-[#E5E7EB] rounded-[10px] text-xs font-mono font-bold bg-[#F9FAFB] focus:bg-white focus:outline-none focus:border-[#F46A43]"
                                   placeholder="0"
                                 />
                               </td>
@@ -1159,7 +1157,7 @@ const ShoeSalesItemGroupDetail = () => {
               <button
                 onClick={handleSaveMonthlyStock}
                 disabled={savingStock || Object.keys(editingStock).length === 0}
-                className="h-9 px-4 rounded-[10px] bg-[#8B5CF6] hover:bg-[#7C3AED] text-xs font-bold uppercase tracking-wider text-white shadow-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
+                className="h-9 px-4 rounded-[10px] bg-[#F46A43] hover:bg-[#F2572B] text-xs font-bold uppercase tracking-wider text-white shadow-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
               >
                 {savingStock ? (
                   <>

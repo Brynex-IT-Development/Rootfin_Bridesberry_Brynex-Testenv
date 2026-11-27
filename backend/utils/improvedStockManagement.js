@@ -3,49 +3,10 @@ import ShoeItem from "../model/ShoeItem.js";
 import ItemGroup from "../model/ItemGroup.js";
 import { checkAndCreateReorderAlerts } from "./reorderNotification.js";
 import { updateMonthlyStockForSale } from "./monthlyStockTracking.js";
+import { sameStore, storeName } from "./storeResolver.js";
 
-/**
- * Enhanced warehouse name mapping with comprehensive variations
- */
-const WAREHOUSE_NAME_MAPPING = {
-  "Grooms Trivandum": "Grooms Trivandrum",
-  "Grooms Trivandrum": "Grooms Trivandrum", 
-  "SG-Trivandrum": "Grooms Trivandrum",
-  "SG.Trivandrum": "Grooms Trivandrum",
-  "G.Perinthalmanna": "Perinthalmanna Branch",
-  "GPerinthalmanna": "Perinthalmanna Branch", 
-  "Perinthalmanna Branch": "Perinthalmanna Branch",
-  "Z.Perinthalmanna": "Perinthalmanna Branch",
-  "G.Palakkad": "Palakkad Branch",
-  "GPalakkad": "Palakkad Branch",
-  "Palakkad Branch": "Palakkad Branch",
-  "Warehouse": "Warehouse",
-  "warehouse": "Warehouse",
-  "WAREHOUSE": "Warehouse"
-};
-
-/**
- * Normalize warehouse name with enhanced matching
- */
-const normalizeWarehouseName = (name) => {
-  if (!name) return null;
-  const trimmed = name.toString().trim();
-  
-  // Direct mapping first
-  if (WAREHOUSE_NAME_MAPPING[trimmed]) {
-    return WAREHOUSE_NAME_MAPPING[trimmed];
-  }
-  
-  // Case-insensitive mapping
-  const lowerName = trimmed.toLowerCase();
-  for (const [key, value] of Object.entries(WAREHOUSE_NAME_MAPPING)) {
-    if (key.toLowerCase() === lowerName) {
-      return value;
-    }
-  }
-  
-  return trimmed;
-};
+// Store names come only from the Store collection
+const normalizeWarehouseName = (warehouseName) => storeName(warehouseName);
 
 /**
  * Enhanced warehouse matching with multiple strategies
@@ -55,46 +16,8 @@ const findWarehouseStockIndex = (warehouseStocks, targetWarehouse) => {
     return -1;
   }
   
-  const targetLower = targetWarehouse.toLowerCase().trim();
-  const normalizedTarget = normalizeWarehouseName(targetWarehouse);
-  
-  // Strategy 1: Exact normalized match
-  let index = warehouseStocks.findIndex(ws => {
-    if (!ws.warehouse) return false;
-    const normalizedWs = normalizeWarehouseName(ws.warehouse);
-    return normalizedWs === normalizedTarget;
-  });
-  
-  if (index !== -1) return index;
-  
-  // Strategy 2: Case-insensitive exact match
-  index = warehouseStocks.findIndex(ws => {
-    if (!ws.warehouse) return false;
-    return ws.warehouse.toLowerCase().trim() === targetLower;
-  });
-  
-  if (index !== -1) return index;
-  
-  // Strategy 3: Partial match for Trivandrum variations
-  if (targetLower.includes('trivandrum') || targetLower.includes('tvm') || targetLower.includes('sg')) {
-    index = warehouseStocks.findIndex(ws => {
-      if (!ws.warehouse) return false;
-      const wsLower = ws.warehouse.toLowerCase().trim();
-      return (wsLower.includes('trivandrum') || wsLower.includes('tvm') || 
-              wsLower.includes('grooms') || wsLower.includes('sg'));
-    });
-  }
-  
-  if (index !== -1) return index;
-  
-  // Strategy 4: General partial match
-  index = warehouseStocks.findIndex(ws => {
-    if (!ws.warehouse) return false;
-    const wsLower = ws.warehouse.toLowerCase().trim();
-    return wsLower.includes(targetLower) || targetLower.includes(wsLower);
-  });
-  
-  return index;
+  // Stores are matched only via the backend Store collection (case/spacing-insensitive)
+  return warehouseStocks.findIndex(ws => ws.warehouse && sameStore(ws.warehouse, targetWarehouse));
 };
 
 /**

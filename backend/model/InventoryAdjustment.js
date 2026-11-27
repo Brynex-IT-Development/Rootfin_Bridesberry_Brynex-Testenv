@@ -26,7 +26,7 @@ const inventoryAdjustmentSchema = new mongoose.Schema(
     // Location Information
     branch: {
       type: String,
-      default: "Head Office",
+      default: "",
     },
     warehouse: {
       type: String,

@@ -10,12 +10,10 @@ import { useSidebar } from "../hooks/useSidebar.js";
 import { fetchActiveStores, getActiveStores } from "../utils/storeService.js";
 
 // Function to format location names with proper spacing
+// Store names are shown exactly as stored in the backend (no built-in overrides)
 const formatLocationName = (name) => {
-  if (!name) return name;
-  let formatted = name.trim();
-  formatted = formatted.replace(/^([A-Z])([A-Z][a-z])/g, "$1 $2");
-  formatted = formatted.replace(/^([A-Z])([a-z])/g, "$1 $2");
-  return formatted;
+    if (!name || name === "No Stores" || name === "No stores available") return name || "No Stores";
+    return name.trim();
 };
 
 // Fallback locations (empty - dynamic active stores only)
@@ -40,10 +38,6 @@ const AdminClose = () => {
   const isSidebarOpen = useSidebar();
   const currentUser = JSON.parse(localStorage.getItem("rootfinuser") || "{}");
   const email = currentUser?.email;
-  const isOfficeUser = currentUser?.locCode === "102";
-
-  // Legacy office users can only close the active Warehouse location.
-  const officeAllowedLocCodes = ["858"];
 
   useEffect(() => {
     const loadStores = async () => {
@@ -239,7 +233,7 @@ const AdminClose = () => {
             {/* Row 2: Cash (Calculated Closing), Closing Cash (Physical Count), Bank */}
             {loadingData ? (
               <div className="py-8 flex items-center gap-2.5 text-[#6A6A6A]">
-                <Loader2 className="w-5 h-5 animate-spin text-[#9D43D6]" />
+                <Loader2 className="w-5 h-5 animate-spin text-[#F2572B]" />
                 <p className="text-[13px]">Loading existing closing data...</p>
               </div>
             ) : (

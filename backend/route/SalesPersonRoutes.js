@@ -16,7 +16,7 @@ router.post("/sales-persons", createSalesPerson);
 // Get all sales persons (optional queries: ?storeId=xxx&locCode=xxx&isActive=true/false)
 router.get("/sales-persons", getSalesPersons);
 
-// Get sales persons by location code (e.g., /sales-persons/loc/EDAPALLY)
+// Get sales persons by location code (e.g., /sales-persons/loc/<locCode>)
 // This is the main endpoint for filtering by store location
 router.get("/sales-persons/loc/:locCode", getSalesPersonsByLocCode);
 

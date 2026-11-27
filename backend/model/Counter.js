@@ -6,7 +6,7 @@ const { Schema, model } = mongoose;
 export default model(
   "Counter",
   new Schema({
-    _id: { type: String, required: true }, // e.g. "144"
+    _id: { type: String, required: true }, // e.g. a store locCode
     seq: { type: Number, default: 0 }      // running integer
   })
 );

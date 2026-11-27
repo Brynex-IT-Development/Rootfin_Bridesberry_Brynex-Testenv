@@ -8,18 +8,24 @@ import SalesInvoice from "../model/SalesInvoice.js";
 import { nextGlobalSalesInvoice } from "../utils/nextSalesInvoice.js";
 import { updateStockOnInvoiceCreate, reverseStockOnInvoiceDelete } from "../utils/ultraEnhancedStockManagement.js";
 import { createFinancialTransaction } from "./SalesInvoiceController.js";
+import { ensureStores, findStore, sameStore } from "../utils/storeResolver.js";
 
-// Web store settings. Fixed in code, so no environment variables are needed.
-const WEB_SETTINGS = Object.freeze({
-  warehouse: "Brides Berry",   // stock is deducted from and shown for this warehouse
-  branch: "Bridesberry",       // web branch on the invoice
-  locCode: "155",              // location code used for the financial transaction
-  userId: "store front",       // user recorded on the invoice
-  category: "Sales",
-  subCategory: "Online",
-});
-
-export const config = () => WEB_SETTINGS;
+// Web store settings. The storefront sells from the store whose location code is
+// WEB_STORE_LOC_CODE; its name comes from the backend Store collection (no
+// hardcoded store names/codes).
+export const config = () => {
+  const locCode = (process.env.WEB_STORE_LOC_CODE || "").toString().trim();
+  const store = locCode ? findStore(locCode) : null;
+  const name = store?.name || "";
+  return {
+    warehouse: name,             // stock is deducted from and shown for this store
+    branch: name,                // web branch on the invoice
+    locCode: store ? locCode : "", // location code used for the financial transaction
+    userId: "store front",       // user recorded on the invoice
+    category: "Sales",
+    subCategory: "Online",
+  };
+};
 
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
@@ -64,10 +70,8 @@ const findBySku = async (sku) => {
 
 // Sellable quantity in the given warehouse (availableForSale, else stockOnHand).
 const findWarehouseStock = (warehouseStocks, warehouse) => {
-  const target = warehouse.trim().toLowerCase();
-  return (warehouseStocks || []).find(
-    (s) => (s.warehouse || "").toString().trim().toLowerCase() === target
-  );
+  if (!warehouse) return undefined;
+  return (warehouseStocks || []).find((s) => sameStore(s.warehouse, warehouse));
 };
 
 // True when the item has a stock record for this warehouse.
@@ -118,7 +122,11 @@ const orderSummary = (invoice) => ({
 // POST /api/public/orders
 // Body: { orderRef, customer, customerPhone?, paymentReference, items: [{ sku, quantity }] }
 export const createPublicOrder = async (req, res) => {
+  await ensureStores();
   const cfg = config();
+  if (!cfg.warehouse) {
+    return res.status(503).json({ message: "Web store is not configured: set WEB_STORE_LOC_CODE to an existing store's location code." });
+  }
   const { orderRef, customer, customerPhone = "", paymentReference = "", items } = req.body || {};
 
   if (typeof orderRef !== "string" || !orderRef.trim()) {

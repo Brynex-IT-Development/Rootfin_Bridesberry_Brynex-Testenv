@@ -2,48 +2,8 @@
 import ShoeItem from "../model/ShoeItem.js";
 import ItemGroup from "../model/ItemGroup.js";
 import { checkAndCreateReorderAlerts } from "./reorderNotification.js";
+import { sameStore } from "./storeResolver.js";
 import { updateMonthlyStockForSale } from "./monthlyStockTracking.js";
-
-/**
- * COMPREHENSIVE WAREHOUSE NAME MAPPING - Covers ALL store variations
- */
-const ULTRA_WAREHOUSE_MAPPING = {
-  // Trivandrum variations
-  "Grooms Trivandum": "Grooms Trivandrum",
-  "Grooms Trivandrum": "Grooms Trivandrum", 
-  "SG-Trivandrum": "Grooms Trivandrum",
-  "SG.Trivandrum": "Grooms Trivandrum",
-  "Trivandrum": "Grooms Trivandrum",
-  "TVM": "Grooms Trivandrum",
-  "tvm": "Grooms Trivandrum",
-  
-  // Perinthalmanna variations
-  "G.Perinthalmanna": "Perinthalmanna Branch",
-  "GPerinthalmanna": "Perinthalmanna Branch", 
-  "Perinthalmanna Branch": "Perinthalmanna Branch",
-  "Z.Perinthalmanna": "Perinthalmanna Branch",
-  "Perinthalmanna": "Perinthalmanna Branch",
-  
-  // Palakkad variations
-  "G.Palakkad": "Palakkad Branch",
-  "GPalakkad": "Palakkad Branch",
-  "Palakkad Branch": "Palakkad Branch",
-  "Palakkad": "Palakkad Branch",
-  
-  // MG Road variations
-  "MG Road": "MG Road",
-  "Suitorguy MG Road": "MG Road",
-  "G.MG Road": "MG Road",
-  "G-MG Road": "MG Road",
-  "GMG Road": "MG Road",
-  "mg road": "MG Road",
-  
-  // Warehouse variations
-  "Warehouse": "Warehouse",
-  "warehouse": "Warehouse",
-  "WAREHOUSE": "Warehouse",
-  "Main Warehouse": "Warehouse"
-};
 
 /**
  * Ultra-smart warehouse matching with fuzzy logic
@@ -53,44 +13,8 @@ const findWarehouseMatch = (warehouseStocks, targetWarehouse) => {
     return -1;
   }
   
-  const target = targetWarehouse.toString().trim();
-  const targetLower = target.toLowerCase();
-  
-  // Strategy 1: Exact match (case-insensitive)
-  let index = warehouseStocks.findIndex(ws => {
-    if (!ws.warehouse) return false;
-    return ws.warehouse.toLowerCase().trim() === targetLower;
-  });
-  if (index !== -1) return index;
-  
-  // Strategy 2: Normalized mapping match
-  const normalizedTarget = ULTRA_WAREHOUSE_MAPPING[target] || target;
-  index = warehouseStocks.findIndex(ws => {
-    if (!ws.warehouse) return false;
-    const normalizedWs = ULTRA_WAREHOUSE_MAPPING[ws.warehouse.trim()] || ws.warehouse.trim();
-    return normalizedWs === normalizedTarget;
-  });
-  if (index !== -1) return index;
-  
-  // Strategy 3: Keyword-based matching for Trivandrum
-  if (targetLower.includes('trivandrum') || targetLower.includes('tvm') || targetLower.includes('grooms') || targetLower.includes('sg')) {
-    index = warehouseStocks.findIndex(ws => {
-      if (!ws.warehouse) return false;
-      const wsLower = ws.warehouse.toLowerCase();
-      return wsLower.includes('trivandrum') || wsLower.includes('tvm') || 
-             wsLower.includes('grooms') || wsLower.includes('sg');
-    });
-    if (index !== -1) return index;
-  }
-  
-  // Strategy 4: Partial match
-  index = warehouseStocks.findIndex(ws => {
-    if (!ws.warehouse) return false;
-    const wsLower = ws.warehouse.toLowerCase().trim();
-    return wsLower.includes(targetLower) || targetLower.includes(wsLower);
-  });
-  
-  return index;
+  // Stores are matched only via the backend Store collection (case/spacing-insensitive)
+  return warehouseStocks.findIndex(ws => ws.warehouse && sameStore(ws.warehouse, targetWarehouse));
 };
 /**
  * Ultra-smart item matching with multiple fallback strategies

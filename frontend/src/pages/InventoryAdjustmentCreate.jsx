@@ -7,6 +7,7 @@ import baseUrl from "../api/api";
 import { mapLocNameToWarehouse as mapWarehouse } from "../utils/warehouseMapping";
 import useSidebar from "../hooks/useSidebar";
 import Header from "../components/Header";
+import { getActiveStores, getUserStoreName } from "../utils/storeService";
 
 // Compact Custom Dropdown Component
 const CompactDropdown = ({ value, onChange, options, placeholder = "Select...", required = false }) => {
@@ -112,8 +113,8 @@ const CompactDropdown = ({ value, onChange, options, placeholder = "Select...", 
                   }}
                   className={`px-3.5 py-2 text-[13px] cursor-pointer transition-colors ${
                     isSelected
-                      ? "bg-[#9D43D6] text-white font-medium"
-                      : "text-[#212121] hover:bg-[#F3E8FF] hover:text-[#9D43D6]"
+                      ? "bg-[#F2572B] text-white font-medium"
+                      : "text-[#212121] hover:bg-[#FDE3D9] hover:text-[#F2572B]"
                   }`}
                 >
                   {option}
@@ -133,7 +134,7 @@ const CompactDropdown = ({ value, onChange, options, placeholder = "Select...", 
           ref={buttonRef}
           onClick={toggleDropdown}
           className={`w-full h-[40px] rounded-[10px] border bg-white text-[13px] transition-colors cursor-pointer pl-3.5 pr-2.5 flex items-center justify-between ${
-            isOpen ? "border-[#9D43D6] ring-2 ring-[#9D43D6]/15" : "border-[#E5E5E5] hover:border-[#D4D4D8]"
+            isOpen ? "border-[#F2572B] ring-2 ring-[#F2572B]/15" : "border-[#E5E5E5] hover:border-[#D4D4D8]"
           }`}
         >
           <span className={`truncate pr-2 ${!value ? "text-[#A1A1AA]" : "text-[#212121] font-medium"}`}>
@@ -430,7 +431,7 @@ const ItemDropdown = ({ rowId, value, onChange, warehouse, onStockFetched, userW
                   key={item._id}
                   onClick={() => handleSelectItem(item)}
                   className={`px-3.5 py-2.5 cursor-pointer transition-colors border-b border-[#F4F4F5] flex items-center justify-between ${
-                    isSelected ? "bg-[#F3E8FF] text-[#6D2898]" : "hover:bg-[#FAFAFA] text-[#212121]"
+                    isSelected ? "bg-[#FDE3D9] text-[#B23614]" : "hover:bg-[#FAFAFA] text-[#212121]"
                   }`}
                 >
                   <div>
@@ -438,7 +439,7 @@ const ItemDropdown = ({ rowId, value, onChange, warehouse, onStockFetched, userW
                       {item.itemName || item.name || "Unnamed Item"}
                     </div>
                     <div className="text-[11px] text-[#7A7A7A] mt-0.5">
-                      {item.isFromGroup && <span className="text-[#9D43D6] font-medium">[{item.groupName}] </span>}
+                      {item.isFromGroup && <span className="text-[#F2572B] font-medium">[{item.groupName}] </span>}
                       SKU: {item.sku || "—"}
                     </div>
                   </div>
@@ -496,7 +497,7 @@ const InventoryAdjustmentCreate = () => {
     }
   }
   if (!userLocName) {
-    userLocName = user?.username || user?.locName || "";
+    userLocName = getUserStoreName(user);
   }
   
   const mapLocNameToWarehouse = (locName) => {
@@ -518,7 +519,7 @@ const InventoryAdjustmentCreate = () => {
   });
   const [account, setAccount] = useState("Cost of Goods Sold");
   const [reason, setReason] = useState("");
-  const [branch, setBranch] = useState("Head Office");
+  const [branch, setBranch] = useState("");
   const [warehouse, setWarehouse] = useState(() => {
     if (!isAdmin && userWarehouse) {
       return userWarehouse;
@@ -565,15 +566,9 @@ const InventoryAdjustmentCreate = () => {
     "Other",
   ];
   
-  const warehouseOptions = [
-    "Brides Berry",
-    "Warehouse",
-  ];
-  
-  const branchOptions = [
-    "Brides Berry",
-    "Warehouse",
-  ];
+  // Store options come from the backend store list
+  const warehouseOptions = getActiveStores().map((st) => st.locName).filter(Boolean);
+  const branchOptions = warehouseOptions;
 
   const handleRegenerateReferenceNumber = async () => {
     setReferenceNumberLoading(true);
@@ -613,7 +608,7 @@ const InventoryAdjustmentCreate = () => {
           setDate(data.date ? new Date(data.date).toISOString().split("T")[0] : date);
           setAccount(data.account || "Cost of Goods Sold");
           setReason(data.reason || "");
-          setBranch(data.branch || "Head Office");
+          setBranch(data.branch || "");
           setWarehouse(data.warehouse || "Warehouse");
           setDescription(data.description || "");
           
@@ -918,7 +913,7 @@ const InventoryAdjustmentCreate = () => {
         <Header title={isEditMode ? "Edit Adjustment" : "New Adjustment"} />
         <div className={`transition-all duration-300 p-8 min-h-screen flex items-center justify-center ${isSidebarOpen ? "ml-[240px]" : "ml-0"}`}>
           <div className="text-[#7A7A7A] text-[13px] flex items-center gap-2">
-            <RefreshCw size={16} className="animate-spin text-[#9D43D6]" />
+            <RefreshCw size={16} className="animate-spin text-[#F2572B]" />
             <span>Loading adjustment...</span>
           </div>
         </div>
@@ -963,7 +958,7 @@ const InventoryAdjustmentCreate = () => {
                 disabled={saving}
                 className="h-[40px] px-4 rounded-[10px] border border-[#E5E5E5] bg-white hover:bg-[#FAFAFA] text-[#212121] text-[13px] font-medium inline-flex items-center gap-2 cursor-pointer disabled:opacity-50 transition-colors"
               >
-                <FileText size={15} className="text-[#9D43D6]" />
+                <FileText size={15} className="text-[#F2572B]" />
                 <span>Save as Draft</span>
               </button>
               <button
@@ -989,7 +984,7 @@ const InventoryAdjustmentCreate = () => {
                   value="quantity"
                   checked={adjustmentType === "quantity"}
                   onChange={(e) => setAdjustmentType(e.target.value)}
-                  className="accent-[#9D43D6] cursor-pointer w-4 h-4"
+                  className="accent-[#F2572B] cursor-pointer w-4 h-4"
                 />
                 <span className="font-medium text-[#212121]">Quantity Adjustment</span>
               </label>
@@ -1000,7 +995,7 @@ const InventoryAdjustmentCreate = () => {
                   value="value"
                   checked={adjustmentType === "value"}
                   onChange={(e) => setAdjustmentType(e.target.value)}
-                  className="accent-[#9D43D6] cursor-pointer w-4 h-4"
+                  className="accent-[#F2572B] cursor-pointer w-4 h-4"
                 />
                 <span className="font-medium text-[#212121]">Value Adjustment</span>
               </label>
@@ -1016,7 +1011,7 @@ const InventoryAdjustmentCreate = () => {
                     type="button"
                     onClick={handleRegenerateReferenceNumber}
                     disabled={referenceNumberLoading}
-                    className="w-[40px] h-[40px] rounded-[10px] bg-[#9D43D6] hover:bg-[#8732BE] text-white flex items-center justify-center shrink-0 transition-colors cursor-pointer disabled:opacity-50 group shadow-xs"
+                    className="w-[40px] h-[40px] rounded-[10px] bg-[#F2572B] hover:bg-[#D9431A] text-white flex items-center justify-center shrink-0 transition-colors cursor-pointer disabled:opacity-50 group shadow-xs"
                     title="Generate new reference number"
                   >
                     <RefreshCw
@@ -1118,7 +1113,7 @@ const InventoryAdjustmentCreate = () => {
                 rows={4}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full rounded-[10px] border border-[#E5E5E5] bg-white p-3.5 text-[13px] text-[#212121] placeholder:text-[#A1A1AA] focus:border-[#9D43D6] focus:outline-none focus:ring-2 focus:ring-[#9D43D6]/15 transition-colors resize-none"
+                className="w-full rounded-[10px] border border-[#E5E5E5] bg-white p-3.5 text-[13px] text-[#212121] placeholder:text-[#A1A1AA] focus:border-[#F2572B] focus:outline-none focus:ring-2 focus:ring-[#F2572B]/15 transition-colors resize-none"
                 placeholder="Enter description"
                 maxLength={500}
               />

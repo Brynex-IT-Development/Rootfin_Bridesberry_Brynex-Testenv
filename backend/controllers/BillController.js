@@ -5,49 +5,11 @@ import Vendor from "../model/Vendor.js";
 import mongoose from "mongoose";
 import { logVendorActivity, getOriginatorName } from "../utils/vendorHistoryLogger.js";
 import { updateMonthlyStockForPurchase } from "../utils/monthlyStockTracking.js";
+import { getStores, isWarehouseStore, mapLocNameToWarehouse, sameStore } from "../utils/storeResolver.js";
+import { isAdminUserId } from "../utils/adminUsers.js";
 
-// Helper function to map locName to warehouse name (same as other controllers)
-const mapLocNameToWarehouse = (locName) => {
-  if (!locName) return "Warehouse";
-  const lower = locName.toLowerCase().trim();
-  if (lower.includes("warehouse")) return "Warehouse";
-  if (lower.replace(/[\s\-_.]+/g, '').includes("bridesberry")) return "BridesBerry";
-  // Remove prefixes like "G.", "Z.", "SG."
-  let warehouse = locName.replace(/^(SG|G|Z)[\.\-\s]+/i, "").trim();
-  // Add "Branch" if not already present and not "Warehouse"
-  if (warehouse && warehouse.toLowerCase() !== "warehouse" && !warehouse.toLowerCase().includes("branch")) {
-    warehouse = `${warehouse} Branch`;
-  }
-  return warehouse || "Warehouse";
-};
-
-// Helper function to match warehouse names flexibly (same as transfer orders and purchase receive)
-const matchesWarehouse = (itemWarehouse, targetWarehouse) => {
-  if (!itemWarehouse || !targetWarehouse) return false;
-  
-  const itemWarehouseLower = itemWarehouse.toString().toLowerCase().trim();
-  const targetWarehouseLower = targetWarehouse.toLowerCase().trim();
-  
-  // Exact match
-  if (itemWarehouseLower === targetWarehouseLower) {
-    return true;
-  }
-  
-  // Base name match (e.g., "warehouse" matches "Warehouse", "kannur" matches "Kannur Branch")
-  const itemBase = itemWarehouseLower.replace(/\s*(branch|warehouse)\s*$/i, "").trim();
-  const targetBase = targetWarehouseLower.replace(/\s*(branch|warehouse)\s*$/i, "").trim();
-  
-  if (itemBase && targetBase && itemBase === targetBase) {
-    return true;
-  }
-  
-  // Partial match (e.g., "kannur branch" contains "kannur")
-  if (itemWarehouseLower.includes(targetWarehouseLower) || targetWarehouseLower.includes(itemWarehouseLower)) {
-    return true;
-  }
-  
-  return false;
-};
+// Same store? (backend Store collection; ignores case/spacing)
+const matchesWarehouse = (itemWarehouse, targetWarehouse) => sameStore(itemWarehouse, targetWarehouse);
 
 // Helper function to add stock for items in bills (similar to purchase receive)
 const addItemStock = async (itemIdValue, quantity, warehouseName, itemName = null, itemGroupId = null, itemSku = null) => {
@@ -1016,10 +978,9 @@ export const createBill = async (req, res) => {
       if (sourceType === "direct") {
         console.log(`   ✅ Source type is "direct", will add stock...`);
         // Determine target warehouse from billData.warehouse, user's email, or locCode
-        // Admin email (officerootments@gmail.com) always uses "Warehouse" regardless of locCode
-        const adminEmails = ['officerootments@gmail.com'];
+    // Admin users (by role) always use the central warehouse regardless of locCode
         const userId = billData.userId || "";
-        const isAdminEmail = userId && typeof userId === 'string' && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
+        const isAdminEmail = await isAdminUserId(userId); // admin by role, not by email
         
         let warehouseName = billData.warehouse?.trim() || "";
         
@@ -1029,10 +990,7 @@ export const createBill = async (req, res) => {
           console.log(`📍 Admin email detected (${userId}), using warehouse: "Warehouse" (ignoring locCode and billData.warehouse)`);
         } else if (!warehouseName) {
           // If warehouse not provided and not admin, determine from locCode
-          const fallbackLocations = [
-            { "locName": "Warehouse", "locCode": "858" },
-            { "locName": "BridesBerry", "locCode": "155" }
-          ];
+          const fallbackLocations = getStores().map((st) => ({ locName: st.name, locCode: st.locCode })); // from the backend Store collection
           
           const userLocCode = billData.locCode || "";
           if (userLocCode) {
@@ -1147,12 +1105,11 @@ export const getBills = async (req, res) => {
     
     const query = {};
     
-    // User is admin if: power === 'admin' OR locCode === '858' (Warehouse) OR email === 'officerootments@gmail.com'
-    const adminEmails = ['officerootments@gmail.com'];
-    const isAdminEmail = userId && typeof userId === 'string' && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
+    // User is admin if: power === 'admin' OR their locCode is a warehouse-type store OR admin email
+    const isAdminEmail = await isAdminUserId(userId); // admin by role, not by email
     const isAdmin = isAdminEmail ||
                     (userPower && (userPower.toLowerCase() === 'admin' || userPower.toLowerCase() === 'super_admin')) ||
-                    (locCode && (locCode === '858' || locCode === '103')); // 858 = Warehouse, 103 = WAREHOUSE
+                    (locCode && isWarehouseStore(locCode)); // 858 = Warehouse, 103 = WAREHOUSE
     
     // If admin has switched to a specific store (not Warehouse), filter by that store
     const isAdminViewingSpecificStore = isAdmin && warehouse && warehouse !== "All Stores";
@@ -1288,10 +1245,9 @@ export const updateBill = async (req, res) => {
     const sourceType = billData.sourceType || existingBill.sourceType || "direct";
     
     // Determine target warehouse from billData.warehouse, existingBill.warehouse, user's email, or locCode
-    // Admin email (officerootments@gmail.com) always uses "Warehouse" regardless of locCode
-    const adminEmails = ['officerootments@gmail.com'];
+    // Admin users (by role) always use the central warehouse regardless of locCode
     const userId = billData.userId || existingBill.userId || "";
-    const isAdminEmail = userId && typeof userId === 'string' && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
+    const isAdminEmail = await isAdminUserId(userId); // admin by role, not by email
     
     let warehouseName = billData.warehouse?.trim() || existingBill.warehouse?.trim() || "";
     
@@ -1301,10 +1257,7 @@ export const updateBill = async (req, res) => {
       console.log(`📍 Admin email detected (${userId}), using warehouse: "Warehouse" (ignoring locCode and billData.warehouse)`);
     } else if (!warehouseName) {
       // If warehouse not provided and not admin, determine from locCode
-       const fallbackLocations = [
-        { "locName": "Warehouse", "locCode": "858" },
-        { "locName": "BridesBerry", "locCode": "155" }
-      ];
+       const fallbackLocations = getStores().map((st) => ({ locName: st.name, locCode: st.locCode })); // from the backend Store collection
       
       const userLocCode = billData.locCode || existingBill.locCode || "";
       if (userLocCode) {
@@ -1874,7 +1827,7 @@ export const convertPurchaseOrderToBill = async (req, res) => {
     const billData = {
       vendorId: purchaseOrder.vendorId,
       vendorName: purchaseOrder.vendorName,
-      branch: branch || purchaseOrder.branch || "Head Office",
+      branch: branch || purchaseOrder.branch || "",
       billNumber: billNumber || `BILL-${purchaseOrder.orderNumber}`,
       orderNumber: purchaseOrder.orderNumber,
       billDate: billDate ? new Date(billDate) : new Date(),
@@ -2119,7 +2072,7 @@ export const convertPurchaseReceiveToBill = async (req, res) => {
     const billData = {
       vendorId: purchaseReceive.vendorId,
       vendorName: purchaseReceive.vendorName,
-      branch: branch || "Head Office",
+      branch: branch || "",
       billNumber: billNumber || `BILL-${purchaseReceive.receiveNumber}`,
       orderNumber: purchaseReceive.purchaseOrderNumber,
       billDate: billDate ? new Date(billDate) : new Date(),

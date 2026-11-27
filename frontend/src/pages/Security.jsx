@@ -11,6 +11,7 @@ import { FALLBACK_STORES, fetchActiveStores, getActiveStores } from "../utils/st
 import { Download, Printer, Loader2 } from "lucide-react";
 
 import AppSelect from "../components/AppSelect.jsx";
+import { isAdminOrSuperAdmin } from "../utils/roleUtils";
 /* ---------- Store master list ---------- */
 const getStoreName = (c) =>
   getActiveStores().find(
@@ -72,7 +73,10 @@ const Security = () => {
   const firstOfMonth = `${_now.getFullYear()}-${String(_now.getMonth() + 1).padStart(2, "0")}-01`;
   const [fromDate, setFromDate] = useState(firstOfMonth);
   const [toDate, setToDate] = useState(today);
-  const [selectedStore, setSelectedStore] = useState("current"); // "current" | "all" | "cluster"
+  // "current" | "all" | "cluster" — Admin / Super Admin start on All Stores
+  const [selectedStore, setSelectedStore] = useState(() =>
+    isAdminOrSuperAdmin(JSON.parse(localStorage.getItem("rootfinuser") || "{}")) ? "all" : "current"
+  );
   const [rentAll, setRentAll] = useState([]); // all-store mode
   const [returnAll, setReturnAll] = useState([]);
   const [openingCash, setOpeningCash] = useState(0);
@@ -80,6 +84,9 @@ const Security = () => {
 
   const user = JSON.parse(localStorage.getItem("rootfinuser") || "{}");
   const userRole = (user?.role || "").toLowerCase();
+  const canSelectAnyStore = isAdminOrSuperAdmin(user) || (user.power || "").toLowerCase() === "admin";
+  // Store shown in single-store mode (defaults to the store selected in the header)
+  const [viewLocCode, setViewLocCode] = useState(user.locCode || "");
   const isClusterManager = userRole === "cluster_manager" || userRole === "cluster_admin";
   const clusterStores = isClusterManager
     ? allLocations.filter((s) => (user.allowedLocCodes || []).includes(s.locCode))
@@ -93,7 +100,7 @@ const Security = () => {
   const calcOpeningCash = async () => {
     if (selectedStore !== "current") return;
 
-    const loc = user.locCode;
+    const loc = viewLocCode;
     const manualOpen = getManualOpening(loc, fromDate);
 
     /* ——— NEW LOGIC path ——— */
@@ -137,11 +144,11 @@ const Security = () => {
   /* run calc when store/date changes (current-store mode) */
   useEffect(() => {
     if (selectedStore === "current") calcOpeningCash();
-  }, [selectedStore, fromDate, user.locCode]);
+  }, [selectedStore, fromDate, viewLocCode]);
 
   /* ---------- data fetch for current store ---------- */
-  const apiRentCur = `${baseAPI}/GetRentoutList?LocCode=${user.locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
-  const apiRetCur = `${baseAPI}/GetReturnList?LocCode=${user.locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
+  const apiRentCur = `${baseAPI}/GetRentoutList?LocCode=${viewLocCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
+  const apiRetCur = `${baseAPI}/GetReturnList?LocCode=${viewLocCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
   const fetchOpts = useMemo(() => ({}), []);
   const { data: rentData } = useFetch(selectedStore === "current" ? apiRentCur : null, fetchOpts);
   const { data: retData } = useFetch(selectedStore === "current" ? apiRetCur : null, fetchOpts);
@@ -364,7 +371,7 @@ const Security = () => {
         </head>
         <body>
           <h2>Security Report</h2>
-          <p>Period: ${fromDate || "N/A"} to ${toDate || "N/A"} | Store: ${selectedStore === "current" ? getStoreName(user?.locCode) : selectedStore}</p>
+          <p>Period: ${fromDate || "N/A"} to ${toDate || "N/A"} | Store: ${selectedStore === "current" ? getStoreName(viewLocCode) : selectedStore === "all" ? "All Stores" : selectedStore}</p>
           ${printContent}
         </body>
       </html>
@@ -417,6 +424,27 @@ const Security = () => {
 
                 <div className="rf-form-field !mb-0 w-[195px]">
                   <label className="rf-field-label">Store</label>
+                  {canSelectAnyStore ? (
+                    // Admin / Super Admin: All Stores + every backend store
+                    <AppSelect
+                      value={selectedStore === "current" ? `store:${viewLocCode}` : selectedStore}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        if (v.startsWith("store:")) {
+                          setViewLocCode(v.slice(6));
+                          setSelectedStore("current");
+                        } else {
+                          setSelectedStore(v);
+                        }
+                      }}
+                      className="rf-input !w-full !h-[40px] !rounded-[10px] bg-white cursor-pointer"
+                    >
+                      <option value="all">All Stores (Totals)</option>
+                      {allLocations.map((s) => (
+                        <option key={s.locCode} value={`store:${s.locCode}`}>{getStoreName(s.locCode)}</option>
+                      ))}
+                    </AppSelect>
+                  ) : (
                   <AppSelect
                     value={selectedStore}
                     onChange={(e) => setSelectedStore(e.target.value)}
@@ -428,10 +456,8 @@ const Security = () => {
                     {isClusterManager && clusterStores.length > 0 && (
                       <option value="cluster">My Stores (All Assigned)</option>
                     )}
-                    {(user.power || "").toLowerCase() === "admin" && (
-                      <option value="all">All Stores (Totals)</option>
-                    )}
                   </AppSelect>
+                  )}
                 </div>
 
                 <button
@@ -439,7 +465,7 @@ const Security = () => {
                   data-no-confirm="true"
                   onClick={handleFetch}
                   disabled={loading}
-                  className="rf-btn-primary !h-[40px] !px-6 !rounded-[10px] !bg-[#9D43D6] hover:!bg-[#8732BE] !text-[13px] !font-medium inline-flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 shadow-[0_2px_8px_rgba(157,67,214,0.24)]"
+                  className="rf-btn-primary !h-[40px] !px-6 !rounded-[10px] !bg-[#F2572B] hover:!bg-[#D9431A] !text-[13px] !font-medium inline-flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 shadow-[0_2px_8px_rgba(242, 87, 43,0.24)]"
                 >
                   {loading && <Loader2 className="w-4 h-4 animate-spin" />}
                   <span>{loading ? "Fetching..." : "Fetch Data"}</span>
@@ -517,7 +543,7 @@ const Security = () => {
                       tableRows.map((r, i) => {
                         if (selectedStore === "all" || selectedStore === "cluster") {
                           return (
-                            <tr key={i} className="hover:bg-[#FAF5FF]/60 transition-colors">
+                            <tr key={i} className="hover:bg-[#FEF3EE]/60 transition-colors">
                               <td className="px-4 py-3.5 border-r border-[#F5F5F5] text-[#212121] font-medium whitespace-nowrap">{r.store}</td>
                               <td className="px-4 py-3.5 border-r border-[#F5F5F5] text-[#6A6A6A] tabular-nums">{r.locCode}</td>
                               <td className="px-4 py-3.5 border-r border-[#F5F5F5] text-center tabular-nums">{formatNum(r.secIn)}</td>
@@ -532,12 +558,12 @@ const Security = () => {
                         const returnDt = r.returnDate ? formatDateTime(r.returnDate) : null;
 
                         return (
-                          <tr key={i} className="hover:bg-[#FAF5FF]/60 transition-colors">
+                          <tr key={i} className="hover:bg-[#FEF3EE]/60 transition-colors">
                             <td className="px-4 py-3.5 border-r border-[#F5F5F5] whitespace-nowrap">
                               <div className="font-medium text-[#212121]">{dateFormatted}</div>
                               {timeFormatted && <div className="text-[11px] text-[#9A9A9A] mt-0.5">{timeFormatted}</div>}
                               {r.merged && returnDt && (
-                                <div className="text-[11px] text-[#9D43D6] mt-0.5">↩ Return: {returnDt.dateFormatted}</div>
+                                <div className="text-[11px] text-[#F2572B] mt-0.5">↩ Return: {returnDt.dateFormatted}</div>
                               )}
                             </td>
                             <td className="px-4 py-3.5 border-r border-[#F5F5F5] tabular-nums whitespace-nowrap">{r.invoice || "-"}</td>

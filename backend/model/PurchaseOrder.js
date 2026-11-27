@@ -5,7 +5,7 @@ const purchaseOrderSchema = new mongoose.Schema(
     // Vendor Information
     vendorId: { type: String, default: null }, // UUID string from PostgreSQL Vendor
     vendorName: { type: String, default: "" },
-    branch: { type: String, default: "Head Office" },
+    branch: { type: String, default: "" },
     
     // Order Details
     orderNumber: { type: String, required: true, unique: true },

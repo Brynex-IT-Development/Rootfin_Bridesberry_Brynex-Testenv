@@ -233,10 +233,10 @@ const Breadcrumbs = ({ currentTitle, className = "" }) => {
             ) : (
               <Link
                 to={crumb.path || "/"}
-                className="hover:text-[#9D43D6] font-medium transition-colors hover:underline flex items-center gap-1.5 shrink-0"
+                className="hover:text-[#F2572B] font-medium transition-colors hover:underline flex items-center gap-1.5 shrink-0"
                 title={`Go to ${crumb.label}`}
               >
-                {isFirst && <Home size={14} className="shrink-0 text-[#6A6A6A] hover:text-[#9D43D6]" />}
+                {isFirst && <Home size={14} className="shrink-0 text-[#6A6A6A] hover:text-[#F2572B]" />}
                 <span>{crumb.label}</span>
               </Link>
             )}

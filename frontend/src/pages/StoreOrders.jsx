@@ -9,6 +9,8 @@ import useSidebar from "../hooks/useSidebar";
 
 import AppSelect from "../components/AppSelect.jsx";
 import RootfinConfirmModal from "../components/RootfinModal";
+import { getUserStoreName } from "../utils/storeService";
+import { isAdminOrSuperAdmin } from "../utils/roleUtils";
 const StoreOrders = () => {
   const isSidebarOpen = useSidebar();
   const navigate = useNavigate();
@@ -20,8 +22,7 @@ const StoreOrders = () => {
   const userId = user?.email || user?._id || user?.id || "";
   const userLocCode = user?.locCode || "";
   const userEmail = user?.email || user?.username || "";
-  const adminEmails = ['officerootments@gmail.com'];
-  const isAdminEmail = userEmail && adminEmails.some(email => userEmail.toLowerCase() === email.toLowerCase());
+  const isAdminEmail = isAdminOrSuperAdmin(user);
   const isAdmin = isAdminEmail || user?.power === "admin";
   const isWarehouseUser = user?.power === "warehouse";
   const isStoreUser = !isAdmin && !isWarehouseUser;
@@ -38,7 +39,7 @@ const StoreOrders = () => {
     }
   }
   if (!userLocName) {
-    userLocName = user?.username || user?.locName || "";
+    userLocName = getUserStoreName(user);
   }
   
   const userWarehouse = mapLocNameToWarehouse(userLocName);
@@ -417,7 +418,7 @@ const StoreOrders = () => {
       pending: { bg: "#FFF1EC", text: "#EA580C", border: "#FED7AA", dot: "#EA580C" },
       approved: { bg: "#DCFCE7", text: "#16A34A", border: "#BBF7D0", dot: "#16A34A" },
       rejected: { bg: "#FEE2E2", text: "#DC2626", border: "#FECACA", dot: "#DC2626" },
-      transferred: { bg: "#F3E8FF", text: "#9D43D6", border: "#E9D5FF", dot: "#9D43D6" },
+      transferred: { bg: "#FDE3D9", text: "#F2572B", border: "#FCCAB9", dot: "#F2572B" },
     };
     const c = colorMap[status] || colorMap.pending;
     return {
@@ -523,7 +524,7 @@ const StoreOrders = () => {
                     <span>{label}</span>
                     <span
                       className={`inline-flex items-center justify-center rounded-full px-1.5 min-w-[20px] h-[18px] text-[10px] font-semibold tabular-nums ${
-                        isActive ? "bg-[#9D43D6] text-white" : "bg-[#F3E8FF] text-[#9D43D6]"
+                        isActive ? "bg-[#F2572B] text-white" : "bg-[#FDE3D9] text-[#F2572B]"
                       }`}
                     >
                       {count}
@@ -562,8 +563,8 @@ const StoreOrders = () => {
                 </table>
               ) : filteredOrders.length === 0 ? (
                 <div className="px-6 py-16 text-center">
-                  <div className="mx-auto w-12 h-12 rounded-[12px] bg-[#F3E8FF] flex items-center justify-center mb-3">
-                    <Search className="text-[#9D43D6]" size={22} />
+                  <div className="mx-auto w-12 h-12 rounded-[12px] bg-[#FDE3D9] flex items-center justify-center mb-3">
+                    <Search className="text-[#F2572B]" size={22} />
                   </div>
                   <p className="text-[14px] font-semibold text-[#1B1B1B] mb-1">
                     {searchTerm ? "No store orders found" : "No store orders yet"}
@@ -587,7 +588,7 @@ const StoreOrders = () => {
                       <th className="px-4 py-3.5 text-center w-12">
                         <input
                           type="checkbox"
-                          className="h-4 w-4 rounded-[4px] border-gray-500 accent-[#9D43D6] cursor-pointer align-middle"
+                          className="h-4 w-4 rounded-[4px] border-gray-500 accent-[#F2572B] cursor-pointer align-middle"
                           checked={pagedOrders.length > 0 && pagedOrders.every(order => {
                             const id = order._id || order.id;
                             return !id || selectedOrders.has(id);
@@ -617,7 +618,7 @@ const StoreOrders = () => {
                           <div className="flex items-center justify-center gap-1.5">
                             <input
                               type="checkbox"
-                              className="h-4 w-4 rounded-[4px] border-[#D4D4D8] cursor-pointer accent-[#9D43D6] align-middle"
+                              className="h-4 w-4 rounded-[4px] border-[#D4D4D8] cursor-pointer accent-[#F2572B] align-middle"
                               checked={selectedOrders.has(order._id || order.id)}
                               onChange={(e) => handleCheckboxChange(order._id || order.id, e.target.checked)}
                             />
@@ -640,7 +641,7 @@ const StoreOrders = () => {
                         </td>
                         <td className="px-4 py-3.5 whitespace-nowrap text-[13px] border-r border-[#F5F5F5]">
                           <span
-                            className="font-semibold text-[#9D43D6] group-hover:underline cursor-pointer"
+                            className="font-semibold text-[#F2572B] group-hover:underline cursor-pointer"
                             onClick={(e) => {
                               e.stopPropagation();
                               navigate(`/inventory/store-orders/${order._id || order.id}`);

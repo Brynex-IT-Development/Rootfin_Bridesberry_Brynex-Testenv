@@ -148,17 +148,10 @@ export const fetchActiveStores = async () => {
 
     if (!isAllowedStoreNameOrCode(code, rawName)) return;
 
-    let displayName = rawName;
-    if (code === "155" || rawName.toLowerCase().replace(/[\s\-_.]+/g, '') === "bridesberry") {
-      displayName = "Brides Berry";
-      if (!code) code = "155";
-    } else if (code === "858" && (!rawName || rawName.toLowerCase().replace(/[\s\-_.]+/g, '') === "warehouse")) {
-      displayName = "Warehouse";
-    } else if (!code && rawName.toLowerCase().includes("warehouse")) {
-      code = "858";
-    }
+    // Names and codes are used exactly as stored in the backend (no built-in stores)
+    const displayName = rawName;
 
-    // If already exists, prefer cleaner casing (e.g. "Brides Berry" over "BRIDES BERRY")
+    // If already exists, prefer cleaner casing (e.g. "Store Name" over "STORE NAME")
     const existing = storeMap.get(code);
     if (!existing) {
       storeMap.set(code, {
@@ -170,7 +163,8 @@ export const fetchActiveStores = async () => {
         address: extra.address || "",
         phone: extra.phone || "",
         email: extra.email || "",
-        gst: extra.gst || ""
+        gst: extra.gst || "",
+        storeType: extra.storeType || ""
       });
     } else {
       if (existing.locName === existing.locName.toUpperCase() && displayName !== displayName.toUpperCase()) {
@@ -182,6 +176,7 @@ export const fetchActiveStores = async () => {
       if (extra.phone) existing.phone = extra.phone;
       if (extra.email) existing.email = extra.email;
       if (extra.gst) existing.gst = extra.gst;
+      if (extra.storeType && extra.storeType !== "branch") existing.storeType = extra.storeType;
     }
   };
 
@@ -200,14 +195,15 @@ export const fetchActiveStores = async () => {
       allUsersRes.value.users.forEach(u => {
         const role = (u.role || '').toLowerCase().trim();
         const isSuper = role === 'super_admin' || role === 'superadmin';
-        const isWarehouse = role === 'warehouse_admin' || role === 'warehouseadmin' || role === 'warehouse admin' || (u.username || '').toLowerCase() === 'warehouse';
+        const isWarehouse = role === 'warehouse_admin' || role === 'warehouseadmin' || role === 'warehouse admin';
         const isStoreAdmin = role === 'store_admin' || role === 'store_manager' || role === 'store admin';
 
         if (!isSuper && isWarehouse) {
-          const code = (u.locCode || "858").toString().trim() || "858";
-          const name = (u.storeName || u.username || "Warehouse").toString().trim();
-          activeAdminLocCodes.add(code);
-          processStore(code, name, u);
+          const code = (u.locCode || "").toString().trim();
+          if (code) {
+            activeAdminLocCodes.add(code);
+            processStore(code, (u.storeName || u.username || code).toString().trim(), { ...u, storeType: "warehouse" });
+          }
         } else if (!isSuper && isStoreAdmin) {
           const code = (u.locCode || "").toString().trim();
           if (code) {
@@ -252,11 +248,10 @@ export const fetchActiveStores = async () => {
     if (allUsersRes.status === "fulfilled" && allUsersRes.value?.users && Array.isArray(allUsersRes.value.users)) {
       allUsersRes.value.users.forEach(u => {
         const role = (u.role || '').toLowerCase().trim();
-        const isWarehouse = role === 'warehouse_admin' || role === 'warehouseadmin' || role === 'warehouse admin' || (u.username || '').toLowerCase() === 'warehouse';
-        let code = (u.locCode || "").toString().trim();
-        if (isWarehouse && !code) code = "858";
+        const isWarehouse = role === 'warehouse_admin' || role === 'warehouseadmin' || role === 'warehouse admin';
+        const code = (u.locCode || "").toString().trim();
         if (code && activeAdminLocCodes.has(code)) {
-          processStore(code, isWarehouse ? "Warehouse" : (u.storeName || u.username), u);
+          processStore(code, u.storeName || u.username || code, isWarehouse ? { ...u, storeType: "warehouse" } : u);
         }
       });
     }
@@ -281,6 +276,59 @@ export const fetchActiveStores = async () => {
 
   const current = getActiveStores();
   return current;
+};
+
+const normStoreName = (v) => (v || "").toString().toLowerCase().replace(/[^a-z0-9]/g, "");
+
+/** Finds a backend store by its name (ignoring case/spaces/punctuation) or by its locCode. */
+export const findStore = (nameOrCode, stores = getActiveStores()) => {
+  const raw = (nameOrCode || "").toString().trim();
+  if (!raw) return null;
+  const list = stores || [];
+  const byCode = list.find((s) => (s?.locCode || "").toString().trim() === raw);
+  if (byCode) return byCode;
+  const key = normStoreName(raw);
+  return list.find((s) => [s?.locName, s?.name, s?.label].some((n) => n && normStoreName(n) === key)) || null;
+};
+
+/**
+ * The store the logged-in user is working in: the backend store for their (selected)
+ * locCode, else the store name on their account. Never the username of a person, so
+ * an admin with no store selected gets "" (= all stores).
+ */
+export const getUserStoreName = (user, stores = getActiveStores()) =>
+  findStore(user?.locCode, stores)?.locName ||
+  findStore(user?.storeName, stores)?.locName ||
+  (user?.storeName || "").toString().trim() ||
+  "";
+
+/** True when the name/locCode belongs to a warehouse-type store (from the backend). */
+export const isWarehouseStore = (nameOrCode, stores) => findStore(nameOrCode, stores)?.storeType === "warehouse";
+
+/** The central warehouse store from the backend, if any. */
+export const getWarehouseStore = (stores = getActiveStores()) =>
+  (stores || []).find((s) => s?.storeType === "warehouse") || null;
+
+/** locCode of the backend store with this name (or code), or null. */
+export const locCodeForStore = (nameOrCode, stores) => {
+  const store = findStore(nameOrCode, stores);
+  return store?.locCode ? store.locCode.toString() : null;
+};
+
+/**
+ * Store names for a Branch/Warehouse dropdown, taken only from the backend store
+ * list. `current` (e.g. the value saved on a record being edited) is kept so an
+ * existing selection never silently disappears.
+ */
+export const storeNameOptions = (stores, current = "") => {
+  const names = [];
+  (stores || []).forEach((s) => {
+    const name = (s?.locName || s?.name || "").trim();
+    if (name && !names.includes(name)) names.push(name);
+  });
+  const cur = (current || "").trim();
+  if (cur && !names.includes(cur)) names.push(cur);
+  return names;
 };
 
 export const useActiveStores = () => {

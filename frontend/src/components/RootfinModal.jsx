@@ -25,7 +25,7 @@ export const RootfinConfirmModal = ({
   const confirmClasses =
     variant === "danger"
       ? "bg-[#FEE2E2] hover:bg-[#FECACA] text-[#EF4444]"
-      : "bg-[#9D43D6] hover:bg-[#8732BE] text-white shadow-[0_2px_8px_rgba(157,67,214,0.28)]";
+      : "bg-[#F2572B] hover:bg-[#D9431A] text-white shadow-[0_2px_8px_rgba(242, 87, 43,0.28)]";
 
   return (
     <div

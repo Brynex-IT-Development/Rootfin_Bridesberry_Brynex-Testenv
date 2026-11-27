@@ -10,6 +10,7 @@ import useSidebar from '../hooks/useSidebar.js';
 import { fetchActiveStores } from '../utils/storeService.js';
 
 import { appSelectStyles } from "../components/AppSelect.jsx";
+import { isAdminOrSuperAdmin } from "../utils/roleUtils";
 // Add CSS animations
 const styles = `
   @keyframes fadeIn {
@@ -92,7 +93,7 @@ const SalesReport = () => {
   // Advanced filtering removed as requested
 
   const currentUser = JSON.parse(localStorage.getItem("rootfinuser"));
-  const isAdmin = (currentUser?.power || "").toLowerCase() === "admin";
+  const isAdmin = (currentUser?.power || "").toLowerCase() === "admin" || isAdminOrSuperAdmin(currentUser);
   const isClusterManager = (currentUser?.role || "").toLowerCase() === "cluster_manager";
   const clusterAllowedLocCodes = currentUser?.allowedLocCodes || [];
   const canSelectStore = isAdmin || isClusterManager;
@@ -314,7 +315,7 @@ const SalesReport = () => {
                 data-no-confirm="true"
                 onClick={fetchReport}
                 disabled={loading}
-                className="rf-btn-primary !h-[40px] !px-6 !rounded-[10px] !bg-[#9D43D6] hover:!bg-[#8732BE] !text-[13px] !font-medium inline-flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer shadow-[0_2px_8px_rgba(157,67,214,0.24)]"
+                className="rf-btn-primary !h-[40px] !px-6 !rounded-[10px] !bg-[#F2572B] hover:!bg-[#D9431A] !text-[13px] !font-medium inline-flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer shadow-[0_2px_8px_rgba(242, 87, 43,0.24)]"
               >
                 {loading && <Loader2 className="w-4 h-4 animate-spin" />}
                 <span>{loading ? "Fetching..." : "Fetch Data"}</span>
@@ -417,7 +418,7 @@ const SalesReport = () => {
                           <tbody className="divide-y divide-[#F0F0F0] text-[#3F3F46]">
                             {reportData.salesByCategory?.length > 0 ? (
                               reportData.salesByCategory.map((cat, idx) => (
-                                <tr key={idx} className="hover:bg-[#FAF5FF]/60 transition-colors">
+                                <tr key={idx} className="hover:bg-[#FEF3EE]/60 transition-colors">
                                   <td className="py-3.5 px-4 border-r border-[#F5F5F5] font-medium text-[#212121]">
                                     {cat.category}
                                   </td>
@@ -476,17 +477,17 @@ const SalesReport = () => {
                           <tbody className="divide-y divide-[#F0F0F0] text-[#3F3F46]">
                             {reportData.topSalesPersons?.length > 0 ? (
                               reportData.topSalesPersons.map((person, idx) => (
-                                <tr key={idx} className="hover:bg-[#FAF5FF]/60 transition-colors">
+                                <tr key={idx} className="hover:bg-[#FEF3EE]/60 transition-colors">
                                   <td className="py-3.5 px-4 border-r border-[#F5F5F5] font-medium text-[#212121]">
                                     <div className="flex items-center gap-2.5">
-                                      <span className="w-7 h-7 rounded-full bg-[#F3E8FF] text-[#9D43D6] text-[12px] font-semibold inline-flex items-center justify-center shrink-0">
+                                      <span className="w-7 h-7 rounded-full bg-[#FDE3D9] text-[#F2572B] text-[12px] font-semibold inline-flex items-center justify-center shrink-0">
                                         {(person.name || "?").charAt(0).toUpperCase()}
                                       </span>
                                       <span>{person.name}</span>
                                     </div>
                                   </td>
                                   <td className="py-3.5 px-4 border-r border-[#F5F5F5] text-center">
-                                    <span className="inline-block min-w-[44px] px-3 py-0.5 rounded-[8px] bg-[#F3E8FF] text-[#9D43D6] text-[12px] font-semibold tabular-nums">
+                                    <span className="inline-block min-w-[44px] px-3 py-0.5 rounded-[8px] bg-[#FDE3D9] text-[#F2572B] text-[12px] font-semibold tabular-nums">
                                       {person.count}
                                     </span>
                                   </td>
@@ -564,15 +565,15 @@ const SalesReport = () => {
                         <tbody className="divide-y divide-[#F0F0F0] text-[#3F3F46]">
                           {reportData.items?.length > 0 ? (
                             reportData.items.map((item, idx) => (
-                              <tr key={idx} className="hover:bg-[#FAF5FF]/60 transition-colors">
+                              <tr key={idx} className="hover:bg-[#FEF3EE]/60 transition-colors">
                                 <td className="py-3.5 px-4 border-r border-[#F5F5F5] font-medium text-[#212121] max-w-[220px] truncate">
                                   {item.name}
                                 </td>
-                                <td className="py-3.5 px-4 border-r border-[#F5F5F5] text-center text-[#9D43D6] font-medium whitespace-nowrap">
+                                <td className="py-3.5 px-4 border-r border-[#F5F5F5] text-center text-[#F2572B] font-medium whitespace-nowrap">
                                   {item.sku || "-"}
                                 </td>
                                 <td className="py-3.5 px-4 border-r border-[#F5F5F5] text-center whitespace-nowrap">
-                                  <span className="inline-block min-w-[78px] px-3 py-1 rounded-[8px] bg-[#F3E8FF] text-[#9D43D6] text-[12px] font-medium">
+                                  <span className="inline-block min-w-[78px] px-3 py-1 rounded-[8px] bg-[#FDE3D9] text-[#F2572B] text-[12px] font-medium">
                                     {item.category}
                                   </span>
                                 </td>
@@ -674,7 +675,7 @@ const SalesReport = () => {
                           <tbody className="divide-y divide-[#F0F0F0] text-[#3F3F46]">
                             {reportData.returnsByReason?.length > 0 ? (
                               reportData.returnsByReason.map((reason, idx) => (
-                                <tr key={idx} className="hover:bg-[#FAF5FF]/60 transition-colors">
+                                <tr key={idx} className="hover:bg-[#FEF3EE]/60 transition-colors">
                                   <td className="py-3.5 px-4 border-r border-[#F5F5F5] font-medium text-[#212121]">
                                     {reason.reason}
                                   </td>
@@ -719,7 +720,7 @@ const SalesReport = () => {
                           <tbody className="divide-y divide-[#F0F0F0] text-[#3F3F46]">
                             {reportData.returns?.length > 0 ? (
                               reportData.returns.map((ret, idx) => (
-                                <tr key={idx} className="hover:bg-[#FAF5FF]/60 transition-colors">
+                                <tr key={idx} className="hover:bg-[#FEF3EE]/60 transition-colors">
                                   <td className="py-3.5 px-4 border-r border-[#F5F5F5] whitespace-nowrap text-[#212121]">
                                     {ret.date}
                                   </td>
@@ -767,7 +768,7 @@ const SalesReport = () => {
             <div className="bg-white rounded-[12px] border border-[#EAEAEA] flex flex-col items-center justify-center py-24 text-[#8A8A8A]">
               {loading ? (
                 <div className="flex flex-col items-center gap-3">
-                  <Loader2 className="w-7 h-7 animate-spin text-[#9D43D6]" />
+                  <Loader2 className="w-7 h-7 animate-spin text-[#F2572B]" />
                   <span className="text-[13px] font-medium">Fetching sales report...</span>
                 </div>
               ) : (

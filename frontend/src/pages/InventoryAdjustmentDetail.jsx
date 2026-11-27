@@ -4,6 +4,7 @@ import { ArrowLeft, Edit, Printer, ChevronDown, MoreVertical } from "lucide-reac
 import Header from "../components/Header";
 import baseUrl from "../api/api";
 import useSidebar from "../hooks/useSidebar";
+import { findStore } from "../utils/storeService";
 
 const InventoryAdjustmentDetail = () => {
   const isSidebarOpen = useSidebar();
@@ -58,12 +59,14 @@ const InventoryAdjustmentDetail = () => {
   };
 
   // Company information
-  const companyName = "Bridesberry";
-  const companyAddress = "Thrissur Kerala 680002";
+  // Company/store details come from the backend store this document belongs to
+  const docStore = findStore(adjustment?.warehouse) || findStore(adjustment?.branch) || null;
+  const companyName = docStore?.locName || adjustment?.warehouse || adjustment?.branch || "";
+  const companyAddress = docStore?.address || "";
   const companyCountry = "India";
-  const companyGSTIN = "32ABCFR1426N1Z9";
-  const companyPhone = "7593838704";
-  const companyEmail = "rootmentsoffice@gmail.com";
+  const companyGSTIN = docStore?.gst || "";
+  const companyPhone = docStore?.phone || "";
+  const companyEmail = docStore?.email || "";
   
   if (loading) {
     return (
@@ -90,11 +93,7 @@ const InventoryAdjustmentDetail = () => {
   }
 
   // Format branch name
-  const branchName = adjustment.branch 
-    ? (adjustment.branch.includes("Branch") 
-        ? adjustment.branch 
-        : `${adjustment.branch} Branch`)
-    : "-";
+  const branchName = findStore(adjustment.branch)?.locName || adjustment.branch || "-";
 
   // Format created by (warehouse)
   const createdBy = adjustment.warehouse
@@ -133,7 +132,7 @@ const InventoryAdjustmentDetail = () => {
             to={`/inventory/adjustments/${id}/edit`}
             className="inline-flex h-[38px] items-center gap-2 rounded-[10px] border border-[#E5E5E5] bg-white px-3.5 text-[13px] font-medium text-[#212121] hover:bg-[#FAFAFA] transition-colors"
           >
-            <Edit size={15} className="text-[#9D43D6]" />
+            <Edit size={15} className="text-[#F2572B]" />
             <span>Edit</span>
           </Link>
           <button
@@ -150,7 +149,7 @@ const InventoryAdjustmentDetail = () => {
               type="checkbox"
               checked={showPdfView}
               onChange={(e) => setShowPdfView(e.target.checked)}
-              className="h-4 w-4 rounded-[4px] border-[#D4D4D8] accent-[#9D43D6] cursor-pointer"
+              className="h-4 w-4 rounded-[4px] border-[#D4D4D8] accent-[#F2572B] cursor-pointer"
             />
             Show PDF View
           </label>
@@ -166,7 +165,7 @@ const InventoryAdjustmentDetail = () => {
           {/* Status Banner - Diagonal Overlay (Top Left) */}
           {adjustment.status === "adjusted" && (
             <div 
-              className="absolute top-0 left-0 bg-[#9D43D6] text-white px-16 py-2 text-xs font-bold uppercase tracking-wider shadow-lg z-10"
+              className="absolute top-0 left-0 bg-[#F2572B] text-white px-16 py-2 text-xs font-bold uppercase tracking-wider shadow-lg z-10"
               style={{
                 transform: 'rotate(-45deg)',
                 transformOrigin: 'top left',
@@ -193,7 +192,7 @@ const InventoryAdjustmentDetail = () => {
                   <span>{createdBy}</span>
                 </div>
                 <div className="mt-2">{companyCountry}</div>
-                <div>GSTIN {companyGSTIN}</div>
+                {companyGSTIN && <div>GSTIN {companyGSTIN}</div>}
               </div>
 
               {/* Document Title (Center) */}
@@ -209,7 +208,7 @@ const InventoryAdjustmentDetail = () => {
                 </div>
                 <div>
                   <span className="font-semibold text-[#525252]">Ref#: </span>
-                  <span className="font-semibold text-[#9D43D6]">{adjustment.referenceNumber || "-"}</span>
+                  <span className="font-semibold text-[#F2572B]">{adjustment.referenceNumber || "-"}</span>
                 </div>
                 <div>
                   <span className="font-semibold text-[#525252]">Reason: </span>

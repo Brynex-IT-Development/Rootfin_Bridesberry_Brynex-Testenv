@@ -108,8 +108,8 @@ const ImageUpload = ({
         onDrop={handleDrop}
         className={`flex flex-col items-center justify-center rounded-none border-2 border-dashed p-8 text-center transition-colors ${
           dragActive
-            ? 'border-[#8B5CF6] bg-[#F5F3FF]'
-            : 'border-[#E5E7EB] hover:border-[#8B5CF6] bg-white'
+            ? 'border-[#F46A43] bg-[#F5F3FF]'
+            : 'border-[#E5E7EB] hover:border-[#F46A43] bg-white'
         }`}
       >
         <UploadCloud size={36} className="mb-3 text-[#9CA3AF]" />

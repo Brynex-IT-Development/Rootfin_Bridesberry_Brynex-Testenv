@@ -4,87 +4,11 @@ import ShoeItem from "../model/ShoeItem.js";
 import ItemGroup from "../model/ItemGroup.js";
 import { nextPurchaseReceive } from "../utils/nextPurchaseReceive.js";
 import { updateMonthlyStockForPurchase } from "../utils/monthlyStockTracking.js";
+import { getStores, isWarehouseStore, mapLocNameToWarehouse, sameStore } from "../utils/storeResolver.js";
+import { isAdminUserId } from "../utils/adminUsers.js";
 
-// Helper function to map locName to warehouse name (same as other controllers)
-const mapLocNameToWarehouse = (locName) => {
-  if (!locName) return "Warehouse";
-  
-  // Handle special cases first - normalize all Edapally variations to "Edapally Branch"
-  const locNameLower = locName.toLowerCase().trim();
-  if (locNameLower.includes("warehouse")) return "Warehouse";
-  if (locNameLower.replace(/[\s\-_.]+/g, "").includes("bridesberry")) return "BridesBerry";
-  if (locNameLower === "z-edapally1" || 
-      locNameLower === "zedapallyadmin" || 
-      locNameLower === "edapallyadmin" ||
-      locNameLower === "-edapally1 branch" ||
-      locNameLower.includes("edapally")) {
-    return "Edapally Branch";
-  }
-  
-  // Remove prefixes like "G.", "Z.", "SG."
-  let warehouse = locName.replace(/^[A-Z]\.?\s*/i, "").trim();
-  
-  // Handle "Z-Edapally1" format (with dash)
-  if (warehouse.startsWith("-")) {
-    warehouse = warehouse.substring(1).trim();
-  }
-  
-  // Handle "Edapallyadmin" -> "Edapally"
-  if (warehouse.toLowerCase().includes("edapallyadmin")) {
-    warehouse = warehouse.replace(/edapallyadmin/gi, "Edapally").trim();
-  }
-  
-  // Add "Branch" if not already present and not "Warehouse"
-  if (warehouse && warehouse.toLowerCase() !== "warehouse" && !warehouse.toLowerCase().includes("branch")) {
-    warehouse = `${warehouse} Branch`;
-  }
-  
-  return warehouse || "Warehouse";
-};
-
-// Helper function to match warehouse names flexibly (same as transfer orders)
-const matchesWarehouse = (itemWarehouse, targetWarehouse) => {
-  if (!itemWarehouse || !targetWarehouse) return false;
-  
-  const itemWarehouseLower = itemWarehouse.toString().toLowerCase().trim();
-  const targetWarehouseLower = targetWarehouse.toLowerCase().trim();
-  
-  // Normalize Edapally variations - all should match "Edapally Branch"
-  const normalizeEdapally = (name) => {
-    if (name.includes("edapally")) {
-      return "edapally branch";
-    }
-    return name;
-  };
-  
-  const normalizedItem = normalizeEdapally(itemWarehouseLower);
-  const normalizedTarget = normalizeEdapally(targetWarehouseLower);
-  
-  // Exact match (after normalization)
-  if (normalizedItem === normalizedTarget) {
-    return true;
-  }
-  
-  // Original exact match
-  if (itemWarehouseLower === targetWarehouseLower) {
-    return true;
-  }
-  
-  // Base name match (e.g., "warehouse" matches "Warehouse", "kannur" matches "Kannur Branch")
-  const itemBase = normalizedItem.replace(/\s*(branch|warehouse)\s*$/i, "").trim();
-  const targetBase = normalizedTarget.replace(/\s*(branch|warehouse)\s*$/i, "").trim();
-  
-  if (itemBase && targetBase && itemBase === targetBase) {
-    return true;
-  }
-  
-  // Partial match (e.g., "kannur branch" contains "kannur")
-  if (normalizedItem.includes(normalizedTarget) || normalizedTarget.includes(normalizedItem)) {
-    return true;
-  }
-  
-  return false;
-};
+// Same store? (backend Store collection; ignores case/spacing)
+const matchesWarehouse = (itemWarehouse, targetWarehouse) => sameStore(itemWarehouse, targetWarehouse);
 
 // Helper function to update stock for an item (handles both standalone and group items)
 const updateItemStock = async (itemIdValue, receivedQty, operation = 'add', itemName = null, itemGroupId = null, targetWarehouse = null) => {
@@ -790,10 +714,9 @@ export const createPurchaseReceive = async (req, res) => {
     }
     
     // Determine target warehouse from user's email or locCode
-    // Admin email (officerootments@gmail.com) always uses "Warehouse" regardless of locCode
-    const adminEmails = ['officerootments@gmail.com'];
+    // Admin users (by role) always use the central warehouse regardless of locCode
     const userId = receiveData.userId || "";
-    const isAdminEmail = userId && typeof userId === 'string' && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
+    const isAdminEmail = await isAdminUserId(userId); // admin by role, not by email
     
     let targetWarehouse = "Warehouse"; // Default
     
@@ -803,10 +726,7 @@ export const createPurchaseReceive = async (req, res) => {
       console.log(`📍 Admin email detected (${userId}), using warehouse: "Warehouse" (ignoring locCode)`);
     } else {
       // For other users, determine warehouse from locCode
-       const fallbackLocations = [
-        { "locName": "Warehouse", "locCode": "858" },
-        { "locName": "BridesBerry", "locCode": "155" }
-      ];
+       const fallbackLocations = getStores().map((st) => ({ locName: st.name, locCode: st.locCode })); // from the backend Store collection
       
       const userLocCode = receiveData.locCode || "";
       
@@ -1040,12 +960,11 @@ export const getPurchaseReceives = async (req, res) => {
     
     const query = {};
     
-    // User is admin if: power === 'admin' OR locCode === '858' (Warehouse) OR email === 'officerootments@gmail.com'
-    const adminEmails = ['officerootments@gmail.com'];
-    const isAdminEmail = userId && typeof userId === 'string' && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
+    // User is admin if: power === 'admin' OR their locCode is a warehouse-type store OR admin email
+    const isAdminEmail = await isAdminUserId(userId); // admin by role, not by email
     const isAdmin = isAdminEmail ||
                     (userPower && (userPower.toLowerCase() === 'admin' || userPower.toLowerCase() === 'super_admin')) ||
-                    (locCode && (locCode === '858' || locCode === '103')); // 858 = Warehouse, 103 = WAREHOUSE
+                    (locCode && isWarehouseStore(locCode)); // 858 = Warehouse, 103 = WAREHOUSE
     
     // Admin viewing a specific branch store (not Warehouse/admin home)
     const isAdminViewingSpecificStore = isAdmin && warehouse && warehouse !== "All Stores" && warehouse !== "Warehouse";
@@ -1197,10 +1116,9 @@ export const updatePurchaseReceive = async (req, res) => {
     console.log(`   Old items: ${oldItems.length}, New items: ${newItems.length}`);
     
     // Determine target warehouse from user's email or locCode (same as createPurchaseReceive)
-    // Admin email (officerootments@gmail.com) always uses "Warehouse" regardless of locCode
-    const adminEmails = ['officerootments@gmail.com'];
+    // Admin users (by role) always use the central warehouse regardless of locCode
     const userId = receiveData.userId || purchaseReceive.userId || "";
-    const isAdminEmail = userId && typeof userId === 'string' && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
+    const isAdminEmail = await isAdminUserId(userId); // admin by role, not by email
     
     let targetWarehouse = "Warehouse"; // Default
     
@@ -1210,10 +1128,7 @@ export const updatePurchaseReceive = async (req, res) => {
       console.log(`📍 Admin email detected (${userId}), using warehouse: "Warehouse" (ignoring locCode)`);
     } else {
       // For other users, determine warehouse from locCode
-      const fallbackLocations = [
-        { "locName": "Warehouse", "locCode": "858" },
-        { "locName": "BridesBerry", "locCode": "155" }
-      ];
+      const fallbackLocations = getStores().map((st) => ({ locName: st.name, locCode: st.locCode })); // from the backend Store collection
       
       const userLocCode = receiveData.locCode || purchaseReceive.locCode || "";
       
@@ -1533,12 +1448,8 @@ export const sendPurchaseReceive = async (req, res) => {
     await purchaseReceive.save();
 
     // Update stock (same behavior as when a purchase receive is saved as "received")
-    const adminEmails = ["officerootments@gmail.com"];
     const userId = purchaseReceive.userId || "";
-    const isAdminEmail =
-      userId &&
-      typeof userId === "string" &&
-      adminEmails.some((email) => userId.toLowerCase() === email.toLowerCase());
+    const isAdminEmail = await isAdminUserId(userId); // admin by role, not by email
 
     let targetWarehouse = "Warehouse";
 
@@ -1546,10 +1457,7 @@ export const sendPurchaseReceive = async (req, res) => {
       targetWarehouse = "Warehouse";
       console.log(`📍 Admin email detected (${userId}), using warehouse: "Warehouse" (ignoring locCode)`);
     } else {
-       const fallbackLocations = [
-        { "locName": "Warehouse", "locCode": "858" },
-        { "locName": "BridesBerry", "locCode": "155" }
-      ];
+       const fallbackLocations = getStores().map((st) => ({ locName: st.name, locCode: st.locCode })); // from the backend Store collection
 
       const userLocCode = purchaseReceive.locCode || "";
 

@@ -34,7 +34,9 @@ const DaybookGuard = ({ user, admin = false, children }) => {
       const response = await fetch(`${baseUrl.baseUrl}user/getsaveCashBank?${params}`);
       if (!response.ok) throw new Error("Unable to check daybook status.");
       const result = await response.json();
-      const reason = !result.data ? "missing_yesterday" :
+      // closingRequired === false: the store had no day book before yesterday
+      // (e.g. newly created), so there is nothing to close.
+      const reason = !result.data ? (result.closingRequired === false ? null : "missing_yesterday") :
         result.data.status === "pending_approval" ? "pending_approval" : null;
       setState({ loading: false, reason, key: checkKey });
     } catch (_error) {

@@ -10,7 +10,7 @@ import { mapLocNameToWarehouse as mapWarehouse } from "../utils/warehouseMapping
 import ImageUpload from "../components/ImageUpload";
 import useSidebar from "../hooks/useSidebar";
 import Header from "../components/Header";
-import { getActiveStores } from "../utils/storeService.js";
+import { getActiveStores, storeNameOptions, useActiveStores, getUserStoreName } from "../utils/storeService.js";
 
 import AppSelect from "../components/AppSelect.jsx";
 import RootfinConfirmModal from "../components/RootfinModal";
@@ -503,7 +503,7 @@ const VendorDropdown = ({ value, onChange, onNewVendor }) => {
                   onClick={() => handleSelectVendor(vendor)}
                   className={`px-4 py-2.5 cursor-pointer text-xs transition-colors ${
                     isSelected
-                      ? "bg-[#9333ea] text-white font-medium"
+                      ? "bg-[#F2572B] text-white font-medium"
                       : "text-gray-700 hover:bg-purple-50 hover:text-purple-900"
                   }`}
                 >
@@ -766,7 +766,7 @@ const ItemDropdown = ({
                   onClick={() => handleSelectItem(item)}
                   className={`px-4 py-2.5 cursor-pointer text-xs transition-colors flex items-center justify-between ${
                     isSelected
-                      ? "bg-[#9333ea] text-white font-medium"
+                      ? "bg-[#F2572B] text-white font-medium"
                       : "text-gray-700 hover:bg-purple-50 hover:text-purple-900"
                   }`}
                 >
@@ -921,6 +921,7 @@ export const getNextUniqueProductCode = () => {
 };
 
 const NewBillForm = ({ billId, isEditMode = false }) => {
+  const { stores: backendStores } = useActiveStores();
   const isSidebarOpen = useSidebar();
   const navigate = useNavigate();
   const API_URL = baseUrl?.baseUrl?.replace(/\/$/, "") || "http://localhost:7000";
@@ -3822,9 +3823,9 @@ ${storeNameZpl}^FO81,21
           <button
             type="button"
             onClick={() => navigate("/purchase/bills")}
-            className="inline-flex items-center gap-1.5 h-[38px] px-4 rounded-[10px] border border-[#E5E5E5] bg-white hover:bg-[#FAFAFA] text-[13px] font-medium text-[#9D43D6] transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 h-[38px] px-4 rounded-[10px] border border-[#E5E5E5] bg-white hover:bg-[#FAFAFA] text-[13px] font-medium text-[#F2572B] transition-colors cursor-pointer"
           >
-            <X size={14} className="text-[#9D43D6]" />
+            <X size={14} className="text-[#F2572B]" />
             <span>Close</span>
           </button>
         </div>
@@ -3833,7 +3834,7 @@ ${storeNameZpl}^FO81,21
         <div className="p-5 md:p-6 space-y-5">
           {/* Vendor & Bill Information Card */}
           <div className="bg-white rounded-[16px] p-6 border border-[#E5E5E5] shadow-[0_2px_10px_rgba(0,0,0,0.03)] space-y-5">
-            <div className="text-[#9D43D6] font-bold text-[11px] tracking-wider uppercase">
+            <div className="text-[#F2572B] font-bold text-[11px] tracking-wider uppercase">
               VENDOR &amp; BILL INFORMATION
             </div>
 
@@ -3891,7 +3892,7 @@ ${storeNameZpl}^FO81,21
                     className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 opacity-0 cursor-pointer z-10"
                   />
                   <div
-                    className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-[#525252] hover:text-[#9D43D6] pl-2.5 border-l border-[#E5E5E5]"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-[#525252] hover:text-[#F2572B] pl-2.5 border-l border-[#E5E5E5]"
                     onClick={() => {
                       if (billDateInputRef.current) {
                         if (billDateInputRef.current.showPicker) {
@@ -3926,7 +3927,7 @@ ${storeNameZpl}^FO81,21
                       const randomNum = Math.floor(1000 + Math.random() * 9000);
                       setBillNumber(`BILL-${randomNum}`);
                     }}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#525252] hover:text-[#9D43D6] pl-2.5 border-l border-[#E5E5E5] transition-colors cursor-pointer"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#525252] hover:text-[#F2572B] pl-2.5 border-l border-[#E5E5E5] transition-colors cursor-pointer"
                     title="Auto-generate Bill Number"
                   >
                     <Settings size={15} />
@@ -3947,9 +3948,9 @@ ${storeNameZpl}^FO81,21
                       setBranch(e.target.value);
                     }}
                   >
-                    <option value="Warehouse">Warehouse</option>
-                    <option value="Store 1">Store 1</option>
-                    <option value="Store 2">Store 2</option>
+                    {storeNameOptions(backendStores, warehouse).map((name) => (
+                      <option key={name} value={name}>{name}</option>
+                    ))}
                   </AppSelect>
                 </div>
               </div>
@@ -3975,7 +3976,7 @@ ${storeNameZpl}^FO81,21
                       const randomNum = Math.floor(100000 + Math.random() * 900000);
                       setOrderNumber(`INV-${randomNum}`);
                     }}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#525252] hover:text-[#9D43D6] pl-2.5 border-l border-[#E5E5E5] transition-colors cursor-pointer"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#525252] hover:text-[#F2572B] pl-2.5 border-l border-[#E5E5E5] transition-colors cursor-pointer"
                     title="Auto-generate Order Number"
                   >
                     <Settings size={15} />
@@ -4008,7 +4009,7 @@ ${storeNameZpl}^FO81,21
                     className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 opacity-0 cursor-pointer z-10"
                   />
                   <div
-                    className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-[#525252] hover:text-[#9D43D6] pl-2.5 border-l border-[#E5E5E5]"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-[#525252] hover:text-[#F2572B] pl-2.5 border-l border-[#E5E5E5]"
                     onClick={() => {
                       if (dueDateInputRef.current) {
                         if (dueDateInputRef.current.showPicker) {
@@ -4072,7 +4073,7 @@ ${storeNameZpl}^FO81,21
                 <thead className="bg-[#1B1B1B] text-white text-[11px] font-semibold tracking-wider sticky top-0 z-10 select-none">
                   <tr>
                     <th className="w-10 px-3 py-3.5 text-center whitespace-nowrap">
-                      <input type="checkbox" className="h-4 w-4 rounded-[4px] border-gray-500 accent-[#9D43D6] cursor-pointer" />
+                      <input type="checkbox" className="h-4 w-4 rounded-[4px] border-gray-500 accent-[#F2572B] cursor-pointer" />
                     </th>
                     <th className="px-3 py-3.5 font-semibold uppercase min-w-[220px] text-left whitespace-nowrap">ITEM NAME</th>
                     <th className="px-3 py-3.5 font-semibold uppercase w-28 text-left whitespace-nowrap">CATEGORY</th>
@@ -4429,7 +4430,7 @@ ${storeNameZpl}^FO81,21
                           <button
                             type="button"
                             onClick={() => handleOpenAddToGroup(row)}
-                            className="w-8 h-8 rounded-[8px] bg-[#F3E8FF] text-[#9D43D6] hover:bg-[#E9D5FF] flex items-center justify-center transition-colors cursor-pointer"
+                            className="w-8 h-8 rounded-[8px] bg-[#FDE3D9] text-[#F2572B] hover:bg-[#FCCAB9] flex items-center justify-center transition-colors cursor-pointer"
                             title="Add to Item Group"
                           >
                             <Plus size={14} />
@@ -4537,7 +4538,7 @@ ${storeNameZpl}^FO81,21
           {/* Right: Bill Summary */}
           <div className="lg:col-span-5">
             <div className="bg-white rounded-[16px] p-6 border border-[#E5E5E5] shadow-[0_2px_10px_rgba(0,0,0,0.03)] space-y-4">
-              <div className="text-[#9D43D6] font-bold text-[11px] tracking-wider uppercase mb-1">
+              <div className="text-[#F2572B] font-bold text-[11px] tracking-wider uppercase mb-1">
                 BILL SUMMARY
               </div>
 
@@ -4557,7 +4558,7 @@ ${storeNameZpl}^FO81,21
                       value={discount.value}
                       onChange={(e) => setDiscount({ ...discount, value: e.target.value })}
                       placeholder="0"
-                      className="w-[82px] h-[38px] rounded-[10px] border border-[#E5E5E5] bg-white px-3 text-[13px] text-right text-[#212121] placeholder:text-[#A1A1AA] focus:border-[#9D43D6] focus:outline-none"
+                      className="w-[82px] h-[38px] rounded-[10px] border border-[#E5E5E5] bg-white px-3 text-[13px] text-right text-[#212121] placeholder:text-[#A1A1AA] focus:border-[#F2572B] focus:outline-none"
                     />
                     <div className="w-[74px]">
                       <AppSelect
@@ -4585,16 +4586,16 @@ ${storeNameZpl}^FO81,21
                       type="text"
                       value={totalTaxAmount || (totals.calculatedTotalTax > 0 ? totals.calculatedTotalTax : "")}
                       onChange={(e) => setTotalTaxAmount(e.target.value)}
-                      className="w-full h-[38px] rounded-[10px] border border-[#E5E5E5] bg-white px-3 text-[13px] text-right text-[#212121] placeholder:text-[#A1A1AA] focus:border-[#9D43D6] focus:outline-none pr-10"
+                      className="w-full h-[38px] rounded-[10px] border border-[#E5E5E5] bg-white px-3 text-[13px] text-right text-[#212121] placeholder:text-[#A1A1AA] focus:border-[#F2572B] focus:outline-none pr-10"
                     />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-[#8A8A8A] font-normal pointer-events-none">INR</span>
                   </div>
                   <button
                     type="button"
-                    className="w-[38px] h-[38px] rounded-[10px] bg-[#F3E8FF] border border-[#E9D5FF] flex items-center justify-center text-[#9D43D6] hover:bg-[#E9D5FF] transition-colors shrink-0 cursor-pointer"
+                    className="w-[38px] h-[38px] rounded-[10px] bg-[#FDE3D9] border border-[#FCCAB9] flex items-center justify-center text-[#F2572B] hover:bg-[#FCCAB9] transition-colors shrink-0 cursor-pointer"
                     title="Edit tax amount"
                   >
-                    <Pencil size={14} className="text-[#9D43D6]" />
+                    <Pencil size={14} className="text-[#F2572B]" />
                   </button>
                 </div>
               </div>
@@ -4611,7 +4612,7 @@ ${storeNameZpl}^FO81,21
                       setTdsTcsType(e.target.value);
                       setTdsTcsTax("");
                     }}
-                    className="w-4 h-4 accent-[#9D43D6] cursor-pointer"
+                    className="w-4 h-4 accent-[#F2572B] cursor-pointer"
                   />
                   <span>TDS</span>
                 </label>
@@ -4625,7 +4626,7 @@ ${storeNameZpl}^FO81,21
                       setTdsTcsType(e.target.value);
                       setTdsTcsTax("");
                     }}
-                    className="w-4 h-4 accent-[#9D43D6] cursor-pointer"
+                    className="w-4 h-4 accent-[#F2572B] cursor-pointer"
                   />
                   <span>TCS</span>
                 </label>
@@ -4660,7 +4661,7 @@ ${storeNameZpl}^FO81,21
                     value={adjustment}
                     onChange={(e) => setAdjustment(e.target.value)}
                     placeholder="0.00"
-                    className="w-[155px] h-[38px] rounded-[10px] border border-[#E5E5E5] bg-white px-3 text-[13px] text-right text-[#212121] placeholder:text-[#A1A1AA] focus:border-[#9D43D6] focus:outline-none"
+                    className="w-[155px] h-[38px] rounded-[10px] border border-[#E5E5E5] bg-white px-3 text-[13px] text-right text-[#212121] placeholder:text-[#A1A1AA] focus:border-[#F2572B] focus:outline-none"
                   />
                   <span className="text-[13px] text-[#8A8A8A] w-12 text-right tabular-nums">{totals.adjustmentAmount}</span>
                 </div>
@@ -5825,7 +5826,7 @@ const Bills = () => {
           }
         }
         if (!userLocName) {
-          userLocName = user?.username || user?.locName || "";
+          userLocName = getUserStoreName(user);
         }
         
         const userWarehouse = mapWarehouse(userLocName);
@@ -6445,7 +6446,7 @@ const Bills = () => {
             </div>
 
             {!loading && (
-              <span className="inline-flex items-center px-3.5 py-1.5 rounded-full bg-[#F3E8FF] text-[#9D43D6] text-[12px] font-medium">
+              <span className="inline-flex items-center px-3.5 py-1.5 rounded-full bg-[#FDE3D9] text-[#F2572B] text-[12px] font-medium">
                 {processedBills.length} {processedBills.length === 1 ? 'Bill' : 'Bills'}
               </span>
             )}
@@ -6545,7 +6546,7 @@ const Bills = () => {
           {/* Loading / Empty / Table */}
           {loading ? (
             <div className="bg-white rounded-[16px] border border-[#E5E5E5] py-24 flex flex-col items-center justify-center gap-3">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#9D43D6] border-t-transparent" />
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#F2572B] border-t-transparent" />
               <p className="text-[13px] font-medium text-[#7A7A7A]">Loading bills...</p>
             </div>
           ) : processedBills.length === 0 ? (
@@ -6560,25 +6561,25 @@ const Bills = () => {
                 className="mb-5"
                 aria-hidden="true"
               >
-                <ellipse cx="85" cy="108" rx="62" ry="6" fill="#F3E8FF" />
+                <ellipse cx="85" cy="108" rx="62" ry="6" fill="#FDE3D9" />
                 <path d="M132 104C132 90 140 80 148 76C146 88 140 97 132 104Z" fill="#C4B5FD" />
-                <path d="M130 104C128 92 132 82 137 74C138 85 135 95 130 104Z" fill="#A78BFA" />
+                <path d="M130 104C128 92 132 82 137 74C138 85 135 95 130 104Z" fill="#F6825F" />
                 <path d="M124 104C121 96 121 89 124 83C127 89 127 97 124 104Z" fill="#DDD6FE" />
                 <rect x="68" y="20" width="54" height="84" rx="8" fill="#EDE9FE" stroke="#C4B5FD" strokeWidth="2" />
                 <rect x="74" y="27" width="42" height="70" rx="5" fill="#FFFFFF" />
-                <rect x="85" y="14" width="20" height="10" rx="4" fill="#9D43D6" />
+                <rect x="85" y="14" width="20" height="10" rx="4" fill="#F2572B" />
                 <circle cx="95" cy="19" r="2" fill="#FFFFFF" />
-                <rect x="83" y="42" width="24" height="32" rx="3" fill="#F5F3FF" stroke="#A78BFA" strokeWidth="1.5" />
-                <circle cx="91" cy="54" r="1.5" fill="#9D43D6" />
-                <circle cx="99" cy="54" r="1.5" fill="#9D43D6" />
-                <path d="M90 62C92.5 59.5 97.5 59.5 100 62" stroke="#9D43D6" strokeWidth="1.5" strokeLinecap="round" />
-                <circle cx="107" cy="70" r="7" fill="#9D43D6" />
+                <rect x="83" y="42" width="24" height="32" rx="3" fill="#F5F3FF" stroke="#F6825F" strokeWidth="1.5" />
+                <circle cx="91" cy="54" r="1.5" fill="#F2572B" />
+                <circle cx="99" cy="54" r="1.5" fill="#F2572B" />
+                <path d="M90 62C92.5 59.5 97.5 59.5 100 62" stroke="#F2572B" strokeWidth="1.5" strokeLinecap="round" />
+                <circle cx="107" cy="70" r="7" fill="#F2572B" />
                 <path d="M104.5 67.5L109.5 72.5M109.5 67.5L104.5 72.5" stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round" />
-                <circle cx="66" cy="48" r="13" fill="#F3E8FF" fillOpacity="0.65" stroke="#7C3AED" strokeWidth="2.5" />
-                <line x1="56.5" y1="57.5" x2="47" y2="67" stroke="#7C3AED" strokeWidth="3.5" strokeLinecap="round" />
-                <circle cx="44" cy="42" r="8" fill="#2E1065" />
-                <path d="M30 78C30 62 36 54 46 54C54 54 58 60 60 72L52 80H30V78Z" fill="#A78BFA" />
-                <path d="M32 78L52 78L62 96H34L32 78Z" fill="#4C1D95" />
+                <circle cx="66" cy="48" r="13" fill="#FDE3D9" fillOpacity="0.65" stroke="#F2572B" strokeWidth="2.5" />
+                <line x1="56.5" y1="57.5" x2="47" y2="67" stroke="#F2572B" strokeWidth="3.5" strokeLinecap="round" />
+                <circle cx="44" cy="42" r="8" fill="#4A160A" />
+                <path d="M30 78C30 62 36 54 46 54C54 54 58 60 60 72L52 80H30V78Z" fill="#F6825F" />
+                <path d="M32 78L52 78L62 96H34L32 78Z" fill="#8C2B12" />
                 <rect x="34" y="96" width="28" height="8" rx="4" fill="#DDD6FE" />
               </svg>
 
@@ -6600,7 +6601,7 @@ const Bills = () => {
                           type="checkbox"
                           checked={selectedBills.size === processedBills.length && processedBills.length > 0}
                           onChange={handleSelectAll}
-                          className="h-4 w-4 rounded-[4px] border-gray-500 accent-[#9D43D6] cursor-pointer"
+                          className="h-4 w-4 rounded-[4px] border-gray-500 accent-[#F2572B] cursor-pointer"
                         />
                       </th>
                       <th scope="col" className="px-4 py-3.5 text-center w-12">#</th>
@@ -6617,7 +6618,7 @@ const Bills = () => {
                     {processedBills.map((bill, index) => (
                       <tr
                         key={bill._id || bill.id}
-                        className={`hover:bg-[#FAFAFA] transition-colors cursor-pointer group ${selectedBills.has(bill._id) ? 'bg-[#FBF5FC]' : ''}`}
+                        className={`hover:bg-[#FAFAFA] transition-colors cursor-pointer group ${selectedBills.has(bill._id) ? 'bg-[#FEF3EE]' : ''}`}
                         onClick={() => {
                           if (bill._id || bill.id) {
                             navigate(`/purchase/bills/${bill._id || bill.id}`);
@@ -6634,7 +6635,7 @@ const Bills = () => {
                             type="checkbox"
                             checked={selectedBills.has(bill._id)}
                             onChange={(e) => handleSelectBill(bill._id, e)}
-                            className="h-4 w-4 rounded-[4px] border-gray-300 accent-[#9D43D6] cursor-pointer"
+                            className="h-4 w-4 rounded-[4px] border-gray-300 accent-[#F2572B] cursor-pointer"
                           />
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-center text-[13px] text-[#8A8A8A] font-medium">
@@ -6644,7 +6645,7 @@ const Bills = () => {
                           {bill.date}
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-[13px]">
-                          <span className="font-semibold text-[#9D43D6] group-hover:text-[#7E22CE] group-hover:underline">
+                          <span className="font-semibold text-[#F2572B] group-hover:text-[#D9431A] group-hover:underline">
                             {bill.billNumber}
                           </span>
                         </td>

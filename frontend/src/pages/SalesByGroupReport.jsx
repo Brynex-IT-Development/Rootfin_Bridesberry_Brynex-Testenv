@@ -8,6 +8,7 @@ import useSidebar from "../hooks/useSidebar";
 import { fetchActiveStores } from "../utils/storeService.js";
 
 import AppSelect from "../components/AppSelect.jsx";
+import { isAdminOrSuperAdmin } from "../utils/roleUtils";
 const STORES = [
   { value: "all", label: "All Stores" },
 ];
@@ -16,7 +17,7 @@ const SalesByGroupReport = () => {
   const isSidebarOpen = useSidebar();
   const today = new Date().toISOString().split("T")[0];
   const user = JSON.parse(localStorage.getItem("rootfinuser")) || {};
-  const isAdmin = (user.power || "").toLowerCase() === "admin";
+  const isAdmin = (user.power || "").toLowerCase() === "admin" || isAdminOrSuperAdmin(user);
   const isClusterManager = (user.role || "").toLowerCase() === "cluster_manager";
   const clusterAllowedLocCodes = user.allowedLocCodes || [];
   const canSelectStore = isAdmin || isClusterManager;
@@ -156,7 +157,7 @@ const SalesByGroupReport = () => {
               title="Refresh"
               className="h-[40px] w-[40px] rounded-[10px] bg-[#EFEFF1] hover:bg-[#E4E4E7] text-[#1B1B1B] inline-flex items-center justify-center transition-colors disabled:opacity-50 cursor-pointer"
             >
-              <RefreshCw size={15} className={loading ? "animate-spin text-[#9D43D6]" : ""} />
+              <RefreshCw size={15} className={loading ? "animate-spin text-[#F2572B]" : ""} />
             </button>
 
             {/* Fetch Data Button */}
@@ -165,7 +166,7 @@ const SalesByGroupReport = () => {
               data-no-confirm="true"
               onClick={fetchReport}
               disabled={loading}
-              className="rf-btn-primary !h-[40px] !px-6 !rounded-[10px] !bg-[#9D43D6] hover:!bg-[#8732BE] !text-[13px] !font-medium inline-flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer shadow-[0_2px_8px_rgba(157,67,214,0.24)]"
+              className="rf-btn-primary !h-[40px] !px-6 !rounded-[10px] !bg-[#F2572B] hover:!bg-[#D9431A] !text-[13px] !font-medium inline-flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer shadow-[0_2px_8px_rgba(242, 87, 43,0.24)]"
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
               <span>{loading ? "Fetching..." : "Fetch Data"}</span>
@@ -268,7 +269,7 @@ const SalesByGroupReport = () => {
                     </thead>
                     <tbody className="divide-y divide-[#F0F0F0] text-[#3F3F46]">
                       {rows.map((row, i) => (
-                        <tr key={i} className="hover:bg-[#FAF5FF]/60 transition-colors">
+                        <tr key={i} className="hover:bg-[#FEF3EE]/60 transition-colors">
                           <td className="px-4 py-3.5 border-r border-[#F5F5F5] text-left font-medium text-[#212121] whitespace-nowrap">
                             {row.groupName}
                           </td>

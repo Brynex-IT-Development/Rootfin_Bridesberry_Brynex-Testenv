@@ -17,7 +17,7 @@ const Label = ({ children, required = false }) => (
 );
 
 const Input = ({ placeholder = "", className = "", ...props }) => {
-  const baseClasses = "rounded-[10px] border border-[#E5E5E5] bg-white text-[13px] text-[#212121] placeholder:text-[#A1A1AA] focus:border-[#9D43D6] focus:outline-none focus:ring-2 focus:ring-[#9D43D6]/15 transition-colors";
+  const baseClasses = "rounded-[10px] border border-[#E5E5E5] bg-white text-[13px] text-[#212121] placeholder:text-[#A1A1AA] focus:border-[#F2572B] focus:outline-none focus:ring-2 focus:ring-[#F2572B]/15 transition-colors";
   const tableInputClasses = "h-[38px] px-3";
   const defaultClasses = "w-full h-[42px] px-3.5";
 
@@ -252,7 +252,7 @@ const VendorDropdown = ({ value, onChange, onNewVendor }) => {
         <div className="max-h-[300px] overflow-y-auto">
           {loading ? (
             <div className="px-4 py-6 text-center">
-              <div className="inline-block h-4 w-4 animate-spin rounded-none border-2 border-[#8B5CF6] border-t-transparent mb-1" />
+              <div className="inline-block h-4 w-4 animate-spin rounded-none border-2 border-[#F46A43] border-t-transparent mb-1" />
               <p className="text-xs text-[#6B7280]">Loading vendors...</p>
             </div>
           ) : filteredVendors.length === 0 ? (
@@ -273,7 +273,7 @@ const VendorDropdown = ({ value, onChange, onNewVendor }) => {
                 }`}
               >
                 <div className="w-7 h-7 rounded-none bg-[#EDE9FE] flex items-center justify-center flex-shrink-0">
-                  <span className="text-[10px] font-bold text-[#7C3AED]">
+                  <span className="text-[10px] font-bold text-[#F2572B]">
                     {(vendor.displayName || vendor.companyName || "?").charAt(0).toUpperCase()}
                   </span>
                 </div>
@@ -286,7 +286,7 @@ const VendorDropdown = ({ value, onChange, onNewVendor }) => {
                   )}
                 </div>
                 {selectedVendor && (selectedVendor._id === vendor._id || selectedVendor.id === vendor.id) && (
-                  <Check size={13} className="text-[#8B5CF6] shrink-0" />
+                  <Check size={13} className="text-[#F46A43] shrink-0" />
                 )}
               </div>
             ))
@@ -294,7 +294,7 @@ const VendorDropdown = ({ value, onChange, onNewVendor }) => {
         </div>
         <div
           onClick={() => { onNewVendor(); setIsOpen(false); }}
-          className="flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-[#8B5CF6] hover:bg-[#F5F3FF] cursor-pointer transition-colors border-t border-[#E5E7EB]"
+          className="flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-[#F46A43] hover:bg-[#F5F3FF] cursor-pointer transition-colors border-t border-[#E5E7EB]"
         >
           <Plus size={13} />
           <span>Add New Vendor</span>
@@ -310,7 +310,7 @@ const VendorDropdown = ({ value, onChange, onNewVendor }) => {
           ref={buttonRef}
           onClick={toggleDropdown}
           className={`flex items-center justify-between w-full h-9 px-3 rounded-none border cursor-pointer transition-colors ${
-            isOpen ? "border-[#8B5CF6] ring-1 ring-[#8B5CF6]/20" : "border-[#E5E7EB] hover:border-[#9CA3AF]"
+            isOpen ? "border-[#F46A43] ring-1 ring-[#F46A43]/20" : "border-[#E5E7EB] hover:border-[#9CA3AF]"
           } bg-white`}
         >
           <span className={`text-xs truncate ${selectedVendor ? "text-[#111827] font-medium" : "text-[#9CA3AF]"}`}>
@@ -407,7 +407,7 @@ const PurchaseReceiveCreate = () => {
       try {
         const userStr = localStorage.getItem("rootfinuser");
         const user = userStr ? JSON.parse(userStr) : null;
-        // Use email as primary identifier (e.g., officerootments@gmail.com)
+        // Use email as primary identifier
         const userId = user?.email || user?._id || user?.id || user?.locCode || null;
         const locCode = user?.locCode || "";
 
@@ -1052,7 +1052,7 @@ const PurchaseReceiveCreate = () => {
         <Header title="Edit Purchase Receive" />
         <div className={`transition-all duration-300 min-h-[60vh] flex items-center justify-center ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
           <div className="flex flex-col items-center gap-3">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#9D43D6] border-t-transparent" />
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#F2572B] border-t-transparent" />
             <div className="text-[13px] font-medium text-[#7A7A7A]">Loading purchase receive...</div>
           </div>
         </div>
@@ -1071,9 +1071,9 @@ const PurchaseReceiveCreate = () => {
           </h1>
           <Link
             to={isEditMode ? `/purchase/receives/${id}` : "/purchase/receives"}
-            className="inline-flex items-center gap-1.5 h-[38px] px-4 rounded-[10px] border border-[#E5E5E5] bg-white hover:bg-[#FAFAFA] text-[13px] font-medium text-[#9D43D6] transition-colors"
+            className="inline-flex items-center gap-1.5 h-[38px] px-4 rounded-[10px] border border-[#E5E5E5] bg-white hover:bg-[#FAFAFA] text-[13px] font-medium text-[#F2572B] transition-colors"
           >
-            <X size={14} className="text-[#9D43D6]" />
+            <X size={14} className="text-[#F2572B]" />
             <span>Close</span>
           </Link>
         </div>
@@ -1082,7 +1082,7 @@ const PurchaseReceiveCreate = () => {
         <div className="p-5 md:p-6 max-w-[1200px] w-full space-y-5">
           {/* Main Receive Details Card */}
           <div className="bg-white rounded-[16px] border border-[#E5E5E5] shadow-[0_2px_10px_rgba(0,0,0,0.03)] p-6 space-y-6">
-            <div className="text-[11px] font-bold uppercase tracking-wider text-[#9D43D6]">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-[#F2572B]">
               RECEIVE DETAILS
             </div>
 
@@ -1146,7 +1146,7 @@ const PurchaseReceiveCreate = () => {
                 {(selectedVendor.billingAddress || selectedVendor.billingCity || selectedVendor.billingState) && (
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-[#9D43D6]">BILLING ADDRESS</span>
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-[#F2572B]">BILLING ADDRESS</span>
                       <span
                         onClick={() => {
                           const vendorId = selectedVendor._id || selectedVendor.id;
@@ -1154,7 +1154,7 @@ const PurchaseReceiveCreate = () => {
                             navigate(`/purchase/vendors/${vendorId}/edit`);
                           }
                         }}
-                        className="cursor-pointer text-[#7A7A7A] hover:text-[#9D43D6] transition-colors"
+                        className="cursor-pointer text-[#7A7A7A] hover:text-[#F2572B] transition-colors"
                         title="Edit billing address"
                       >
                         <Pencil size={13} />
@@ -1194,7 +1194,7 @@ const PurchaseReceiveCreate = () => {
                                 navigate(`/purchase/vendors/${vendorId}/edit`);
                               }
                             }}
-                            className="cursor-pointer text-[#7A7A7A] hover:text-[#9D43D6] transition-colors"
+                            className="cursor-pointer text-[#7A7A7A] hover:text-[#F2572B] transition-colors"
                             title="Edit GST treatment"
                           >
                             <Pencil size={13} />
@@ -1214,7 +1214,7 @@ const PurchaseReceiveCreate = () => {
                                 navigate(`/purchase/vendors/${vendorId}/edit`);
                               }
                             }}
-                            className="cursor-pointer text-[#7A7A7A] hover:text-[#9D43D6] transition-colors"
+                            className="cursor-pointer text-[#7A7A7A] hover:text-[#F2572B] transition-colors"
                             title="Edit GSTIN"
                           >
                             <Pencil size={13} />
@@ -1278,7 +1278,7 @@ const PurchaseReceiveCreate = () => {
                       />
                       <span
                         onClick={handleCalendarIconClick}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-[#525252] hover:text-[#9D43D6] pl-2.5 border-l border-[#E5E5E5] transition-colors flex items-center justify-center"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-[#525252] hover:text-[#F2572B] pl-2.5 border-l border-[#E5E5E5] transition-colors flex items-center justify-center"
                         aria-label="Open date picker"
                         style={{ zIndex: 1 }}
                       >
@@ -1290,7 +1290,7 @@ const PurchaseReceiveCreate = () => {
 
                 {/* Items & Description Table */}
                 <div className="space-y-3 border-t border-[#F0F0F0] pt-5">
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-[#9D43D6]">
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-[#F2572B]">
                     ITEMS &amp; DESCRIPTION
                   </div>
                   <div className="rounded-[12px] border border-[#E5E5E5] bg-white overflow-hidden">
@@ -1394,7 +1394,7 @@ const PurchaseReceiveCreate = () => {
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     rows={4}
-                    className="w-full rounded-[10px] border border-[#E5E5E5] bg-white px-3.5 py-2.5 text-[13px] text-[#212121] placeholder:text-[#A1A1AA] focus:border-[#9D43D6] focus:outline-none focus:ring-2 focus:ring-[#9D43D6]/15 transition-colors resize-y"
+                    className="w-full rounded-[10px] border border-[#E5E5E5] bg-white px-3.5 py-2.5 text-[13px] text-[#212121] placeholder:text-[#A1A1AA] focus:border-[#F2572B] focus:outline-none focus:ring-2 focus:ring-[#F2572B]/15 transition-colors resize-y"
                     placeholder="Add internal notes..."
                   />
                 </div>

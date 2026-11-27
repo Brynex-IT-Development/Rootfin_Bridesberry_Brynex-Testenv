@@ -10,6 +10,7 @@ import { useActiveStores } from "../utils/storeService.js";
 import { canViewAdminOnlyTransactions } from "../utils/adminTransactionVisibility.js";
 
 import AppSelect from "../components/AppSelect.jsx";
+import { isAdminOrSuperAdmin } from "../utils/roleUtils";
 const TWS_BASE = "https://rentalapi.rootments.live/api/GetBooking";
 
 const fmt = (n) =>
@@ -240,8 +241,8 @@ export default function IncomeExpenseReport() {
     () => JSON.parse(localStorage.getItem("rootfinuser")) || {},
     []
   );
-  const isAdmin = (user.power || "").toLowerCase() === "admin" || (user.role || "").toLowerCase() === "admin";
-  const isSuperAdmin = (user.role || "").toLowerCase() === "superadmin";
+  const isAdmin = (user.power || "").toLowerCase() === "admin" || (user.role || "").toLowerCase() === "admin" || isAdminOrSuperAdmin(user);
+  const isSuperAdmin = ["superadmin", "super_admin"].includes((user.role || "").toLowerCase());
   const isClusterManager = (user.role || "").toLowerCase() === "cluster_manager";
   const isFinancialHead = (user.role || "").toLowerCase() === "financial_head";
   const clusterAllowedLocCodes = useMemo(
@@ -1220,7 +1221,7 @@ export default function IncomeExpenseReport() {
                 {showCategoryDropdown && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#E5E5E5] rounded-[10px] shadow-lg z-50 max-h-[300px] overflow-y-auto">
                     {allCategories.map((c) => (
-                      <label key={c} className="flex items-center gap-2.5 px-3.5 py-2 hover:bg-[#FAF5FF] cursor-pointer border-b border-[#F5F5F5] last:border-0">
+                      <label key={c} className="flex items-center gap-2.5 px-3.5 py-2 hover:bg-[#FEF3EE] cursor-pointer border-b border-[#F5F5F5] last:border-0">
                         <input
                           type="checkbox"
                           checked={filterCategories.includes(c)}
@@ -1231,7 +1232,7 @@ export default function IncomeExpenseReport() {
                               setFilterCategories(filterCategories.filter(cat => cat !== c));
                             }
                           }}
-                          className="w-4 h-4 rounded accent-[#9D43D6] cursor-pointer"
+                          className="w-4 h-4 rounded accent-[#F2572B] cursor-pointer"
                         />
                         <span className="text-[12.5px] text-[#212121]">{getCategoryLabel(c)}</span>
                       </label>
@@ -1310,7 +1311,7 @@ export default function IncomeExpenseReport() {
                 data-no-confirm="true"
                 onClick={fetchData}
                 disabled={loading}
-                className="rf-btn-primary !h-[40px] !px-6 !rounded-[10px] !bg-[#9D43D6] hover:!bg-[#8732BE] !text-[13px] !font-medium inline-flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer shadow-[0_2px_8px_rgba(157,67,214,0.24)]"
+                className="rf-btn-primary !h-[40px] !px-6 !rounded-[10px] !bg-[#F2572B] hover:!bg-[#D9431A] !text-[13px] !font-medium inline-flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer shadow-[0_2px_8px_rgba(242, 87, 43,0.24)]"
               >
                 {loading && <RefreshCw size={14} className="animate-spin" />}
                 <span>{loading ? "Fetching..." : "Fetch Data"}</span>

@@ -7,6 +7,8 @@ import { mapLocNameToWarehouse as mapWarehouse } from "../utils/warehouseMapping
 import baseUrl from "../api/api";
 import useSidebar from "../hooks/useSidebar";
 import RootfinConfirmModal from "../components/RootfinModal";
+import { isWarehouseStore, getUserStoreName } from "../utils/storeService";
+import { isAdminOrSuperAdmin } from "../utils/roleUtils";
 
 
 const columns = [
@@ -52,12 +54,7 @@ const ShoeSalesItemGroups = () => {
   const userRole = (user?.role || "").toLowerCase().trim();
   const userPower = (user?.power || "").toLowerCase().trim();
   const userEmail = (user?.email || user?.username || "").toLowerCase().trim();
-  const adminEmails = [
-    "officerootments@gmail.com",
-    "operationsrootments@gmail.com",
-    "headoffice01@gmail.com"
-  ];
-  const isAdminEmail = adminEmails.includes(userEmail);
+  const isAdminEmail = isAdminOrSuperAdmin(user);
   const isAdmin = isAdminEmail ||
                   userPower === "admin" ||
                   userPower === "super_admin" ||
@@ -65,7 +62,7 @@ const ShoeSalesItemGroups = () => {
                   userRole === "admin" ||
                   userRole === "super_admin" ||
                   userRole === "superadmin" ||
-                  (user?.locCode && (String(user.locCode) === '858' || String(user.locCode) === '103'));
+                  (user?.locCode && isWarehouseStore(user.locCode));
 
   const fetchItemGroups = async () => {
     try {
@@ -73,15 +70,14 @@ const ShoeSalesItemGroups = () => {
       const userId = user?.email || null;
       const userPower = user?.power || "";
       const userEmail = user?.email || user?.username || "";
-      const adminEmails = ['officerootments@gmail.com'];
-      const isAdminEmail = userEmail && adminEmails.some(email => userEmail.toLowerCase() === email.toLowerCase());
+      const isAdminEmail = isAdminOrSuperAdmin(user);
       const isAdmin = isAdminEmail ||
                       user?.power === "admin" ||
                       (user?.power || "").toLowerCase() === "super_admin" ||
                       (user?.role || "").toLowerCase() === "admin" ||
                       (user?.role || "").toLowerCase() === "super_admin" ||
                       (user?.role || "").toLowerCase() === "superadmin" ||
-                      (user?.locCode && (String(user.locCode) === '858' || String(user.locCode) === '103'));
+                      (user?.locCode && isWarehouseStore(user.locCode));
       
       const fallbackLocations = [];
       
@@ -93,7 +89,7 @@ const ShoeSalesItemGroups = () => {
         }
       }
       if (!userLocName) {
-        userLocName = user?.username || user?.locName || "";
+        userLocName = getUserStoreName(user);
       }
       
       const mapLocNameToWarehouse = (locName) => {
@@ -171,9 +167,17 @@ const ShoeSalesItemGroups = () => {
     }
   };
 
+  // Reload when the backend store list arrives/changes (the selected store is resolved from it)
+  const [storesVersion, setStoresVersion] = useState(0);
+  useEffect(() => {
+    const onStores = () => setStoresVersion((v) => v + 1);
+    window.addEventListener("rootfin-stores-updated", onStores);
+    return () => window.removeEventListener("rootfin-stores-updated", onStores);
+  }, []);
+
   useEffect(() => {
     fetchItemGroups();
-  }, [currentPage, itemsPerPage, searchTerm]);
+  }, [currentPage, itemsPerPage, searchTerm, storesVersion]);
 
   const handleSelectAll = (checked) => {
     if (checked) {
@@ -300,7 +304,7 @@ const ShoeSalesItemGroups = () => {
                     <th scope="col" className="py-3.5 px-4 w-12 text-center">
                       <input
                         type="checkbox"
-                        className="h-4 w-4 rounded-[4px] border-gray-500 accent-[#9D43D6] cursor-pointer align-middle"
+                        className="h-4 w-4 rounded-[4px] border-gray-500 accent-[#F2572B] cursor-pointer align-middle"
                         checked={rows.length > 0 && rows.filter(row => row.id && !row.id.startsWith('skeleton-')).every(row => selectedGroups.has(row.id))}
                         onChange={(e) => handleSelectAll(e.target.checked)}
                       />
@@ -386,7 +390,7 @@ const ShoeSalesItemGroups = () => {
                             <div className="flex items-center justify-center gap-1.5">
                               <input
                                 type="checkbox"
-                                className="h-4 w-4 rounded-[4px] border-[#D4D4D8] accent-[#9D43D6] cursor-pointer align-middle"
+                                className="h-4 w-4 rounded-[4px] border-[#D4D4D8] accent-[#F2572B] cursor-pointer align-middle"
                                 checked={selectedGroups.has(row.id)}
                                 onChange={(e) => handleCheckboxChange(row.id, e.target.checked)}
                               />
@@ -426,12 +430,12 @@ const ShoeSalesItemGroups = () => {
                                   <img src={row.image} alt={row.name} className="w-full h-full object-contain rounded-[6px]" />
                                 </div>
                               ) : (
-                                <div className="w-10 h-10 rounded-[8px] bg-[#D4D4D8]/80 flex-shrink-0 flex items-center justify-center text-[#71717A] group-hover:bg-[#F3E8FF] group-hover:text-[#9D43D6] transition-colors">
+                                <div className="w-10 h-10 rounded-[8px] bg-[#D4D4D8]/80 flex-shrink-0 flex items-center justify-center text-[#71717A] group-hover:bg-[#FDE3D9] group-hover:text-[#F2572B] transition-colors">
                                   <Folder size={16} className="opacity-60" />
                                 </div>
                               )}
                               <div className="min-w-0">
-                                <p className="text-[13px] font-semibold text-[#1B1B1B] group-hover:text-[#9D43D6] transition-colors truncate">
+                                <p className="text-[13px] font-semibold text-[#1B1B1B] group-hover:text-[#F2572B] transition-colors truncate">
                                   {row.name}
                                 </p>
                                 <p className="text-[11px] text-[#7A7A7A] mt-0.5">

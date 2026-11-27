@@ -16,7 +16,7 @@ router.post("/stores", createStore);
 // Get all stores (optional query: ?isActive=true/false)
 router.get("/stores", getStores);
 
-// Get store by location code (e.g., /stores/loc/EDAPALLY)
+// Get store by location code (e.g., /stores/loc/<locCode>)
 router.get("/stores/loc/:locCode", getStoreByLocCode);
 
 // Get store by ID

@@ -3,137 +3,11 @@ import ItemHistory from "../model/ItemHistory.js";
 import ShoeItem from "../model/ShoeItem.js";
 import Bill from "../model/Bill.js";
 import { nextItemGroup } from "../utils/nextItemGroup.js";
+import { isWarehouseStore, mapLocNameToWarehouse, sameStore, storeName } from "../utils/storeResolver.js";
+import { isAdminUserId } from "../utils/adminUsers.js";
 
-// Warehouse name normalization mapping (same as TransferOrderController and ShoeItemController)
-const WAREHOUSE_NAME_MAPPING = {
-  // Trivandrum variations
-  "Grooms Trivandum": "Grooms Trivandrum",
-  "Grooms Trivandrum": "Grooms Trivandrum",
-  "SG-Trivandrum": "Grooms Trivandrum",
-  
-  // Palakkad variations
-  "G.Palakkad": "Palakkad Branch",
-  "G.Palakkad ": "Palakkad Branch",
-  "GPalakkad": "Palakkad Branch",
-  "Palakkad Branch": "Palakkad Branch",
-  
-  // Warehouse variations
-  "Warehouse": "Warehouse",
-  "warehouse": "Warehouse",
-  "WAREHOUSE": "Warehouse",
-  
-  // Calicut variations
-  "G.Calicut": "Calicut",
-  "G.Calicut ": "Calicut",
-  "GCalicut": "Calicut",
-  "Calicut": "Calicut",
-  
-  // Manjeri/Manjery variations
-  "G.Manjeri": "Manjery Branch",
-  "G.Manjery": "Manjery Branch",
-  "GManjeri": "Manjery Branch",
-  "GManjery": "Manjery Branch",
-  "Manjery Branch": "Manjery Branch",
-  
-  // Kannur variations
-  "G.Kannur": "Kannur Branch",
-  "GKannur": "Kannur Branch",
-  "Kannur Branch": "Kannur Branch",
-  
-  // Edappal variations
-  "G.Edappal": "Edappal Branch",
-  "GEdappal": "Edappal Branch",
-  "Edappal Branch": "Edappal Branch",
-  
-  // Edapally variations
-  "G.Edappally": "Edapally Branch",
-  "G-Edappally": "Edapally Branch",
-  "GEdappally": "Edapally Branch",
-  "Edapally Branch": "Edapally Branch",
-  
-  // Kalpetta variations
-  "G.Kalpetta": "Kalpetta Branch",
-  "GKalpetta": "Kalpetta Branch",
-  "Kalpetta Branch": "Kalpetta Branch",
-  
-  // Kottakkal variations
-  "G.Kottakkal": "Kottakkal Branch",
-  "GKottakkal": "Kottakkal Branch",
-  "Kottakkal Branch": "Kottakkal Branch",
-  "Z.Kottakkal": "Kottakkal Branch",
-  
-  // Perinthalmanna variations
-  "G.Perinthalmanna": "Perinthalmanna Branch",
-  "GPerinthalmanna": "Perinthalmanna Branch",
-  "Perinthalmanna Branch": "Perinthalmanna Branch",
-  "Z.Perinthalmanna": "Perinthalmanna Branch",
-  
-  // Chavakkad variations
-  "G.Chavakkad": "Chavakkad Branch",
-  "GChavakkad": "Chavakkad Branch",
-  "Chavakkad Branch": "Chavakkad Branch",
-  
-  // Thrissur variations
-  "G.Thrissur": "Thrissur Branch",
-  "GThrissur": "Thrissur Branch",
-  "Thrissur Branch": "Thrissur Branch",
-  
-  // Perumbavoor variations
-  "G.Perumbavoor": "Perumbavoor Branch",
-  "GPerumbavoor": "Perumbavoor Branch",
-  "Perumbavoor Branch": "Perumbavoor Branch",
-  
-  // Kottayam variations
-  "G.Kottayam": "Kottayam Branch",
-  "GKottayam": "Kottayam Branch",
-  "Kottayam Branch": "Kottayam Branch",
-  
-  // MG Road variations
-  "G.MG Road": "SuitorGuy MG Road",
-  "G.Mg Road": "SuitorGuy MG Road",
-  "GMG Road": "SuitorGuy MG Road",
-  "GMg Road": "SuitorGuy MG Road",
-  "MG Road": "SuitorGuy MG Road",
-  "Mg Road": "SuitorGuy MG Road",
-  "MG Road Branch": "SuitorGuy MG Road",
-  "Mg Road Branch": "SuitorGuy MG Road",
-  "G Road Branch": "SuitorGuy MG Road",
-  "SuitorGuy MG Road": "SuitorGuy MG Road",
-  
-  // Head Office variations
-  "HEAD OFFICE01": "Head Office",
-  "Head Office": "Head Office",
-  
-  // Other locations (default to Warehouse)
-  "Z-Edapally1": "Warehouse",
-  "Z- Edappal": "Warehouse",
-  "Production": "Warehouse",
-  "Office": "Warehouse",
-  "G.Vadakara": "Warehouse",
-};
-
-// Normalize warehouse name to standard format
-const normalizeWarehouseName = (warehouseName) => {
-  if (!warehouseName) return null;
-  
-  const trimmed = warehouseName.toString().trim();
-  
-  // Check direct mapping
-  if (WAREHOUSE_NAME_MAPPING[trimmed]) {
-    return WAREHOUSE_NAME_MAPPING[trimmed];
-  }
-  
-  // Check case-insensitive mapping
-  const lowerName = trimmed.toLowerCase();
-  for (const [key, value] of Object.entries(WAREHOUSE_NAME_MAPPING)) {
-    if (key.toLowerCase() === lowerName) {
-      return value;
-    }
-  }
-  
-  // If no mapping found, return original (trimmed)
-  return trimmed;
-};
+// Store names come only from the Store collection
+const normalizeWarehouseName = (warehouseName) => storeName(warehouseName);
 
 // Helper function to generate change details
 const generateChangeDetails = (oldItem, newItem, changeType) => {
@@ -191,18 +65,6 @@ const generateChangeDetails = (oldItem, newItem, changeType) => {
   }
   
   return changes.join(", ");
-};
-
-// Helper function to map locName to warehouse name
-const mapLocNameToWarehouse = (locName) => {
-  if (!locName) return "Warehouse"; // Default to Warehouse
-  // Remove prefixes like "G.", "Z.", "SG."
-  let warehouse = locName.replace(/^[A-Z]\.?\s*/i, "").trim();
-  // Add "Branch" if not already present and not "Warehouse"
-  if (warehouse && warehouse.toLowerCase() !== "warehouse" && !warehouse.toLowerCase().includes("branch")) {
-    warehouse = `${warehouse} Branch`;
-  }
-  return warehouse || "Warehouse";
 };
 
 export const createItemGroup = async (req, res) => {
@@ -388,40 +250,8 @@ export const createItemGroup = async (req, res) => {
   }
 };
 
-// Match warehouse names flexibly and accurately
-const matchesWarehouse = (itemWarehouse, targetWarehouse) => {
-  if (!itemWarehouse || !targetWarehouse) return false;
-  
-  // Normalize both warehouse names
-  const normalizedItem = normalizeWarehouseName(itemWarehouse);
-  const normalizedTarget = normalizeWarehouseName(targetWarehouse);
-  
-  // Exact match after normalization
-  if (normalizedItem && normalizedTarget && normalizedItem.toLowerCase() === normalizedTarget.toLowerCase()) {
-    return true;
-  }
-  
-  // Fallback to flexible matching
-  const itemWarehouseLower = itemWarehouse.toString().toLowerCase().trim();
-  const targetWarehouseLower = targetWarehouse.toLowerCase().trim();
-  
-  if (itemWarehouseLower === targetWarehouseLower) {
-    return true;
-  }
-  
-  const itemBase = itemWarehouseLower.replace(/\s*(branch|warehouse|suitorguy|sg|g|z)\s*$/i, "").trim();
-  const targetBase = targetWarehouseLower.replace(/\s*(branch|warehouse|suitorguy|sg|g|z)\s*$/i, "").trim();
-  
-  if (itemBase && targetBase && itemBase === targetBase) {
-    return true;
-  }
-  
-  if (itemWarehouseLower.includes(targetWarehouseLower) || targetWarehouseLower.includes(itemWarehouseLower)) {
-    return true;
-  }
-  
-  return false;
-};
+// Same store? (backend Store collection; ignores case/spacing)
+const matchesWarehouse = (itemWarehouse, targetWarehouse) => sameStore(itemWarehouse, targetWarehouse);
 
 // Helper function to check if item group belongs to a warehouse (has items transferred or with stock)
 const groupBelongsToWarehouse = (group, targetWarehouse) => {
@@ -483,15 +313,14 @@ export const getItemGroups = async (req, res) => {
     // Get user locCode from query
     const userLocCode = req.query.locCode || "";
     
-    // User is admin if: isAdmin === true/all === true OR power === 'admin' OR locCode === '858'/'103' (Warehouse) OR email in adminEmails OR !userId
-    const adminEmails = ['officerootments@gmail.com'];
-    const isAdminEmail = userId && typeof userId === 'string' && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
+    // User is admin if: isAdmin === true/all === true OR power === 'admin' OR locCode is a warehouse-type store OR the user has an admin role OR !userId
+    const isAdminEmail = await isAdminUserId(userId); // admin by role, not by email
     const userIsAdmin = isAdmin === "true" || isAdmin === true || 
                         req.query.all === "true" ||
                         !userId ||
                         isAdminEmail ||
                         (userPower && (userPower.toLowerCase() === 'admin' || userPower.toLowerCase() === 'super_admin')) ||
-                        (userLocCode && (userLocCode === '858' || userLocCode === '103')); // 858 = Warehouse, 103 = WAREHOUSE
+                        (userLocCode && isWarehouseStore(userLocCode)); // 858 = Warehouse, 103 = WAREHOUSE
     
     // Determine if filtering for a specific store warehouse
     const targetStoreWarehouse = warehouse && warehouse !== "All Stores" && warehouse !== "Warehouse" 
@@ -1151,7 +980,7 @@ export const saveMonthlyOpeningStock = async (req, res) => {
         }
 
         // Match ignoring spaces/case/punctuation so "Warehouse" finds "warehouse " and
-        // "Brides Berry" finds "BridesBerry" (same matching as the frontend display)
+        // "Store Name" finds "StoreName" (same matching as the frontend display)
         const compactName = (n) => (n || "").toString().toLowerCase().replace(/[\s.\-_]/g, "");
         const targetKey = compactName(itemUpdate.warehouse);
         let wsEntry = itemPlain.warehouseStocks.find(ws =>

@@ -223,7 +223,7 @@ const PurchaseVendorDetail = () => {
         <Header title="Vendor Details" />
         <div className={`transition-all duration-300 min-h-screen bg-[#f8fafc] p-6 md:p-8 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
           <div className="flex flex-col items-center justify-center py-24">
-            <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#8B5CF6] border-t-transparent"></div>
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#F46A43] border-t-transparent"></div>
             <p className="mt-4 text-sm font-medium text-gray-500">Loading vendor details...</p>
           </div>
         </div>
@@ -255,7 +255,7 @@ const PurchaseVendorDetail = () => {
               
               {/* Vendor Title & Badges */}
               <div className="flex items-center gap-4">
-                <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-[#8B5CF6] to-[#6D28D9] flex items-center justify-center text-white shadow-md shadow-purple-500/20">
+                <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-[#F46A43] to-[#D9431A] flex items-center justify-center text-white shadow-md shadow-purple-500/20">
                   <Building2 size={26} />
                 </div>
                 <div>
@@ -287,7 +287,7 @@ const PurchaseVendorDetail = () => {
                   onClick={() => {
                     navigate(`/purchase/bills/new?vendorId=${id}&vendorName=${encodeURIComponent(vendorDisplayName)}`);
                   }}
-                  className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#8B5CF6] to-[#7C3AED] px-4 py-2 text-sm font-semibold text-white shadow-md shadow-purple-500/20 transition hover:from-[#7C3AED] hover:to-[#6D28D9] cursor-pointer"
+                  className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#F46A43] to-[#F2572B] px-4 py-2 text-sm font-semibold text-white shadow-md shadow-purple-500/20 transition hover:from-[#F2572B] hover:to-[#D9431A] cursor-pointer"
                 >
                   <Plus size={16} />
                   <span>New Transaction</span>
@@ -440,14 +440,14 @@ const PurchaseVendorDetail = () => {
                     onClick={() => setActiveTab(tab.name)}
                     className={`inline-flex items-center gap-2 pb-3 px-3 text-sm font-semibold transition-all cursor-pointer relative ${
                       isActive
-                        ? "text-[#8B5CF6]"
+                        ? "text-[#F46A43]"
                         : "text-gray-500 hover:text-gray-800"
                     }`}
                   >
                     <TabIcon size={16} />
                     <span>{tab.name}</span>
                     {isActive && (
-                      <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#8B5CF6] to-[#7C3AED] rounded-full"></span>
+                      <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#F46A43] to-[#F2572B] rounded-full"></span>
                     )}
                   </button>
                 );
@@ -480,7 +480,7 @@ const PurchaseVendorDetail = () => {
                         {vendor.email && (
                           <a
                             href={`mailto:${vendor.email}?subject=Regarding ${vendorDisplayName}`}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-50 text-[#8B5CF6] hover:bg-purple-100 text-xs font-semibold transition"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-50 text-[#F46A43] hover:bg-purple-100 text-xs font-semibold transition"
                           >
                             <Send size={12} />
                             <span>Email</span>
@@ -517,7 +517,7 @@ const PurchaseVendorDetail = () => {
                       </h4>
                       <button
                         onClick={() => navigate(`/purchase/vendors/${id}/edit?section=shipping`)}
-                        className="text-xs font-semibold text-[#8B5CF6] hover:underline"
+                        className="text-xs font-semibold text-[#F46A43] hover:underline"
                       >
                         + Edit Address
                       </button>
@@ -608,7 +608,7 @@ const PurchaseVendorDetail = () => {
                       </h4>
                       <button
                         onClick={() => navigate(`/purchase/vendors/${id}/edit?section=contacts`)}
-                        className="text-xs font-semibold text-[#8B5CF6] hover:underline"
+                        className="text-xs font-semibold text-[#F46A43] hover:underline"
                       >
                         + Add Contact
                       </button>
@@ -655,7 +655,7 @@ const PurchaseVendorDetail = () => {
                       </h4>
                       <button
                         onClick={() => navigate(`/purchase/vendors/${id}/edit?section=bank`)}
-                        className="text-xs font-semibold text-[#8B5CF6] hover:underline"
+                        className="text-xs font-semibold text-[#F46A43] hover:underline"
                       >
                         + Add Bank
                       </button>
@@ -761,7 +761,7 @@ const PurchaseVendorDetail = () => {
                           return (
                             <div key={activity.id || activity._id || idx} className="relative group">
                               {/* Glowing timeline dot */}
-                              <div className="absolute -left-[27px] top-1 h-3 w-3 rounded-full bg-white border-2 border-[#8B5CF6] group-hover:scale-125 transition-transform shadow-xs"></div>
+                              <div className="absolute -left-[27px] top-1 h-3 w-3 rounded-full bg-white border-2 border-[#F46A43] group-hover:scale-125 transition-transform shadow-xs"></div>
                               
                               <div className="text-xs">
                                 <p className="font-bold text-gray-900">{activity.title || "Activity Recorded"}</p>
@@ -818,14 +818,14 @@ const PurchaseVendorDetail = () => {
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
                   placeholder="Write an internal note or comment about this vendor..."
-                  className="w-full min-h-[110px] rounded-xl border border-gray-200 p-3.5 text-xs text-gray-900 placeholder:text-gray-400 focus:border-[#8B5CF6] focus:outline-none focus:ring-1 focus:ring-[#8B5CF6] transition resize-y"
+                  className="w-full min-h-[110px] rounded-xl border border-gray-200 p-3.5 text-xs text-gray-900 placeholder:text-gray-400 focus:border-[#F46A43] focus:outline-none focus:ring-1 focus:ring-[#F46A43] transition resize-y"
                 />
 
                 <div className="mt-2.5 flex justify-end">
                   <button
                     onClick={handleAddComment}
                     disabled={!commentText.trim()}
-                    className="inline-flex items-center gap-2 rounded-lg bg-[#8B5CF6] hover:bg-[#7C3AED] px-4 py-2 text-xs font-semibold text-white shadow-sm transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    className="inline-flex items-center gap-2 rounded-lg bg-[#F46A43] hover:bg-[#F2572B] px-4 py-2 text-xs font-semibold text-white shadow-sm transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                   >
                     <Send size={13} />
                     <span>Post Comment</span>
@@ -868,7 +868,7 @@ const PurchaseVendorDetail = () => {
                   <AppSelect
                     value={billStatusFilter}
                     onChange={(e) => setBillStatusFilter(e.target.value)}
-                    className="h-9 px-3 rounded-lg border border-gray-200 bg-white text-xs font-semibold text-gray-700 focus:border-[#8B5CF6] focus:outline-none"
+                    className="h-9 px-3 rounded-lg border border-gray-200 bg-white text-xs font-semibold text-gray-700 focus:border-[#F46A43] focus:outline-none"
                   >
                     <option value="All">Status: All</option>
                     <option value="OPEN">Open</option>
@@ -878,7 +878,7 @@ const PurchaseVendorDetail = () => {
 
                   <button
                     onClick={() => navigate(`/purchase/bills/new?vendorId=${id}&vendorName=${encodeURIComponent(vendorDisplayName)}`)}
-                    className="inline-flex items-center gap-1.5 h-9 rounded-lg bg-[#8B5CF6] hover:bg-[#7C3AED] px-3.5 text-xs font-semibold text-white shadow-sm transition cursor-pointer"
+                    className="inline-flex items-center gap-1.5 h-9 rounded-lg bg-[#F46A43] hover:bg-[#F2572B] px-3.5 text-xs font-semibold text-white shadow-sm transition cursor-pointer"
                   >
                     <Plus size={14} />
                     <span>New Bill</span>
@@ -943,7 +943,7 @@ const PurchaseVendorDetail = () => {
                             >
                               <td className="px-4 py-3.5 text-gray-600">{formatDate(bill.billDate)}</td>
                               <td className="px-4 py-3.5 text-gray-800 font-medium">{bill.branch || "Warehouse"}</td>
-                              <td className="px-4 py-3.5 font-bold text-[#8B5CF6] hover:underline">{bill.billNumber || "—"}</td>
+                              <td className="px-4 py-3.5 font-bold text-[#F46A43] hover:underline">{bill.billNumber || "—"}</td>
                               <td className="px-4 py-3.5 text-gray-500">{bill.orderNumber || "—"}</td>
                               <td className="px-4 py-3.5 text-right font-bold text-gray-900">{currency(parseFloat(bill.finalTotal || 0))}</td>
                               <td className="px-4 py-3.5 text-right font-bold text-gray-900">{currency(parseFloat(bill.finalTotal || 0))}</td>
@@ -969,7 +969,7 @@ const PurchaseVendorDetail = () => {
           {/* TAB 4: MAILS & TAB 5: STATEMENT */}
           {(activeTab === "Mails" || activeTab === "Statement") && (
             <div className="p-12 text-center">
-              <div className="h-12 w-12 rounded-2xl bg-purple-50 text-[#8B5CF6] flex items-center justify-center mx-auto mb-3">
+              <div className="h-12 w-12 rounded-2xl bg-purple-50 text-[#F46A43] flex items-center justify-center mx-auto mb-3">
                 {activeTab === "Mails" ? <Mail size={24} /> : <FileSpreadsheet size={24} />}
               </div>
               <h4 className="text-base font-bold text-gray-800">{activeTab} View</h4>

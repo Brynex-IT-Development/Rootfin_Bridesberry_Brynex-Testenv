@@ -6,7 +6,7 @@ import { Search, Image as ImageIcon, ChevronDown, X, Settings, Pencil, Check, Pl
 import Head from "../components/Head";
 import baseUrl from "../api/api";
 import { mapLocNameToWarehouse } from "../utils/warehouseMapping";
-import { getActiveStores } from "../utils/storeService";
+import { findStore, locCodeForStore, storeNameOptions, useActiveStores } from "../utils/storeService";
 import useSidebar from "../hooks/useSidebar";
 import Header from "../components/Header.jsx";
 import AppSelect from "../components/AppSelect.jsx";
@@ -83,16 +83,8 @@ const ItemDropdown = ({ rowId, value, onChange, warehouse, onNewItem, isStoreUse
           return true;
         }
         
-        // Special handling for Trivandrum variations - be more aggressive with matching
-        const trivandrumVariations = ["trivandrum", "grooms trivandrum", "sg-trivandrum", "trivandrum branch", "grooms trivandum"];
-        const stockIsTrivandrum = trivandrumVariations.some(v => stockWarehouse.includes(v.toLowerCase()));
-        const targetIsTrivandrum = trivandrumVariations.some(v => targetWarehouseLower.includes(v.toLowerCase()));
-        if (stockIsTrivandrum && targetIsTrivandrum) {
-          return true;
-        }
         
-        // Check base name match (e.g., "kannur" matches "kannur branch")
-        // Also normalize hyphens and dots for matching (e.g., "G-Edappally" matches "GEdappally")
+        // Normalize hyphens, dots and spaces for matching (e.g., "Store-Name" matches "StoreName")
         const normalizeForMatch = (str) => {
           return str.replace(/[-.\s]/g, "").toLowerCase();
         };
@@ -100,14 +92,14 @@ const ItemDropdown = ({ rowId, value, onChange, warehouse, onNewItem, isStoreUse
         const stockNormalized = normalizeForMatch(stockWarehouse);
         const targetNormalized = normalizeForMatch(targetWarehouseLower);
         
-        // Check if normalized names match (handles G-Edappally vs GEdappally)
+        // Check if normalized names match
         if (stockNormalized === targetNormalized) {
           return true;
         }
         
-        // Check base name match (e.g., "kannur" matches "kannur branch")
-        const stockBase = stockWarehouse.replace(/\s*(branch|warehouse|sg|g|z)\s*$/i, "").trim();
-        const targetBase = targetWarehouseLower.replace(/\s*(branch|warehouse|sg|g|z)\s*$/i, "").trim();
+        // Check base name match (e.g., "store" matches "store branch")
+        const stockBase = stockWarehouse.replace(/\s*branch\s*$/i, "").trim();
+        const targetBase = targetWarehouseLower.replace(/\s*branch\s*$/i, "").trim();
         
         if (stockBase && targetBase && stockBase === targetBase) {
           return true;
@@ -477,7 +469,7 @@ const ItemDropdown = ({ rowId, value, onChange, warehouse, onNewItem, isStoreUse
             }
           }}
           placeholder="Type of click to select an item"
-          className="w-full h-9 rounded-none border border-[#e5e7eb] bg-white px-2.5 text-xs text-[#111827] placeholder:text-[#9ca3af] focus:border-[#8b5cf6] focus:outline-none transition-colors"
+          className="w-full h-9 rounded-none border border-[#e5e7eb] bg-white px-2.5 text-xs text-[#111827] placeholder:text-[#9ca3af] focus:border-[#F46A43] focus:outline-none transition-colors"
         />
       </div>
       {typeof document !== "undefined" && document.body && createPortal(dropdownPortal, document.body)}
@@ -695,7 +687,7 @@ const TaxDropdown = ({ rowId, value, onChange, taxOptions, nonTaxableOptions, on
         <button
           type="button"
           onClick={toggleDropdown}
-          className="w-full h-9 rounded-none border border-[#e5e7eb] bg-white px-2.5 text-xs text-[#111827] hover:border-[#8b5cf6] focus:outline-none flex items-center justify-between gap-1 transition-colors overflow-hidden"
+          className="w-full h-9 rounded-none border border-[#e5e7eb] bg-white px-2.5 text-xs text-[#111827] hover:border-[#F46A43] focus:outline-none flex items-center justify-between gap-1 transition-colors overflow-hidden"
         >
           <span className="truncate text-left flex-1 text-[#374151] min-w-0 block">
             {selectedTax ? selectedTax.display || selectedTax.name : <span className="text-[#9ca3af]">Select Tax</span>}
@@ -711,125 +703,7 @@ const TaxDropdown = ({ rowId, value, onChange, taxOptions, nonTaxableOptions, on
 
 const SalesInvoiceCreate = () => {
   const isSidebarOpen = useSidebar();
-  // Complete and corrected mapping from branch names to location codes
-  const branchToLocCodeMap = {
-    // Main office and special locations
-    "Head Office": "759",
-    "Warehouse": "858",
-    // BridesBerry locations (code: 155)
-    "BridesBerry": "155",
-    "Bridesberry": "155",
-    "Brides Berry": "155",
-    "bridesberry": "155",
-    "BridesBerry Store": "155",
-    "BridesBerry Branch": "155",
-    // Main stores
-    "Production": "101",
-    "Office": "102",
-    "HEAD OFFICE01": "759",
-    
-    // G. prefix stores (main branches) - dash, dot, and no-separator variations
-    "G-Edappally": "702",
-    "G.Edappally": "702",
-    "GEdappally": "702",
-    "GEdapally": "702",  // Single 'p' variation
-    "G-Kottayam": "701",
-    "G.Kottayam": "701",
-    "GKottayam": "701",
-    "G-Perumbavoor": "703",
-    "G.Perumbavoor": "703",
-    "GPerumbavoor": "703",
-    "GPerumbavoorStore": "703",
-    "G-Thrissur": "704",
-    "G.Thrissur": "704",
-    "GThrissur": "704",
-    "G-Palakkad": "705",
-    "G.Palakkad": "705",
-    "GPalakkad": "705",
-    "G-Chavakkad": "706",
-    "G.Chavakkad": "706",
-    "GChavakkad": "706",
-    "G-Edappal": "707",
-    "G.Edappal": "707",
-    "GEdappal": "707",
-    "G-Vadakara": "708",
-    "G.Vadakara": "708",
-    "GVadakara": "708",
-    "G-Perinthalmanna": "709",
-    "G.Perinthalmanna": "709",
-    "GPerinthalmanna": "709",
-    "G-Manjeri": "710",
-    "G.Manjeri": "710",
-    "GManjeri": "710",
-    "G-Kottakkal": "711",
-    "G.Kottakkal": "711",
-    "GKottakkal": "711",
-    "G-Calicut": "712",
-    "G.Calicut": "712",
-    "GCalicut": "712",
-    "G-Kannur": "716",
-    "G.Kannur": "716",
-    "GKannur": "716",
-    "G-Kalpetta": "717",
-    "G.Kalpetta": "717",
-    "GKalpetta": "717",
-    
-    // MG Road variations (all point to same store - unique keys only)
-    "G-Mg Road": "718",
-    "G.Mg Road": "718",
-    "G-MG Road": "718",
-    "GMG Road": "718",
-    "GMg Road": "718",
-    "MG Road": "718",
-    "mg road": "718",
-    "g.mg road": "718",
-    "g.mg": "718",
-    "SuitorGuy MG Road": "718",
-    
-    // SG prefix stores (Trivandrum variations)
-    "SG-Trivandrum": "700",
-    "SG.Trivandrum": "700",
-    "sg.tvm": "700",
-    "SG.tvm": "700",
-    "sg-tvm": "700",
-    "Grooms Trivandrum": "700",  // ✅ ADDED: Main Trivandrum store
-    "Grooms Trivandum": "700",   // ✅ ADDED: Spelling variation
-    "Trivandrum Branch": "700",  // ✅ ADDED: Branch variation
-    "SG.Kottayam": "701",
-    
-    // Z. prefix stores (franchise/other branches)
-    "Z-Edapally": "144",
-    "Z-Edappal": "100",
-    "Z-Perinthalmanna": "133",
-    "Z-Kottakkal": "122",
-    
-    // Alternative names with "Branch" suffix
-    "G-Kottayam Branch": "701",
-    "G.Kottayam Branch": "701",
-    "Kottayam Branch": "701",
-    "Kottayam": "701",
-    
-    // All dropdown branch name variations
-    "Edapally Branch": "702",
-    "Chavakkad Branch": "706",
-    "Edappal Branch": "707",
-    "Kalpetta Branch": "717",
-    "Kannur Branch": "716",
-    "Kottakkal Branch": "711",
-    "Manjery Branch": "710",
-    "Manjeri Branch": "710",
-    "Palakkad Branch": "705",
-    "Perinthalmanna Branch": "709",
-    "Perumbavoor Branch": "703",
-    "Thrissur Branch": "704",
-    "Vadakara Branch": "708",
-    "Calicut": "712",
-    "Calicut Branch": "712",
-    "Z-Edapally1 Branch": "144",
-    "Z-Edappal Branch": "100",
-    "Z-Perinthalmanna Branch": "133",
-    "Z-Kottakkal Branch": "122",
-  };
+  const { stores: backendStores } = useActiveStores();
 
   const navigate = useNavigate();
   const { id } = useParams();
@@ -875,15 +749,9 @@ const SalesInvoiceCreate = () => {
           return "Warehouse";
         }
         
-        const userLocCode = user?.locCode;
-        if (userLocCode) {
-          // Find the branch name that matches the user's location code
-          for (const [branchName, locCode] of Object.entries(branchToLocCodeMap)) {
-            if (locCode === userLocCode) {
-              return branchName;
-            }
-          }
-        }
+        // Use the backend store for the user's location code
+        const store = findStore(user?.locCode);
+        if (store?.locName) return store.locName;
       }
     } catch (error) {
       console.error("Error getting initial branch from user location:", error);
@@ -1969,9 +1837,8 @@ const SalesInvoiceCreate = () => {
 
     const currentUser = getUserInfo();
     const storeCandidate = invoiceData.branch || currentUser?.storeName || currentUser?.locName || "";
-    const isBridesBerry = String(invoiceData.locCode || currentUser?.locCode || "") === "155" ||
-      /brides\s*berry/i.test(storeCandidate);
-    const storeName = isBridesBerry ? "BridesBerry" : (storeCandidate || "BridesBerry");
+    // Store name from the backend store list (by the invoice's locCode, else its branch name)
+    const storeName = findStore(invoiceData.locCode)?.locName || findStore(storeCandidate)?.locName || storeCandidate || "";
 
     // Create professional invoice message
     const message = 
@@ -2063,72 +1930,13 @@ Customer Service Available`;
 
   // Get location code for selected branch
   const getLocCodeForBranch = (branchName) => {
-    console.log(`🔍 getLocCodeForBranch called with: "${branchName}"`);
-    
-    if (!branchName) {
-      console.log("❌ No branch name provided");
-      return null;
-    }
-    
-    // Try exact match first
-    if (branchToLocCodeMap[branchName]) {
-      console.log(`✅ Exact match found: ${branchName} -> ${branchToLocCodeMap[branchName]}`);
-      return branchToLocCodeMap[branchName];
-    }
-    
-    // Try case-insensitive match
-    const branchNameLower = branchName.toLowerCase().trim();
-    for (const [key, value] of Object.entries(branchToLocCodeMap)) {
-      if (key.toLowerCase().trim() === branchNameLower) {
-        console.log(`✅ Case-insensitive match found: ${branchName} -> ${key} -> ${value}`);
-        return value;
-      }
-    }
-    
-    // Try partial match (remove "Branch" or "Store" suffix and try again)
-    const withoutBranch = branchName.replace(/\s*(Branch|Store)\s*$/i, '').trim();
-    if (branchToLocCodeMap[withoutBranch]) {
-      console.log(`✅ Partial match found: ${branchName} -> ${withoutBranch} -> ${branchToLocCodeMap[withoutBranch]}`);
-      return branchToLocCodeMap[withoutBranch];
-    }
-    for (const [key, value] of Object.entries(branchToLocCodeMap)) {
-      if (key.toLowerCase().trim() === withoutBranch.toLowerCase()) {
-        return value;
-      }
-    }
-
-    // Try finding in active stores from storeService / localStorage
-    try {
-      const activeStores = getActiveStores();
-      const foundStore = activeStores?.find(s => 
-        (s.locName && s.locName.toLowerCase().trim() === branchNameLower) ||
-        (s.name && s.name.toLowerCase().trim() === branchNameLower) ||
-        (s.label && s.label.toLowerCase().trim() === branchNameLower) ||
-        (s.locCode && s.locCode.toString().trim() === branchNameLower)
-      );
-      if (foundStore?.locCode) {
-        console.log(`✅ Match from activeStores: ${branchName} -> ${foundStore.locCode}`);
-        return foundStore.locCode.toString();
-      }
-    } catch (e) {}
-
-    // If branchName is itself digits (e.g. "858" or "155"), return it
-    if (/^\d+$/.test(branchName.trim())) {
-      return branchName.trim();
-    }
-
-    // Keyword heuristics
-    if (branchNameLower.includes("bridesberry") || branchNameLower.includes("brides berry")) return "155";
-    if (branchNameLower.includes("warehouse")) return "858";
-
-    // User locCode fallback
+    if (!branchName) return null;
+    // Stores come only from the backend; match the branch to a store by name or code.
+    const code = locCodeForStore(branchName, backendStores) || locCodeForStore(branchName);
+    if (code) return code;
+    if (/^\d+$/.test(branchName.trim())) return branchName.trim();
     const user = getUserInfo();
-    if (user?.locCode) {
-      return user.locCode.toString();
-    }
-    
-    console.log(`❌ No match found for branch: "${branchName}"`);
-    return null;
+    return user?.locCode ? user.locCode.toString() : null;
   };
 
   // Get user location code from localStorage (for default store creation)
@@ -2809,8 +2617,8 @@ Customer Service Available`;
         }
         
         // Check base name match
-        const stockBase = stockWarehouse.replace(/\s*(branch|warehouse|sg|g|z)\s*$/i, "").trim();
-        const targetBase = targetWarehouseLower.replace(/\s*(branch|warehouse|sg|g|z)\s*$/i, "").trim();
+        const stockBase = stockWarehouse.replace(/\s*branch\s*$/i, "").trim();
+        const targetBase = targetWarehouseLower.replace(/\s*branch\s*$/i, "").trim();
         
         if (stockBase && targetBase && stockBase === targetBase) {
           return true;
@@ -3246,7 +3054,7 @@ Customer Service Available`;
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* BILL TO */}
                   <div>
-                    <p className="mb-4 text-[11px] font-bold uppercase tracking-wider text-[#9D43D6]">
+                    <p className="mb-4 text-[11px] font-bold uppercase tracking-wider text-[#F2572B]">
                       BILL TO
                     </p>
                     <div className="space-y-4">
@@ -3266,7 +3074,7 @@ Customer Service Available`;
                         <label className="rf-field-label">
                           Phone Number <span className="required">*</span>
                         </label>
-                        <div className="flex h-[40px] rounded-[10px] border border-[#E5E5E5] bg-white overflow-hidden focus-within:border-[#9B48D7] focus-within:ring-1 focus-within:ring-[#9B48D7] transition-colors">
+                        <div className="flex h-[40px] rounded-[10px] border border-[#E5E5E5] bg-white overflow-hidden focus-within:border-[#F2572B] focus-within:ring-1 focus-within:ring-[#F2572B] transition-colors">
                           <span className="inline-flex items-center px-3.5 text-[13px] font-medium text-[#212121] border-r border-[#E5E5E5] bg-[#FAFAFA]">
                             +91
                           </span>
@@ -3295,7 +3103,7 @@ Customer Service Available`;
 
                   {/* INVOICE DETAILS */}
                   <div>
-                    <p className="mb-4 text-[11px] font-bold uppercase tracking-wider text-[#9D43D6]">
+                    <p className="mb-4 text-[11px] font-bold uppercase tracking-wider text-[#F2572B]">
                       INVOICE DETAILS
                     </p>
                     <div className="space-y-4">
@@ -3303,7 +3111,7 @@ Customer Service Available`;
                         <label className="rf-field-label">
                           Invoice Number <span className="required">*</span>
                         </label>
-                        <div className="flex h-[40px] items-center rounded-[10px] border border-[#E5E5E5] bg-white pl-3.5 pr-2 focus-within:border-[#9B48D7] focus-within:ring-1 focus-within:ring-[#9B48D7] transition-colors">
+                        <div className="flex h-[40px] items-center rounded-[10px] border border-[#E5E5E5] bg-white pl-3.5 pr-2 focus-within:border-[#F2572B] focus-within:ring-1 focus-within:ring-[#F2572B] transition-colors">
                           <input
                             value={invoiceNumber}
                             onChange={(e) => setInvoiceNumber(e.target.value)}
@@ -3337,7 +3145,7 @@ Customer Service Available`;
 
                 {/* CLASSIFICATION */}
                 <div className="mt-7 pt-6 border-t border-[#EFEFEF]">
-                  <p className="mb-4 text-[11px] font-bold uppercase tracking-wider text-[#9D43D6]">
+                  <p className="mb-4 text-[11px] font-bold uppercase tracking-wider text-[#F2572B]">
                     CLASSIFICATION
                   </p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -3363,16 +3171,9 @@ Customer Service Available`;
                             }}
                             className="w-full"
                           >
-                            {(() => {
-                              const activeStores = getActiveStores?.() || [];
-                              const storeNames = activeStores.map(s => s.locName || s.name).filter(Boolean);
-                              if (!storeNames.includes("Warehouse")) storeNames.unshift("Warehouse");
-                              if (!storeNames.includes("BridesBerry")) storeNames.push("BridesBerry");
-                              if (branch && !storeNames.includes(branch)) storeNames.push(branch);
-                              return storeNames.map(name => (
-                                <option key={name} value={name}>{name}</option>
-                              ));
-                            })()}
+                            {storeNameOptions(backendStores, branch).map(name => (
+                              <option key={name} value={name}>{name}</option>
+                            ))}
                           </AppSelect>
                         </div>
                       )}
@@ -3404,7 +3205,7 @@ Customer Service Available`;
                           <th className="w-10 px-3 py-3 text-center">
                             <input
                               type="checkbox"
-                              className="h-4 w-4 rounded-none border-gray-600 bg-transparent text-[#8B5CF6] focus:ring-0 cursor-pointer"
+                              className="h-4 w-4 rounded-none border-gray-600 bg-transparent text-[#F46A43] focus:ring-0 cursor-pointer"
                               checked={lineItems.length > 0 && selectedItems.size === lineItems.length}
                               onChange={(e) => {
                                 if (e.target.checked) {
@@ -3451,7 +3252,7 @@ Customer Service Available`;
                                   e.target.checked ? s.add(item.id) : s.delete(item.id);
                                   setSelectedItems(s);
                                 }}
-                                className="h-4 w-4 rounded-none border-[#D1D5DB] text-[#8B5CF6] focus:ring-[#8B5CF6] cursor-pointer"
+                                className="h-4 w-4 rounded-none border-[#D1D5DB] text-[#F46A43] focus:ring-[#F46A43] cursor-pointer"
                               />
                             </td>
                             <td className="px-3 py-2 align-middle">
@@ -3490,7 +3291,7 @@ Customer Service Available`;
                                 value={item.size || ""}
                                 onChange={(e) => handleLineItemChange(item.id, "size", e.target.value)}
                                 placeholder="-"
-                                className="w-full h-9 rounded-none border border-[#E5E7EB] px-2 text-center text-xs text-[#111827] focus:border-[#8B5CF6] focus:outline-none"
+                                className="w-full h-9 rounded-none border border-[#E5E7EB] px-2 text-center text-xs text-[#111827] focus:border-[#F46A43] focus:outline-none"
                               />
                             </td>
                             <td className="px-2 py-2 text-center align-middle">
@@ -3523,7 +3324,7 @@ Customer Service Available`;
                                 value={item.remarks || ""}
                                 onChange={(e) => handleLineItemChange(item.id, "remarks", e.target.value)}
                                 placeholder="-"
-                                className="w-full h-9 rounded-none border border-[#E5E7EB] px-2 text-center text-xs text-[#111827] focus:border-[#8B5CF6] focus:outline-none"
+                                className="w-full h-9 rounded-none border border-[#E5E7EB] px-2 text-center text-xs text-[#111827] focus:border-[#F46A43] focus:outline-none"
                               />
                             </td>
                             <td className="px-2 py-2 text-center align-middle">
@@ -3533,7 +3334,7 @@ Customer Service Available`;
                                 value={item.rate || ""}
                                 onChange={(e) => handleRateChange(item.id, e.target.value)}
                                 placeholder="-"
-                                className="w-full h-9 rounded-none border border-[#E5E7EB] px-2 text-center text-xs text-[#111827] focus:border-[#8B5CF6] focus:outline-none"
+                                className="w-full h-9 rounded-none border border-[#E5E7EB] px-2 text-center text-xs text-[#111827] focus:border-[#F46A43] focus:outline-none"
                               />
                             </td>
                             <td className="px-2 py-2 text-center align-middle">
@@ -3611,7 +3412,7 @@ Customer Service Available`;
             <div className="space-y-5">
               {/* PAYMENT METHOD */}
               <div>
-                <p className="mb-3 text-[11px] font-bold uppercase tracking-wider text-[#9D43D6]">
+                <p className="mb-3 text-[11px] font-bold uppercase tracking-wider text-[#F2572B]">
                   PAYMENT METHOD
                 </p>
                 <div className="grid grid-cols-2 gap-2.5">
@@ -3629,7 +3430,7 @@ Customer Service Available`;
                           isSelected ? "payment-method-selected" : ""
                         }`}
                         style={{
-                          border: isSelected ? "2px solid #8B5CF6" : "1.5px solid #E5E7EB",
+                          border: isSelected ? "2px solid #F46A43" : "1.5px solid #E5E7EB",
                           backgroundColor: isSelected ? "#F5F3FF" : "#FFFFFF",
                           borderRadius: "12px",
                           minHeight: "50px",
@@ -3659,7 +3460,7 @@ Customer Service Available`;
                           isSelected ? "payment-method-selected" : ""
                         }`}
                         style={{
-                          border: isSelected ? "2px solid #8B5CF6" : "1.5px solid #E5E7EB",
+                          border: isSelected ? "2px solid #F46A43" : "1.5px solid #E5E7EB",
                           backgroundColor: isSelected ? "#F5F3FF" : "#FFFFFF",
                           borderRadius: "12px",
                           minHeight: "50px",
@@ -3696,7 +3497,7 @@ Customer Service Available`;
                           isSelected ? "payment-method-selected" : ""
                         }`}
                         style={{
-                          border: isSelected ? "2px solid #8B5CF6" : "1.5px solid #E5E7EB",
+                          border: isSelected ? "2px solid #F46A43" : "1.5px solid #E5E7EB",
                           backgroundColor: isSelected ? "#F5F3FF" : "#FFFFFF",
                           borderRadius: "12px",
                           minHeight: "50px",
@@ -3726,7 +3527,7 @@ Customer Service Available`;
                           isSelected ? "payment-method-selected" : ""
                         }`}
                         style={{
-                          border: isSelected ? "2px solid #8B5CF6" : "1.5px solid #E5E7EB",
+                          border: isSelected ? "2px solid #F46A43" : "1.5px solid #E5E7EB",
                           backgroundColor: isSelected ? "#F5F3FF" : "#FFFFFF",
                           borderRadius: "12px",
                           minHeight: "50px",
@@ -3761,7 +3562,7 @@ Customer Service Available`;
                         {/* Cash Field */}
                         <div>
                           <div className="flex items-center justify-between mb-1">
-                            <label className="text-xs font-semibold text-[#8B5CF6]">Cash</label>
+                            <label className="text-xs font-semibold text-[#F46A43]">Cash</label>
                             {isUnder && diff > 0 && (
                               <button
                                 type="button"
@@ -3769,7 +3570,7 @@ Customer Service Available`;
                                   ...p,
                                   cash: (round2((parseFloat(p.cash) || 0) + diff)).toFixed(2)
                                 }))}
-                                className="text-[10px] text-[#8B5CF6] hover:underline font-medium cursor-pointer"
+                                className="text-[10px] text-[#F46A43] hover:underline font-medium cursor-pointer"
                                 title="Fill remaining balance into Cash"
                               >
                                 +Fill
@@ -3791,7 +3592,7 @@ Customer Service Available`;
                             className={`w-full min-w-0 h-9 rounded-md border px-2 text-xs text-center text-[#111827] focus:outline-none transition-colors ${
                               isOver ? "border-red-400 bg-red-50/40 focus:border-red-500" :
                               isMatched ? "border-green-400 bg-green-50/40 focus:border-green-500" :
-                              "border-[#E5E7EB] focus:border-[#8B5CF6]"
+                              "border-[#E5E7EB] focus:border-[#F46A43]"
                             }`}
                           />
                         </div>
@@ -3799,7 +3600,7 @@ Customer Service Available`;
                         {/* Card Field */}
                         <div>
                           <div className="flex items-center justify-between mb-1">
-                            <label className="text-xs font-semibold text-[#8B5CF6]">Card</label>
+                            <label className="text-xs font-semibold text-[#F46A43]">Card</label>
                             {isUnder && diff > 0 && (
                               <button
                                 type="button"
@@ -3807,7 +3608,7 @@ Customer Service Available`;
                                   ...p,
                                   bank: (round2((parseFloat(p.bank) || 0) + diff)).toFixed(2)
                                 }))}
-                                className="text-[10px] text-[#8B5CF6] hover:underline font-medium cursor-pointer"
+                                className="text-[10px] text-[#F46A43] hover:underline font-medium cursor-pointer"
                                 title="Fill remaining balance into Card"
                               >
                                 +Fill
@@ -3829,7 +3630,7 @@ Customer Service Available`;
                             className={`w-full min-w-0 h-9 rounded-md border px-2 text-xs text-center text-[#111827] focus:outline-none transition-colors ${
                               isOver ? "border-red-400 bg-red-50/40 focus:border-red-500" :
                               isMatched ? "border-green-400 bg-green-50/40 focus:border-green-500" :
-                              "border-[#E5E7EB] focus:border-[#8B5CF6]"
+                              "border-[#E5E7EB] focus:border-[#F46A43]"
                             }`}
                           />
                         </div>
@@ -3837,7 +3638,7 @@ Customer Service Available`;
                         {/* UPI Field */}
                         <div>
                           <div className="flex items-center justify-between mb-1">
-                            <label className="text-xs font-semibold text-[#8B5CF6]">UPI</label>
+                            <label className="text-xs font-semibold text-[#F46A43]">UPI</label>
                             {isUnder && diff > 0 && (
                               <button
                                 type="button"
@@ -3845,7 +3646,7 @@ Customer Service Available`;
                                   ...p,
                                   upi: (round2((parseFloat(p.upi) || 0) + diff)).toFixed(2)
                                 }))}
-                                className="text-[10px] text-[#8B5CF6] hover:underline font-medium cursor-pointer"
+                                className="text-[10px] text-[#F46A43] hover:underline font-medium cursor-pointer"
                                 title="Fill remaining balance into UPI"
                               >
                                 +Fill
@@ -3867,7 +3668,7 @@ Customer Service Available`;
                             className={`w-full min-w-0 h-9 rounded-md border px-2 text-xs text-center text-[#111827] focus:outline-none transition-colors ${
                               isOver ? "border-red-400 bg-red-50/40 focus:border-red-500" :
                               isMatched ? "border-green-400 bg-green-50/40 focus:border-green-500" :
-                              "border-[#E5E7EB] focus:border-[#8B5CF6]"
+                              "border-[#E5E7EB] focus:border-[#F46A43]"
                             }`}
                           />
                         </div>
@@ -3964,7 +3765,7 @@ Customer Service Available`;
 
               {/* DISCOUNT */}
               <div className="rounded-xl bg-[#F3F4F6]/80 p-3.5 border border-[#E5E5E5]">
-                <p className="text-[11px] font-bold uppercase tracking-wider text-[#9D43D6] mb-2">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-[#F2572B] mb-2">
                   DISCOUNT
                 </p>
                 <div className="flex items-center gap-1.5 w-full">
@@ -3980,8 +3781,8 @@ Customer Service Available`;
                     onClick={() => setDiscount((prev) => ({ ...prev, type: "₹" }))}
                     className={`h-[40px] w-10 shrink-0 flex items-center justify-center rounded-[10px] border text-sm font-semibold transition-colors cursor-pointer ${
                       discount.type === "₹"
-                        ? "border-[#9D43D6] bg-[#FBF5FC] text-[#9D43D6]"
-                        : "border-[#E5E5E5] bg-white text-[#9D43D6] hover:bg-[#F7F7F7]"
+                        ? "border-[#F2572B] bg-[#FEF3EE] text-[#F2572B]"
+                        : "border-[#E5E5E5] bg-white text-[#F2572B] hover:bg-[#F7F7F7]"
                     }`}
                   >
                     ₹
@@ -3991,8 +3792,8 @@ Customer Service Available`;
                     onClick={() => setDiscount((prev) => ({ ...prev, type: "%" }))}
                     className={`h-[40px] w-10 shrink-0 flex items-center justify-center rounded-[10px] border text-sm font-semibold transition-colors cursor-pointer ${
                       discount.type === "%"
-                        ? "border-[#9D43D6] bg-[#FBF5FC] text-[#9D43D6]"
-                        : "border-[#E5E5E5] bg-white text-[#9D43D6] hover:bg-[#F7F7F7]"
+                        ? "border-[#F2572B] bg-[#FEF3EE] text-[#F2572B]"
+                        : "border-[#E5E5E5] bg-white text-[#F2572B] hover:bg-[#F7F7F7]"
                     }`}
                   >
                     %
@@ -5068,7 +4869,7 @@ const SalesPersonSelect = ({ label, placeholder, value, onChange, options = [], 
           placeholder={placeholder}
           disabled={disabled}
           className={`w-full h-[42px] rounded-none border px-3.5 pr-10 text-sm transition ${
-            open ? "border-[#8b5cf6]" : "border-[#e5e7eb]"
+            open ? "border-[#F46A43]" : "border-[#e5e7eb]"
           } ${disabled ? "bg-[#f1f5f9] text-[#94a3b8] cursor-not-allowed" : "bg-white text-[#111827]"} placeholder:text-[#9ca3af] focus:outline-none`}
         />
         <button
@@ -5108,11 +4909,11 @@ const SalesPersonSelect = ({ label, placeholder, value, onChange, options = [], 
           <div className="max-h-48 overflow-y-auto">
             {search.trim() && !options.some(opt => (typeof opt === 'string' ? opt : opt.name || opt.fullName).toLowerCase() === search.trim().toLowerCase()) && (
               <div
-                className="px-4 py-2 text-sm bg-purple-50 text-[#8b5cf6] hover:bg-purple-100 cursor-pointer font-medium border-b border-[#e5e7eb] flex items-center justify-between"
+                className="px-4 py-2 text-sm bg-purple-50 text-[#F46A43] hover:bg-purple-100 cursor-pointer font-medium border-b border-[#e5e7eb] flex items-center justify-between"
                 onClick={() => handleOptionSelect(search.trim())}
               >
                 <span>Select "<strong>{search.trim()}</strong>"</span>
-                <span className="text-[11px] bg-[#8b5cf6] text-white px-2 py-0.5 rounded font-normal">Use</span>
+                <span className="text-[11px] bg-[#F46A43] text-white px-2 py-0.5 rounded font-normal">Use</span>
               </div>
             )}
             {filteredOptions.length === 0 ? (

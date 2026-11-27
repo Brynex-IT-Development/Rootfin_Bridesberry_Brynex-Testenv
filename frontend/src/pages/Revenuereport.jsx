@@ -5,6 +5,7 @@ import { useSidebar } from "../hooks/useSidebar.js";
 import { CSVLink } from "react-csv";
 import { FiDownload, FiPrinter } from "react-icons/fi";
 import { Loader2 } from "lucide-react";
+import ReportStoreFilter, { useReportStoreFilter } from "../components/ReportStoreFilter.jsx";
 
 // Helper to format date into "01 Sep, 2026"
 const formatDisplayDate = (dateStr) => {
@@ -86,7 +87,7 @@ const Revenuereport = () => {
   const [hasFetched, setHasFetched] = useState(false);
 
   const printRef = useRef(null);
-  const currentusers = JSON.parse(localStorage.getItem("rootfinuser") || "{}");
+  const storeFilter = useReportStoreFilter();
 
   const handleFetch = async () => {
     if (!fromDate || !toDate) {
@@ -103,7 +104,9 @@ const Revenuereport = () => {
     setHasFetched(true);
 
     try {
-      const locCode = currentusers?.locCode || "";
+      // Admin/Super Admin can pick a store or "All Stores"; others use their own store
+      const fetchForStore = async (locCode) => {
+      const storeName = storeFilter.storeLabel(locCode);
       const baseUrl1 = "https://rentalapi.rootments.live/api/GetBooking";
       const bookingUrl = `${baseUrl1}/GetBookingList?LocCode=${locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
       const rentoutUrl = `${baseUrl1}/GetRentoutList?LocCode=${locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
@@ -134,6 +137,7 @@ const Revenuereport = () => {
           category: "Booking",
           subCategory: "Advance",
           difference: totalAmount,
+          storeName,
         };
       });
 
@@ -158,11 +162,15 @@ const Revenuereport = () => {
           category: "Rent Out",
           subCategory: "Balance Payable",
           difference: diff,
+          storeName,
         };
       });
 
-      const combined = [...rentoutList, ...bookingList];
-      setRevenueData(combined);
+      return [...rentoutList, ...bookingList];
+      };
+
+      const perStore = await Promise.all(storeFilter.locCodesToQuery().map((code) => fetchForStore(code)));
+      setRevenueData(perStore.flat());
     } catch (error) {
       console.error("Error fetching revenue report:", error);
       alert("Error fetching data. Please try again.");
@@ -318,13 +326,15 @@ const Revenuereport = () => {
                   />
                 </div>
 
+                <ReportStoreFilter filter={storeFilter} />
+
                 {/* Fetch Data Button */}
                 <button
                   type="button"
                   data-no-confirm="true"
                   onClick={handleFetch}
                   disabled={loading}
-                  className="rf-btn-primary !h-[40px] !px-6 !rounded-[10px] !bg-[#9D43D6] hover:!bg-[#8732BE] !text-[13px] !font-medium inline-flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer shadow-[0_2px_8px_rgba(157,67,214,0.24)]"
+                  className="rf-btn-primary !h-[40px] !px-6 !rounded-[10px] !bg-[#F2572B] hover:!bg-[#D9431A] !text-[13px] !font-medium inline-flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer shadow-[0_2px_8px_rgba(242, 87, 43,0.24)]"
                 >
                   {loading && <Loader2 className="w-4 h-4 animate-spin" />}
                   <span>{loading ? "Fetching..." : "Fetch Data"}</span>
@@ -423,7 +433,7 @@ const Revenuereport = () => {
                           className="py-16 text-center text-[#6A6A6A]"
                         >
                           <div className="flex flex-col items-center justify-center gap-3">
-                            <Loader2 className="w-7 h-7 animate-spin text-[#9D43D6]" />
+                            <Loader2 className="w-7 h-7 animate-spin text-[#F2572B]" />
                             <span className="text-[13px] font-medium">
                               Fetching revenue records...
                             </span>
@@ -434,7 +444,7 @@ const Revenuereport = () => {
                       revenueData.map((row, idx) => (
                         <tr
                           key={idx}
-                          className="hover:bg-[#FAF5FF]/60 transition-colors"
+                          className="hover:bg-[#FEF3EE]/60 transition-colors"
                         >
                           {/* Date & Time */}
                           <td className="py-3.5 px-4 border-r border-[#F5F5F5] whitespace-nowrap">
@@ -451,6 +461,9 @@ const Revenuereport = () => {
                           {/* Invoice No */}
                           <td className="py-3.5 px-4 border-r border-[#F5F5F5] whitespace-nowrap text-[#3F3F46] tabular-nums">
                             {row.invoiceNo}
+                            {storeFilter.isAllStores && row.storeName && (
+                              <div className="text-[11px] text-[#8A8A8A] font-normal">{row.storeName}</div>
+                            )}
                           </td>
 
                           {/* Customer Name */}

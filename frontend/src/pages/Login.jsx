@@ -254,7 +254,7 @@ const Login = () => {
                   <label className="block text-[13px] font-medium text-[#212121] mb-2">
                     Email
                   </label>
-                  <div className="flex items-center h-[46px] rounded-[10px] border border-[#E5E5E5] bg-white px-3.5 focus-within:border-[#9D43D6] focus-within:ring-2 focus-within:ring-[#9D43D6]/15 transition-all">
+                  <div className="flex items-center h-[46px] rounded-[10px] border border-[#E5E5E5] bg-white px-3.5 focus-within:border-[#F2572B] focus-within:ring-2 focus-within:ring-[#F2572B]/15 transition-all">
                     <input
                       type="email"
                       value={email}
@@ -264,7 +264,7 @@ const Login = () => {
                       className="flex-1 h-full text-[13px] text-[#212121] placeholder:text-[#A1A1AA] bg-transparent border-0 outline-none min-w-0"
                     />
                     <span className="h-5 w-[1px] bg-[#EBEBEB] mx-3 shrink-0" />
-                    <Mail size={17} className="text-[#9D43D6] shrink-0" />
+                    <Mail size={17} className="text-[#F2572B] shrink-0" />
                   </div>
                 </div>
 
@@ -273,7 +273,7 @@ const Login = () => {
                   <label className="block text-[13px] font-medium text-[#212121] mb-2">
                     Password
                   </label>
-                  <div className="flex items-center h-[46px] rounded-[10px] border border-[#E5E5E5] bg-white px-3.5 focus-within:border-[#9D43D6] focus-within:ring-2 focus-within:ring-[#9D43D6]/15 transition-all">
+                  <div className="flex items-center h-[46px] rounded-[10px] border border-[#E5E5E5] bg-white px-3.5 focus-within:border-[#F2572B] focus-within:ring-2 focus-within:ring-[#F2572B]/15 transition-all">
                     <input
                       type={showPassword ? 'text' : 'password'}
                       value={EmpId}
@@ -286,7 +286,7 @@ const Login = () => {
                     <button
                       type="button"
                       onClick={() => setShowPassword((prev) => !prev)}
-                      className="text-[#9D43D6] hover:text-[#7E22CE] transition-colors cursor-pointer flex items-center justify-center shrink-0"
+                      className="text-[#F2572B] hover:text-[#D9431A] transition-colors cursor-pointer flex items-center justify-center shrink-0"
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
                     >
                       {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
@@ -356,7 +356,7 @@ const Login = () => {
                   <label className="block text-[13px] font-medium text-[#212121] mb-1.5">
                     Email
                   </label>
-                  <div className="flex items-center h-[44px] rounded-[10px] border border-[#E5E5E5] bg-white px-3.5 focus-within:border-[#9D43D6]">
+                  <div className="flex items-center h-[44px] rounded-[10px] border border-[#E5E5E5] bg-white px-3.5 focus-within:border-[#F2572B]">
                     <input
                       type="email"
                       value={resetEmail}
@@ -365,7 +365,7 @@ const Login = () => {
                       className="flex-1 h-full text-[13px] text-[#212121] placeholder:text-[#A1A1AA] bg-transparent border-0 outline-none min-w-0"
                     />
                     <span className="h-5 w-[1px] bg-[#EBEBEB] mx-3 shrink-0" />
-                    <Mail size={16} className="text-[#9D43D6] shrink-0" />
+                    <Mail size={16} className="text-[#F2572B] shrink-0" />
                   </div>
                 </div>
 
@@ -373,7 +373,7 @@ const Login = () => {
                   <label className="block text-[13px] font-medium text-[#212121] mb-1.5">
                     New Password
                   </label>
-                  <div className="flex items-center h-[44px] rounded-[10px] border border-[#E5E5E5] bg-white px-3.5 focus-within:border-[#9D43D6]">
+                  <div className="flex items-center h-[44px] rounded-[10px] border border-[#E5E5E5] bg-white px-3.5 focus-within:border-[#F2572B]">
                     <input
                       type={showNewPassword ? 'text' : 'password'}
                       value={newPassword}
@@ -385,7 +385,7 @@ const Login = () => {
                     <button
                       type="button"
                       onClick={() => setShowNewPassword((prev) => !prev)}
-                      className="text-[#9D43D6] cursor-pointer"
+                      className="text-[#F2572B] cursor-pointer"
                     >
                       {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
@@ -396,7 +396,7 @@ const Login = () => {
                   <label className="block text-[13px] font-medium text-[#212121] mb-1.5">
                     Confirm Password
                   </label>
-                  <div className="flex items-center h-[44px] rounded-[10px] border border-[#E5E5E5] bg-white px-3.5 focus-within:border-[#9D43D6]">
+                  <div className="flex items-center h-[44px] rounded-[10px] border border-[#E5E5E5] bg-white px-3.5 focus-within:border-[#F2572B]">
                     <input
                       type={showConfirmPassword ? 'text' : 'password'}
                       value={confirmPassword}
@@ -408,7 +408,7 @@ const Login = () => {
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword((prev) => !prev)}
-                      className="text-[#9D43D6] cursor-pointer"
+                      className="text-[#F2572B] cursor-pointer"
                     >
                       {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>

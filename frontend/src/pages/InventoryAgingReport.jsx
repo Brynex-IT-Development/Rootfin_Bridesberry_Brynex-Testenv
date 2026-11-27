@@ -29,10 +29,11 @@ import {
   Gem,
 } from "lucide-react";
 import { useSidebar } from "../hooks/useSidebar.js";
-import { useActiveStores } from "../utils/storeService.js";
+import { useActiveStores, isWarehouseStore, getWarehouseStore } from "../utils/storeService.js";
 import { mapLocNameToWarehouse } from "../utils/warehouseMapping.js";
 
 import AppSelect, { appSelectStyles } from "../components/AppSelect.jsx";
+import { isAdminOrSuperAdmin } from "../utils/roleUtils";
 // Helper to format currency
 const formatCurrency = (amount) => {
   if (amount === undefined || amount === null || isNaN(amount)) return "₹0.00";
@@ -45,11 +46,11 @@ const customSelectStyles = {
   control: (provided, state) => ({
     ...provided,
     backgroundColor: "#ffffff",
-    borderColor: state.isFocused ? "#9333ea" : "#d1d5db",
+    borderColor: state.isFocused ? "#F2572B" : "#d1d5db",
     borderRadius: "0.5rem",
     padding: "1px 2px",
     minHeight: "40px",
-    boxShadow: state.isFocused ? "0 0 0 2px rgba(147, 51, 234, 0.2)" : "none",
+    boxShadow: state.isFocused ? "0 0 0 2px rgba(242, 87, 43, 0.2)" : "none",
     "&:hover": {
       borderColor: "#9ca3af",
     },
@@ -60,9 +61,9 @@ const customSelectStyles = {
   option: (provided, state) => ({
     ...provided,
     backgroundColor: state.isSelected
-      ? "#9333ea"
+      ? "#F2572B"
       : state.isFocused
-      ? "#f3e8ff"
+      ? "#FDE3D9"
       : "#ffffff",
     color: state.isSelected ? "#ffffff" : "#374151",
     fontSize: "0.875rem",
@@ -163,18 +164,14 @@ const InventoryAgingReport = () => {
   const [draftAsOfDate, setDraftAsOfDate] = useState(() => new Date().toISOString().split("T")[0]);
 
   const currentUser = JSON.parse(localStorage.getItem("rootfinuser") || "{}");
-  const adminEmails = [
-    "officerootments@gmail.com",
-    "operationsrootments@gmail.com",
-    "headoffice01@gmail.com",
-  ];
   const isAdmin =
     (currentUser?.power || "").toLowerCase() === "admin" ||
     (currentUser?.power || "").toLowerCase() === "super_admin" ||
     (currentUser?.role || "").toLowerCase() === "admin" ||
     (currentUser?.role || "").toLowerCase() === "superadmin" ||
-    adminEmails.some((email) => (currentUser?.email || "").toLowerCase() === email.toLowerCase()) ||
-    ["858", "103"].includes(currentUser?.locCode);
+    isAdminOrSuperAdmin(currentUser) ||
+    isAdminOrSuperAdmin(currentUser) ||
+    isWarehouseStore(currentUser?.locCode);
   const isClusterManager = (currentUser?.role || "").toLowerCase() === "cluster_manager";
   const clusterAllowedLocCodes = currentUser?.allowedLocCodes || [];
   const isMainAdmin = isAdmin;
@@ -196,10 +193,11 @@ const InventoryAgingReport = () => {
   const resolvedUserStore = userStoreByName || userStoreByCode || null;
   const isDedicatedStoreAccount = Boolean(
     resolvedUserStore &&
-    !["858", "103"].includes(resolvedUserStore.locCode) &&
-    !adminEmails.includes(currentUserEmail)
+    !isWarehouseStore(resolvedUserStore.locCode) &&
+    !isAdminOrSuperAdmin(currentUser)
   );
-  const canChooseStore = (isMainAdmin && !isDedicatedStoreAccount) || isClusterManager;
+  // Admin / Super Admin can always choose a store (even after switching store in the header)
+  const canChooseStore = isAdminOrSuperAdmin(currentUser) || (isMainAdmin && !isDedicatedStoreAccount) || isClusterManager;
 
   useEffect(() => {
     if (!canChooseStore) {
@@ -207,12 +205,8 @@ const InventoryAgingReport = () => {
         setSelectedStore(resolvedUserStore.locName);
       } else if (currentUser?.storeName || currentUser?.locName) {
         setSelectedStore(currentUser.storeName || currentUser.locName);
-      } else if (currentUser?.locCode === "155") {
-        setSelectedStore("Brides Berry");
-      } else if (currentUser?.locCode === "718") {
-        setSelectedStore("MG Road");
       } else {
-        setSelectedStore("Warehouse");
+        setSelectedStore(getWarehouseStore()?.locName || "");
       }
     }
   }, [activeStores, canChooseStore, resolvedUserStore]);
@@ -248,7 +242,7 @@ const InventoryAgingReport = () => {
       );
       const reportLocCode = !canChooseStore
         ? (resolvedUserStore?.locCode || selectedStoreRecord?.locCode || currentUser?.locCode || "")
-        : (selectedStoreRecord?.locCode || currentUser?.locCode || "");
+        : (warehouseParam === "All Stores" ? "" : (selectedStoreRecord?.locCode || ""));
 
       const params = new URLSearchParams({
         warehouse: warehouseParam,
@@ -282,7 +276,7 @@ const InventoryAgingReport = () => {
 
           // Reconcile the aging rows with the same live stock source used by
           // the item detail page. This also handles legacy duplicate names
-          // such as "BridesBerry" and "Brides Berry" without picking a stale 0 row.
+          // such as "StoreName" and "Store Name" without picking a stale 0 row.
           try {
             const stockWarehouse = mapLocNameToWarehouse(warehouseParam) || warehouseParam;
             const stockParams = new URLSearchParams({
@@ -689,7 +683,7 @@ const InventoryAgingReport = () => {
               title="Refresh report"
               className="inline-flex h-[38px] w-[38px] items-center justify-center rounded-[10px] bg-[#EFEFF1] hover:bg-[#E4E4E7] text-[#1B1B1B] transition-colors disabled:opacity-50 cursor-pointer"
             >
-              <RefreshCw size={15} className={loading ? "animate-spin text-[#9D43D6]" : "text-[#1B1B1B]"} />
+              <RefreshCw size={15} className={loading ? "animate-spin text-[#F2572B]" : "text-[#1B1B1B]"} />
             </button>
           </div>
         </div>
@@ -706,7 +700,7 @@ const InventoryAgingReport = () => {
                 onClick={handleToggleFilters}
                 className={`inline-flex h-[38px] items-center gap-2 rounded-[10px] px-4 text-[13px] font-medium transition-colors cursor-pointer border ${
                   filtersExpanded
-                    ? "bg-white border-[#9D43D6] text-[#1B1B1B] shadow-[0_0_0_2px_rgba(157,67,214,0.12)]"
+                    ? "bg-white border-[#F2572B] text-[#1B1B1B] shadow-[0_0_0_2px_rgba(242, 87, 43,0.12)]"
                     : "bg-[#F7F7F8] border-[#E5E5E5] text-[#1B1B1B] hover:bg-[#EFEFF1]"
                 }`}
               >
@@ -754,24 +748,24 @@ const InventoryAgingReport = () => {
             {!filtersExpanded && (
               <div className="mt-3.5 pt-3.5 border-t border-[#F1F1F1] flex flex-wrap items-center justify-between gap-2.5">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="inline-flex items-center rounded-[8px] bg-[#FAF5FF] px-3 py-1.5 text-[12px] font-medium text-[#9D43D6]">
+                  <span className="inline-flex items-center rounded-[8px] bg-[#FEF3EE] px-3 py-1.5 text-[12px] font-medium text-[#F2572B]">
                     Store : {selectedStore}
                   </span>
-                  <span className="inline-flex items-center rounded-[8px] bg-[#FAF5FF] px-3 py-1.5 text-[12px] font-medium text-[#9D43D6]">
+                  <span className="inline-flex items-center rounded-[8px] bg-[#FEF3EE] px-3 py-1.5 text-[12px] font-medium text-[#F2572B]">
                     Item Group : {activeGroupLabel}
                   </span>
-                  <span className="inline-flex items-center rounded-[8px] bg-[#FAF5FF] px-3 py-1.5 text-[12px] font-medium text-[#9D43D6]">
+                  <span className="inline-flex items-center rounded-[8px] bg-[#FEF3EE] px-3 py-1.5 text-[12px] font-medium text-[#F2572B]">
                     {activeBracketLabel}
                   </span>
-                  <span className="inline-flex items-center rounded-[8px] bg-[#FAF5FF] px-3 py-1.5 text-[12px] font-medium text-[#9D43D6]">
+                  <span className="inline-flex items-center rounded-[8px] bg-[#FEF3EE] px-3 py-1.5 text-[12px] font-medium text-[#F2572B]">
                     Category : {activeCategoryLabel}
                   </span>
                   {selectedSalesStatus !== "all" && (
-                    <span className="inline-flex items-center rounded-[8px] bg-[#FAF5FF] px-3 py-1.5 text-[12px] font-medium text-[#9D43D6]">
+                    <span className="inline-flex items-center rounded-[8px] bg-[#FEF3EE] px-3 py-1.5 text-[12px] font-medium text-[#F2572B]">
                       Sales : {activeSalesLabel}
                     </span>
                   )}
-                  <span className="inline-flex items-center rounded-[8px] bg-[#FAF5FF] px-3 py-1.5 text-[12px] font-medium text-[#9D43D6]">
+                  <span className="inline-flex items-center rounded-[8px] bg-[#FEF3EE] px-3 py-1.5 text-[12px] font-medium text-[#F2572B]">
                     Evaluation Date : {formatDisplayDate(asOfDate)}
                   </span>
                 </div>
@@ -876,7 +870,7 @@ const InventoryAgingReport = () => {
                       type="date"
                       value={draftAsOfDate}
                       onChange={(e) => setDraftAsOfDate(e.target.value)}
-                      className="w-full h-[40px] px-3 rounded-[10px] border border-[#E5E5E5] bg-white text-[13px] text-[#1B1B1B] focus:outline-none focus:border-[#9D43D6] focus:ring-2 focus:ring-[#9D43D6]/15 transition-all"
+                      className="w-full h-[40px] px-3 rounded-[10px] border border-[#E5E5E5] bg-white text-[13px] text-[#1B1B1B] focus:outline-none focus:border-[#F2572B] focus:ring-2 focus:ring-[#F2572B]/15 transition-all"
                     />
                   </div>
                 </div>
@@ -894,7 +888,7 @@ const InventoryAgingReport = () => {
                     type="button"
                     data-no-confirm="true"
                     onClick={handleApplyFilters}
-                    className="h-[36px] px-5 rounded-[10px] bg-[#9D43D6] hover:bg-[#8732BE] text-[12.5px] font-semibold text-white shadow-[0_2px_8px_rgba(157,67,214,0.28)] transition-colors cursor-pointer"
+                    className="h-[36px] px-5 rounded-[10px] bg-[#F2572B] hover:bg-[#D9431A] text-[12.5px] font-semibold text-white shadow-[0_2px_8px_rgba(242, 87, 43,0.28)] transition-colors cursor-pointer"
                   >
                     Apply Filter
                   </button>
@@ -910,7 +904,7 @@ const InventoryAgingReport = () => {
               <div className="bg-white rounded-[14px] border border-[#EAEAEA] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-[13px] font-medium text-[#212121]">Total Stock</span>
-                  <div className="w-8 h-8 rounded-[8px] bg-[#F5EEFD] text-[#9D43D6] flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-[8px] bg-[#FEF3EE] text-[#F2572B] flex items-center justify-center shrink-0">
                     <Package size={16} />
                   </div>
                 </div>
@@ -930,7 +924,7 @@ const InventoryAgingReport = () => {
               <div className="bg-white rounded-[14px] border border-[#EAEAEA] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-[13px] font-medium text-[#212121]">Stock Valuation</span>
-                  <div className="w-8 h-8 rounded-[8px] bg-[#F5EEFD] text-[#9D43D6] flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-[8px] bg-[#FEF3EE] text-[#F2572B] flex items-center justify-center shrink-0">
                     <Layers size={16} />
                   </div>
                 </div>
@@ -948,7 +942,7 @@ const InventoryAgingReport = () => {
               <div className="bg-white rounded-[14px] border border-[#EAEAEA] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-[13px] font-medium text-[#212121]">Total Sale</span>
-                  <div className="w-8 h-8 rounded-[8px] bg-[#F5EEFD] text-[#9D43D6] flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-[8px] bg-[#FEF3EE] text-[#F2572B] flex items-center justify-center shrink-0">
                     <ShoppingCart size={16} />
                   </div>
                 </div>
@@ -968,7 +962,7 @@ const InventoryAgingReport = () => {
               <div className="bg-white rounded-[14px] border border-[#EAEAEA] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-[13px] font-medium text-[#212121]">Avg Stock Age</span>
-                  <div className="w-8 h-8 rounded-[8px] bg-[#F5EEFD] text-[#9D43D6] flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-[8px] bg-[#FEF3EE] text-[#F2572B] flex items-center justify-center shrink-0">
                     <CalendarClock size={16} />
                   </div>
                 </div>
@@ -1037,7 +1031,7 @@ const InventoryAgingReport = () => {
                     setCurrentPage(1);
                   }}
                   placeholder="search by item name, SKU, stock, warehouse..."
-                  className="w-full h-[38px] pl-9 pr-3.5 rounded-[10px] border border-[#E5E5E5] bg-white text-[12.5px] text-[#1B1B1B] placeholder:text-[#9A9A9A] focus:outline-none focus:border-[#9D43D6] focus:ring-2 focus:ring-[#9D43D6]/15 transition-all"
+                  className="w-full h-[38px] pl-9 pr-3.5 rounded-[10px] border border-[#E5E5E5] bg-white text-[12.5px] text-[#1B1B1B] placeholder:text-[#9A9A9A] focus:outline-none focus:border-[#F2572B] focus:ring-2 focus:ring-[#F2572B]/15 transition-all"
                 />
               </div>
 
@@ -1049,11 +1043,11 @@ const InventoryAgingReport = () => {
                   onClick={() => setGroupByBracketView(!groupByBracketView)}
                   className={`inline-flex h-[38px] items-center gap-2 rounded-[10px] border px-3.5 text-[12.5px] font-medium transition-colors cursor-pointer ${
                     groupByBracketView
-                      ? "bg-[#FAF5FF] text-[#9D43D6] border-[#9D43D6]"
+                      ? "bg-[#FEF3EE] text-[#F2572B] border-[#F2572B]"
                       : "bg-white text-[#1B1B1B] border-[#E5E5E5] hover:bg-[#F7F7F8]"
                   }`}
                 >
-                  <Layers size={14} className={groupByBracketView ? "text-[#9D43D6]" : "text-[#6A6A6A]"} />
+                  <Layers size={14} className={groupByBracketView ? "text-[#F2572B]" : "text-[#6A6A6A]"} />
                   <span>Group By : Bracket</span>
                 </button>
 
@@ -1066,7 +1060,7 @@ const InventoryAgingReport = () => {
                       setHideZeroStock(e.target.checked);
                       setCurrentPage(1);
                     }}
-                    className="w-3.5 h-3.5 accent-[#9D43D6] rounded border-[#D4D4D8]"
+                    className="w-3.5 h-3.5 accent-[#F2572B] rounded border-[#D4D4D8]"
                   />
                   <span>In Stock Only</span>
                 </label>
@@ -1077,7 +1071,7 @@ const InventoryAgingReport = () => {
                   <AppSelect
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="h-[38px] px-3 rounded-[10px] border border-[#E5E5E5] text-[12.5px] font-medium text-[#1B1B1B] bg-white focus:outline-none focus:border-[#9D43D6] cursor-pointer"
+                    className="h-[38px] px-3 rounded-[10px] border border-[#E5E5E5] text-[12.5px] font-medium text-[#1B1B1B] bg-white focus:outline-none focus:border-[#F2572B] cursor-pointer"
                   >
                     <option value="age_desc">Oldest Stock First</option>
                     <option value="age_asc">Newest Stock First</option>
@@ -1097,7 +1091,7 @@ const InventoryAgingReport = () => {
                         setItemsPerPage(e.target.value);
                         setCurrentPage(1);
                       }}
-                      className="h-[38px] px-2.5 rounded-[10px] border border-[#E5E5E5] text-[12.5px] font-medium text-[#1B1B1B] bg-white focus:outline-none focus:border-[#9D43D6] cursor-pointer"
+                      className="h-[38px] px-2.5 rounded-[10px] border border-[#E5E5E5] text-[12.5px] font-medium text-[#1B1B1B] bg-white focus:outline-none focus:border-[#F2572B] cursor-pointer"
                     >
                       <option value="25">25</option>
                       <option value="50">50</option>
@@ -1113,7 +1107,7 @@ const InventoryAgingReport = () => {
             <div className="p-4 pt-3">
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-16 text-[#6A6A6A]">
-                  <Loader2 size={30} className="animate-spin text-[#9D43D6] mb-3" />
+                  <Loader2 size={30} className="animate-spin text-[#F2572B] mb-3" />
                   <p className="text-[13px] font-medium">Calculating stock age, groups, and sales data...</p>
                 </div>
               ) : processedItems.length === 0 ? (
@@ -1129,17 +1123,17 @@ const InventoryAgingReport = () => {
                 <div className="space-y-5">
                   {groupedByBracketData.map((section) => (
                     <div key={section.key} className="rounded-[12px] border border-[#EAEAEA] overflow-hidden">
-                      <div className="px-4 py-3 bg-[#FAF5FF] border-b border-[#EFE6FA] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div className="px-4 py-3 bg-[#FEF3EE] border-b border-[#FDE3D9] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div className="flex items-center gap-2.5">
                           <span className="text-[13px] font-bold text-[#1B1B1B]">{section.label}</span>
-                          <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-white font-semibold text-[#9D43D6] border border-[#E9D5FF]">
+                          <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-white font-semibold text-[#F2572B] border border-[#FCCAB9]">
                             {section.items.length} items
                           </span>
                         </div>
                         <div className="flex items-center gap-4 text-[12px] font-medium text-[#525252]">
                           <span>Stock: <strong className="text-[#1B1B1B]">{section.totalStock.toLocaleString()} pcs</strong></span>
                           <span>Valuation: <strong className="text-[#16A34A]">{formatCurrency(section.totalVal)}</strong></span>
-                          <span>Sales: <strong className="text-[#9D43D6]">{section.totalSold.toLocaleString()} pcs</strong></span>
+                          <span>Sales: <strong className="text-[#F2572B]">{section.totalSold.toLocaleString()} pcs</strong></span>
                         </div>
                       </div>
 
@@ -1168,7 +1162,7 @@ const InventoryAgingReport = () => {
                               {section.items.map((item, idx) => (
                                 <tr
                                   key={`${item.itemId}_${item.warehouse}_${idx}`}
-                                  className="even:bg-[#FAF7FD]/60 hover:bg-[#F5EEFD]/70 transition-colors"
+                                  className="even:bg-[#FEF3EE]/60 hover:bg-[#FEF3EE]/70 transition-colors"
                                 >
                                   <td className="py-3.5 px-4 text-[#525252] font-medium">{idx + 1}</td>
                                   <td className="py-3.5 px-4">
@@ -1196,7 +1190,7 @@ const InventoryAgingReport = () => {
                                     <div className="text-[11px] text-[#8A8A8A]">{item.inwardSource || "Initial Stock"}</div>
                                   </td>
                                   <td className="py-3.5 px-4 text-center">
-                                    <span className="inline-flex items-center px-3 py-1 rounded-[6px] text-[12px] font-semibold bg-[#F5EEFD] text-[#9D43D6]">
+                                    <span className="inline-flex items-center px-3 py-1 rounded-[6px] text-[12px] font-semibold bg-[#FEF3EE] text-[#F2572B]">
                                       {item.ageInDays} Days
                                     </span>
                                   </td>
@@ -1267,12 +1261,12 @@ const InventoryAgingReport = () => {
                         const agePillClass =
                           (item.ageInDays || 0) > 90
                             ? "bg-[#FEF2F2] text-[#DC2626]"
-                            : "bg-[#F5EEFD] text-[#9D43D6]";
+                            : "bg-[#FEF3EE] text-[#F2572B]";
 
                         return (
                           <tr
                             key={`${item.itemId}_${item.warehouse}_${idx}`}
-                            className="even:bg-[#FAF7FD]/60 hover:bg-[#F5EEFD]/70 transition-colors"
+                            className="even:bg-[#FEF3EE]/60 hover:bg-[#FEF3EE]/70 transition-colors"
                           >
                             <td className="py-3.5 px-4 text-[#525252] font-medium">{rowNumber}</td>
 

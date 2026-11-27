@@ -201,7 +201,12 @@ app.listen(PORT, async () => {
     // Connect to MongoDB
     if (DB_TYPE === 'mongodb' || DB_TYPE === 'both') {
       console.log('📊 Connecting to MongoDB database...');
-      if (await connectMongoDB()) connectedDbs.push('MongoDB');
+      if (await connectMongoDB()) {
+        connectedDbs.push('MongoDB');
+        // Load the store list (single source of truth for store names/codes)
+        const { refreshStores } = await import('./utils/storeResolver.js');
+        await refreshStores();
+      }
     }
     
     // Connect to PostgreSQL

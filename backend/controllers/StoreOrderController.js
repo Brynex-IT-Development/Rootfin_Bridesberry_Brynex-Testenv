@@ -3,6 +3,7 @@ import StoreOrder from "../model/StoreOrder.js"; // MongoDB model
 import ShoeItem from "../model/ShoeItem.js";
 import ItemGroup from "../model/ItemGroup.js";
 import { nextStoreOrder } from "../utils/nextStoreOrder.js";
+import { sameStore, storeName } from "../utils/storeResolver.js";
 
 // Get next store order number
 export const getNextOrderNumber = async (req, res) => {
@@ -15,112 +16,11 @@ export const getNextOrderNumber = async (req, res) => {
   }
 };
 
-// Helper function for flexible warehouse matching (same as TransferOrderController)
-const WAREHOUSE_NAME_MAPPING = {
-  "Grooms Trivandum": "Grooms Trivandrum",
-  "Grooms Trivandrum": "Grooms Trivandrum",
-  "SG-Trivandrum": "Grooms Trivandrum",
-  "G.Palakkad": "Palakkad Branch",
-  "G.Palakkad ": "Palakkad Branch",
-  "GPalakkad": "Palakkad Branch",
-  "Palakkad Branch": "Palakkad Branch",
-  "Warehouse": "Warehouse",
-  "warehouse": "Warehouse",
-  "WAREHOUSE": "Warehouse",
-  "G.Calicut": "Calicut",
-  "G.Calicut ": "Calicut",
-  "GCalicut": "Calicut",
-  "Calicut": "Calicut",
-  "G.Manjeri": "Manjery Branch",
-  "G.Manjery": "Manjery Branch",
-  "GManjeri": "Manjery Branch",
-  "GManjery": "Manjery Branch",
-  "Manjery Branch": "Manjery Branch",
-  "G.Kannur": "Kannur Branch",
-  "GKannur": "Kannur Branch",
-  "Kannur Branch": "Kannur Branch",
-  "G.Edappal": "Edappal Branch",
-  "GEdappal": "Edappal Branch",
-  "Edappal Branch": "Edappal Branch",
-  "G.Edappally": "Edapally Branch",
-  "G-Edappally": "Edapally Branch",
-  "GEdappally": "Edapally Branch",
-  "Edapally Branch": "Edapally Branch",
-  "G.Kalpetta": "Kalpetta Branch",
-  "GKalpetta": "Kalpetta Branch",
-  "Kalpetta Branch": "Kalpetta Branch",
-  "G.Kottakkal": "Kottakkal Branch",
-  "GKottakkal": "Kottakkal Branch",
-  "Kottakkal Branch": "Kottakkal Branch",
-  "Z.Kottakkal": "Kottakkal Branch",
-  "G.Perinthalmanna": "Perinthalmanna Branch",
-  "GPerinthalmanna": "Perinthalmanna Branch",
-  "Perinthalmanna Branch": "Perinthalmanna Branch",
-  "Z.Perinthalmanna": "Perinthalmanna Branch",
-  "G.Chavakkad": "Chavakkad Branch",
-  "GChavakkad": "Chavakkad Branch",
-  "Chavakkad Branch": "Chavakkad Branch",
-  "G.Thrissur": "Thrissur Branch",
-  "GThrissur": "Thrissur Branch",
-  "Thrissur Branch": "Thrissur Branch",
-  "G.Perumbavoor": "Perumbavoor Branch",
-  "GPerumbavoor": "Perumbavoor Branch",
-  "Perumbavoor Branch": "Perumbavoor Branch",
-  "G.Kottayam": "Kottayam Branch",
-  "GKottayam": "Kottayam Branch",
-  "Kottayam Branch": "Kottayam Branch",
-  "G.MG Road": "SuitorGuy MG Road",
-  "G.Mg Road": "SuitorGuy MG Road",
-  "GMG Road": "SuitorGuy MG Road",
-  "GMg Road": "SuitorGuy MG Road",
-  "MG Road": "SuitorGuy MG Road",
-  "Mg Road": "SuitorGuy MG Road",
-  "MG Road Branch": "SuitorGuy MG Road",
-  "Mg Road Branch": "SuitorGuy MG Road",
-  "G Road Branch": "SuitorGuy MG Road",
-  "SuitorGuy MG Road": "SuitorGuy MG Road",
-  "HEAD OFFICE01": "Head Office",
-  "Head Office": "Head Office",
-  "Z-Edapally1": "Warehouse",
-  "Z- Edappal": "Warehouse",
-  "Production": "Warehouse",
-  "Office": "Warehouse",
-  "G.Vadakara": "Warehouse",
-};
+// Store names come only from the Store collection
+const normalizeWarehouseName = (warehouseName) => storeName(warehouseName);
 
-const normalizeWarehouseName = (warehouseName) => {
-  if (!warehouseName) return null;
-  const trimmed = warehouseName.toString().trim();
-  if (WAREHOUSE_NAME_MAPPING[trimmed]) {
-    return WAREHOUSE_NAME_MAPPING[trimmed];
-  }
-  const lowerName = trimmed.toLowerCase();
-  for (const [key, value] of Object.entries(WAREHOUSE_NAME_MAPPING)) {
-    if (key.toLowerCase() === lowerName) {
-      return value;
-    }
-  }
-  return trimmed;
-};
-
-const matchesWarehouse = (itemWarehouse, targetWarehouse) => {
-  if (!itemWarehouse || !targetWarehouse) return false;
-  const normalizedItem = normalizeWarehouseName(itemWarehouse);
-  const normalizedTarget = normalizeWarehouseName(targetWarehouse);
-  if (normalizedItem && normalizedTarget && normalizedItem.toLowerCase() === normalizedTarget.toLowerCase()) {
-    return true;
-  }
-  const itemWarehouseLower = itemWarehouse.toString().toLowerCase().trim();
-  const targetWarehouseLower = targetWarehouse.toLowerCase().trim();
-  const itemBase = itemWarehouseLower.replace(/\s*(branch|warehouse)\s*$/i, "").trim();
-  const targetBase = targetWarehouseLower.replace(/\s*(branch|warehouse)\s*$/i, "").trim();
-  if (itemWarehouseLower === targetWarehouseLower) return true;
-  if (itemBase && targetBase && itemBase === targetBase) return true;
-  if (itemWarehouseLower.includes(targetWarehouseLower) || targetWarehouseLower.includes(itemWarehouseLower)) {
-    return true;
-  }
-  return false;
-};
+// Same store? (backend Store collection; ignores case/spacing)
+const matchesWarehouse = (itemWarehouse, targetWarehouse) => sameStore(itemWarehouse, targetWarehouse);
 
 // Get current stock for an item in a warehouse
 const getCurrentStock = async (itemIdValue, warehouseName, itemName = null, itemGroupId = null, itemSku = null) => {

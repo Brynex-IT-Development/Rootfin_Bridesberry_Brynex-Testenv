@@ -18,7 +18,7 @@ const Store = sequelize.define('Store', {
     type: DataTypes.STRING,
     allowNull: false,
     unique: true,
-    comment: 'Location code (e.g., "EDAPALLY")',
+    comment: 'Location code of the store',
   },
   address: {
     type: DataTypes.TEXT,

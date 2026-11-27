@@ -2,46 +2,13 @@ import Store from "../model/Store.js";
 import User from "../model/UserModel.js";
 import mongoose from "mongoose";
 
-// Fallback stores (empty - only stores with existing store admin are shown)
-export const fallbackStores = [];
-
-// Decommissioned old branch locCodes that must remain excluded
-export const DISCARDED_LOC_CODES = new Set([
-  "700", "701", "702", "703", "704", "705", "706", "707", "708", "709",
-  "710", "711", "712", "716", "717", "718", "759", "100", "101", "102", "122",
-  "133", "144", "555", "031", "222", "800", "15623"
-]);
-
-export const DISCARDED_NAME_PATTERNS = [
-  "g-edappally", "g.edappally", "edappally",
-  "g-palakkad", "g.palakkad", "palakkad",
-  "g-calicut", "g.calicut", "calicut",
-  "sg-trivandrum", "trivandrum",
-  "g-kottayam", "g.kottayam", "kottayam",
-  "g-perumbavoor", "g.perumbavoor", "perumbavoor",
-  "g-thrissur", "g.thrissur", "thrissur",
-  "g-chavakkad", "g.chavakkad", "chavakkad",
-  "g-vadakara", "g.vadakara", "vadakara",
-  "g-edappal", "g.edappal", "edappal",
-  "g-perinthalmanna", "g.perinthalmanna", "perinthalmanna",
-  "g-kottakkal", "g.kottakkal", "kottakkal",
-  "g-manjeri", "g.manjeri", "manjeri",
-  "g-kalpetta", "g.kalpetta", "kalpetta",
-  "g-kannur", "g.kannur", "kannur",
-  "production", "office", "head office", "dappr squad",
-  "z-edapally", "z-edappal", "z-perinthalmanna", "z-kottakkal",
-  "suitorguy mg road", "mg road", "mgroad",
-  "test store tranfer"
-];
-
+// Stores come only from the backend: a store is listed when it has an active
+// Store Admin / Warehouse Admin user (see getStores / GetAllStores). There is no
+// hardcoded list of allowed or blocked stores.
 export const isAllowedStore = (store) => {
   if (!store) return false;
   if (store.isActive === false) return false;
-  const code = (store.locCode || "").toString().trim();
-  const name = (store.name || store.locName || "").toLowerCase().trim();
-  if (DISCARDED_LOC_CODES.has(code)) return false;
-  if (DISCARDED_NAME_PATTERNS.some(p => name.includes(p))) return false;
-  return Boolean(code);
+  return Boolean((store.locCode || "").toString().trim());
 };
 
 // Create a new store
@@ -101,53 +68,34 @@ export const getStores = async (req, res) => {
       { $set: { locCode: '', storeName: null, storeId: null } }
     ).catch(() => {});
 
-    // Auto-heal any existing warehouse admin users without locCode
-    await User.updateMany(
-      { 
-        role: { $in: ['warehouse_admin', 'warehouseadmin', 'warehouse admin'] }, 
-        $or: [{ locCode: '' }, { locCode: null }, { locCode: { $exists: false } }] 
-      },
-      { $set: { locCode: '858', storeName: 'Warehouse' } }
-    ).catch(() => {});
-
-    // Ensure Warehouse store document exists if warehouse admin exists
+    // Make sure every warehouse admin's own location has a warehouse-type Store document
     const warehouseAdmins = await User.find({
-      role: { $in: ["warehouse_admin", "warehouseadmin", "warehouse admin"] }
+      role: { $in: ["warehouse_admin", "warehouseadmin", "warehouse admin"] },
+      locCode: { $exists: true, $ne: "" }
     }).lean();
-    if (warehouseAdmins.length > 0) {
+    for (const w of warehouseAdmins) {
       await Store.findOneAndUpdate(
-        { locCode: '858' },
+        { locCode: w.locCode.toString().trim() },
         {
-          name: 'Warehouse',
-          locCode: '858',
-          address: warehouseAdmins[0]?.address || '',
-          phone: warehouseAdmins[0]?.phone || '',
-          email: warehouseAdmins[0]?.email || '',
-          gst: warehouseAdmins[0]?.gst || '',
-          isActive: true,
-          storeType: 'warehouse',
-          manager: warehouseAdmins[0]?.username || 'warehouse'
+          $set: { storeType: "warehouse", isActive: true },
+          $setOnInsert: {
+            name: w.storeName || w.username,
+            address: w.address || "",
+            phone: w.phone || "",
+            email: w.email || "",
+            gst: w.gst || "",
+            manager: w.username || ""
+          }
         },
         { upsert: true, new: true, setDefaultsOnInsert: true }
       ).catch(() => {});
     }
 
-    // Look up active Store Admin or Warehouse Admin users
+    // Look up active Store Admin or Warehouse Admin users (each must have a location code)
     const storeAdmins = await User.find({
       role: { $in: ["store_admin", "store_manager", "store admin", "warehouse_admin", "warehouseadmin", "warehouse admin"] },
-      $or: [
-        { locCode: { $exists: true, $ne: "" } },
-        { role: { $in: ["warehouse_admin", "warehouseadmin", "warehouse admin"] } }
-      ]
+      locCode: { $exists: true, $ne: "" }
     }).select("username storeName locCode email address phone gst role").lean();
-
-    storeAdmins.forEach(u => {
-      const r = (u.role || '').toLowerCase();
-      if ((r.includes('warehouse')) && (!u.locCode || !u.locCode.trim())) {
-        u.locCode = '858';
-        u.storeName = u.storeName || 'Warehouse';
-      }
-    });
 
     const validLocCodes = storeAdmins.map(u => (u.locCode || "").toString().trim()).filter(Boolean);
 
@@ -190,7 +138,7 @@ export const getStores = async (req, res) => {
       const isWarehouse = ['warehouse_admin', 'warehouseadmin', 'warehouse admin'].includes((u.role || '').toLowerCase().trim());
       if (code) {
         const s = dbStores.find(doc => (doc.locCode || "").toString().trim() === code);
-        const defaultName = isWarehouse ? (u.storeName || 'Warehouse') : (u.storeName || u.username || code);
+        const defaultName = u.storeName || u.username || code;
         combinedMap.set(code, {
           id: (s?._id || s?.id || u._id || code).toString(),
           name: s?.name || defaultName,
@@ -200,12 +148,13 @@ export const getStores = async (req, res) => {
           phone: s?.phone || u.phone || "",
           email: s?.email || u.email || "",
           gst: s?.gst || u.gst || "",
+          storeType: s?.storeType || (isWarehouse ? "warehouse" : "branch"),
           isActive: true
         });
       }
     }
 
-    // Filter out decommissioned branches and sort
+    // Drop inactive / code-less entries and sort
     const storesList = Array.from(combinedMap.values())
       .filter(isAllowedStore)
       .sort((a, b) => (a.name || a.locName || "").localeCompare(b.name || b.locName || ""));

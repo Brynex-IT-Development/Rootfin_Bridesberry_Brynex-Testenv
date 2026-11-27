@@ -94,9 +94,6 @@ const AddNewUser = () => {
             setLocCode("");
             setGst("");
             setAddress("");
-        } else if (newRole === "warehouse_admin") {
-            if (!storeName) setStoreName("Warehouse");
-            if (!locCode) setLocCode("858");
         }
         if (newRole !== "cluster_admin") {
             setAllowedLocCodes([]);
@@ -187,8 +184,8 @@ const AddNewUser = () => {
 
             if (response.ok) {
                 if (isStore || isWarehouse) {
-                    const code = isStore ? locCode.trim() : (locCode.trim() || "858");
-                    const name = isStore ? storeName.trim() : (storeName.trim() || "Warehouse");
+                    const code = locCode.trim();
+                    const name = storeName.trim();
                     if (code) {
                         saveCustomStore({
                             locCode: code,
@@ -323,7 +320,7 @@ const AddNewUser = () => {
                                             type="text"
                                             value={locCode}
                                             onChange={(e) => setLocCode(e.target.value)}
-                                            placeholder={isWarehouseAdmin ? "e.g., 858" : "Enter location code"}
+                                            placeholder="Enter location code"
                                             className="rf-input"
                                             required
                                         />
@@ -396,7 +393,7 @@ const AddNewUser = () => {
 
                         {/* Conditional Cluster Admin: Assign Stores Dropdown */}
                         {isClusterAdmin && (
-                            <div className="p-5 bg-[#FBF5FC] rounded-xl border border-[#E5E5E5] space-y-3">
+                            <div className="p-5 bg-[#FEF3EE] rounded-xl border border-[#E5E5E5] space-y-3">
                                 <div className="flex items-center justify-between">
                                     <label className="rf-field-label !mb-0">
                                         Assign Stores to Cluster Admin <span className="required">*</span>
@@ -405,7 +402,7 @@ const AddNewUser = () => {
                                         <button
                                             type="button"
                                             onClick={handleSelectAllStores}
-                                            className="text-[#9D43D6] hover:text-[#8B3CBD] font-medium cursor-pointer"
+                                            className="text-[#F2572B] hover:text-[#D9431A] font-medium cursor-pointer"
                                         >
                                             Select All ({availableStores.length})
                                         </button>
@@ -423,7 +420,7 @@ const AddNewUser = () => {
                                 <div className="relative" ref={dropdownRef}>
                                     <div
                                         onClick={() => setShowStoreDropdown(!showStoreDropdown)}
-                                        className="w-full min-h-[40px] px-3.5 py-1.5 bg-white border border-[#E5E5E5] rounded-[10px] focus-within:border-[#9B48D7] focus-within:ring-1 focus-within:ring-[#9B48D7] cursor-pointer flex flex-wrap gap-2 items-center justify-between"
+                                        className="w-full min-h-[40px] px-3.5 py-1.5 bg-white border border-[#E5E5E5] rounded-[10px] focus-within:border-[#F2572B] focus-within:ring-1 focus-within:ring-[#F2572B] cursor-pointer flex flex-wrap gap-2 items-center justify-between"
                                     >
                                         <div className="flex flex-wrap gap-1.5 items-center flex-1">
                                             {allowedLocCodes.length === 0 ? (
@@ -432,7 +429,7 @@ const AddNewUser = () => {
                                                 allowedLocCodes.map((code) => (
                                                     <span
                                                         key={code}
-                                                        className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-[#9D43D6]/10 text-[#9D43D6] rounded-full text-xs font-medium"
+                                                        className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-[#F2572B]/10 text-[#F2572B] rounded-full text-xs font-medium"
                                                     >
                                                         {getStoreDisplayName(code)} ({code})
                                                         <button
@@ -441,7 +438,7 @@ const AddNewUser = () => {
                                                                 e.stopPropagation();
                                                                 handleToggleStore(code);
                                                             }}
-                                                            className="hover:text-[#8B3CBD] cursor-pointer"
+                                                            className="hover:text-[#D9431A] cursor-pointer"
                                                         >
                                                             <FaTimes size={10} />
                                                         </button>
@@ -449,7 +446,7 @@ const AddNewUser = () => {
                                                 ))
                                             )}
                                         </div>
-                                        <span className="text-xs text-[#9D43D6] font-semibold px-2 py-0.5 bg-[#9D43D6]/10 rounded">
+                                        <span className="text-xs text-[#F2572B] font-semibold px-2 py-0.5 bg-[#F2572B]/10 rounded">
                                             {allowedLocCodes.length} selected
                                         </span>
                                     </div>
@@ -475,7 +472,7 @@ const AddNewUser = () => {
                                                                 key={store.locCode}
                                                                 onClick={() => handleToggleStore(store.locCode)}
                                                                 className={`p-2 rounded-lg cursor-pointer text-[13px] flex items-center justify-between transition-colors ${
-                                                                    isSelected ? "bg-[#FBF5FC] text-[#9D43D6] font-medium" : "hover:bg-[#F7F7F7] text-[#212121]"
+                                                                    isSelected ? "bg-[#FEF3EE] text-[#F2572B] font-medium" : "hover:bg-[#F7F7F7] text-[#212121]"
                                                                 }`}
                                                             >
                                                                 <div className="flex items-center gap-2.5">
@@ -483,7 +480,7 @@ const AddNewUser = () => {
                                                                         type="checkbox"
                                                                         checked={isSelected}
                                                                         onChange={() => {}}
-                                                                        className="rounded accent-[#9D43D6] cursor-pointer pointer-events-none"
+                                                                        className="rounded accent-[#F2572B] cursor-pointer pointer-events-none"
                                                                     />
                                                                     <span>{store.locName || store.name}</span>
                                                                 </div>
@@ -518,7 +515,7 @@ const AddNewUser = () => {
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute inset-y-0 right-0 pr-3.5 pl-2.5 flex items-center text-[#9D43D6] hover:text-[#8B3CBD] cursor-pointer"
+                                        className="absolute inset-y-0 right-0 pr-3.5 pl-2.5 flex items-center text-[#F2572B] hover:text-[#D9431A] cursor-pointer"
                                     >
                                         <span className="h-4 w-[1px] bg-[#E5E5E5] mr-2.5" />
                                         {showPassword ? <FaEyeSlash size={15} /> : <FaEye size={15} />}
@@ -543,7 +540,7 @@ const AddNewUser = () => {
                                     <button
                                         type="button"
                                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                        className="absolute inset-y-0 right-0 pr-3.5 pl-2.5 flex items-center text-[#9D43D6] hover:text-[#8B3CBD] cursor-pointer"
+                                        className="absolute inset-y-0 right-0 pr-3.5 pl-2.5 flex items-center text-[#F2572B] hover:text-[#D9431A] cursor-pointer"
                                     >
                                         <span className="h-4 w-[1px] bg-[#E5E5E5] mr-2.5" />
                                         {showConfirmPassword ? <FaEyeSlash size={15} /> : <FaEye size={15} />}

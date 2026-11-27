@@ -454,7 +454,7 @@ export default function RecordExpenses() {
                         return (
                           <tr
                             key={transaction._id || `${transaction.invoiceNo}-${index}`}
-                            className="transition-colors hover:bg-[#FBF5FC]"
+                            className="transition-colors hover:bg-[#FEF3EE]"
                           >
                             <td className="px-4 py-3.5 border-r border-[#F3F3F3] font-medium text-[#212121]">
                               {transaction.category || "-"}
@@ -467,7 +467,7 @@ export default function RecordExpenses() {
                                 className={`inline-flex items-center justify-center rounded-md px-3.5 py-1 text-[11px] font-semibold ${
                                   type === "direct"
                                     ? "bg-[#FFEDD5] text-[#EA580C]"
-                                    : "bg-[#EFE3F7] text-[#9D43D6]"
+                                    : "bg-[#FDE3D9] text-[#F2572B]"
                                 }`}
                               >
                                 {type === "direct" ? "Direct" : "Indirect"}
@@ -479,7 +479,7 @@ export default function RecordExpenses() {
                                   href={attachmentUrl}
                                   target="_blank"
                                   rel="noreferrer"
-                                  className="font-medium text-[#9D43D6] hover:text-[#8B3CBD] hover:underline"
+                                  className="font-medium text-[#F2572B] hover:text-[#D9431A] hover:underline"
                                 >
                                   {transaction.attachmentFilename || `Receipt ${index + 1}`}
                                 </a>

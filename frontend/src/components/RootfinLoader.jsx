@@ -23,7 +23,7 @@ const RootfinLoader = ({ visible = true, fading = false, fullScreen = true }) =>
         className="pointer-events-none absolute w-[360px] h-[360px] rounded-full opacity-30 blur-3xl"
         style={{
           background:
-            "radial-gradient(circle, rgba(157, 67, 214, 0.65) 0%, rgba(157, 67, 214, 0) 70%)",
+            "radial-gradient(circle, rgba(242, 87, 43, 0.65) 0%, rgba(242, 87, 43, 0) 70%)",
         }}
       />
 
@@ -47,7 +47,7 @@ const RootfinLoader = ({ visible = true, fading = false, fullScreen = true }) =>
 
         {/* Minimalist purple progress bar */}
         <div className="w-[130px] h-[2.5px] rounded-full bg-white/10 overflow-hidden">
-          <div className="rf-loader-bar h-full rounded-full bg-gradient-to-r from-[#7C3AED] via-[#A855F7] to-[#D8B4FE]" />
+          <div className="rf-loader-bar h-full rounded-full bg-gradient-to-r from-[#F2572B] via-[#F46A43] to-[#F9A88E]" />
         </div>
       </div>
     </div>

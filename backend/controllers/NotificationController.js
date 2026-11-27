@@ -4,6 +4,7 @@ import User from "../model/UserModel.js";
 import Store from "../model/Store.js";
 import { isAllowedStore } from "./StoreController.js";
 import { businessDate, previousDaybookDate } from "../utils/daybookDates.js";
+import { locCodesWithDaybookActivity } from "../utils/daybookActivity.js";
 
 /**
  * Controller to fetch dynamic notifications for Super Admin and Store users.
@@ -173,8 +174,13 @@ export const getNotifications = async (req, res) => {
           .map((c) => (c.locCode || "").toString().trim().toLowerCase())
       );
 
-      const unclosedStores = activeStores.filter(
+      const notClosed = activeStores.filter(
         (store) => !closedLocCodes.has((store.locCode || "").toString().trim().toLowerCase())
+      );
+      // A store with no day book history yet (e.g. just created) owes no closing.
+      const owingCodes = await locCodesWithDaybookActivity(notClosed.map((s) => s.locCode), yesterday);
+      const unclosedStores = notClosed.filter(
+        (store) => owingCodes.has((store.locCode || "").toString().trim())
       );
 
       unclosedStores.forEach((store) => {

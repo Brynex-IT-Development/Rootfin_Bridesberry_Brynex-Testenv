@@ -4,6 +4,8 @@ import baseUrl from "../api/api";
 import { mapLocNameToWarehouse as mapWarehouse } from "../utils/warehouseMapping";
 import useSidebar from "../hooks/useSidebar";
 import Header from "../components/Header";
+import { isWarehouseStore, getUserStoreName } from "../utils/storeService";
+import { isAdminOrSuperAdmin } from "../utils/roleUtils";
 
 const API_ROOT = (baseUrl?.baseUrl || "").replace(/\/$/, "");
 
@@ -20,11 +22,10 @@ const InactiveItems = () => {
   const userStr = localStorage.getItem("rootfinuser");
   const user = userStr ? JSON.parse(userStr) : null;
   const userEmail = user?.email || user?.username || "";
-  const adminEmails = ['officerootments@gmail.com'];
-  const isAdminEmail = userEmail && adminEmails.some(email => userEmail.toLowerCase() === email.toLowerCase());
+  const isAdminEmail = isAdminOrSuperAdmin(user);
   const isAdmin = isAdminEmail ||
     user?.power === "admin" ||
-    (user?.locCode && (user.locCode === '858' || user.locCode === '103'));
+    (user?.locCode && isWarehouseStore(user.locCode));
 
   // Fallback locations mapping
   const fallbackLocations = [];
@@ -38,7 +39,7 @@ const InactiveItems = () => {
     }
   }
   if (!userLocName) {
-    userLocName = user?.username || user?.locName || "";
+    userLocName = getUserStoreName(user);
   }
 
   // Helper function to map locName to warehouse name
@@ -377,7 +378,7 @@ const InactiveItems = () => {
         <Header title="Inactive Items" />
         <div className={`transition-all duration-300 flex min-h-screen items-center justify-center p-6 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
           <div className="flex flex-col items-center gap-3 text-center">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#9D43D6] border-t-transparent" />
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#F2572B] border-t-transparent" />
             <p className="text-[12px] font-medium text-[#7A7A7A]">Loading inactive items...</p>
           </div>
         </div>
@@ -424,7 +425,7 @@ const InactiveItems = () => {
           <div className="rounded-[12px] border border-[#E5E5E5] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.02)] overflow-hidden">
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#F0F0F0]">
               <h2 className="text-[14px] font-semibold text-[#1B1B1B]">Inactive Item Groups</h2>
-              <Link to="/shoe-sales/item-groups" className="text-[12px] font-semibold text-[#9D43D6] hover:underline">Go to Groups</Link>
+              <Link to="/shoe-sales/item-groups" className="text-[12px] font-semibold text-[#F2572B] hover:underline">Go to Groups</Link>
             </div>
             {inactiveGroups.length === 0 ? (
               <p className="text-[13px] text-[#7A7A7A] py-8 text-center">No inactive groups.</p>
@@ -467,7 +468,7 @@ const InactiveItems = () => {
           <div className="rounded-[12px] border border-[#E5E5E5] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.02)] overflow-hidden">
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#F0F0F0]">
               <h2 className="text-[14px] font-semibold text-[#1B1B1B]">Inactive Standalone Items</h2>
-              <Link to="/shoe-sales/items" className="text-[12px] font-semibold text-[#9D43D6] hover:underline">Go to Items</Link>
+              <Link to="/shoe-sales/items" className="text-[12px] font-semibold text-[#F2572B] hover:underline">Go to Items</Link>
             </div>
             {inactiveItems.length === 0 ? (
               <p className="text-[13px] text-[#7A7A7A] py-8 text-center">No inactive items.</p>
@@ -510,7 +511,7 @@ const InactiveItems = () => {
           <div className="rounded-[12px] border border-[#E5E5E5] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.02)] overflow-hidden">
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#F0F0F0]">
               <h2 className="text-[14px] font-semibold text-[#1B1B1B]">Inactive Items from Groups</h2>
-              <Link to="/shoe-sales/item-groups" className="text-[12px] font-semibold text-[#9D43D6] hover:underline">Go to Groups</Link>
+              <Link to="/shoe-sales/item-groups" className="text-[12px] font-semibold text-[#F2572B] hover:underline">Go to Groups</Link>
             </div>
             {inactiveItemsFromGroups.length === 0 ? (
               <p className="text-[13px] text-[#7A7A7A] py-8 text-center">No inactive items in groups.</p>
@@ -555,7 +556,7 @@ const InactiveItems = () => {
           <div className="rounded-[12px] border border-[#E5E5E5] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.02)] overflow-hidden">
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#F0F0F0]">
               <h2 className="text-[14px] font-semibold text-[#1B1B1B]">Inactive Vendors</h2>
-              <Link to="/purchase/vendors" className="text-[12px] font-semibold text-[#9D43D6] hover:underline">Go to Vendors</Link>
+              <Link to="/purchase/vendors" className="text-[12px] font-semibold text-[#F2572B] hover:underline">Go to Vendors</Link>
             </div>
             {inactiveVendors.length === 0 ? (
               <p className="text-[13px] text-[#7A7A7A] py-8 text-center">No inactive vendors.</p>

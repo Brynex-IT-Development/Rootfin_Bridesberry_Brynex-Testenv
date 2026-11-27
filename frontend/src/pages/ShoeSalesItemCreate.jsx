@@ -8,6 +8,9 @@ import baseUrl from "../api/api";
 import useSidebar from "../hooks/useSidebar";
 
 import AppSelect from "../components/AppSelect.jsx";
+import { isWarehouseStore, findStore, getUserStoreName } from "../utils/storeService";
+import { mapLocNameToWarehouse as mapWarehouseShared, getWarehouseName } from "../utils/warehouseMapping";
+import { isAdminOrSuperAdmin } from "../utils/roleUtils";
 const API_ROOT = (baseUrl?.baseUrl || "").replace(/\/$/, "");
 const API_URL = baseUrl?.baseUrl?.replace(/\/$/, "") || "http://localhost:7000";
 
@@ -142,18 +145,13 @@ const ShoeSalesItemCreate = () => {
   const userRole = (user?.role || "").toLowerCase().trim();
   const userPower = (user?.power || "").toLowerCase().trim();
   const userEmail = (user?.email || user?.username || "").toLowerCase().trim();
-  const adminEmails = [
-    "officerootments@gmail.com",
-    "operationsrootments@gmail.com",
-    "headoffice01@gmail.com"
-  ];
-  const isAdminEmail = adminEmails.includes(userEmail);
+  const isAdminEmail = isAdminOrSuperAdmin(user);
   const isAdmin = isAdminEmail ||
                   userPower === "admin" || 
                   userPower === "super_admin" || 
                   userRole === "admin" || 
                   userRole === "superadmin" ||
-                  (user?.locCode && (String(user.locCode) === '858' || String(user.locCode) === '103'));
+                  (user?.locCode && isWarehouseStore(user.locCode));
   const [searchParams] = useSearchParams();
   const pieceSkuParam = searchParams.get("pieceSku");
   const unitIndexParam = searchParams.get("unitIndex");
@@ -735,19 +733,11 @@ const handleCheckboxChange = (field) => (event) => {
         } else {
           // Add new item - initialize with user's warehouse
           const currentUser = JSON.parse(localStorage.getItem("rootfinuser")) || {};
-          const userLocName = currentUser.username || currentUser.locName || "";
+          const userLocName = getUserStoreName(currentUser);
           
-          // Helper function to map locName to warehouse name
-          const mapLocNameToWarehouse = (locName) => {
-            if (!locName) return "Warehouse";
-            // Remove prefixes like "G.", "Z.", "SG."
-            let warehouse = locName.replace(/^[A-Z]\.?\s*/i, "").trim();
-            // Add "Branch" if not already present and not "Warehouse"
-            if (warehouse && warehouse.toLowerCase() !== "warehouse" && !warehouse.toLowerCase().includes("branch")) {
-              warehouse = `${warehouse} Branch`;
-            }
-            return warehouse || "Warehouse";
-          };
+          // Stock location = the user's backend store, else the backend name, else the warehouse store
+          const mapLocNameToWarehouse = (locName) =>
+            findStore(currentUser.locCode)?.locName || mapWarehouseShared(locName) || getWarehouseName();
           
           const userWarehouse = mapLocNameToWarehouse(userLocName);
           
@@ -774,19 +764,11 @@ const handleCheckboxChange = (field) => (event) => {
         // Get current user for history tracking
         const currentUser = JSON.parse(localStorage.getItem("rootfinuser")) || {};
         const changedBy = currentUser.username || currentUser.locName || "System";
-        const userLocName = currentUser.username || currentUser.locName || "";
+        const userLocName = getUserStoreName(currentUser);
         
-        // Helper function to map locName to warehouse name
-        const mapLocNameToWarehouse = (locName) => {
-          if (!locName) return "Warehouse";
-          // Remove prefixes like "G.", "Z.", "SG."
-          let warehouse = locName.replace(/^[A-Z]\.?\s*/i, "").trim();
-          // Add "Branch" if not already present and not "Warehouse"
-          if (warehouse && warehouse.toLowerCase() !== "warehouse" && !warehouse.toLowerCase().includes("branch")) {
-            warehouse = `${warehouse} Branch`;
-          }
-          return warehouse || "Warehouse";
-        };
+        // Stock location = the user's backend store, else the backend name, else the warehouse store
+        const mapLocNameToWarehouse = (locName) =>
+          findStore(currentUser.locCode)?.locName || mapWarehouseShared(locName) || getWarehouseName();
         
         const userWarehouse = mapLocNameToWarehouse(userLocName);
 
@@ -935,19 +917,11 @@ const handleCheckboxChange = (field) => (event) => {
         // Get current user for history tracking
         const currentUser = JSON.parse(localStorage.getItem("rootfinuser")) || {};
         const changedBy = currentUser.username || currentUser.locName || "System";
-        const userLocName = currentUser.username || currentUser.locName || "";
+        const userLocName = getUserStoreName(currentUser);
         
-        // Helper function to map locName to warehouse name
-        const mapLocNameToWarehouse = (locName) => {
-          if (!locName) return "Warehouse";
-          // Remove prefixes like "G.", "Z.", "SG."
-          let warehouse = locName.replace(/^[A-Z]\.?\s*/i, "").trim();
-          // Add "Branch" if not already present and not "Warehouse"
-          if (warehouse && warehouse.toLowerCase() !== "warehouse" && !warehouse.toLowerCase().includes("branch")) {
-            warehouse = `${warehouse} Branch`;
-          }
-          return warehouse || "Warehouse";
-        };
+        // Stock location = the user's backend store, else the backend name, else the warehouse store
+        const mapLocNameToWarehouse = (locName) =>
+          findStore(currentUser.locCode)?.locName || mapWarehouseShared(locName) || getWarehouseName();
         
         const userWarehouse = mapLocNameToWarehouse(userLocName);
         
@@ -1083,7 +1057,7 @@ const handleCheckboxChange = (field) => (event) => {
             </h1>
             <Link
               to={backUrl}
-              className="inline-flex items-center gap-1.5 h-[38px] px-4 rounded-[10px] border border-[#E5E5E5] bg-white hover:bg-[#FAFAFA] text-[13px] font-medium text-[#9D43D6] transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 h-[38px] px-4 rounded-[10px] border border-[#E5E5E5] bg-white hover:bg-[#FAFAFA] text-[13px] font-medium text-[#F2572B] transition-colors cursor-pointer"
             >
               <X size={14} />
               <span>Cancel</span>
@@ -1123,7 +1097,7 @@ const handleCheckboxChange = (field) => (event) => {
                 />
                 <div className="space-y-1.5">
                   <label className="rf-field-label !mb-0">SKU</label>
-                  <div className="flex items-center h-[40px] rounded-[10px] border border-[#E5E5E5] bg-white pl-3.5 pr-1.5 focus-within:border-[#9D43D6] focus-within:ring-2 focus-within:ring-[#9D43D6]/15 transition-colors">
+                  <div className="flex items-center h-[40px] rounded-[10px] border border-[#E5E5E5] bg-white pl-3.5 pr-1.5 focus-within:border-[#F2572B] focus-within:ring-2 focus-within:ring-[#F2572B]/15 transition-colors">
                     <input
                       type="text"
                       name="sku"
@@ -1133,7 +1107,7 @@ const handleCheckboxChange = (field) => (event) => {
                       disabled={status.loading}
                       className="flex-1 h-full text-[13px] text-[#212121] placeholder:text-[#A1A1AA] border-0 outline-none bg-transparent min-w-0"
                     />
-                    <span className="h-[28px] px-3 rounded-[7px] text-[12px] font-semibold text-white bg-[#9D43D6] inline-flex items-center justify-center shrink-0 select-none">
+                    <span className="h-[28px] px-3 rounded-[7px] text-[12px] font-semibold text-white bg-[#F2572B] inline-flex items-center justify-center shrink-0 select-none">
                       Auto
                     </span>
                   </div>
@@ -1215,9 +1189,9 @@ const handleCheckboxChange = (field) => (event) => {
 
               {/* Variant Attributes (when adding to a group) */}
               {itemGroup && Array.isArray(itemGroup.attributeRows) && itemGroup.attributeRows.length > 0 && (
-                <div className="rounded-[12px] border border-[#E9D5FF] bg-[#FAF5FF]/60 p-5">
+                <div className="rounded-[12px] border border-[#FCCAB9] bg-[#FEF3EE]/60 p-5">
                   <div className="mb-4 flex items-center gap-2">
-                    <Settings className="w-4 h-4 text-[#9D43D6]" />
+                    <Settings className="w-4 h-4 text-[#F2572B]" />
                     <div>
                       <h3 className="text-[12px] font-bold uppercase tracking-wider text-[#1B1B1B]">Variant Attributes</h3>
                       <p className="text-[11px] text-[#7A7A7A]">Configure attributes for this item variant</p>
@@ -1283,7 +1257,7 @@ const handleCheckboxChange = (field) => (event) => {
                       checked={formData.sellable}
                       onChange={handleCheckboxChange("sellable")}
                       disabled={status.loading}
-                      className="h-4 w-4 rounded-[4px] border-[#D4D4D8] accent-[#9D43D6] cursor-pointer"
+                      className="h-4 w-4 rounded-[4px] border-[#D4D4D8] accent-[#F2572B] cursor-pointer"
                     />
                     <span>Sellable</span>
                   </label>
@@ -1291,7 +1265,7 @@ const handleCheckboxChange = (field) => (event) => {
 
                 {formData.taxPreference === "taxable" && (
                   <div className="space-y-3.5">
-                    <div className="text-[11px] font-bold uppercase tracking-wider text-[#9D43D6]">
+                    <div className="text-[11px] font-bold uppercase tracking-wider text-[#F2572B]">
                       TAX CONFIGURATION
                     </div>
                     <div className="grid gap-4 md:grid-cols-2">
@@ -1316,7 +1290,7 @@ const handleCheckboxChange = (field) => (event) => {
                           checked={priceIncludesGST}
                           onChange={(event) => setPriceIncludesGST(event.target.checked)}
                           disabled={status.loading}
-                          className="h-4 w-4 rounded-[4px] border-[#D4D4D8] accent-[#9D43D6] cursor-pointer"
+                          className="h-4 w-4 rounded-[4px] border-[#D4D4D8] accent-[#F2572B] cursor-pointer"
                         />
                         <span>Price includes GST</span>
                       </label>
@@ -1347,8 +1321,8 @@ const handleCheckboxChange = (field) => (event) => {
 
                 {/* GST Summary */}
                 {shouldShowGSTSummary && gstDetails && (
-                  <div className="rounded-[12px] border border-[#E9D5FF] bg-[#FAF5FF]/60 p-4">
-                    <h4 className="text-[11px] font-bold uppercase tracking-wider text-[#6D2898] mb-3">Price Breakdown</h4>
+                  <div className="rounded-[12px] border border-[#FCCAB9] bg-[#FEF3EE]/60 p-4">
+                    <h4 className="text-[11px] font-bold uppercase tracking-wider text-[#B23614] mb-3">Price Breakdown</h4>
                     {priceIncludesGST ? (
                       <div className="grid gap-3 md:grid-cols-2">
                         <div className="space-y-1">
@@ -1369,9 +1343,9 @@ const handleCheckboxChange = (field) => (event) => {
                             <span className="text-[13px] font-bold text-[#1B1B1B] ml-1.5">{gstDetails.gstAmount}</span>
                           </div>
                         </div>
-                        <div className="md:col-span-2 pt-2.5 border-t border-[#E9D5FF] flex items-center justify-between">
+                        <div className="md:col-span-2 pt-2.5 border-t border-[#FCCAB9] flex items-center justify-between">
                           <span className="text-[12px] text-[#525252] font-medium">Total inclusive price:</span>
-                          <span className="font-bold font-mono text-[#6D2898] text-[13px]">₹{gstDetails.finalPrice}</span>
+                          <span className="font-bold font-mono text-[#B23614] text-[13px]">₹{gstDetails.finalPrice}</span>
                         </div>
                       </div>
                     ) : (
@@ -1407,7 +1381,7 @@ const handleCheckboxChange = (field) => (event) => {
                         checked={formData.purchasable}
                         onChange={handleCheckboxChange("purchasable")}
                         disabled={status.loading}
-                        className="h-4 w-4 rounded-[4px] border-[#D4D4D8] accent-[#9D43D6] cursor-pointer"
+                        className="h-4 w-4 rounded-[4px] border-[#D4D4D8] accent-[#F2572B] cursor-pointer"
                       />
                       <span>Purchasable</span>
                     </label>

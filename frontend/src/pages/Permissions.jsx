@@ -313,7 +313,7 @@ const Permissions = () => {
                 <div className="bg-white px-8 py-4 border-b border-[#E5E5E5] flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
                         <h1 className="text-[18px] font-semibold text-[#212121]">Role Permissions</h1>
-                        <span className="px-2.5 py-0.5 rounded-md text-[10px] font-semibold bg-[#EFE3F7] text-[#9D43D6] uppercase tracking-wide">
+                        <span className="px-2.5 py-0.5 rounded-md text-[10px] font-semibold bg-[#FDE3D9] text-[#F2572B] uppercase tracking-wide">
                             SUPER ADMIN ONLY
                         </span>
                     </div>
@@ -377,7 +377,7 @@ const Permissions = () => {
                         onClick={() => setActiveTab("matrix")}
                         className={`relative px-4 py-3 text-[13px] transition-colors whitespace-nowrap cursor-pointer inline-flex items-center gap-2 border-b-2 -mb-[1px] ${
                             activeTab === "matrix"
-                                ? "border-[#9D43D6] text-[#9D43D6] font-semibold"
+                                ? "border-[#F2572B] text-[#F2572B] font-semibold"
                                 : "border-transparent text-[#6A6A6A] font-medium hover:text-[#212121] hover:border-[#D4D4D4]"
                         }`}
                     >
@@ -397,7 +397,7 @@ const Permissions = () => {
                                 onClick={() => setActiveTab(r.key)}
                                 className={`relative px-3.5 py-3 text-[13px] transition-colors whitespace-nowrap cursor-pointer border-b-2 -mb-[1px] ${
                                     isSelected
-                                        ? "border-[#9D43D6] text-[#9D43D6] font-semibold"
+                                        ? "border-[#F2572B] text-[#F2572B] font-semibold"
                                         : "border-transparent text-[#6A6A6A] font-medium hover:text-[#212121] hover:border-[#D4D4D4]"
                                 }`}
                             >
@@ -409,7 +409,7 @@ const Permissions = () => {
 
                 {loading ? (
                     <div className="bg-white p-12 rounded-lg border border-[#E5E5E5] text-center">
-                        <div className="w-8 h-8 border-3 border-[#9D43D6] border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+                        <div className="w-8 h-8 border-3 border-[#F2572B] border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
                         <p className="text-[#6A6A6A] text-xs">Loading permissions...</p>
                     </div>
                 ) : activeTab === "matrix" ? (
@@ -449,7 +449,7 @@ const Permissions = () => {
                                                             {hasSubpages && (
                                                                 <button
                                                                     onClick={() => toggleModuleExpand(modKey)}
-                                                                    className="flex items-center gap-1 text-[11px] text-[#9D43D6] hover:underline font-normal cursor-pointer py-0.5 px-1.5 rounded hover:bg-purple-50"
+                                                                    className="flex items-center gap-1 text-[11px] text-[#F2572B] hover:underline font-normal cursor-pointer py-0.5 px-1.5 rounded hover:bg-purple-50"
                                                                 >
                                                                     <span>{moduleDef.subpages.length} sub-pages</span>
                                                                     <ChevronDown size={13} className={`transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
@@ -470,7 +470,7 @@ const Permissions = () => {
                                                                     type="checkbox"
                                                                     checked={isChecked}
                                                                     onChange={() => handleToggleModule(role.key, modKey)}
-                                                                    className="w-4 h-4 text-[#9D43D6] rounded border-2 border-slate-400 checked:border-[#9D43D6] bg-white focus:ring-purple-500 cursor-pointer accent-[#9D43D6] hover:scale-105 transition-all"
+                                                                    className="w-4 h-4 text-[#F2572B] rounded border-2 border-slate-400 checked:border-[#F2572B] bg-white focus:ring-purple-500 cursor-pointer accent-[#F2572B] hover:scale-105 transition-all"
                                                                     title={`${isChecked ? "Disable" : "Enable"} ${moduleDef.label} for ${role.label}`}
                                                                 />
                                                             </td>
@@ -499,7 +499,7 @@ const Permissions = () => {
                                                                         type="checkbox"
                                                                         checked={isChecked}
                                                                         onChange={() => handleToggleSubpage(role.key, modKey, subpage.path)}
-                                                                        className="w-4 h-4 text-[#9D43D6] rounded border-2 border-slate-400 checked:border-[#9D43D6] bg-white focus:ring-purple-500 accent-[#9D43D6] cursor-pointer hover:scale-105 transition-all"
+                                                                        className="w-4 h-4 text-[#F2572B] rounded border-2 border-slate-400 checked:border-[#F2572B] bg-white focus:ring-purple-500 accent-[#F2572B] cursor-pointer hover:scale-105 transition-all"
                                                                         title={`${subpage.label} for ${role.label}`}
                                                                     />
                                                                 </td>
@@ -517,9 +517,9 @@ const Permissions = () => {
                 ) : (
                     /* ── SINGLE ROLE TABLE VIEW (COLUMNS AND ROWS) ── */
                     <div className="bg-white rounded-lg border border-[#E5E5E5] overflow-hidden">
-                        <div className="px-5 py-3 bg-[#F1E6F8] border-b border-[#E2D4EC] flex items-center justify-between">
+                        <div className="px-5 py-3 bg-[#FDE3D9] border-b border-[#FCCAB9] flex items-center justify-between">
                             <span className="text-[12px] font-bold text-[#212121] uppercase tracking-wider">
-                                Permissions for role: <span className="text-[#9D43D6]">{activeTab.replace('_', ' ').toUpperCase()}</span>
+                                Permissions for role: <span className="text-[#F2572B]">{activeTab.replace('_', ' ').toUpperCase()}</span>
                             </span>
                             <span className="text-[12px] text-[#6A6A6A]">
                                 Click checkbox to open/close module. Open dropdown to toggle inside sub-pages.
@@ -557,7 +557,7 @@ const Permissions = () => {
                                                 {/* Module Name + Icon */}
                                                 <td className="py-3.5 px-4 font-semibold text-gray-800">
                                                     <div className="flex items-center gap-2.5">
-                                                        <div className={`p-1.5 rounded-lg shrink-0 ${isModuleEnabled ? "bg-purple-100 text-[#9D43D6]" : "bg-gray-100 text-gray-400"}`}>
+                                                        <div className={`p-1.5 rounded-lg shrink-0 ${isModuleEnabled ? "bg-purple-100 text-[#F2572B]" : "bg-gray-100 text-gray-400"}`}>
                                                             <IconComp size={16} />
                                                         </div>
                                                         <span className={isModuleEnabled ? "text-gray-900" : "text-gray-500"}>
@@ -573,7 +573,7 @@ const Permissions = () => {
                                                             type="checkbox"
                                                             checked={isModuleEnabled}
                                                             onChange={() => handleToggleModule(activeTab, modKey)}
-                                                            className="w-4 h-4 text-[#9D43D6] rounded border-2 border-slate-400 checked:border-[#9D43D6] bg-white focus:ring-purple-500 cursor-pointer accent-[#9D43D6] hover:scale-105 transition-all"
+                                                            className="w-4 h-4 text-[#F2572B] rounded border-2 border-slate-400 checked:border-[#F2572B] bg-white focus:ring-purple-500 cursor-pointer accent-[#F2572B] hover:scale-105 transition-all"
                                                         />
                                                         <span className={`text-xs font-semibold px-2 py-0.5 rounded-md ${
                                                             isModuleEnabled ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-gray-100 text-gray-500"
@@ -596,7 +596,7 @@ const Permissions = () => {
                                                                     onClick={() => toggleModuleExpand(modKey)}
                                                                     className={`flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-lg border transition-colors cursor-pointer ${
                                                                         isExpanded 
-                                                                            ? "bg-purple-50 text-[#9D43D6] border-purple-200" 
+                                                                            ? "bg-purple-50 text-[#F2572B] border-purple-200" 
                                                                             : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
                                                                     }`}
                                                                 >
@@ -625,7 +625,7 @@ const Permissions = () => {
                                                                                     type="checkbox"
                                                                                     checked={isChecked}
                                                                                     onChange={() => handleToggleSubpage(activeTab, modKey, sub.path)}
-                                                                                    className="w-4 h-4 text-[#9D43D6] rounded border-2 border-slate-400 checked:border-[#9D43D6] bg-white focus:ring-purple-500 accent-[#9D43D6] cursor-pointer hover:scale-105 transition-all"
+                                                                                    className="w-4 h-4 text-[#F2572B] rounded border-2 border-slate-400 checked:border-[#F2572B] bg-white focus:ring-purple-500 accent-[#F2572B] cursor-pointer hover:scale-105 transition-all"
                                                                                 />
                                                                                 <span className={`text-xs truncate ${isChecked ? "font-medium text-gray-800" : "text-gray-500"}`}>
                                                                                     {sub.label}
@@ -645,7 +645,7 @@ const Permissions = () => {
                                                         <div className="flex items-center justify-end gap-1.5 text-[11px]">
                                                             <button
                                                                 onClick={() => handleSelectAllSubpages(activeTab, modKey)}
-                                                                className="text-[#9D43D6] hover:underline cursor-pointer font-medium"
+                                                                className="text-[#F2572B] hover:underline cursor-pointer font-medium"
                                                             >
                                                                 All
                                                             </button>

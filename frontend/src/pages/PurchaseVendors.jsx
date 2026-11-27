@@ -255,7 +255,7 @@ const PurchaseVendors = () => {
                     <tr>
                       <td colSpan="8" className="px-6 py-16 text-center">
                         <div className="flex flex-col items-center justify-center gap-3">
-                          <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#9D43D6] border-t-transparent" />
+                          <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#F2572B] border-t-transparent" />
                           <p className="text-[13px] font-medium text-[#7A7A7A]">Loading vendors...</p>
                         </div>
                       </td>
@@ -275,7 +275,7 @@ const PurchaseVendors = () => {
                         <td className="px-4 py-3.5 whitespace-nowrap">
                           <Link
                             to={`/purchase/vendors/${v._id || v.id}`}
-                            className="font-medium text-[#212121] hover:text-[#9D43D6] transition-colors"
+                            className="font-medium text-[#212121] hover:text-[#F2572B] transition-colors"
                           >
                             {v.displayName || v.companyName || v.name || `${v.firstName || ""} ${v.lastName || ""}`.trim()}
                           </Link>

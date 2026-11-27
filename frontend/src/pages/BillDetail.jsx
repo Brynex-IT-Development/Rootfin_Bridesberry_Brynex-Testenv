@@ -5,6 +5,7 @@ import baseUrl from "../api/api";
 import AttachmentDisplay from "../components/AttachmentDisplay";
 import useSidebar from "../hooks/useSidebar";
 import RootfinConfirmModal from "../components/RootfinModal";
+import { findStore } from "../utils/storeService";
 
 const formatCurrency = (value) => {
   return new Intl.NumberFormat("en-IN", {
@@ -368,11 +369,12 @@ const BillDetail = () => {
     };
   });
 
-  // Get company details (you may need to fetch this from user/organization settings)
-  const companyName = "Bridesberry"; // This should come from user/organization settings
-  const companyAddress = "Kerala"; // This should come from user/organization settings
-  const companyGSTIN = "32ABCFR1426N129"; // This should come from user/organization settings
-  const companyEmail = "rootmentsoffice@gmail.com"; // This should come from user/organization settings
+  // Company/store details come from the backend store this document belongs to
+  const docStore = findStore(bill?.warehouse) || findStore(bill?.branch) || null;
+  const companyName = docStore?.locName || bill?.warehouse || bill?.branch || "";
+  const companyAddress = docStore?.address || "";
+  const companyGSTIN = docStore?.gst || "";
+  const companyEmail = docStore?.email || "";
   const companyCountry = "India";
 
   // Get vendor details
@@ -561,7 +563,7 @@ const BillDetail = () => {
                     <p className="font-semibold">{companyName}</p>
                     <p>{companyAddress}</p>
                     <p>{companyCountry}</p>
-                    <p>GSTIN {companyGSTIN}</p>
+                    {companyGSTIN && <p>GSTIN {companyGSTIN}</p>}
                     {companyEmail && <p>{companyEmail}</p>}
                   </div>
                 </div>

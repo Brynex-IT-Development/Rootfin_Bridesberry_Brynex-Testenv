@@ -5,6 +5,8 @@ import TransferOrder from "../model/TransferOrder.js";
 import PurchaseReceive from "../model/PurchaseReceive.js";
 import InventoryAdjustment from "../model/InventoryAdjustment.js";
 import Bill from "../model/Bill.js";
+import { ensureStores, isWarehouseStore, sameStore, storeName, warehouseName as defaultWarehouseName } from "../utils/storeResolver.js";
+import { isAdminUserId } from "../utils/adminUsers.js";
 
 // Helper function to get inventory adjustments from MongoDB
 const getInventoryAdjustments = async (conditions) => {
@@ -44,234 +46,26 @@ const getInvoiceItems = (salesInvoice) => {
   return [];
 };
 
-// Warehouse name normalization mapping (same as ShoeItemController)
-const WAREHOUSE_NAME_MAPPING = {
-  "Grooms Trivandum": "Grooms Trivandrum",
-  "Grooms Trivandrum": "Grooms Trivandrum",
-  "SG-Trivandrum": "Grooms Trivandrum",
-  "G.Palakkad": "Palakkad Branch",
-  "G.Palakkad ": "Palakkad Branch",
-  "GPalakkad": "Palakkad Branch",
-  "Palakkad Branch": "Palakkad Branch",
-  "Warehouse": "Warehouse",
-  "warehouse": "Warehouse",
-  "WAREHOUSE": "Warehouse",
-  "G.Calicut": "Calicut",
-  "G.Calicut ": "Calicut",
-  "GCalicut": "Calicut",
-  "Calicut": "Calicut",
-  "G.Manjeri": "Manjery Branch",
-  "G.Manjery": "Manjery Branch",
-  "GManjeri": "Manjery Branch",
-  "GManjery": "Manjery Branch",
-  "Manjery Branch": "Manjery Branch",
-  "G.Kannur": "Kannur Branch",
-  "GKannur": "Kannur Branch",
-  "Kannur Branch": "Kannur Branch",
-  "G.Edappal": "Edappal Branch",
-  "GEdappal": "Edappal Branch",
-  "Edappal Branch": "Edappal Branch",
-  "G.Edappally": "Edapally Branch",
-  "G-Edappally": "Edapally Branch",
-  "GEdappally": "Edapally Branch",
-  "Edapally Branch": "Edapally Branch",
-  "G.Kalpetta": "Kalpetta Branch",
-  "GKalpetta": "Kalpetta Branch",
-  "Kalpetta Branch": "Kalpetta Branch",
-  "G.Kottakkal": "Kottakkal Branch",
-  "GKottakkal": "Kottakkal Branch",
-  "Kottakkal Branch": "Kottakkal Branch",
-  "Z.Kottakkal": "Kottakkal Branch",
-  "G.Perinthalmanna": "Perinthalmanna Branch",
-  "GPerinthalmanna": "Perinthalmanna Branch",
-  "Perinthalmanna Branch": "Perinthalmanna Branch",
-  "Z.Perinthalmanna": "Perinthalmanna Branch",
-  "G.Chavakkad": "Chavakkad Branch",
-  "GChavakkad": "Chavakkad Branch",
-  "Chavakkad Branch": "Chavakkad Branch",
-  "G.Thrissur": "Thrissur Branch",
-  "GThrissur": "Thrissur Branch",
-  "Thrissur Branch": "Thrissur Branch",
-  "G.Perumbavoor": "Perumbavoor Branch",
-  "GPerumbavoor": "Perumbavoor Branch",
-  "Perumbavoor Branch": "Perumbavoor Branch",
-  "G.Kottayam": "Kottayam Branch",
-  "GKottayam": "Kottayam Branch",
-  "Kottayam Branch": "Kottayam Branch",
-  "G.Kottayam Branch": "Kottayam Branch", // Map the duplicate to the correct name
-  "G.MG Road": "MG Road Branch",
-  "G.Mg Road": "MG Road Branch",
-  "GMG Road": "MG Road Branch",
-  "GMg Road": "MG Road Branch",
-  "MG Road": "MG Road Branch",
-  "Mg Road": "MG Road Branch",
-  "SuitorGuy MG Road": "MG Road Branch", // Normalize the old name to the correct one
-  "MG Road Branch": "MG Road Branch",
-  "Mg Road Branch": "MG Road Branch",
-  "G Road Branch": "MG Road Branch",
-  "HEAD OFFICE01": "Head Office",
-  "Head Office": "Head Office",
-  "Z-Edapally1": "Warehouse",
-  "Z- Edappal": "Warehouse",
-  "Production": "Warehouse",
-  "Office": "Warehouse",
-  "G.Vadakara": "Vadakara Branch", // Fixed: was incorrectly mapped to Warehouse
-  "GVadakara": "Vadakara Branch",
-  "Vadakara Branch": "Vadakara Branch",
-  // BridesBerry variations
-  "BridesBerry": "Brides Berry",
-  "bridesberry": "Brides Berry",
-  "Brides Berry": "Brides Berry",
-  "brides berry": "Brides Berry",
-  "Bridesberry": "Brides Berry",
-  // LocCode to Warehouse mappings
-  "155": "Brides Berry",
-  "858": "Warehouse",
-  "103": "Warehouse",
-  "702": "Edapally Branch",
-  "759": "Head Office",
-  "700": "Grooms Trivandrum",
-  "701": "Kottayam Branch",
-  "703": "Perumbavoor Branch",
-  "704": "Thrissur Branch",
-  "706": "Chavakkad Branch",
-  "712": "Calicut",
-  "708": "Vadakara Branch",
-  "707": "Edappal Branch",
-  "709": "Perinthalmanna Branch",
-  "711": "Kottakkal Branch",
-  "710": "Manjery Branch",
-  "705": "Palakkad Branch",
-  "717": "Kalpetta Branch",
-  "716": "Kannur Branch",
-  "718": "MG Road Branch",
-  "144": "Warehouse",
-  "100": "Warehouse",
-  "133": "Perinthalmanna Branch",
-  "122": "Kottakkal Branch",
-  // Fix corrupted warehouse names
-  "arehouse Branch": "Warehouse", // Missing 'W' at the beginning
-  "-Kalpetta Branch": "Kalpetta Branch", // Remove leading dash
-  "-Kannur Branch": "Kannur Branch", // Remove leading dash
-};
-
+// Store names/codes are resolved only from the Store collection (utils/storeResolver.js).
 export const matchesWarehouse = (itemWarehouse, targetWarehouse) => {
   if (!itemWarehouse) return false;
   if (!targetWarehouse || targetWarehouse === "All Stores" || targetWarehouse === "all") return true;
-
-  const itemRaw = itemWarehouse.toString().trim();
-  const targetRaw = targetWarehouse.toString().trim();
-
-  // Direct normalized match
-  const normItem = normalizeWarehouseName(itemRaw);
-  const normTarget = normalizeWarehouseName(targetRaw);
-  if (normItem && normTarget && normItem.toLowerCase() === normTarget.toLowerCase()) {
-    return true;
-  }
-
-  const itemLower = itemRaw.toLowerCase();
-  const targetLower = targetRaw.toLowerCase();
-  if (itemLower === targetLower) return true;
-
-  // Base name match (stripping branch, warehouse, and non-alphanumeric)
-  const cleanItem = itemLower.replace(/\s*(branch|warehouse)\s*$/i, "").replace(/[^a-z0-9]/g, "");
-  const cleanTarget = targetLower.replace(/\s*(branch|warehouse)\s*$/i, "").replace(/[^a-z0-9]/g, "");
-  if (cleanItem && cleanTarget && cleanItem === cleanTarget) {
-    return true;
-  }
-
-  // Brides Berry special match
-  const isItemBrides = cleanItem.includes("bridesberry") || cleanItem.includes("brides");
-  const isTargetBrides = cleanTarget.includes("bridesberry") || cleanTarget.includes("brides") || targetRaw === "155";
-  if (isItemBrides && isTargetBrides) return true;
-
-  // Trivandrum variations
-  const tvm = ["trivandrum", "groomstrivandrum", "sgtrivandrum", "tvm"];
-  if (tvm.some(v => cleanItem.includes(v)) && tvm.some(v => cleanTarget.includes(v))) {
-    return true;
-  }
-
-  // MG Road variations
-  const mg = ["mgroad", "gmgroad", "suitorguymgroad"];
-  if (mg.some(v => cleanItem.includes(v)) && mg.some(v => cleanTarget.includes(v))) {
-    return true;
-  }
-
-  // Substring inclusion (only if length >= 4 to avoid accidental short matches)
-  if (cleanItem.length >= 4 && cleanTarget.length >= 4) {
-    if (cleanItem.includes(cleanTarget) || cleanTarget.includes(cleanItem)) {
-      return true;
-    }
-  }
-
-  return false;
+  return sameStore(itemWarehouse, targetWarehouse);
 };
 
-const resolveTargetWarehouse = (warehouse, locCode) => {
-  if (warehouse && warehouse !== "All Stores") {
-    const mapped = normalizeWarehouseName(warehouse);
-    return mapped || warehouse;
-  }
-  if (locCode) {
-    const mapped = normalizeWarehouseName(locCode);
-    if (mapped) return mapped;
-  }
+const resolveTargetWarehouse = async (warehouse, locCode) => {
+  await ensureStores();
+  if (warehouse && warehouse !== "All Stores") return storeName(warehouse);
+  if (locCode) return storeName(locCode);
   return warehouse || "";
 };
 
-const normalizeWarehouseName = (warehouseName) => {
-  if (!warehouseName) return null;
-  const trimmed = warehouseName.toString().trim();
-  if (WAREHOUSE_NAME_MAPPING[trimmed]) {
-    return WAREHOUSE_NAME_MAPPING[trimmed];
-  }
-  const lowerName = trimmed.toLowerCase();
-  for (const [key, value] of Object.entries(WAREHOUSE_NAME_MAPPING)) {
-    if (key.toLowerCase() === lowerName) {
-      return value;
-    }
-  }
-  return trimmed;
-};
+const normalizeWarehouseName = (warehouseName) => storeName(warehouseName);
 
-// Get all possible warehouse name variations for a given warehouse
+// Names that refer to the same store as `warehouseName` (canonical backend name + the raw value)
 const getWarehouseNameVariations = (warehouseName) => {
   if (!warehouseName) return [];
-  const normalized = normalizeWarehouseName(warehouseName);
-  const variations = [normalized, warehouseName];
-  
-  // Add all keys from mapping that map to the normalized name
-  for (const [key, value] of Object.entries(WAREHOUSE_NAME_MAPPING)) {
-    if (value === normalized && !variations.includes(key)) {
-      variations.push(key);
-    }
-  }
-  
-  // Also add case-insensitive variations
-  const lowerNormalized = normalized.toLowerCase();
-  for (const [key, value] of Object.entries(WAREHOUSE_NAME_MAPPING)) {
-    if (value.toLowerCase() === lowerNormalized && !variations.includes(key)) {
-      variations.push(key);
-    }
-  }
-  
-  // Special handling for MG Road - include "SuitorGuy MG Road" as it's used in other controllers
-  if (normalized === "MG Road Branch" || warehouseName.toLowerCase().includes("mg road")) {
-    if (!variations.includes("SuitorGuy MG Road")) {
-      variations.push("SuitorGuy MG Road");
-    }
-    if (!variations.includes("MG Road")) {
-      variations.push("MG Road");
-    }
-    if (!variations.includes("G.MG Road")) {
-      variations.push("G.MG Road");
-    }
-    if (!variations.includes("G.Mg Road")) {
-      variations.push("G.Mg Road");
-    }
-  }
-  
-  return [...new Set(variations)]; // Remove duplicates
+  return [...new Set([storeName(warehouseName), warehouseName.toString().trim()].filter(Boolean))];
 };
 
 // Get Inventory Summary Report
@@ -281,16 +75,11 @@ export const getInventorySummary = async (req, res) => {
     const userId = req.query.userId || req.body.userId;
 
     // Check if user is admin
-    const adminEmails = [
-      'officerootments@gmail.com',
-      'operationsrootments@gmail.com',
-      'headoffice01@gmail.com'
-    ];
-    const isAdminEmail = userId && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
+    const isAdminEmail = await isAdminUserId(userId); // admin by role, not by email
     const isMainAdmin = isAdminEmail ||
       (req.query.userPower && (req.query.userPower.toLowerCase() === 'admin' || req.query.userPower.toLowerCase() === 'super_admin')) ||
-      (req.query.userRole && (req.query.userRole.toLowerCase() === 'admin' || req.query.userRole.toLowerCase() === 'superadmin')) ||
-      (locCode && (locCode === '858' || locCode === '103'));
+      (req.query.userRole && ['admin', 'superadmin', 'super_admin'].includes(req.query.userRole.toLowerCase())) ||
+      (locCode && isWarehouseStore(locCode));
     const isAdmin = isMainAdmin;
 
     // Cluster manager: has allowedLocCodes and is not a main admin
@@ -299,7 +88,7 @@ export const getInventorySummary = async (req, res) => {
     const clusterNormalizedStores = clusterStoreLabels.map(label => normalizeWarehouseName(label)).filter(Boolean);
 
     // Resolve target warehouse and whether to filter by store
-    const targetWarehouse = resolveTargetWarehouse(warehouse, locCode);
+    const targetWarehouse = await resolveTargetWarehouse(warehouse, locCode);
     const shouldFilterStore = !isMainAdmin || (warehouse && warehouse !== "All Stores");
 
     console.log("🔍 Original warehouse:", warehouse);
@@ -583,16 +372,11 @@ export const getStockSummary = async (req, res) => {
     const userId = req.query.userId || req.body.userId;
 
     // Check if user is admin
-    const adminEmails = [
-      'officerootments@gmail.com',
-      'operationsrootments@gmail.com',
-      'headoffice01@gmail.com'
-    ];
-    const isAdminEmail = userId && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
+    const isAdminEmail = await isAdminUserId(userId); // admin by role, not by email
     const isMainAdmin = isAdminEmail ||
       (req.query.userPower && (req.query.userPower.toLowerCase() === 'admin' || req.query.userPower.toLowerCase() === 'super_admin')) ||
-      (req.query.userRole && (req.query.userRole.toLowerCase() === 'admin' || req.query.userRole.toLowerCase() === 'superadmin')) ||
-      (locCode && (locCode === '858' || locCode === '103'));
+      (req.query.userRole && ['admin', 'superadmin', 'super_admin'].includes(req.query.userRole.toLowerCase())) ||
+      (locCode && isWarehouseStore(locCode));
     const isAdmin = isMainAdmin;
     
     // Parse allowedLocCodes if provided (for cluster managers) — these are store labels
@@ -604,7 +388,7 @@ export const getStockSummary = async (req, res) => {
     const isClusterManager = !isMainAdmin && clusterNormalizedStores.length > 0;
 
     // Resolve target warehouse and whether to filter by store
-    const targetWarehouse = resolveTargetWarehouse(warehouse, locCode);
+    const targetWarehouse = await resolveTargetWarehouse(warehouse, locCode);
     const shouldFilterStore = !isMainAdmin || (warehouse && warehouse !== "All Stores");
 
     // Helper function to check if warehouse matches
@@ -749,28 +533,8 @@ export const getStockSummary = async (req, res) => {
       }
     }
 
-    // Define all stores that should appear in the report
-    const allStoresList = [
-      "Warehouse",
-      "Brides Berry",
-      "Grooms Trivandrum",
-      "Palakkad Branch",
-      "Calicut",
-      "Manjery Branch",
-      "Kannur Branch",
-      "Edappal Branch",
-      "Edapally Branch",
-      "Kalpetta Branch",
-      "Kottakkal Branch",
-      "Perinthalmanna Branch",
-      "Chavakkad Branch",
-      "Thrissur Branch",
-      "Perumbavoor Branch",
-      "Kottayam Branch",
-      "MG Road Branch",
-      "Vadakara Branch",
-      "Head Office"
-    ];
+    // All stores that should appear in the report come from the backend
+    const allStoresList = (await ensureStores()).filter((st) => st.isActive).map((st) => st.name);
 
     // If a specific warehouse is selected or store user, only show that one.
     // If cluster manager is viewing "All My Stores", filter to their allowed stores only.
@@ -861,20 +625,15 @@ export const getInventoryValuation = async (req, res) => {
     const userId = req.query.userId || req.body.userId;
 
     // Check if user is admin
-    const adminEmails = [
-      'officerootments@gmail.com',
-      'operationsrootments@gmail.com',
-      'headoffice01@gmail.com'
-    ];
-    const isAdminEmail = userId && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
+    const isAdminEmail = await isAdminUserId(userId); // admin by role, not by email
     const isMainAdmin = isAdminEmail ||
       (req.query.userPower && (req.query.userPower.toLowerCase() === 'admin' || req.query.userPower.toLowerCase() === 'super_admin')) ||
-      (req.query.userRole && (req.query.userRole.toLowerCase() === 'admin' || req.query.userRole.toLowerCase() === 'superadmin')) ||
-      (locCode && (locCode === '858' || locCode === '103'));
+      (req.query.userRole && ['admin', 'superadmin', 'super_admin'].includes(req.query.userRole.toLowerCase())) ||
+      (locCode && isWarehouseStore(locCode));
     const isAdmin = isMainAdmin;
 
     // Resolve target warehouse and whether to filter by store
-    const targetWarehouse = resolveTargetWarehouse(warehouse, locCode);
+    const targetWarehouse = await resolveTargetWarehouse(warehouse, locCode);
     const shouldFilterStore = !isMainAdmin || (warehouse && warehouse !== "All Stores");
 
     const warehouseMatches = (wsWarehouse) => {
@@ -960,7 +719,7 @@ export const getInventoryValuation = async (req, res) => {
 
       if (item.warehouseStocks && Array.isArray(item.warehouseStocks)) {
         item.warehouseStocks.forEach(ws => {
-          if (!isMainAdmin && locCode && locCode !== '858' && locCode !== '103' && ws.warehouse !== normalizedWarehouse) return;
+          if (!isMainAdmin && locCode && !isWarehouseStore(locCode) && ws.warehouse !== normalizedWarehouse) return;
           valuationByCategory[category].totalQuantity += parseFloat(ws.stockOnHand) || parseFloat(ws.stock) || 0;
         });
       }
@@ -1052,11 +811,7 @@ export const getOpeningStockReport = async (req, res) => {
     let totalOpeningValue = 0;
     
     // Helper function to normalize warehouse names
-    const normalizeWarehouseName = (name) => {
-      if (!name) return "Warehouse";
-      const normalized = WAREHOUSE_NAME_MAPPING[name.trim()] || name.trim();
-      return normalized;
-    };
+    const normalizeWarehouseName = (name) => storeName(name) || defaultWarehouseName();
     
     // Process standalone items
     standaloneItems.forEach(item => {
@@ -1146,8 +901,8 @@ export const getOpeningStockReport = async (req, res) => {
     let filteredStoreReport = storeReport;
     let filteredItemDetails = itemDetails;
     
-    const targetWarehouse = resolveTargetWarehouse(warehouse, locCode);
-    const shouldFilterStore = (locCode && locCode !== '858' && locCode !== '103') || (warehouse && warehouse !== 'all' && warehouse !== 'All Stores' && warehouse !== 'Warehouse');
+    const targetWarehouse = await resolveTargetWarehouse(warehouse, locCode);
+    const shouldFilterStore = (locCode && !isWarehouseStore(locCode)) || (warehouse && warehouse !== 'all' && warehouse !== 'All Stores' && !isWarehouseStore(warehouse));
 
     if (shouldFilterStore && targetWarehouse) {
       filteredStoreReport = storeReport.filter(store => matchesWarehouse(store.store, targetWarehouse));
@@ -1200,16 +955,11 @@ export const getStockOnHandReport = async (req, res) => {
     console.log("📊 Stock On Hand Report Request:", { locCode, warehouse, startDate, endDate });
 
     // Check if user is admin
-    const adminEmails = [
-      'officerootments@gmail.com',
-      'operationsrootments@gmail.com',
-      'headoffice01@gmail.com'
-    ];
-    const isAdminEmail = userId && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
+    const isAdminEmail = await isAdminUserId(userId); // admin by role, not by email
     const isMainAdmin = isAdminEmail ||
       (req.query.userPower && (req.query.userPower.toLowerCase() === 'admin' || req.query.userPower.toLowerCase() === 'super_admin')) ||
-      (req.query.userRole && (req.query.userRole.toLowerCase() === 'admin' || req.query.userRole.toLowerCase() === 'superadmin')) ||
-      (locCode && (locCode === '858' || locCode === '103'));
+      (req.query.userRole && ['admin', 'superadmin', 'super_admin'].includes(req.query.userRole.toLowerCase())) ||
+      (locCode && isWarehouseStore(locCode));
     const isAdmin = isMainAdmin;
     
     // Date range setup
@@ -1234,7 +984,7 @@ export const getStockOnHandReport = async (req, res) => {
     }
     
     // Resolve target warehouse
-    const targetWarehouse = resolveTargetWarehouse(warehouse, locCode);
+    const targetWarehouse = await resolveTargetWarehouse(warehouse, locCode);
     const shouldFilterStore = !isMainAdmin || (warehouse && warehouse !== "All Stores");
     
     // Helper function to check if warehouse matches
@@ -1520,16 +1270,11 @@ export const getInventoryAging = async (req, res) => {
     const userId = req.query.userId || req.body.userId;
 
     // Check admin / permissions
-    const adminEmails = [
-      'officerootments@gmail.com',
-      'operationsrootments@gmail.com',
-      'headoffice01@gmail.com'
-    ];
-    const isAdminEmail = userId && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
+    const isAdminEmail = await isAdminUserId(userId); // admin by role, not by email
     const isMainAdmin = isAdminEmail ||
       (req.query.userPower && (req.query.userPower.toLowerCase() === 'admin' || req.query.userPower.toLowerCase() === 'super_admin')) ||
-      (req.query.userRole && (req.query.userRole.toLowerCase() === 'admin' || req.query.userRole.toLowerCase() === 'superadmin')) ||
-      (locCode && (locCode === '858' || locCode === '103'));
+      (req.query.userRole && ['admin', 'superadmin', 'super_admin'].includes(req.query.userRole.toLowerCase())) ||
+      (locCode && isWarehouseStore(locCode));
     const isAdmin = isMainAdmin;
 
     const clusterStoreLabels = allowedLocCodes ? allowedLocCodes.split(',').map(s => s.trim()) : [];
@@ -1540,7 +1285,7 @@ export const getInventoryAging = async (req, res) => {
     const evaluationTime = targetDate.getTime();
 
     // Resolve target warehouse
-    const targetWarehouse = resolveTargetWarehouse(warehouse, locCode);
+    const targetWarehouse = await resolveTargetWarehouse(warehouse, locCode);
     const shouldFilterStore = !isMainAdmin || (warehouse && warehouse !== "All Stores");
 
     // Helper to check if warehouse matches query
@@ -1757,7 +1502,7 @@ export const getInventoryAging = async (req, res) => {
       });
       targetWarehouses = Array.from(whSet);
       if (targetWarehouses.length === 0) {
-        targetWarehouses = ["Warehouse", "MG Road Branch", "Brides Berry"];
+        targetWarehouses = (await ensureStores()).filter((st) => st.isActive).map((st) => st.name);
       }
     }
 

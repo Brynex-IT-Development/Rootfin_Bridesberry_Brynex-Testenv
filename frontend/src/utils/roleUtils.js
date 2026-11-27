@@ -41,6 +41,14 @@ export const isAdmin = (user) => {
     return role === "super_admin" || role === "admin" || role === "warehouse_admin";
 };
 
+/** Admin or Super Admin only (by role or legacy power field). */
+export const isAdminOrSuperAdmin = (user) => {
+    if (!user) return false;
+    const role = normalizeRole(user.role);
+    const power = normalizeRole(user.power);
+    return role === "super_admin" || role === "admin" || power === "super_admin" || power === "admin";
+};
+
 export const isWarehouseAdmin = (user) => {
     if (!user) return false;
     return normalizeRole(user.role || user.power) === "warehouse_admin";

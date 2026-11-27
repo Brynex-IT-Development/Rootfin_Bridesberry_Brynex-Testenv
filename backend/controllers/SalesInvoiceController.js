@@ -5,6 +5,7 @@ import { validateStockBeforeInvoice, validateStockAfterInvoice } from "../utils/
 import Transaction from "../model/Transaction.js";
 import User from "../model/UserModel.js";
 import mongoose from "mongoose";
+import { isAdminUserId } from "../utils/adminUsers.js";
 
 // ✅ Helper function to allocate payment amounts based on payment method
 const allocatePaymentAmounts = (invoice) => {
@@ -415,7 +416,7 @@ export const getNextInvoiceNumber = async (req, res) => {
 // Get all sales invoices for a user
 export const getSalesInvoices = async (req, res) => {
   try {
-    const { userId, userPower, status, locCode, warehouse, filterLocCode, fromDate, toDate, branch } = req.query;
+    const { userId, userPower, userRole, status, warehouse, filterLocCode, fromDate, toDate, branch } = req.query;
 
     const query = {};
 
@@ -435,20 +436,15 @@ export const getSalesInvoices = async (req, res) => {
       console.log(`📅 Date filtering applied: ${fromDate} to ${toDate}`);
     }
 
-    const adminEmails = ["officerootments@gmail.com"];
-    const isAdminEmail =
-      userId &&
-      typeof userId === "string" &&
-      adminEmails.some(
-        (email) => userId.toLowerCase() === email.toLowerCase()
-      );
+    const isAdminEmail = await isAdminUserId(userId); // admin by role, not by email
 
+    // Admin by role/power only — no hardcoded store codes.
+    const power = (userPower || "").toString().toLowerCase();
+    const role = (userRole || "").toString().toLowerCase();
     const isAdmin =
       isAdminEmail ||
-      (userPower &&
-        (userPower.toLowerCase() === "admin" ||
-          userPower.toLowerCase() === "super_admin")) ||
-      (locCode && (locCode === "858" || locCode === "103"));
+      ["admin", "super_admin", "superadmin"].includes(power) ||
+      ["admin", "super_admin", "superadmin", "warehouse_admin"].includes(role);
 
     // If admin has switched to a specific store (not Warehouse), filter by that store
     const isAdminViewingSpecificStore = isAdmin && warehouse && warehouse !== "All Stores";
@@ -457,13 +453,18 @@ export const getSalesInvoices = async (req, res) => {
     if ((!isAdmin || isAdminViewingSpecificStore) && (warehouse || filterLocCode || branch)) {
       // Check warehouse, branch, or locCode fields for compatibility with old invoices
       const orConditions = [];
+      // Match store names ignoring case/spacing ("Store Name" == "StoreName")
+      const nameRegex = (name) => new RegExp(
+        `^\\s*${name.toString().trim().replace(/\s+/g, "").split("").map((c) => c.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("\\s*")}\\s*$`,
+        "i"
+      );
       if (warehouse) {
-        orConditions.push({ warehouse: warehouse });
-        orConditions.push({ branch: warehouse });
+        orConditions.push({ warehouse: nameRegex(warehouse) });
+        orConditions.push({ branch: nameRegex(warehouse) });
       }
       if (branch) {
-        orConditions.push({ branch: branch });
-        orConditions.push({ warehouse: branch });
+        orConditions.push({ branch: nameRegex(branch) });
+        orConditions.push({ warehouse: nameRegex(branch) });
       }
       if (filterLocCode) {
         orConditions.push({ locCode: filterLocCode });

@@ -8,10 +8,11 @@ import { Helmet } from "react-helmet";
 import { FiDownload } from "react-icons/fi";
 import { Loader2, Printer } from "lucide-react";
 import { useSidebar } from "../hooks/useSidebar.js";
-import { getActiveStores } from "../utils/storeService.js";
+import { getActiveStores, isWarehouseStore, findStore } from "../utils/storeService.js";
 import { mapLocNameToWarehouse } from "../utils/warehouseMapping.js";
 
 import AppSelect, { appSelectStyles } from "../components/AppSelect.jsx";
+import { isAdminOrSuperAdmin } from "../utils/roleUtils";
 // Helper to format currency
 const formatCurrency = (amount) => {
   if (amount === undefined || amount === null || isNaN(amount)) return "₹0.00";
@@ -24,11 +25,11 @@ const customSelectStyles = {
   control: (provided, state) => ({
     ...provided,
     backgroundColor: "#ffffff",
-    borderColor: state.isFocused ? "#9333ea" : "#d1d5db",
+    borderColor: state.isFocused ? "#F2572B" : "#d1d5db",
     borderRadius: "0.5rem",
     padding: "1px 2px",
     minHeight: "40px",
-    boxShadow: state.isFocused ? "0 0 0 2px rgba(147, 51, 234, 0.2)" : "none",
+    boxShadow: state.isFocused ? "0 0 0 2px rgba(242, 87, 43, 0.2)" : "none",
     "&:hover": {
       borderColor: "#9ca3af",
     },
@@ -39,9 +40,9 @@ const customSelectStyles = {
   option: (provided, state) => ({
     ...provided,
     backgroundColor: state.isSelected
-      ? "#9333ea"
+      ? "#F2572B"
       : state.isFocused
-      ? "#f3e8ff"
+      ? "#FDE3D9"
       : "#ffffff",
     color: state.isSelected ? "#ffffff" : "#374151",
     fontSize: "0.875rem",
@@ -141,25 +142,22 @@ const InventoryReport = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
 
   const currentUser = JSON.parse(localStorage.getItem("rootfinuser") || "{}");
-  const adminEmails = [
-    "officerootments@gmail.com",
-    "operationsrootments@gmail.com",
-    "headoffice01@gmail.com",
-  ];
   const isAdmin =
     (currentUser?.power || "").toLowerCase() === "admin" ||
     (currentUser?.power || "").toLowerCase() === "super_admin" ||
     (currentUser?.role || "").toLowerCase() === "admin" ||
     (currentUser?.role || "").toLowerCase() === "superadmin" ||
-    adminEmails.some((email) => (currentUser?.email || "").toLowerCase() === email.toLowerCase()) ||
-    ["858", "103"].includes(currentUser?.locCode);
+    isAdminOrSuperAdmin(currentUser) ||
+    isAdminOrSuperAdmin(currentUser) ||
+    isWarehouseStore(currentUser?.locCode);
 
   const isClusterManager = (currentUser?.role || "").toLowerCase() === "cluster_manager";
   const clusterAllowedLocCodes = currentUser?.allowedLocCodes || [];
   const canChooseStore = isAdmin || isClusterManager;
   const currentUserStore = resolveUserStore(currentUser, storeOptions);
+  // Admins: "All Stores" sends no locCode (no store filter); a picked store sends its own code
   const reportLocCode = canChooseStore
-    ? (currentUser?.locCode || "")
+    ? (selectedStore === "All Stores" ? "" : (findStore(selectedStore)?.locCode || ""))
     : (currentUserStore.value || currentUser?.locCode || "");
 
   useEffect(() => {
@@ -293,9 +291,7 @@ const InventoryReport = () => {
           return row;
         }) || [];
     } else if (type === "stock-summary") {
-      const corruptedStores = ["arehouse Branch", "Grooms Trivandum"];
-      const filteredWarehouses =
-        data.warehouses?.filter((wh) => !corruptedStores.includes(wh.warehouse)) || [];
+      const filteredWarehouses = data.warehouses || [];
 
       csv = filteredWarehouses.map((wh) => {
         const row = {
@@ -420,8 +416,7 @@ const InventoryReport = () => {
 
   const getFilteredWarehouses = (warehouses) => {
     if (!warehouses || !Array.isArray(warehouses)) return [];
-    const corruptedStores = ["arehouse Branch", "Grooms Trivandum"];
-    return warehouses.filter((wh) => !corruptedStores.includes(wh.warehouse));
+    return warehouses;
   };
 
   const PaginationControls = ({ totalItems, data }) => {
@@ -498,7 +493,7 @@ const InventoryReport = () => {
                   onClick={() => setCurrentPage(num)}
                   className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors cursor-pointer ${
                     currentPage === num
-                      ? "bg-[#9333ea] text-white border-[#9333ea] shadow-xs"
+                      ? "bg-[#F2572B] text-white border-[#F2572B] shadow-xs"
                       : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
                   }`}
                 >
@@ -662,7 +657,7 @@ const InventoryReport = () => {
                             const today = new Date();
                             setEndDate(today.toISOString().split("T")[0]);
                           }}
-                          className="h-[40px] px-3.5 text-[12px] font-medium text-[#9D43D6] bg-[#FAF5FF] hover:bg-[#F3E8FF] rounded-[10px] border border-[#E9D5FF] transition-colors cursor-pointer whitespace-nowrap"
+                          className="h-[40px] px-3.5 text-[12px] font-medium text-[#F2572B] bg-[#FEF3EE] hover:bg-[#FDE3D9] rounded-[10px] border border-[#FCCAB9] transition-colors cursor-pointer whitespace-nowrap"
                         >
                           Today
                         </button>
@@ -677,7 +672,7 @@ const InventoryReport = () => {
                   data-no-confirm="true"
                   onClick={fetchReport}
                   disabled={loading}
-                  className="rf-btn-primary !h-[40px] !px-6 !rounded-[10px] !bg-[#9D43D6] hover:!bg-[#8732BE] !text-[13px] !font-medium inline-flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer shadow-[0_2px_8px_rgba(157,67,214,0.24)]"
+                  className="rf-btn-primary !h-[40px] !px-6 !rounded-[10px] !bg-[#F2572B] hover:!bg-[#D9431A] !text-[13px] !font-medium inline-flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer shadow-[0_2px_8px_rgba(242, 87, 43,0.24)]"
                 >
                   {loading && <Loader2 className="w-4 h-4 animate-spin" />}
                   <span>{loading ? "Fetching..." : "Fetch Data"}</span>
@@ -808,7 +803,7 @@ const InventoryReport = () => {
                       </div>
                       <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
                         <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1.5">Total Quantity</div>
-                        <div className="text-3xl font-bold text-[#9333ea]">{reportData.summary?.totalQuantity || 0}</div>
+                        <div className="text-3xl font-bold text-[#F2572B]">{reportData.summary?.totalQuantity || 0}</div>
                       </div>
                       {isAdmin && (
                         <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
@@ -841,14 +836,14 @@ const InventoryReport = () => {
                                 <td className="py-3 px-4 font-semibold text-gray-900 border-r border-gray-200">{item.itemName}</td>
                                 <td className="py-3 px-4 font-mono text-xs text-gray-600 border-r border-gray-200">{item.sku}</td>
                                 <td className="py-3 px-4 border-r border-gray-200">
-                                  <span className="inline-block px-3 py-0.5 text-xs font-semibold text-[#9333ea] bg-[#f3e8ff] rounded-full">
+                                  <span className="inline-block px-3 py-0.5 text-xs font-semibold text-[#F2572B] bg-[#FDE3D9] rounded-full">
                                     {item.category}
                                   </span>
                                 </td>
                                 {isAdmin && (
                                   <td className="py-3 px-4 text-right text-gray-700 border-r border-gray-200">{formatCurrency(item.cost)}</td>
                                 )}
-                                <td className={`py-3 px-4 text-right font-bold text-[#9333ea] ${isAdmin ? "border-r border-gray-200" : ""}`}>{item.totalStock}</td>
+                                <td className={`py-3 px-4 text-right font-bold text-[#F2572B] ${isAdmin ? "border-r border-gray-200" : ""}`}>{item.totalStock}</td>
                                 {isAdmin && (
                                   <td className="py-3 px-4 text-right font-bold text-emerald-600">{formatCurrency(item.totalValue)}</td>
                                 )}
@@ -872,7 +867,7 @@ const InventoryReport = () => {
                       </div>
                       <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
                         <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1.5">Grand Total Quantity</div>
-                        <div className="text-3xl font-bold text-[#9333ea]">{reportData.summary?.grandTotalQuantity || 0}</div>
+                        <div className="text-3xl font-bold text-[#F2572B]">{reportData.summary?.grandTotalQuantity || 0}</div>
                       </div>
                       <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
                         <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1.5">Grand Total Value</div>
@@ -895,7 +890,7 @@ const InventoryReport = () => {
                             {getPaginatedData(getFilteredWarehouses(reportData.warehouses))?.map((wh, idx) => (
                               <tr key={idx} className="hover:bg-purple-50/40 transition-colors">
                                 <td className="py-3 px-4 font-semibold text-gray-900 border-r border-gray-200">{wh.warehouse}</td>
-                                <td className="py-3 px-4 text-right font-bold text-[#9333ea] border-r border-gray-200">{wh.totalQuantity}</td>
+                                <td className="py-3 px-4 text-right font-bold text-[#F2572B] border-r border-gray-200">{wh.totalQuantity}</td>
                                 <td className="py-3 px-4 text-right font-bold text-emerald-600 border-r border-gray-200">{formatCurrency(wh.totalValue)}</td>
                                 <td className="py-3 px-4 text-right text-gray-700">{wh.itemCount}</td>
                               </tr>
@@ -917,7 +912,7 @@ const InventoryReport = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                       <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
                         <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1.5">Total Opening Stock</div>
-                        <div className="text-3xl font-bold text-[#9333ea]">{reportData.summary?.totalOpeningStock || 0}</div>
+                        <div className="text-3xl font-bold text-[#F2572B]">{reportData.summary?.totalOpeningStock || 0}</div>
                       </div>
                       <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
                         <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1.5">Total Opening Value</div>
@@ -969,7 +964,7 @@ const InventoryReport = () => {
                                     </td>
                                     <td className="py-3 px-4 font-mono text-xs text-gray-600 border-r border-gray-200">{item.sku || "-"}</td>
                                     <td className="py-3 px-4 text-gray-700 border-r border-gray-200">{item.store}</td>
-                                    <td className="py-3 px-4 text-right font-bold text-[#9333ea] border-r border-gray-200">{item.openingStock}</td>
+                                    <td className="py-3 px-4 text-right font-bold text-[#F2572B] border-r border-gray-200">{item.openingStock}</td>
                                     <td className="py-3 px-4 text-right font-bold text-emerald-600 border-r border-gray-200">{formatCurrency(item.openingValue)}</td>
                                     <td className="py-3 px-4 text-gray-600">{new Date(item.createdAt).toLocaleDateString("en-IN")}</td>
                                   </tr>
@@ -1002,7 +997,7 @@ const InventoryReport = () => {
                               {reportData.storeReport?.map((store, idx) => (
                                 <tr key={idx} className="hover:bg-purple-50/40 transition-colors">
                                   <td className="py-3 px-4 font-semibold text-gray-900 border-r border-gray-200">{store.store}</td>
-                                  <td className="py-3 px-4 text-right font-bold text-[#9333ea] border-r border-gray-200">{store.totalStock}</td>
+                                  <td className="py-3 px-4 text-right font-bold text-[#F2572B] border-r border-gray-200">{store.totalStock}</td>
                                   <td className="py-3 px-4 text-right font-bold text-emerald-600 border-r border-gray-200">{formatCurrency(store.totalValue)}</td>
                                   <td className="py-3 px-4 text-right text-gray-700">{store.itemCount}</td>
                                 </tr>
@@ -1032,8 +1027,8 @@ const InventoryReport = () => {
                         <div className="text-2xl font-bold text-red-500">{reportData.summary?.totalStockOut || 0}</div>
                       </div>
                       <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                        <div className="text-xs font-semibold uppercase tracking-wider text-[#9333ea] mb-1">Closing Stock</div>
-                        <div className="text-2xl font-bold text-[#9333ea]">{reportData.summary?.totalClosingStock || 0}</div>
+                        <div className="text-xs font-semibold uppercase tracking-wider text-[#F2572B] mb-1">Closing Stock</div>
+                        <div className="text-2xl font-bold text-[#F2572B]">{reportData.summary?.totalClosingStock || 0}</div>
                       </div>
                       {isAdmin && (
                         <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
@@ -1091,7 +1086,7 @@ const InventoryReport = () => {
                                     </td>
                                     <td className="py-3 px-4 font-mono text-xs text-gray-600 border-r border-gray-200">{item.sku || "-"}</td>
                                     <td className="py-3 px-4 border-r border-gray-200">
-                                      <span className="inline-block px-2.5 py-0.5 text-xs font-semibold text-[#9333ea] bg-[#f3e8ff] rounded-full">
+                                      <span className="inline-block px-2.5 py-0.5 text-xs font-semibold text-[#F2572B] bg-[#FDE3D9] rounded-full">
                                         {item.category || "General"}
                                       </span>
                                     </td>
@@ -1099,7 +1094,7 @@ const InventoryReport = () => {
                                     <td className="py-3 px-4 text-right text-gray-600 border-r border-gray-200">{item.openingStock || 0}</td>
                                     <td className="py-3 px-4 text-right font-bold text-emerald-600 border-r border-gray-200">{item.stockIn || 0}</td>
                                     <td className="py-3 px-4 text-right font-bold text-red-500 border-r border-gray-200">{item.stockOut || 0}</td>
-                                    <td className={`py-3 px-4 text-right font-bold text-[#9333ea] ${isAdmin ? "border-r border-gray-200" : ""}`}>{item.closingStock || 0}</td>
+                                    <td className={`py-3 px-4 text-right font-bold text-[#F2572B] ${isAdmin ? "border-r border-gray-200" : ""}`}>{item.closingStock || 0}</td>
                                     {isAdmin && (
                                       <>
                                         <td className="py-3 px-4 text-right text-gray-700 border-r border-gray-200">{formatCurrency(item.costPrice || 0)}</td>
@@ -1138,7 +1133,7 @@ const InventoryReport = () => {
                               {reportData.warehouseReport?.map((wh, idx) => (
                                 <tr key={idx} className="hover:bg-purple-50/40 transition-colors">
                                   <td className="py-3 px-4 font-semibold text-gray-900 border-r border-gray-200">{wh.warehouse}</td>
-                                  <td className={`py-3 px-4 text-right font-bold text-[#9333ea] ${isAdmin ? "border-r border-gray-200" : ""}`}>{wh.totalStock}</td>
+                                  <td className={`py-3 px-4 text-right font-bold text-[#F2572B] ${isAdmin ? "border-r border-gray-200" : ""}`}>{wh.totalStock}</td>
                                   {isAdmin && (
                                     <td className="py-3 px-4 text-right font-bold text-emerald-600 border-r border-gray-200">{formatCurrency(wh.totalValue)}</td>
                                   )}

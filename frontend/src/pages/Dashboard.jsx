@@ -17,6 +17,7 @@ import baseUrl from "../api/api";
 import useSidebar from "../hooks/useSidebar";
 import { useActiveStores } from "../utils/storeService.js";
 import { canViewAdminOnlyTransactions } from "../utils/adminTransactionVisibility.js";
+import { isAdminOrSuperAdmin } from "../utils/roleUtils";
 
 const TWS_BASE = "https://rentalapi.rootments.live/api/GetBooking";
 
@@ -111,11 +112,6 @@ const Dashboard = () => {
   const userEmail = (currentUser?.email || "").toLowerCase().trim();
   const userLocCode = (currentUser?.locCode || "").toString().trim();
 
-  const adminEmails = [
-    "officerootments@gmail.com",
-    "operationsrootments@gmail.com",
-    "headoffice01@gmail.com",
-  ];
 
   const isPrivileged =
     userRole === "admin" ||
@@ -127,7 +123,7 @@ const Dashboard = () => {
     userRole.includes("cluster") ||
     userPower === "admin" ||
     userPower === "super_admin" ||
-    adminEmails.includes(userEmail);
+    isAdminOrSuperAdmin(currentUser);
 
   const canSeeAdminOnly = canViewAdminOnlyTransactions(currentUser);
 
@@ -729,7 +725,7 @@ const Dashboard = () => {
                               key={p.id}
                               type="button"
                               onClick={() => applyDatePreset(p.id)}
-                              className="px-2.5 py-1 rounded-[8px] text-[11px] font-medium bg-[#F4F4F5] hover:bg-[#F3E8FF] hover:text-[#9D43D6] text-[#525252] transition-colors cursor-pointer"
+                              className="px-2.5 py-1 rounded-[8px] text-[11px] font-medium bg-[#F4F4F5] hover:bg-[#FDE3D9] hover:text-[#F2572B] text-[#525252] transition-colors cursor-pointer"
                             >
                               {p.label}
                             </button>
@@ -781,7 +777,7 @@ const Dashboard = () => {
                     onClick={fetchDashboard}
                     disabled={loading}
                     title="Refresh Dashboard"
-                    className="w-[40px] h-[40px] rounded-[10px] bg-[#9D43D6] hover:bg-[#8732BE] text-white flex items-center justify-center shadow-xs transition-colors cursor-pointer disabled:opacity-60 shrink-0"
+                    className="w-[40px] h-[40px] rounded-[10px] bg-[#F2572B] hover:bg-[#D9431A] text-white flex items-center justify-center shadow-xs transition-colors cursor-pointer disabled:opacity-60 shrink-0"
                   >
                     <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
                   </button>
@@ -798,11 +794,11 @@ const Dashboard = () => {
                   {/* Legend Pill */}
                   <div className="inline-flex items-center gap-4 px-3.5 py-1.5 rounded-full bg-[#F7F7F8] border border-[#EBEBEB] text-[12px] font-medium text-[#525252]">
                     <span className="inline-flex items-center gap-1.5">
-                      <span className="w-2.5 h-2.5 rounded-full bg-[#D8A8F8]" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#F9A88E]" />
                       Income
                     </span>
                     <span className="inline-flex items-center gap-1.5">
-                      <span className="w-2.5 h-2.5 rounded-full bg-[#6D2898]" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#B23614]" />
                       Expense
                     </span>
                   </div>
@@ -822,7 +818,7 @@ const Dashboard = () => {
                       <div className="space-y-1 text-[11px]">
                         <div className="flex items-center justify-between gap-4 text-[#525252]">
                           <span className="inline-flex items-center gap-1.5">
-                            <span className="w-2 h-2 rounded-full bg-[#D8A8F8] shrink-0" />
+                            <span className="w-2 h-2 rounded-full bg-[#F9A88E] shrink-0" />
                             <span>Income :</span>
                           </span>
                           <span className="font-semibold text-[#212121] tabular-nums">
@@ -831,7 +827,7 @@ const Dashboard = () => {
                         </div>
                         <div className="flex items-center justify-between gap-4 text-[#525252]">
                           <span className="inline-flex items-center gap-1.5">
-                            <span className="w-2 h-2 rounded-full bg-[#6D2898] shrink-0" />
+                            <span className="w-2 h-2 rounded-full bg-[#B23614] shrink-0" />
                             <span>Expense :</span>
                           </span>
                           <span className="font-semibold text-[#212121] tabular-nums">
@@ -943,11 +939,11 @@ const Dashboard = () => {
                                   {/* Bar Pair */}
                                   <div className="flex items-end gap-1.5 h-full">
                                     <div
-                                      className="w-[14px] rounded-t-[4px] bg-[#D8A8F8] group-hover:bg-[#CE92F7] transition-all duration-300"
+                                      className="w-[14px] rounded-t-[4px] bg-[#F9A88E] group-hover:bg-[#F6825F] transition-all duration-300"
                                       style={{ height: `${incPct}%` }}
                                     />
                                     <div
-                                      className="w-[14px] rounded-t-[4px] bg-[#6D2898] group-hover:bg-[#5B1F82] transition-all duration-300"
+                                      className="w-[14px] rounded-t-[4px] bg-[#B23614] group-hover:bg-[#8C2B12] transition-all duration-300"
                                       style={{ height: `${expPct}%` }}
                                     />
                                   </div>
@@ -1312,7 +1308,7 @@ const Dashboard = () => {
           border-radius: 999px;
         }
         .rf-dashboard-scroll::-webkit-scrollbar-thumb:hover {
-          background: #9D43D6;
+          background: #F2572B;
         }
       `}</style>
     </div>

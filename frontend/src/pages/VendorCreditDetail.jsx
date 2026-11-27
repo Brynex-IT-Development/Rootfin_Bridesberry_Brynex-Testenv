@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { X, Edit, Check, ChevronRight, Download } from "lucide-react";
 import baseUrl from "../api/api";
 import useSidebar from "../hooks/useSidebar";
+import { findStore } from "../utils/storeService";
 
 const formatCurrency = (value) => {
   const isSidebarOpen = useSidebar();
@@ -228,11 +229,12 @@ const VendorCreditDetail = () => {
       finalTotal: parseFloat(c.finalTotal) || 0,
     }));
 
-  // Get company details (you may need to fetch this from user/organization settings)
-  const companyName = "Bridesberry"; // This should come from user/organization settings
-  const companyAddress = "Kerala"; // This should come from user/organization settings
-  const companyGSTIN = "32ABCFR1426N129"; // This should come from user/organization settings
-  const companyEmail = "rootmentsoffice@gmail.com"; // This should come from user/organization settings
+  // Company/store details come from the backend store this document belongs to
+  const docStore = findStore(credit?.warehouse) || findStore(credit?.branch) || null;
+  const companyName = docStore?.locName || credit?.warehouse || credit?.branch || "";
+  const companyAddress = docStore?.address || "";
+  const companyGSTIN = docStore?.gst || "";
+  const companyEmail = docStore?.email || "";
   const companyCountry = "India";
 
   // Get vendor details
@@ -394,7 +396,7 @@ const VendorCreditDetail = () => {
                     <p className="font-semibold">{companyName}</p>
                     <p>{companyAddress}</p>
                     <p>{companyCountry}</p>
-                    <p>GSTIN {companyGSTIN}</p>
+                    {companyGSTIN && <p>GSTIN {companyGSTIN}</p>}
                     {companyEmail && <p>{companyEmail}</p>}
                   </div>
                 </div>

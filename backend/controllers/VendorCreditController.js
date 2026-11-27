@@ -5,6 +5,8 @@ import { nextCreditNote } from "../utils/nextCreditNote.js";
 import Counter from "../model/Counter.js";
 import ShoeItem from "../model/ShoeItem.js";
 import ItemGroup from "../model/ItemGroup.js";
+import { isWarehouseStore } from "../utils/storeResolver.js";
+import { isAdminUserId } from "../utils/adminUsers.js";
 
 // Helper function to format vendor credit for frontend compatibility
 const formatVendorCredit = (doc) => {
@@ -477,11 +479,10 @@ export const getVendorCredits = async (req, res) => {
     const { userId, userPower, status, warehouse, locCode } = req.query;
     const query = {};
     
-    const adminEmails = ['officerootments@gmail.com'];
-    const isAdminEmail = userId && typeof userId === 'string' && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
+    const isAdminEmail = await isAdminUserId(userId); // admin by role, not by email
     const isAdmin = isAdminEmail ||
                     (userPower && (userPower.toLowerCase() === 'admin' || userPower.toLowerCase() === 'super_admin')) ||
-                    (locCode && (locCode === '858' || locCode === '103'));
+                    (locCode && isWarehouseStore(locCode));
     
     const isAdminViewingSpecificStore = isAdmin && warehouse && warehouse !== "All Stores";
     

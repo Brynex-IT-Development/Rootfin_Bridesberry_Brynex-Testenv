@@ -4,6 +4,7 @@ import { X, Edit, FileText, Check, ChevronRight } from "lucide-react";
 import AttachmentDisplay from "../components/AttachmentDisplay";
 import baseUrl from "../api/api";
 import useSidebar from "../hooks/useSidebar";
+import { findStore } from "../utils/storeService";
 
 const formatCurrency = (value) => {
   return new Intl.NumberFormat("en-IN", {
@@ -365,7 +366,7 @@ const PurchaseReceiveDetail = () => {
       // Get user info for branch
       const userStr = localStorage.getItem("rootfinuser");
       const user = userStr ? JSON.parse(userStr) : null;
-      const branch = user?.branch || "Head Office";
+      const branch = user?.branch || findStore(user?.locCode)?.locName || "";
 
       // Generate bill number from receive number
       const billNumber = `BILL-${receive.receiveNumber}`;

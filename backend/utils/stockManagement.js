@@ -2,6 +2,7 @@ import ShoeItem from "../model/ShoeItem.js";
 import ItemGroup from "../model/ItemGroup.js";
 import { checkAndCreateReorderAlerts } from "./reorderNotification.js";
 import { updateMonthlyStockForSale } from "./monthlyStockTracking.js";
+import { sameStore } from "./storeResolver.js";
 
 /**
  * Helper function to find warehouse stock index with proper name matching
@@ -11,89 +12,8 @@ const findWarehouseStockIndex = (warehouseStocks, targetWarehouse) => {
   if (!warehouseStocks || !Array.isArray(warehouseStocks) || !targetWarehouse) {
     return -1;
   }
-  
-  const warehouseLower = targetWarehouse.toLowerCase().trim();
-  
-  // Use the SAME warehouse mapping as InventoryReportController.js
-  const WAREHOUSE_NAME_MAPPING = {
-    "Grooms Trivandum": "Grooms Trivandrum",
-    "Grooms Trivandrum": "Grooms Trivandrum",
-    "SG-Trivandrum": "Grooms Trivandrum",
-    "G.Perinthalmanna": "Perinthalmanna Branch",
-    "GPerinthalmanna": "Perinthalmanna Branch", 
-    "Perinthalmanna Branch": "Perinthalmanna Branch",
-    "Z.Perinthalmanna": "Perinthalmanna Branch"
-  };
-  
-  // Normalize warehouse name first
-  const normalizeWarehouseName = (name) => {
-    if (!name) return null;
-    return WAREHOUSE_NAME_MAPPING[name.trim()] || name.trim();
-  };
-  
-  const normalizedTarget = normalizeWarehouseName(targetWarehouse);
-  
-  // Define all warehouse variations for each location  
-  const warehouseVariations = {
-    // Trivandrum
-    trivandrum: ["grooms trivandrum", "grooms trivandum", "trivandrum branch", "sg-trivandrum", "sg.trivandrum"],
-    // Perinthalmanna
-    perinthalmanna: ["perinthalmanna branch", "g.perinthalmanna", "g-perinthalmanna", "gperinthalmanna", "z.perinthalmanna", "z-perinthalmanna"],
-    // Palakkad
-    palakkad: ["palakkad branch", "g.palakkad", "g-palakkad", "gpalakkad"],
-    // Calicut
-    calicut: ["calicut", "g.calicut", "g-calicut", "gcalicut"],
-    // Manjeri
-    manjeri: ["manjery branch", "g.manjeri", "g.manjery", "gmanjeri", "gmanjery"],
-    // Kannur
-    kannur: ["kannur branch", "g.kannur", "gkannur"],
-    // Edappal
-    edappal: ["edappal branch", "g.edappal", "g-edappal", "gedappal"],
-    // Edapally
-    edapally: ["edapally branch", "g.edappally", "g-edappally", "gedappally"],
-    // Kalpetta
-    kalpetta: ["kalpetta branch", "g.kalpetta", "gkalpetta"],
-    // Kottakkal
-    kottakkal: ["kottakkal branch", "g.kottakkal", "gkottakkal", "z.kottakkal"],
-    // Chavakkad
-    chavakkad: ["chavakkad branch", "g.chavakkad", "gchavakkad"],
-    // Thrissur
-    thrissur: ["thrissur branch", "g.thrissur", "gthrissur"],
-    // Perumbavoor
-    perumbavoor: ["perumbavoor branch", "g.perumbavoor", "gperumbavoor"],
-    // Kottayam
-    kottayam: ["kottayam branch", "g.kottayam", "gkottayam"],
-    // Vadakara
-    vadakara: ["vadakara branch", "g.vadakara", "gvadakara"],
-    // MG Road
-    mgroad: ["mg road", "suitorguy mg road", "g.mg road", "g.mg", "g-mg road", "gmg road", "gmg"],
-    // Z-Edapally
-    zedapally: ["z-edapally branch", "z-edapally", "z-edapally1"],
-    // Z-Edappal
-    zedappal: ["z-edappal branch", "z-edappal", "z- edappal"],
-  };
-  
-  // Find which category this warehouse belongs to
-  let matchedCategory = null;
-  for (const [category, variations] of Object.entries(warehouseVariations)) {
-    if (variations.includes(warehouseLower)) {
-      matchedCategory = category;
-      break;
-    }
-  }
-  
-  return warehouseStocks.findIndex(ws => {
-    if (!ws.warehouse) return false;
-    const wsLower = ws.warehouse.toLowerCase().trim();
-    
-    // If we found a category match, check against all variations in that category
-    if (matchedCategory) {
-      return warehouseVariations[matchedCategory].includes(wsLower);
-    }
-    
-    // Fallback: exact match or partial match
-    return wsLower === warehouseLower || wsLower.includes(warehouseLower) || warehouseLower.includes(wsLower);
-  });
+  // Stores are matched only via the backend Store collection (case/spacing-insensitive)
+  return warehouseStocks.findIndex(ws => ws.warehouse && sameStore(ws.warehouse, targetWarehouse));
 };
 
 /**

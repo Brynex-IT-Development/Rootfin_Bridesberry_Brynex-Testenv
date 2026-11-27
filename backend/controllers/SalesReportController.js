@@ -1,5 +1,7 @@
 import SalesInvoice from "../model/SalesInvoice.js";
 import User from "../model/UserModel.js";
+import { isWarehouseStore } from "../utils/storeResolver.js";
+import { isAdminUserId } from "../utils/adminUsers.js";
 
 // Get Sales by Invoice Report (NEW - with advanced filtering)
 export const getSalesByInvoice = async (req, res) => {
@@ -17,9 +19,8 @@ export const getSalesByInvoice = async (req, res) => {
     toDate.setUTCHours(23, 59, 59, 999);
 
     // Check if user is admin
-    const adminEmails = ['officerootments@gmail.com'];
-    const isAdminEmail = userId && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
-    const isAdmin = isAdminEmail || (locCode && (locCode === '858' || locCode === '103'));
+    const isAdminEmail = await isAdminUserId(userId); // admin by role, not by email
+    const isAdmin = isAdminEmail || (locCode && isWarehouseStore(locCode));
     const isClusterManager = req.query.isClusterManager === "true";
     const allowedLocCodes = req.query.allowedLocCodes ? req.query.allowedLocCodes.split(",") : [];
 
@@ -35,7 +36,7 @@ export const getSalesByInvoice = async (req, res) => {
       } else if (allowedLocCodes.length > 0) {
         query.locCode = { $in: allowedLocCodes };
       }
-    } else if (!isAdmin && locCode && locCode !== '858' && locCode !== '103' && locCode !== 'all') {
+    } else if (!isAdmin && locCode && !isWarehouseStore(locCode) && locCode !== 'all') {
       // For store users, filter by their locCode
       query.$or = [
         { warehouse: locCode },
@@ -339,9 +340,8 @@ export const getSalesSummary = async (req, res) => {
     toDate.setUTCHours(23, 59, 59, 999);
 
     // Check if user is admin
-    const adminEmails = ['officerootments@gmail.com'];
-    const isAdminEmail = userId && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
-    const isAdmin = isAdminEmail || (locCode && (locCode === '858' || locCode === '103'));
+    const isAdminEmail = await isAdminUserId(userId); // admin by role, not by email
+    const isAdmin = isAdminEmail || (locCode && isWarehouseStore(locCode));
 
     let query = {
       invoiceDate: { $gte: fromDate, $lte: toDate },
@@ -351,7 +351,7 @@ export const getSalesSummary = async (req, res) => {
     };
 
     // For store users (non-admin), filter by their locCode
-    if (!isAdmin && locCode && locCode !== '858' && locCode !== '103' && locCode !== 'all') {
+    if (!isAdmin && locCode && !isWarehouseStore(locCode) && locCode !== 'all') {
       query.$or = [
         { warehouse: locCode },
         { branch: locCode },
@@ -359,7 +359,7 @@ export const getSalesSummary = async (req, res) => {
       ];
     }
     // For admin users, filter by selected store if specified and not "all"
-    else if (isAdmin && locCode && locCode !== 'all' && locCode !== '858' && locCode !== '103') {
+    else if (isAdmin && locCode && locCode !== 'all' && !isWarehouseStore(locCode)) {
       query.$or = [
         { warehouse: locCode },
         { branch: locCode },
@@ -511,9 +511,8 @@ export const getSalesByItem = async (req, res) => {
     toDate.setUTCHours(23, 59, 59, 999);
 
     // Check if user is admin
-    const adminEmails = ['officerootments@gmail.com'];
-    const isAdminEmail = userId && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
-    const isAdmin = isAdminEmail || (locCode && (locCode === '858' || locCode === '103'));
+    const isAdminEmail = await isAdminUserId(userId); // admin by role, not by email
+    const isAdmin = isAdminEmail || (locCode && isWarehouseStore(locCode));
 
     let query = {
       invoiceDate: { $gte: fromDate, $lte: toDate },
@@ -521,7 +520,7 @@ export const getSalesByItem = async (req, res) => {
     };
 
     // Store filtering logic
-    if (!isAdmin && locCode && locCode !== '858' && locCode !== '103' && locCode !== 'all') {
+    if (!isAdmin && locCode && !isWarehouseStore(locCode) && locCode !== 'all') {
       query.$or = [
         { warehouse: locCode },
         { branch: locCode },

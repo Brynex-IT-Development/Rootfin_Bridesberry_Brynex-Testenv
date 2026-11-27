@@ -25,7 +25,7 @@ import ExistingUsers from "./pages/ExistingUsers.jsx";
 import EditUser from "./pages/EditUser.jsx";
 import ResetUserPassword from "./pages/ResetUserPassword.jsx";
 import Permissions from "./pages/Permissions.jsx";
-import { isSuperAdmin } from "./utils/roleUtils.js";
+import { isSuperAdmin, isAdminOrSuperAdmin } from "./utils/roleUtils.js";
 import ShoeSalesItems from "./pages/ShoeSalesItems.jsx";
 import ShoeSalesItemGroups from "./pages/ShoeSalesItemGroups.jsx";
 import ShoeSalesItemGroupCreate from "./pages/ShoeSalesItemGroupCreate.jsx";
@@ -85,6 +85,7 @@ import Expenses from "./pages/Expenses.jsx";
 import IncomeExpenseReport from "./pages/IncomeExpenseReport.jsx";
 import RecordExpenses from "./pages/RecordExpenses.jsx";
 import DirectIndirectExpenses from "./pages/DirectIndirectExpenses.jsx";
+import { isWarehouseStore } from "./utils/storeService";
 
 const App = () => {
   const location = useLocation();
@@ -101,29 +102,18 @@ const App = () => {
   const userEmail = currentuser?.email?.toLowerCase().trim() || "";
   const userLocCode = (currentuser?.locCode || "").toString().trim();
 
-  const adminEmails = [
-    "officerootments@gmail.com",
-    "operationsrootments@gmail.com",
-    "headoffice01@gmail.com"
-  ];
 
   // Main system administrator - ALWAYS full admin access
   const isAdmin = 
     userRole === 'admin' || 
     userRole === 'super_admin' || 
     userRole === 'superadmin' ||
-    adminEmails.includes(userEmail);
+    isAdminOrSuperAdmin(currentuser);
 
-  // Warehouse staff (central operations)
+  // Warehouse staff (central operations): warehouse role, or a warehouse-type store from the backend
   const isWarehouse = 
-    userLocCode === '858' || 
-    userLocCode === '103';
-
-  // BridesBerry store user check
-  const isBridesBerry = 
-    userLocCode === '155' || 
-    userEmail.includes('bridesberry') || 
-    (currentuser?.username || "").toLowerCase().includes('bridesberry');
+    userRole === 'warehouse_admin' ||
+    (Boolean(userLocCode) && isWarehouseStore(userLocCode));
 
   // Cluster Admin / Cluster Manager (NEVER if main admin)
   const isClusterAdmin = !isAdmin && (
@@ -140,8 +130,7 @@ const App = () => {
     userRole === "store_user" ||
     Boolean(currentuser?.storeName) ||
     Boolean(currentuser?.storeId) ||
-    (userLocCode && !['858', '103', '759', '101', '102'].includes(userLocCode)) ||
-    isBridesBerry
+    Boolean(userLocCode)
   );
 
   const isStoreOrClusterAdmin = isClusterAdmin || isStoreAdmin;
@@ -273,7 +262,7 @@ const App = () => {
           <Route path="/CashBankLedger" element={currentuser ? <ClusterGuard><SecurityPending /></ClusterGuard> : <Navigate to="/login" />} />
           <Route path="/securityReport" element={currentuser ? <Security /> : <Navigate to='/login' />} />
           <Route path="/CloseReport" element={isAdmin || isSuperAdmin(currentuser) ? <CloseReport /> : <Navigate to='/' />} />
-          <Route path="/AdminClose" element={isAdmin || isSuperAdmin(currentuser) || currentuser?.locCode === '102' ? <AdminClose /> : <Navigate to='/' />} />
+          <Route path="/AdminClose" element={isAdmin || isSuperAdmin(currentuser) ? <AdminClose /> : <Navigate to='/' />} />
           <Route path="/pending-closures" element={isAdmin || userRole === "financial_head" || userRole === "financial_admin" ? <PendingDaybookClosures /> : <Navigate to="/" />} />
           <Route path="/ManageStores" element={isAdmin || isSuperAdmin(currentuser) ? <ManageStores /> : <Navigate to='/' />} />
           

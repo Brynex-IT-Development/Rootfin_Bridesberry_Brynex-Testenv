@@ -9,6 +9,7 @@ import useSidebar from "../hooks/useSidebar";
 import Header from "../components/Header";
 
 import AppSelect from "../components/AppSelect.jsx";
+import { storeNameOptions, useActiveStores, getUserStoreName } from "../utils/storeService.js";
 // Vendor Credit Number Preferences Modal Component
 const CreditNumberPreferencesModal = ({ isOpen, onClose, onSave, currentPrefix, currentNextNumber, autoGenerate, restartYearly }) => {
   const [localAutoGenerate, setLocalAutoGenerate] = useState(autoGenerate);
@@ -59,7 +60,7 @@ const CreditNumberPreferencesModal = ({ isOpen, onClose, onSave, currentPrefix, 
           <div className="space-y-2">
             <div className="flex justify-between">
               <span className="text-sm text-[#64748b]">Branch:</span>
-              <span className="text-sm font-medium text-[#1f2937]">Head Office</span>
+              <span className="text-sm font-medium text-[#1f2937]">All stores</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-[#64748b]">Associated Series:</span>
@@ -182,7 +183,7 @@ const Label = ({ children, required = false }) => (
 );
 
 const Input = ({ placeholder = "", className = "", ...props }) => {
-  const baseClasses = "w-full rounded-none border border-gray-200 bg-white text-sm text-[#111827] placeholder:text-[#9ca3af] focus:border-[#8B5CF6] focus:outline-none focus:ring-1 focus:ring-[#8B5CF6] transition-colors";
+  const baseClasses = "w-full rounded-none border border-gray-200 bg-white text-sm text-[#111827] placeholder:text-[#9ca3af] focus:border-[#F46A43] focus:outline-none focus:ring-1 focus:ring-[#F46A43] transition-colors";
   const tableInputClasses = "h-[38px] px-3 py-1.5";
   const defaultClasses = "px-3.5 py-2.5 h-[42px]";
   
@@ -199,7 +200,7 @@ const Input = ({ placeholder = "", className = "", ...props }) => {
 };
 
 const Select = ({ className = "", ...props }) => {
-  const baseClasses = "w-full rounded-none border border-gray-200 bg-white text-sm text-[#111827] focus:border-[#8B5CF6] focus:outline-none focus:ring-1 focus:ring-[#8B5CF6] transition-colors cursor-pointer";
+  const baseClasses = "w-full rounded-none border border-gray-200 bg-white text-sm text-[#111827] focus:border-[#F46A43] focus:outline-none focus:ring-1 focus:ring-[#F46A43] transition-colors cursor-pointer";
   const tableInputClasses = "h-[38px] px-3 py-1.5";
   const defaultClasses = "px-3.5 py-2.5 h-[42px]";
   
@@ -477,11 +478,11 @@ const VendorDropdown = ({ value, onChange, onNewVendor }) => {
             readOnly
             value={selectedVendor ? (selectedVendor.displayName || selectedVendor.companyName) : ""}
             placeholder="Select a Vendor"
-            className="flex-1 h-[42px] rounded-none border border-gray-200 bg-white text-sm text-[#111827] placeholder:text-[#9ca3af] focus:border-[#8B5CF6] focus:outline-none focus:ring-1 focus:ring-[#8B5CF6] transition-colors cursor-pointer px-3.5 py-2.5"
+            className="flex-1 h-[42px] rounded-none border border-gray-200 bg-white text-sm text-[#111827] placeholder:text-[#9ca3af] focus:border-[#F46A43] focus:outline-none focus:ring-1 focus:ring-[#F46A43] transition-colors cursor-pointer px-3.5 py-2.5"
           />
           <button
             type="button"
-            className="h-[42px] w-[42px] rounded-none bg-[#8B5CF6] text-white hover:bg-[#7C3AED] transition-colors flex items-center justify-center shrink-0 cursor-pointer shadow-sm"
+            className="h-[42px] w-[42px] rounded-none bg-[#F46A43] text-white hover:bg-[#F2572B] transition-colors flex items-center justify-center shrink-0 cursor-pointer shadow-sm"
             title="Search Vendor"
           >
             <Search size={16} />
@@ -662,7 +663,7 @@ const TaxDropdown = ({ rowId, value, onChange, taxOptions, nonTaxableOptions, on
           ref={buttonRef}
           onClick={toggleDropdown}
           type="button"
-          className="tax-dropdown-button w-full h-[38px] rounded-none border border-gray-200 bg-white text-sm text-[#111827] focus:border-[#8B5CF6] focus:outline-none focus:ring-1 focus:ring-[#8B5CF6] transition-colors cursor-pointer flex items-center justify-between px-3 py-1.5 m-0"
+          className="tax-dropdown-button w-full h-[38px] rounded-none border border-gray-200 bg-white text-sm text-[#111827] focus:border-[#F46A43] focus:outline-none focus:ring-1 focus:ring-[#F46A43] transition-colors cursor-pointer flex items-center justify-between px-3 py-1.5 m-0"
         >
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <span className="truncate text-left">
@@ -926,7 +927,7 @@ const ItemDropdown = ({ rowId, value, onChange, onNewItem, selectedWarehouse = "
           readOnly
           placeholder="Type or click to select an item."
           value={selectedItem ? selectedItem.itemName : ""}
-          className="w-full h-[38px] rounded-none border border-gray-200 bg-white text-sm text-[#111827] placeholder:text-[#9ca3af] focus:border-[#8B5CF6] focus:outline-none focus:ring-1 focus:ring-[#8B5CF6] transition-colors cursor-pointer px-3 py-1.5"
+          className="w-full h-[38px] rounded-none border border-gray-200 bg-white text-sm text-[#111827] placeholder:text-[#9ca3af] focus:border-[#F46A43] focus:outline-none focus:ring-1 focus:ring-[#F46A43] transition-colors cursor-pointer px-3 py-1.5"
         />
       </div>
       {typeof document !== "undefined" && document.body && createPortal(dropdownPortal, document.body)}
@@ -936,11 +937,20 @@ const ItemDropdown = ({ rowId, value, onChange, onNewItem, selectedWarehouse = "
 
 // New Vendor Credit Form Component
 const NewVendorCreditForm = ({ creditId, isEditMode = false }) => {
+  const { stores: backendStores } = useActiveStores();
   const isSidebarOpen = useSidebar();
   const navigate = useNavigate();
   const API_URL = baseUrl?.baseUrl?.replace(/\/$/, "") || "http://localhost:7000";
   const [selectedVendor, setSelectedVendor] = useState(null);
-  const [branch, setBranch] = useState("Brides Berry");
+  const [branch, setBranch] = useState("");
+  // Default a new credit to the user's own store, else the first backend store.
+  useEffect(() => {
+    if (branch || isEditMode || backendStores.length === 0) return;
+    let own = "";
+    try { own = JSON.parse(localStorage.getItem("rootfinuser") || "{}")?.storeName || ""; } catch { /* ignore */ }
+    const match = backendStores.find((s) => (s.locName || "").toLowerCase() === own.toLowerCase());
+    setBranch(match?.locName || backendStores[0].locName || "");
+  }, [backendStores, branch, isEditMode]);
   const [creditNoteNumber, setCreditNoteNumber] = useState("");
   const [creditNoteNumberLoading, setCreditNoteNumberLoading] = useState(false);
   const [orderNumber, setOrderNumber] = useState("");
@@ -1621,7 +1631,7 @@ const NewVendorCreditForm = ({ creditId, isEditMode = false }) => {
           setCreditNoteNumber(creditData.creditNoteNumber || "");
           setOrderNumber(creditData.orderNumber || "");
           setCreditDate(formatDateForInput(creditData.creditDate));
-          setBranch(creditData.branch || "Brides Berry");
+          setBranch(creditData.branch || "");
           setSubject(creditData.subject || "");
           setReverseCharge(creditData.reverseCharge || false);
           setWarehouse(creditData.warehouse || "");
@@ -1839,9 +1849,9 @@ const NewVendorCreditForm = ({ creditId, isEditMode = false }) => {
           </h1>
           <Link
             to="/purchase/vendor-credits"
-            className="inline-flex items-center gap-1.5 h-[38px] px-4 rounded-[10px] border border-[#E5E5E5] bg-white hover:bg-[#FAFAFA] text-[13px] font-medium text-[#9D43D6] transition-colors"
+            className="inline-flex items-center gap-1.5 h-[38px] px-4 rounded-[10px] border border-[#E5E5E5] bg-white hover:bg-[#FAFAFA] text-[13px] font-medium text-[#F2572B] transition-colors"
           >
-            <X size={14} className="text-[#9D43D6]" />
+            <X size={14} className="text-[#F2572B]" />
             <span>Close</span>
           </Link>
         </div>
@@ -1864,8 +1874,10 @@ const NewVendorCreditForm = ({ creditId, isEditMode = false }) => {
               <div>
                 <Label>Branch</Label>
                 <Select value={branch} onChange={(e) => setBranch(e.target.value)}>
-                  <option value="Brides Berry">Brides Berry</option>
-                  <option value="Warehouse">Warehouse</option>
+                  {!branch && <option value="">Select a branch</option>}
+                  {storeNameOptions(backendStores, branch).map((name) => (
+                    <option key={name} value={name}>{name}</option>
+                  ))}
                 </Select>
               </div>
 
@@ -1882,7 +1894,7 @@ const NewVendorCreditForm = ({ creditId, isEditMode = false }) => {
                   <button
                     type="button"
                     onClick={() => setShowNumberPreferencesModal(true)}
-                    className="h-[42px] w-[42px] rounded-[10px] bg-[#9D43D6] hover:bg-[#8732BE] text-white transition-colors flex items-center justify-center shrink-0 cursor-pointer shadow-xs"
+                    className="h-[42px] w-[42px] rounded-[10px] bg-[#F2572B] hover:bg-[#D9431A] text-white transition-colors flex items-center justify-center shrink-0 cursor-pointer shadow-xs"
                     title="Configure Credit Note Number Preferences"
                   >
                     <Info size={16} />
@@ -1919,7 +1931,7 @@ const NewVendorCreditForm = ({ creditId, isEditMode = false }) => {
                     onChange={(e) => setSubject(e.target.value)}
                     placeholder="Enter a subject within 250 characters"
                     maxLength={250}
-                    className="w-full rounded-[10px] border border-[#E5E5E5] bg-white text-[13px] text-[#212121] placeholder:text-[#A1A1AA] focus:border-[#9D43D6] focus:outline-none focus:ring-2 focus:ring-[#9D43D6]/15 transition-colors px-3.5 py-2.5 min-h-[96px] resize-none"
+                    className="w-full rounded-[10px] border border-[#E5E5E5] bg-white text-[13px] text-[#212121] placeholder:text-[#A1A1AA] focus:border-[#F2572B] focus:outline-none focus:ring-2 focus:ring-[#F2572B]/15 transition-colors px-3.5 py-2.5 min-h-[96px] resize-none"
                   />
                   <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5">
                     <button
@@ -1931,7 +1943,7 @@ const NewVendorCreditForm = ({ creditId, isEditMode = false }) => {
                     </button>
                     <button
                       type="button"
-                      className="h-5 w-5 rounded-[6px] bg-[#9D43D6] text-white hover:bg-[#8732BE] transition-colors flex items-center justify-center cursor-pointer"
+                      className="h-5 w-5 rounded-[6px] bg-[#F2572B] text-white hover:bg-[#D9431A] transition-colors flex items-center justify-center cursor-pointer"
                       title="Information"
                     >
                       <Info size={11} />
@@ -1946,7 +1958,7 @@ const NewVendorCreditForm = ({ creditId, isEditMode = false }) => {
                   id="reverseCharge"
                   checked={reverseCharge}
                   onChange={(e) => setReverseCharge(e.target.checked)}
-                  className="h-4 w-4 rounded-[4px] border-gray-300 accent-[#9D43D6] cursor-pointer"
+                  className="h-4 w-4 rounded-[4px] border-gray-300 accent-[#F2572B] cursor-pointer"
                 />
                 <label htmlFor="reverseCharge" className="text-[13px] font-medium text-[#212121] cursor-pointer">
                   This transaction is applicable for reverse charge
@@ -1957,8 +1969,9 @@ const NewVendorCreditForm = ({ creditId, isEditMode = false }) => {
                 <Label>Warehouse</Label>
                 <Select value={warehouse} onChange={(e) => setWarehouse(e.target.value)}>
                   <option value="">Select a warehouse</option>
-                  <option value="Brides Berry">Brides Berry</option>
-                  <option value="Warehouse">Warehouse</option>
+                  {storeNameOptions(backendStores, warehouse).map((name) => (
+                    <option key={name} value={name}>{name}</option>
+                  ))}
                 </Select>
               </div>
 
@@ -2099,7 +2112,7 @@ const NewVendorCreditForm = ({ creditId, isEditMode = false }) => {
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Notes or terms..."
-                  className="w-full rounded-[10px] border border-[#E5E5E5] bg-white text-[13px] text-[#212121] placeholder:text-[#A1A1AA] focus:border-[#9D43D6] focus:outline-none focus:ring-2 focus:ring-[#9D43D6]/15 transition-colors px-3.5 py-2.5 min-h-[130px] resize-none"
+                  className="w-full rounded-[10px] border border-[#E5E5E5] bg-white text-[13px] text-[#212121] placeholder:text-[#A1A1AA] focus:border-[#F2572B] focus:outline-none focus:ring-2 focus:ring-[#F2572B]/15 transition-colors px-3.5 py-2.5 min-h-[130px] resize-none"
                 />
               </div>
 
@@ -2123,7 +2136,7 @@ const NewVendorCreditForm = ({ creditId, isEditMode = false }) => {
 
             {/* Right: Summary */}
             <div className="space-y-4 bg-[#FAFAFA] rounded-[16px] border border-[#E5E5E5] p-6">
-              <div className="text-[#9D43D6] font-bold text-[11px] tracking-wider uppercase">
+              <div className="text-[#F2572B] font-bold text-[11px] tracking-wider uppercase">
                 RETURN SUMMARY
               </div>
 
@@ -2160,7 +2173,7 @@ const NewVendorCreditForm = ({ creditId, isEditMode = false }) => {
                   <button
                     type="button"
                     onClick={() => setApplyDiscountAfterTax(!applyDiscountAfterTax)}
-                    className={`text-[12px] font-medium cursor-pointer ${applyDiscountAfterTax ? 'text-[#9D43D6]' : 'text-[#7A7A7A]'} hover:text-[#9D43D6] transition-colors`}
+                    className={`text-[12px] font-medium cursor-pointer ${applyDiscountAfterTax ? 'text-[#F2572B]' : 'text-[#7A7A7A]'} hover:text-[#F2572B] transition-colors`}
                   >
                     Apply after tax
                   </button>
@@ -2209,7 +2222,7 @@ const NewVendorCreditForm = ({ creditId, isEditMode = false }) => {
                           setTdsTcsType(e.target.value);
                           setTdsTcsTax("");
                         }}
-                        className="accent-[#9D43D6] h-4 w-4"
+                        className="accent-[#F2572B] h-4 w-4"
                       />
                       <span>TDS</span>
                     </label>
@@ -2223,7 +2236,7 @@ const NewVendorCreditForm = ({ creditId, isEditMode = false }) => {
                           setTdsTcsType(e.target.value);
                           setTdsTcsTax("");
                         }}
-                        className="accent-[#9D43D6] h-4 w-4"
+                        className="accent-[#F2572B] h-4 w-4"
                       />
                       <span>TCS</span>
                     </label>
@@ -2360,7 +2373,7 @@ const VendorCredits = () => {
           }
         }
         if (!userLocName) {
-          userLocName = user?.username || user?.locName || "";
+          userLocName = getUserStoreName(user);
         }
         
         const userWarehouse = mapWarehouse(userLocName);
@@ -2473,7 +2486,7 @@ const VendorCredits = () => {
             </div>
 
             {!loading && (
-              <span className="inline-flex items-center px-3.5 py-1.5 rounded-full bg-[#F3E8FF] text-[#9D43D6] text-[12px] font-medium">
+              <span className="inline-flex items-center px-3.5 py-1.5 rounded-full bg-[#FDE3D9] text-[#F2572B] text-[12px] font-medium">
                 {filteredCredits.length} {filteredCredits.length === 1 ? 'Return' : 'Returns'}
               </span>
             )}
@@ -2482,7 +2495,7 @@ const VendorCredits = () => {
           {/* Loading / Empty / Table */}
           {loading ? (
             <div className="bg-white rounded-[16px] border border-[#E5E5E5] py-24 flex flex-col items-center justify-center gap-3">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#9D43D6] border-t-transparent" />
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#F2572B] border-t-transparent" />
               <p className="text-[13px] font-medium text-[#7A7A7A]">Loading purchase returns...</p>
             </div>
           ) : filteredCredits.length === 0 ? (
@@ -2497,25 +2510,25 @@ const VendorCredits = () => {
                 className="mb-5"
                 aria-hidden="true"
               >
-                <ellipse cx="85" cy="108" rx="62" ry="6" fill="#F3E8FF" />
+                <ellipse cx="85" cy="108" rx="62" ry="6" fill="#FDE3D9" />
                 <path d="M132 104C132 90 140 80 148 76C146 88 140 97 132 104Z" fill="#C4B5FD" />
-                <path d="M130 104C128 92 132 82 137 74C138 85 135 95 130 104Z" fill="#A78BFA" />
+                <path d="M130 104C128 92 132 82 137 74C138 85 135 95 130 104Z" fill="#F6825F" />
                 <path d="M124 104C121 96 121 89 124 83C127 89 127 97 124 104Z" fill="#DDD6FE" />
                 <rect x="68" y="20" width="54" height="84" rx="8" fill="#EDE9FE" stroke="#C4B5FD" strokeWidth="2" />
                 <rect x="74" y="27" width="42" height="70" rx="5" fill="#FFFFFF" />
-                <rect x="85" y="14" width="20" height="10" rx="4" fill="#9D43D6" />
+                <rect x="85" y="14" width="20" height="10" rx="4" fill="#F2572B" />
                 <circle cx="95" cy="19" r="2" fill="#FFFFFF" />
-                <rect x="83" y="42" width="24" height="32" rx="3" fill="#F5F3FF" stroke="#A78BFA" strokeWidth="1.5" />
-                <circle cx="91" cy="54" r="1.5" fill="#9D43D6" />
-                <circle cx="99" cy="54" r="1.5" fill="#9D43D6" />
-                <path d="M90 62C92.5 59.5 97.5 59.5 100 62" stroke="#9D43D6" strokeWidth="1.5" strokeLinecap="round" />
-                <circle cx="107" cy="70" r="7" fill="#9D43D6" />
+                <rect x="83" y="42" width="24" height="32" rx="3" fill="#F5F3FF" stroke="#F6825F" strokeWidth="1.5" />
+                <circle cx="91" cy="54" r="1.5" fill="#F2572B" />
+                <circle cx="99" cy="54" r="1.5" fill="#F2572B" />
+                <path d="M90 62C92.5 59.5 97.5 59.5 100 62" stroke="#F2572B" strokeWidth="1.5" strokeLinecap="round" />
+                <circle cx="107" cy="70" r="7" fill="#F2572B" />
                 <path d="M104.5 67.5L109.5 72.5M109.5 67.5L104.5 72.5" stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round" />
-                <circle cx="66" cy="48" r="13" fill="#F3E8FF" fillOpacity="0.65" stroke="#7C3AED" strokeWidth="2.5" />
-                <line x1="56.5" y1="57.5" x2="47" y2="67" stroke="#7C3AED" strokeWidth="3.5" strokeLinecap="round" />
-                <circle cx="44" cy="42" r="8" fill="#2E1065" />
-                <path d="M30 78C30 62 36 54 46 54C54 54 58 60 60 72L52 80H30V78Z" fill="#A78BFA" />
-                <path d="M32 78L52 78L62 96H34L32 78Z" fill="#4C1D95" />
+                <circle cx="66" cy="48" r="13" fill="#FDE3D9" fillOpacity="0.65" stroke="#F2572B" strokeWidth="2.5" />
+                <line x1="56.5" y1="57.5" x2="47" y2="67" stroke="#F2572B" strokeWidth="3.5" strokeLinecap="round" />
+                <circle cx="44" cy="42" r="8" fill="#4A160A" />
+                <path d="M30 78C30 62 36 54 46 54C54 54 58 60 60 72L52 80H30V78Z" fill="#F6825F" />
+                <path d="M32 78L52 78L62 96H34L32 78Z" fill="#8C2B12" />
                 <rect x="34" y="96" width="28" height="8" rx="4" fill="#DDD6FE" />
               </svg>
 
@@ -2559,7 +2572,7 @@ const VendorCredits = () => {
                           {index + 1}
                         </td>
                         <td className="px-4 py-3.5 whitespace-nowrap">
-                          <span className="font-semibold text-[#9D43D6] group-hover:text-[#7E22CE] group-hover:underline">
+                          <span className="font-semibold text-[#F2572B] group-hover:text-[#D9431A] group-hover:underline">
                             {credit.creditNoteNumber}
                           </span>
                         </td>
@@ -2604,7 +2617,7 @@ const VendorCredits = () => {
                               e.stopPropagation();
                               navigate(`/purchase/vendor-credits/${credit._id || credit.id}/edit`);
                             }}
-                            className="w-8 h-8 rounded-[8px] bg-[#F3E8FF] text-[#9D43D6] hover:bg-[#E9D5FF] transition-colors inline-flex items-center justify-center cursor-pointer"
+                            className="w-8 h-8 rounded-[8px] bg-[#FDE3D9] text-[#F2572B] hover:bg-[#FCCAB9] transition-colors inline-flex items-center justify-center cursor-pointer"
                             title="Edit"
                           >
                             <Pencil size={14} />

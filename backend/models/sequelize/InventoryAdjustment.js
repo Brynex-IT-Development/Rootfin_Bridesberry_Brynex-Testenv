@@ -32,7 +32,7 @@ const InventoryAdjustment = sequelize.define('InventoryAdjustment', {
   // Location Information
   branch: {
     type: DataTypes.STRING,
-    defaultValue: 'Head Office',
+    defaultValue: '',
   },
   warehouse: {
     type: DataTypes.STRING,

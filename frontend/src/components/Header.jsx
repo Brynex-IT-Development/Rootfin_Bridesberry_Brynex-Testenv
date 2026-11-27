@@ -6,30 +6,16 @@ import {
 } from "lucide-react";
 import Rootments from '../assets/Rootments.jpg';
 import baseUrl from '../api/api';
-import { getActiveStores, fetchActiveStores } from "../utils/storeService.js";
+import { getActiveStores, fetchActiveStores, findStore } from "../utils/storeService.js";
 import Breadcrumbs from "./Breadcrumbs.jsx";
 
 const API_URL = baseUrl?.baseUrl?.replace(/\/$/, "") || "http://localhost:7000";
 
 // Function to format location names with proper spacing
+// Store names are shown exactly as stored in the backend (no built-in overrides)
 const formatLocationName = (name) => {
     if (!name || name === "No Stores" || name === "No stores available") return name || "No Stores";
-    
-    let formatted = name.trim();
-    
-    // Exact overrides for known stores
-    if (/^warehouse$/i.test(formatted)) {
-        return "Warehouse";
-    }
-    if (/^brides\s*berry$/i.test(formatted) || /^bridesberry$/i.test(formatted)) {
-        return "Brides Berry";
-    }
-  
-    
-    // Pattern: G- or Z- prefix with capital letter
-    formatted = formatted.replace(/^([A-Z])-([A-Z][a-z])/g, '$1 $2');
-    
-    return formatted;
+    return name.trim();
 };
 
 const Header = (prop) => {
@@ -130,7 +116,7 @@ const Header = (prop) => {
                 const foundLoc = locations.find(loc => loc.locCode === storedUser.locCode);
                 const activeLoc = foundLoc || locations[0];
                 if (activeLoc) {
-                    const actualUsername = (storedUser.username && storedUser.username !== "Warehouse" && storedUser.username !== "SuitorGuy MG Road" && storedUser.username !== "Brides Berry") 
+                    const actualUsername = (storedUser.username && !findStore(storedUser.username, locations)) 
                         ? storedUser.username 
                         : (storedUser.name || "Brynex Admin");
 
@@ -352,7 +338,7 @@ const Header = (prop) => {
 
     return (
         <header className="bg-white border-b border-[#E5E5E5] h-[56px] flex items-center relative z-40">
-            <div className="w-full pl-14 md:pl-6 pr-6 flex items-center justify-between mx-auto">
+            <div className="w-full pl-14 lg:pl-6 pr-6 flex items-center justify-between mx-auto">
                 <div className="flex items-center min-w-0 pr-4 overflow-hidden">
                     <Breadcrumbs currentTitle={prop.title} />
                 </div>
@@ -383,7 +369,7 @@ const Header = (prop) => {
                                     <div className="flex items-center gap-2">
                                         <h3 className="text-[14px] font-semibold text-[#212121]">Notifications</h3>
                                         {badgeCount > 0 && (
-                                            <span className="px-2 py-0.5 text-[11px] font-semibold bg-[#9D43D6]/10 text-[#9D43D6] rounded-full">
+                                            <span className="px-2 py-0.5 text-[11px] font-semibold bg-[#F2572B]/10 text-[#F2572B] rounded-full">
                                                 {badgeCount} new
                                             </span>
                                         )}
@@ -402,7 +388,7 @@ const Header = (prop) => {
                                             <button
                                                 type="button"
                                                 onClick={handleDismissAllNotifications}
-                                                className="text-[11px] font-medium text-[#6A6A6A] hover:text-[#9D43D6] transition-colors"
+                                                className="text-[11px] font-medium text-[#6A6A6A] hover:text-[#F2572B] transition-colors"
                                             >
                                                 Mark all read
                                             </button>
@@ -418,7 +404,7 @@ const Header = (prop) => {
                                             onClick={() => setActiveNotificationTab("all")}
                                             className={`px-2.5 py-1 rounded-lg font-medium transition-colors whitespace-nowrap cursor-pointer ${
                                                 activeNotificationTab === "all"
-                                                    ? "bg-[#9D43D6] text-white"
+                                                    ? "bg-[#F2572B] text-white"
                                                     : "text-[#6A6A6A] hover:text-[#212121] hover:bg-white"
                                             }`}
                                         >
@@ -430,7 +416,7 @@ const Header = (prop) => {
                                                 onClick={() => setActiveNotificationTab("inventory_adjustment")}
                                                 className={`px-2.5 py-1 rounded-lg font-medium transition-colors whitespace-nowrap cursor-pointer ${
                                                     activeNotificationTab === "inventory_adjustment"
-                                                        ? "bg-[#9D43D6] text-white"
+                                                        ? "bg-[#F2572B] text-white"
                                                         : "text-[#6A6A6A] hover:text-[#212121] hover:bg-white"
                                                 }`}
                                             >
@@ -443,7 +429,7 @@ const Header = (prop) => {
                                                 onClick={() => setActiveNotificationTab("unclosed_yesterday")}
                                                 className={`px-2.5 py-1 rounded-lg font-medium transition-colors whitespace-nowrap cursor-pointer ${
                                                     activeNotificationTab === "unclosed_yesterday"
-                                                        ? "bg-[#9D43D6] text-white"
+                                                        ? "bg-[#F2572B] text-white"
                                                         : "text-[#6A6A6A] hover:text-[#212121] hover:bg-white"
                                                 }`}
                                             >
@@ -456,7 +442,7 @@ const Header = (prop) => {
                                                 onClick={() => setActiveNotificationTab("closure_request")}
                                                 className={`px-2.5 py-1 rounded-lg font-medium transition-colors whitespace-nowrap cursor-pointer ${
                                                     activeNotificationTab === "closure_request"
-                                                        ? "bg-[#9D43D6] text-white"
+                                                        ? "bg-[#F2572B] text-white"
                                                         : "text-[#6A6A6A] hover:text-[#212121] hover:bg-white"
                                                 }`}
                                             >
@@ -521,7 +507,7 @@ const Header = (prop) => {
                                                             <span className="text-[10px] text-[#8C8C8C]">
                                                                 {formatTimeAgo(item.createdAt)}
                                                             </span>
-                                                            <span className="text-[10px] text-[#9D43D6] font-medium flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <span className="text-[10px] text-[#F2572B] font-medium flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                                                                 View details <ArrowRight size={10} />
                                                             </span>
                                                         </div>
@@ -547,21 +533,21 @@ const Header = (prop) => {
                                         <button
                                             type="button"
                                             onClick={() => { setIsNotificationOpen(false); navigate("/inventory/adjustments"); }}
-                                            className="text-[#9D43D6] hover:underline cursor-pointer"
+                                            className="text-[#F2572B] hover:underline cursor-pointer"
                                         >
                                             Adjustments
                                         </button>
                                         <button
                                             type="button"
                                             onClick={() => { setIsNotificationOpen(false); navigate("/pending-closures"); }}
-                                            className="text-[#9D43D6] hover:underline cursor-pointer"
+                                            className="text-[#F2572B] hover:underline cursor-pointer"
                                         >
                                             Late Closures
                                         </button>
                                         <button
                                             type="button"
                                             onClick={() => { setIsNotificationOpen(false); navigate("/CloseReport"); }}
-                                            className="text-[#9D43D6] hover:underline cursor-pointer"
+                                            className="text-[#F2572B] hover:underline cursor-pointer"
                                         >
                                             Close Report
                                         </button>
@@ -610,12 +596,12 @@ const Header = (prop) => {
                                                 onClick={() => handleSelectLocation(item.locCode, item.locName)}
                                                 className={`w-full flex items-center justify-between px-3.5 py-2 text-[13px] text-left transition-colors cursor-pointer ${
                                                     isSelected 
-                                                        ? "bg-[#9D43D6]/10 text-[#9D43D6] font-medium" 
+                                                        ? "bg-[#F2572B]/10 text-[#F2572B] font-medium" 
                                                         : "text-[#212121] hover:bg-[#F7F7F7]"
                                                 }`}
                                             >
                                                 <span className="truncate">{formatLocationName(item.locName)}</span>
-                                                {isSelected && <Check size={16} className="text-[#9D43D6] shrink-0 ml-2" />}
+                                                {isSelected && <Check size={16} className="text-[#F2572B] shrink-0 ml-2" />}
                                             </button>
                                         );
                                     })

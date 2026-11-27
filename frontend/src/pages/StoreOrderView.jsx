@@ -283,7 +283,7 @@ const StoreOrderView = () => {
                   storeOrder.status === 'pending' ? 'bg-[#FEF3C7] text-[#B45309]' :
                   storeOrder.status === 'approved' ? 'bg-[#DCFCE7] text-[#16A34A]' :
                   storeOrder.status === 'rejected' ? 'bg-[#FEE2E2] text-[#DC2626]' :
-                  'bg-[#F3E8FF] text-[#9D43D6]'
+                  'bg-[#FDE3D9] text-[#F2572B]'
                 }`}>
                   {storeOrder.status || 'pending'}
                 </span>

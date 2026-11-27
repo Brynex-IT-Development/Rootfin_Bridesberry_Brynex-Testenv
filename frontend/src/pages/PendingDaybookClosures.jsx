@@ -129,7 +129,7 @@ const PendingDaybookClosures = () => {
             {closures.length > 0 && (
               <span
                 aria-label={`${closures.length} pending`}
-                className="bg-[#9D43D6] text-white text-[11px] font-semibold min-w-[22px] h-[22px] px-1.5 rounded-full inline-flex items-center justify-center"
+                className="bg-[#F2572B] text-white text-[11px] font-semibold min-w-[22px] h-[22px] px-1.5 rounded-full inline-flex items-center justify-center"
               >
                 {closures.length}
               </span>
@@ -168,7 +168,7 @@ const PendingDaybookClosures = () => {
 
           {loading ? (
             <div className="py-16 flex items-center justify-center gap-2.5 text-[#6A6A6A]">
-              <Loader2 className="w-5 h-5 animate-spin text-[#9D43D6]" />
+              <Loader2 className="w-5 h-5 animate-spin text-[#F2572B]" />
               <span className="text-[13px]">Loading pending closures...</span>
             </div>
           ) : error ? null : closures.length === 0 ? (
@@ -190,7 +190,7 @@ const PendingDaybookClosures = () => {
                     {/* Top Store & Date Row */}
                     <div className="flex items-start justify-between gap-3 pb-4 border-b border-[#EFEFEF]">
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-10 h-10 rounded-full bg-[#EFE3F7] text-[#9D43D6] flex items-center justify-center shrink-0">
+                        <div className="w-10 h-10 rounded-full bg-[#FDE3D9] text-[#F2572B] flex items-center justify-center shrink-0">
                           <Store size={18} />
                         </div>
                         <div className="min-w-0">

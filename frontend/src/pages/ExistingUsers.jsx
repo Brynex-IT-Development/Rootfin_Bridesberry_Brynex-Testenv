@@ -167,8 +167,8 @@ const ExistingUsers = () => {
                 return;
             }
 
-            const derivedLocCode = isStore ? editLocCode.trim() : (isWarehouse ? (editLocCode.trim() || "858") : "");
-            const derivedStoreName = isStore ? editUsername.trim() : (isWarehouse ? (editUsername.trim() || "Warehouse") : undefined);
+            const derivedLocCode = isStore ? editLocCode.trim() : (isWarehouse ? editLocCode.trim() : "");
+            const derivedStoreName = isStore ? editUsername.trim() : (isWarehouse ? editUsername.trim() : undefined);
 
             const payload = {
                 username: (isStore || isWarehouse) ? (editUsername.trim() || (isWarehouse ? "Warehouse" : editEmail.split('@')[0])) : editEmail.split('@')[0],
@@ -315,11 +315,11 @@ const ExistingUsers = () => {
                                 const isOpen = isSearching ? true : !!openGroups[key];
 
                                 return (
-                                    <div key={key} className="border-b border-[#E2D4EC] last:border-b-0">
+                                    <div key={key} className="border-b border-[#FCCAB9] last:border-b-0">
                                         {/* Lavender Accordion Group Header Row */}
                                         <div
                                             onClick={() => toggleGroup(key)}
-                                            className="grid grid-cols-[48px_1fr] bg-[#F1E6F8] hover:bg-[#EAD9F5] h-[44px] cursor-pointer transition-colors items-center"
+                                            className="grid grid-cols-[48px_1fr] bg-[#FDE3D9] hover:bg-[#FCCAB9] h-[44px] cursor-pointer transition-colors items-center"
                                         >
                                             <div className="flex items-center justify-center">
                                                 {isOpen
@@ -329,7 +329,7 @@ const ExistingUsers = () => {
                                             </div>
                                             <div className="px-3 flex items-center gap-2.5">
                                                 <span className="text-[12px] font-bold text-[#212121] uppercase tracking-wide">{label}</span>
-                                                <span className="bg-[#9D43D6] text-white text-[10px] font-semibold min-w-[20px] h-[20px] px-1.5 rounded-full inline-flex items-center justify-center">
+                                                <span className="bg-[#F2572B] text-white text-[10px] font-semibold min-w-[20px] h-[20px] px-1.5 rounded-full inline-flex items-center justify-center">
                                                     {users.length}
                                                 </span>
                                             </div>
@@ -345,7 +345,7 @@ const ExistingUsers = () => {
                                                 users.map((user) => (
                                                     <div
                                                         key={user._id}
-                                                        className="grid grid-cols-[48px_1.6fr_1.6fr_2.2fr_1.5fr_1.2fr_0.9fr] min-h-[46px] bg-white border-t border-[#EFEFEF] hover:bg-[#FBF5FC] transition-colors items-center text-[13px]"
+                                                        className="grid grid-cols-[48px_1.6fr_1.6fr_2.2fr_1.5fr_1.2fr_0.9fr] min-h-[46px] bg-white border-t border-[#EFEFEF] hover:bg-[#FEF3EE] transition-colors items-center text-[13px]"
                                                     >
                                                         {/* Spacer under chevron */}
                                                         <div className="h-full border-r border-[#F3F3F3]" />
@@ -367,7 +367,7 @@ const ExistingUsers = () => {
                                                         </div>
                                                         {/* User Type Badge */}
                                                         <div className="px-3 py-2.5 h-full flex items-center justify-center border-r border-[#F3F3F3]">
-                                                            <span className="bg-[#EFE3F7] text-[#9D43D6] text-[11px] font-semibold px-3.5 py-1 rounded-md whitespace-nowrap">
+                                                            <span className="bg-[#FDE3D9] text-[#F2572B] text-[11px] font-semibold px-3.5 py-1 rounded-md whitespace-nowrap">
                                                                 {getRoleLabel(user.role || 'normal_user')}
                                                             </span>
                                                         </div>
@@ -375,7 +375,7 @@ const ExistingUsers = () => {
                                                         <div className="px-3 py-2.5 h-full flex items-center justify-center">
                                                             <button
                                                                 onClick={() => setViewUser(user)}
-                                                                className="no-blue-button text-[#9D43D6] hover:text-[#7E2BB8] transition-colors cursor-pointer"
+                                                                className="no-blue-button text-[#F2572B] hover:text-[#D9431A] transition-colors cursor-pointer"
                                                                 title="View details"
                                                             >
                                                                 <Eye size={16} />
@@ -418,7 +418,7 @@ const ExistingUsers = () => {
                                         </p>
                                     </div>
                                 </div>
-                                <span className="px-3.5 py-1 rounded-full text-xs font-semibold bg-[#9D43D6]/10 text-[#9D43D6]">
+                                <span className="px-3.5 py-1 rounded-full text-xs font-semibold bg-[#F2572B]/10 text-[#F2572B]">
                                     {getRoleLabel(viewUser.role)}
                                 </span>
                             </div>
@@ -428,7 +428,7 @@ const ExistingUsers = () => {
                         <div className="flex-1 px-6 py-6 space-y-5">
                             {/* Email */}
                             <div className="flex items-start gap-4">
-                                <div className="bg-[#9D43D6] p-2.5 rounded-lg flex-shrink-0">
+                                <div className="bg-[#F2572B] p-2.5 rounded-lg flex-shrink-0">
                                     <Mail size={16} className="text-white" />
                                 </div>
                                 <div>
@@ -439,7 +439,7 @@ const ExistingUsers = () => {
 
                             {/* Phone */}
                             <div className="flex items-start gap-4">
-                                <div className="bg-[#9D43D6] p-2.5 rounded-lg flex-shrink-0">
+                                <div className="bg-[#F2572B] p-2.5 rounded-lg flex-shrink-0">
                                     <Phone size={16} className="text-white" />
                                 </div>
                                 <div>
@@ -453,7 +453,7 @@ const ExistingUsers = () => {
                                 <>
                                     {viewUser.locCode && (
                                         <div className="flex items-start gap-4">
-                                            <div className="bg-[#9D43D6] p-2.5 rounded-lg flex-shrink-0">
+                                            <div className="bg-[#F2572B] p-2.5 rounded-lg flex-shrink-0">
                                                 <MapPin size={16} className="text-white" />
                                             </div>
                                             <div>
@@ -465,7 +465,7 @@ const ExistingUsers = () => {
 
                                     {viewUser.address && (
                                         <div className="flex items-start gap-4">
-                                            <div className="bg-[#9D43D6] p-2.5 rounded-lg flex-shrink-0">
+                                            <div className="bg-[#F2572B] p-2.5 rounded-lg flex-shrink-0">
                                                 <MapPin size={16} className="text-white" />
                                             </div>
                                             <div>
@@ -477,7 +477,7 @@ const ExistingUsers = () => {
 
                                     {viewUser.gst && (
                                         <div className="flex items-start gap-4">
-                                            <div className="bg-[#9D43D6] p-2.5 rounded-lg flex-shrink-0">
+                                            <div className="bg-[#F2572B] p-2.5 rounded-lg flex-shrink-0">
                                                 <ShieldCheck size={16} className="text-white" />
                                             </div>
                                             <div>
@@ -554,9 +554,6 @@ const ExistingUsers = () => {
                                                         setEditLocCode("");
                                                         setEditGst("");
                                                         setEditAddress("");
-                                                    } else if (e.target.value === "warehouse_admin") {
-                                                        if (!editLocCode) setEditLocCode("858");
-                                                        if (!editUsername) setEditUsername("Warehouse");
                                                     }
                                                     if (e.target.value !== "cluster_admin") {
                                                         setEditAllowedLocCodes([]);
@@ -615,7 +612,7 @@ const ExistingUsers = () => {
                                             <input
                                                 value={editLocCode}
                                                 onChange={(e) => setEditLocCode(e.target.value)}
-                                                placeholder={editRole === "warehouse_admin" ? "e.g., 858" : "Enter location code"}
+                                                placeholder="Enter location code"
                                                 className="w-full px-3 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                                             />
                                         </div>
@@ -737,7 +734,7 @@ const ExistingUsers = () => {
                                                                 setEditStoreSearch("");
                                                                 setShowEditStoreDropdown(false);
                                                             }}
-                                                            className="px-3 py-2 text-sm flex items-center justify-between hover:bg-[#FBF5FC] cursor-pointer text-[#212121]"
+                                                            className="px-3 py-2 text-sm flex items-center justify-between hover:bg-[#FEF3EE] cursor-pointer text-[#212121]"
                                                         >
                                                             <span>{store.locName || store.name}</span>
                                                             <span className="text-xs text-[#6A6A6A]">Loc: {store.locCode}</span>
@@ -750,11 +747,11 @@ const ExistingUsers = () => {
                                         {editAllowedLocCodes.length > 0 && (
                                             <div className="flex flex-wrap gap-2 mt-2">
                                                 {editAllowedLocCodes.map((code) => (
-                                                    <span key={code} className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#9D43D6]/10 text-[#9D43D6] rounded-full text-xs font-medium">
+                                                    <span key={code} className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#F2572B]/10 text-[#F2572B] rounded-full text-xs font-medium">
                                                         {getStoreName(code)} ({code})
                                                         <button
                                                             type="button"
-                                                            className="no-blue-button text-[#9D43D6] hover:text-[#8B3CBD] font-bold ml-0.5 cursor-pointer"
+                                                            className="no-blue-button text-[#F2572B] hover:text-[#D9431A] font-bold ml-0.5 cursor-pointer"
                                                             onClick={() => setEditAllowedLocCodes(editAllowedLocCodes.filter(c => c !== code))}
                                                         >×</button>
                                                     </span>
@@ -773,10 +770,6 @@ const ExistingUsers = () => {
                                                 value={editRole}
                                                 onChange={(e) => {
                                                     setEditRole(e.target.value);
-                                                    if (e.target.value === "warehouse_admin") {
-                                                        if (!editLocCode) setEditLocCode("858");
-                                                        if (!editUsername) setEditUsername("Warehouse");
-                                                    }
                                                 }}
                                                 className="w-full px-3 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-700 text-sm"
                                             >

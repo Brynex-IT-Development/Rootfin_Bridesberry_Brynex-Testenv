@@ -32,7 +32,7 @@ const SalesInvoice = sequelize.define('SalesInvoice', {
   },
   branch: {
     type: DataTypes.STRING,
-    defaultValue: 'Head Office',
+    defaultValue: '',
   },
   orderNumber: {
     type: DataTypes.STRING,

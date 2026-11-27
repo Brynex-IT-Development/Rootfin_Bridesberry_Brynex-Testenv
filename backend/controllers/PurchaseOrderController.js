@@ -3,71 +3,11 @@ import { nextPurchaseOrder } from "../utils/nextPurchaseOrder.js";
 import { sendTestEmail } from "../utils/emailService.js";
 import ShoeItem from "../model/ShoeItem.js";
 import ItemGroup from "../model/ItemGroup.js";
+import { getStores, isWarehouseStore, mapLocNameToWarehouse, sameStore } from "../utils/storeResolver.js";
+import { isAdminUserId } from "../utils/adminUsers.js";
 
-const mapLocNameToWarehouse = (locName) => {
-  if (!locName) return "Warehouse";
-
-  const locNameLower = locName.toLowerCase().trim();
-  if (locNameLower.includes("warehouse")) return "Warehouse";
-  if (locNameLower.replace(/[\s\-_.]+/g, "").includes("bridesberry")) return "BridesBerry";
-  if (
-    locNameLower === "z-edapally1" ||
-    locNameLower === "zedapallyadmin" ||
-    locNameLower === "edapallyadmin" ||
-    locNameLower === "-edapally1 branch" ||
-    locNameLower.includes("edapally")
-  ) {
-    return "Edapally Branch";
-  }
-
-  let warehouse = locName.replace(/^[A-Z]\.?(\s*)/i, "").trim();
-
-  if (warehouse.startsWith("-")) {
-    warehouse = warehouse.substring(1).trim();
-  }
-
-  if (warehouse.toLowerCase().includes("edapallyadmin")) {
-    warehouse = warehouse.replace(/edapallyadmin/gi, "Edapally").trim();
-  }
-
-  if (
-    warehouse &&
-    warehouse.toLowerCase() !== "warehouse" &&
-    !warehouse.toLowerCase().includes("branch")
-  ) {
-    warehouse = `${warehouse} Branch`;
-  }
-
-  return warehouse || "Warehouse";
-};
-
-const matchesWarehouse = (itemWarehouse, targetWarehouse) => {
-  if (!itemWarehouse || !targetWarehouse) return false;
-
-  const itemWarehouseLower = itemWarehouse.toString().toLowerCase().trim();
-  const targetWarehouseLower = targetWarehouse.toLowerCase().trim();
-
-  const normalizeEdapally = (name) => {
-    if (name.includes("edapally")) {
-      return "edapally branch";
-    }
-    return name;
-  };
-
-  const normalizedItem = normalizeEdapally(itemWarehouseLower);
-  const normalizedTarget = normalizeEdapally(targetWarehouseLower);
-
-  if (normalizedItem === normalizedTarget) return true;
-  if (itemWarehouseLower === targetWarehouseLower) return true;
-
-  const itemBase = normalizedItem.replace(/\s*(branch|warehouse)\s*$/i, "").trim();
-  const targetBase = normalizedTarget.replace(/\s*(branch|warehouse)\s*$/i, "").trim();
-
-  if (itemBase && targetBase && itemBase === targetBase) return true;
-  if (normalizedItem.includes(normalizedTarget) || normalizedTarget.includes(normalizedItem)) return true;
-
-  return false;
-};
+// Same store? (backend Store collection; ignores case/spacing)
+const matchesWarehouse = (itemWarehouse, targetWarehouse) => sameStore(itemWarehouse, targetWarehouse);
 
 const updateItemStock = async (
   itemIdValue,
@@ -420,11 +360,10 @@ export const getPurchaseOrders = async (req, res) => {
       console.log(`Searching by orderNumber: ${orderNumber}`);
     } else {
       // Filter by user email only - admin users see all data
-      const adminEmails = ['officerootments@gmail.com'];
-      const isAdminEmail = userId && typeof userId === 'string' && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
+      const isAdminEmail = await isAdminUserId(userId); // admin by role, not by email
       const isAdmin = isAdminEmail ||
                       (userPower && (userPower.toLowerCase() === 'admin' || userPower.toLowerCase() === 'super_admin')) ||
-                      (locCode && (locCode === '858' || locCode === '103'));
+                      (locCode && isWarehouseStore(locCode));
       
       // If admin has switched to a specific store (not Warehouse), filter by that store
       const isAdminViewingSpecificStore = isAdmin && warehouse && warehouse !== "All Stores";
@@ -544,22 +483,15 @@ export const updatePurchaseOrder = async (req, res) => {
 
     // If status changed to "received", update stock quantities (similar to purchase receive)
     if (oldStatus !== "received" && newStatus === "received") {
-      const adminEmails = ["officerootments@gmail.com"];
       const userId = orderData.userId || purchaseOrder.userId || "";
-      const isAdminEmail =
-        userId &&
-        typeof userId === "string" &&
-        adminEmails.some((email) => userId.toLowerCase() === email.toLowerCase());
+      const isAdminEmail = await isAdminUserId(userId); // admin by role, not by email
 
       let targetWarehouse = "Warehouse";
 
       if (isAdminEmail) {
         targetWarehouse = "Warehouse";
       } else {
-        const fallbackLocations = [
-          { "locName": "Warehouse", "locCode": "858" },
-          { "locName": "BridesBerry", "locCode": "155" }
-        ];
+        const fallbackLocations = getStores().map((st) => ({ locName: st.name, locCode: st.locCode })); // from the backend Store collection
 
         const userLocCode = orderData.locCode || purchaseOrder.locCode || "";
         if (userLocCode) {

@@ -3,6 +3,7 @@ import Transaction from "../model/Transaction.js";
 import { propagateCashDiff } from "../utils/cashPropagation.js";
 import mongoose from "mongoose";
 import { businessDate, closureStatusFor } from "../utils/daybookDates.js";
+import { hasDaybookActivity } from "../utils/daybookActivity.js";
 
 export const CloseController = async (req, res) => {
     try {
@@ -153,9 +154,13 @@ export const GetCloseController = async (req, res) => {
         });
 
         if (!data) {
+            // Lets the DaybookGuard tell a missed closing apart from a store that
+            // had no day book yet (e.g. one just created via Add New Store).
+            const closingRequired = await hasDaybookActivity(locCode, startOfDay.toISOString());
             return res.status(200).json({
                 message: "No Data Found",
-                data: null
+                data: null,
+                closingRequired
             });
         }
 

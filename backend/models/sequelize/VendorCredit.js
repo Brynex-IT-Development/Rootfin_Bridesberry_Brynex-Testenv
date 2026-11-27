@@ -20,7 +20,7 @@ const VendorCredit = sequelize.define('VendorCredit', {
   },
   branch: {
     type: DataTypes.STRING,
-    defaultValue: 'Head Office',
+    defaultValue: '',
   },
   
   // Credit Details

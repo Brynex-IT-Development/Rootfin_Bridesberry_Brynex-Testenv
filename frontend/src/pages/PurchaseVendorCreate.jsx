@@ -12,7 +12,7 @@ import AppSelect from "../components/AppSelect.jsx";
 const Input = ({ label, placeholder = "", hint, type = "text", right, ...props }) => (
   <label className="flex w-full flex-col">
     {label && <span className="rf-field-label">{label}</span>}
-    <div className="flex items-center h-[42px] rounded-[10px] border border-[#E5E5E5] focus-within:border-[#9D43D6] focus-within:ring-2 focus-within:ring-[#9D43D6]/15 bg-white transition-colors">
+    <div className="flex items-center h-[42px] rounded-[10px] border border-[#E5E5E5] focus-within:border-[#F2572B] focus-within:ring-2 focus-within:ring-[#F2572B]/15 bg-white transition-colors">
       <input
         type={type}
         placeholder={placeholder}
@@ -314,7 +314,7 @@ const SearchableDropdown = ({
                   key={optVal || i}
                   onClick={() => handleSelect(opt)}
                   className={`px-3 py-2 cursor-pointer transition-colors ${
-                    isSelected ? "bg-[#8B5CF6] text-white" : "hover:bg-[#f8fafc] text-[#111827]"
+                    isSelected ? "bg-[#F46A43] text-white" : "hover:bg-[#f8fafc] text-[#111827]"
                   }`}
                 >
                   <div className={`font-semibold text-xs leading-tight ${isSelected ? "text-white" : "text-[#111827]"}`}>
@@ -342,7 +342,7 @@ const SearchableDropdown = ({
           <div
             ref={buttonRef}
             onClick={toggleDropdown}
-            className="w-full rounded-none border border-[#e2e8f0] bg-white px-3 py-2 text-sm text-[#111827] cursor-pointer flex items-center justify-between focus-within:border-[#8B5CF6] transition-colors"
+            className="w-full rounded-none border border-[#e2e8f0] bg-white px-3 py-2 text-sm text-[#111827] cursor-pointer flex items-center justify-between focus-within:border-[#F46A43] transition-colors"
           >
             <div className="flex items-center gap-2 flex-1 min-w-0">
               <span className={`truncate ${!displayLabel ? "text-[#94a3b8]" : ""}`}>
@@ -721,7 +721,7 @@ const PurchaseVendorCreate = () => {
         <Header title={isEditMode ? "Edit Vendor" : "Add New Vendors"} />
         <div className={`transition-all duration-300 p-8 flex items-center justify-center min-h-[60vh] ${isSidebarOpen ? "ml-[240px]" : "ml-0"}`}>
           <div className="flex flex-col items-center gap-3">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#9D43D6] border-t-transparent" />
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#F2572B] border-t-transparent" />
             <div className="text-[13px] text-[#7A7A7A] font-medium">Loading vendor data...</div>
           </div>
         </div>
@@ -740,9 +740,9 @@ const PurchaseVendorCreate = () => {
           </h1>
           <Link
             to={isEditMode ? `/purchase/vendors/${id}` : "/purchase/vendors"}
-            className="inline-flex items-center gap-1.5 h-[38px] px-4 rounded-[10px] border border-[#E5E5E5] bg-white hover:bg-[#FAFAFA] text-[13px] font-medium text-[#9D43D6] transition-colors"
+            className="inline-flex items-center gap-1.5 h-[38px] px-4 rounded-[10px] border border-[#E5E5E5] bg-white hover:bg-[#FAFAFA] text-[13px] font-medium text-[#F2572B] transition-colors"
           >
-            <X size={14} className="text-[#9D43D6]" />
+            <X size={14} className="text-[#F2572B]" />
             <span>Close</span>
           </Link>
         </div>
@@ -831,7 +831,7 @@ const PurchaseVendorCreate = () => {
                     onClick={() => setActiveTab(tab)}
                     className={`cursor-pointer select-none px-1 pb-3 text-[11px] font-semibold uppercase tracking-wider transition-colors ${
                       activeTab === tab
-                        ? "border-b-2 border-[#9D43D6] text-[#9D43D6]"
+                        ? "border-b-2 border-[#F2572B] text-[#F2572B]"
                         : "text-[#7A7A7A] hover:text-[#1B1B1B]"
                     }`}
                   >
@@ -857,7 +857,7 @@ const PurchaseVendorCreate = () => {
                         <span className="rf-field-label inline-flex items-center gap-1">
                           GSTIN / UIN
                           <span className="text-[#EF4444]">*</span>
-                          <Info size={13} className="text-[#9D43D6] cursor-help" title="UIN" />
+                          <Info size={13} className="text-[#F2572B] cursor-help" title="UIN" />
                         </span>
                         <div className="flex items-center gap-2.5">
                           <input
@@ -869,7 +869,7 @@ const PurchaseVendorCreate = () => {
                           />
                           <button
                             type="button"
-                            className="h-[42px] px-4 rounded-[10px] border border-[#E9D5FF] bg-[#F3E8FF] text-[#9D43D6] hover:bg-[#E9D5FF] text-[12px] font-medium whitespace-nowrap transition-colors cursor-pointer"
+                            className="h-[42px] px-4 rounded-[10px] border border-[#FCCAB9] bg-[#FDE3D9] text-[#F2572B] hover:bg-[#FCCAB9] text-[12px] font-medium whitespace-nowrap transition-colors cursor-pointer"
                           >
                             Get Taxpayer details
                           </button>
@@ -893,7 +893,7 @@ const PurchaseVendorCreate = () => {
                   <label className="inline-flex items-center gap-2 text-[13px] text-[#212121] cursor-pointer">
                     <input
                       type="checkbox"
-                      className="h-4 w-4 rounded-[4px] border-gray-300 accent-[#9D43D6] cursor-pointer"
+                      className="h-4 w-4 rounded-[4px] border-gray-300 accent-[#F2572B] cursor-pointer"
                     />
                     <span>This vendor is MSME registered</span>
                   </label>
@@ -901,7 +901,7 @@ const PurchaseVendorCreate = () => {
                   <label className="inline-flex items-center gap-2 text-[13px] text-[#212121] cursor-pointer">
                     <input
                       type="checkbox"
-                      className="h-4 w-4 rounded-[4px] border-gray-300 accent-[#9D43D6] cursor-pointer"
+                      className="h-4 w-4 rounded-[4px] border-gray-300 accent-[#F2572B] cursor-pointer"
                       checked={enablePortal}
                       onChange={(e) => setEnablePortal(e.target.checked)}
                     />
@@ -929,7 +929,7 @@ const PurchaseVendorCreate = () => {
               <div className="mt-6 grid gap-8 md:grid-cols-2">
                 {/* Billing Address */}
                 <div>
-                  <h4 className="mb-4 text-[12px] font-bold uppercase tracking-wider text-[#9D43D6]">Billing Address</h4>
+                  <h4 className="mb-4 text-[12px] font-bold uppercase tracking-wider text-[#F2572B]">Billing Address</h4>
                   <div className="space-y-3.5">
                     <Input label="Attention" value={billingAttention} onChange={(e) => setBillingAttention(e.target.value)} />
                     <CountryDropdown value={billingCountry} onChange={(value) => setBillingCountry(value)} />
@@ -951,10 +951,10 @@ const PurchaseVendorCreate = () => {
                 {/* Shipping Address */}
                 <div>
                   <div className="mb-4 flex items-center justify-between">
-                    <h4 className="text-[12px] font-bold uppercase tracking-wider text-[#9D43D6]">Shipping Address</h4>
+                    <h4 className="text-[12px] font-bold uppercase tracking-wider text-[#F2572B]">Shipping Address</h4>
                     <button
                       type="button"
-                      className="text-[12px] font-medium text-[#9D43D6] hover:text-[#7E22CE] hover:underline cursor-pointer"
+                      className="text-[12px] font-medium text-[#F2572B] hover:text-[#D9431A] hover:underline cursor-pointer"
                       onClick={() => {
                         setShippingAttention(billingAttention);
                         setShippingCountry(billingCountry);
@@ -1109,7 +1109,7 @@ const PurchaseVendorCreate = () => {
                 {bankAccounts.map((bank, idx) => (
                   <div key={idx} className="border border-[#E5E5E5] rounded-[12px] p-5 space-y-4 bg-[#FAFAFA]/50">
                     <div className="flex items-center justify-between mb-1">
-                      <h4 className="text-[12px] font-bold uppercase tracking-wider text-[#9D43D6]">
+                      <h4 className="text-[12px] font-bold uppercase tracking-wider text-[#F2572B]">
                         Bank Account {idx + 1}
                       </h4>
                       {bankAccounts.length > 1 && (
@@ -1200,7 +1200,7 @@ const PurchaseVendorCreate = () => {
                     value={remarks}
                     onChange={(e) => setRemarks(e.target.value)}
                     rows={4}
-                    className="w-full rounded-[10px] border border-[#E5E5E5] px-3.5 py-2.5 text-[13px] text-[#212121] placeholder:text-[#A1A1AA] focus:outline-none focus:border-[#9D43D6] transition-colors"
+                    className="w-full rounded-[10px] border border-[#E5E5E5] px-3.5 py-2.5 text-[13px] text-[#212121] placeholder:text-[#A1A1AA] focus:outline-none focus:border-[#F2572B] transition-colors"
                   />
                 </label>
               </div>

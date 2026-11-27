@@ -1606,7 +1606,7 @@ const Datewisedaybook = () => {
                           {selectedStores.length === 0 ? "Select Branches" : `${selectedStores.length} Branch${selectedStores.length > 1 ? "es" : ""}`}
                         </span>
                         {selectedStores.length > 0 && (
-                          <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-full bg-[#9D43D6] text-white text-[10px] font-bold">
+                          <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-full bg-[#F2572B] text-white text-[10px] font-bold">
                             {selectedStores.length}
                           </span>
                         )}
@@ -2046,7 +2046,7 @@ const Datewisedaybook = () => {
                                           <button
                                             type="button"
                                             onClick={() => handleEditClick(transaction, index)}
-                                            className="inline-flex items-center gap-1.5 text-[12px] font-medium text-[#212121] border-b border-[#212121] pb-0.5 hover:text-[#9D43D6] hover:border-[#9D43D6] transition-colors cursor-pointer bg-transparent"
+                                            className="inline-flex items-center gap-1.5 text-[12px] font-medium text-[#212121] border-b border-[#212121] pb-0.5 hover:text-[#F2572B] hover:border-[#F2572B] transition-colors cursor-pointer bg-transparent"
                                           >
                                             <FiEdit2 size={12} />
                                             <span>Edit</span>
@@ -2180,7 +2180,7 @@ const Datewisedaybook = () => {
                                       href={`${baseUrl.baseUrl}user/transaction/${t._id}/attachment`}
                                       target="_blank"
                                       rel="noopener noreferrer"
-                                      className="flex items-center gap-1 text-[#9B48D7] hover:underline text-xs"
+                                      className="flex items-center gap-1 text-[#F2572B] hover:underline text-xs"
                                     >
                                       <FiDownload size={14} />
                                       Download
@@ -2205,7 +2205,7 @@ const Datewisedaybook = () => {
                                       <button
                                         type="button"
                                         onClick={() => handleEditClick(transaction, index)}
-                                        className="inline-flex items-center gap-1.5 text-[12px] font-medium text-[#212121] border-b border-[#212121] pb-0.5 hover:text-[#9D43D6] hover:border-[#9D43D6] transition-colors cursor-pointer bg-transparent"
+                                        className="inline-flex items-center gap-1.5 text-[12px] font-medium text-[#212121] border-b border-[#212121] pb-0.5 hover:text-[#F2572B] hover:border-[#F2572B] transition-colors cursor-pointer bg-transparent"
                                       >
                                         <FiEdit2 size={12} />
                                         <span>Edit</span>
@@ -2260,17 +2260,17 @@ const Datewisedaybook = () => {
                     {selectedStores.length} of {visibleLocations.length} selected
                   </span>
                   <div className="flex gap-2">
-                    <button onClick={() => setSelectedStores(visibleLocations.map(l => l.locCode))} className="px-3 py-1 text-xs font-medium rounded-none bg-[#9B48D7] text-white hover:bg-[#8836c2] transition-colors">All</button>
+                    <button onClick={() => setSelectedStores(visibleLocations.map(l => l.locCode))} className="px-3 py-1 text-xs font-medium rounded-none bg-[#F2572B] text-white hover:bg-[#D9431A] transition-colors">All</button>
                     <button onClick={() => setSelectedStores([])} className="px-3 py-1 text-xs font-medium rounded-none border border-gray-300 text-gray-600 hover:bg-gray-100 transition-colors">None</button>
-                    <button onClick={() => setShowStoreSelector(false)} className="px-3 py-1 text-xs font-medium rounded-none bg-[#9B48D7] text-white hover:bg-[#8836c2] transition-colors">Done ✓</button>
+                    <button onClick={() => setShowStoreSelector(false)} className="px-3 py-1 text-xs font-medium rounded-none bg-[#F2572B] text-white hover:bg-[#D9431A] transition-colors">Done ✓</button>
                   </div>
                 </div>
                 <div className="p-3 grid grid-cols-4 gap-2 max-h-56 overflow-y-auto">
                   {visibleLocations.map(loc => {
                     const isChecked = selectedStores.includes(loc.locCode);
                     return (
-                      <label key={loc.locCode} className={`flex items-center gap-2 cursor-pointer rounded-xl px-3 py-2 text-xs font-medium transition-all border ${isChecked ? "bg-purple-50 border-[#9B48D7] text-[#9B48D7]" : "bg-white border-gray-200 text-gray-600 hover:border-purple-200 hover:bg-gray-50"}`}>
-                        <input type="checkbox" checked={isChecked} onChange={e => { if (e.target.checked) { setSelectedStores(prev => [...prev, loc.locCode]); } else { setSelectedStores(prev => prev.filter(c => c !== loc.locCode)); } }} className="accent-[#9B48D7] shrink-0" />
+                      <label key={loc.locCode} className={`flex items-center gap-2 cursor-pointer rounded-xl px-3 py-2 text-xs font-medium transition-all border ${isChecked ? "bg-purple-50 border-[#F2572B] text-[#F2572B]" : "bg-white border-gray-200 text-gray-600 hover:border-purple-200 hover:bg-gray-50"}`}>
+                        <input type="checkbox" checked={isChecked} onChange={e => { if (e.target.checked) { setSelectedStores(prev => [...prev, loc.locCode]); } else { setSelectedStores(prev => prev.filter(c => c !== loc.locCode)); } }} className="accent-[#F2572B] shrink-0" />
                         <span className="truncate">{loc.locName}</span>
                       </label>
                     );

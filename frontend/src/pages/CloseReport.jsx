@@ -342,7 +342,7 @@ const CloseReport = () => {
                     <tr>
                       <td colSpan="8" className="text-center py-16">
                         <div className="flex items-center justify-center gap-3">
-                          <div className="animate-spin rounded-full h-6 w-6 border-2 border-[#9D43D6] border-t-transparent"></div>
+                          <div className="animate-spin rounded-full h-6 w-6 border-2 border-[#F2572B] border-t-transparent"></div>
                           <span className="text-[#6A6A6A] text-[13px]">Loading data...</span>
                         </div>
                       </td>
@@ -356,7 +356,7 @@ const CloseReport = () => {
                             ? 'bg-[#FFE8E8] hover:bg-[#FFE0E0]'
                             : row.isLateClosed
                             ? 'bg-[#FFFBEB] hover:bg-[#FEF3C7]/70'
-                            : 'bg-white hover:bg-[#FBF5FC]'
+                            : 'bg-white hover:bg-[#FEF3EE]'
                         }`}
                       >
                         <td className="px-4 py-3.5 border-r border-[#F3F3F3] text-[#6A6A6A] tabular-nums">

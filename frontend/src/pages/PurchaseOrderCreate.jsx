@@ -11,6 +11,7 @@ import useSidebar from "../hooks/useSidebar";
 import Breadcrumbs from "../components/Breadcrumbs.jsx";
 
 import AppSelect from "../components/AppSelect.jsx";
+import { getActiveStores } from "../utils/storeService";
 const Label = ({ children, required = false }) => (
   <span className="rf-field-label">
     {children}
@@ -19,7 +20,7 @@ const Label = ({ children, required = false }) => (
 );
 
 const Input = ({ placeholder = "", className = "", ...props }) => {
-  const baseClasses = "w-full rounded-[10px] border border-[#E5E5E5] bg-white text-[13px] text-[#212121] placeholder:text-[#A1A1AA] hover:border-[#D4D4D8] focus:border-[#9D43D6] focus:outline-none transition-colors";
+  const baseClasses = "w-full rounded-[10px] border border-[#E5E5E5] bg-white text-[13px] text-[#212121] placeholder:text-[#A1A1AA] hover:border-[#D4D4D8] focus:border-[#F2572B] focus:outline-none transition-colors";
   const tableInputClasses = "h-[42px] px-3";
   const defaultClasses = "h-[42px] px-3.5";
   
@@ -36,7 +37,7 @@ const Input = ({ placeholder = "", className = "", ...props }) => {
 };
 
 const Select = ({ className = "", ...props }) => {
-  const baseClasses = "w-full rounded-[10px] border border-[#E5E5E5] bg-white text-[13px] text-[#212121] hover:border-[#D4D4D8] focus:border-[#9D43D6] focus:outline-none transition-colors cursor-pointer";
+  const baseClasses = "w-full rounded-[10px] border border-[#E5E5E5] bg-white text-[13px] text-[#212121] hover:border-[#D4D4D8] focus:border-[#F2572B] focus:outline-none transition-colors cursor-pointer";
   const tableInputClasses = "h-[42px] px-3";
   const defaultClasses = "h-[42px] px-3.5";
   
@@ -173,11 +174,11 @@ const CompactDropdown = ({
                     setSearchTerm("");
                   }}
                   className={`flex items-center justify-between px-3.5 py-2.5 text-xs font-medium cursor-pointer transition-colors ${
-                    isSelected ? "bg-purple-50 text-[#9333ea]" : "text-gray-700 hover:bg-gray-50"
+                    isSelected ? "bg-purple-50 text-[#F2572B]" : "text-gray-700 hover:bg-gray-50"
                   }`}
                 >
                   <span className="truncate">{optLabel}</span>
-                  {isSelected && <Check size={14} className="text-[#9333ea] shrink-0" />}
+                  {isSelected && <Check size={14} className="text-[#F2572B] shrink-0" />}
                 </div>
               );
             })
@@ -195,7 +196,7 @@ const CompactDropdown = ({
           type="button"
           onClick={toggleDropdown}
           style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}
-          className={`w-full h-[42px] px-3.5 rounded-xl border border-gray-200 bg-white text-sm flex items-center justify-between transition-colors hover:border-gray-300 focus:border-[#9333ea] focus:outline-none cursor-pointer ${
+          className={`w-full h-[42px] px-3.5 rounded-xl border border-gray-200 bg-white text-sm flex items-center justify-between transition-colors hover:border-gray-300 focus:border-[#F2572B] focus:outline-none cursor-pointer ${
             isPlaceholder ? "text-gray-400" : "text-gray-700"
           } ${buttonClassName}`}
         >
@@ -338,7 +339,7 @@ const TaxDropdown = ({ rowId, value, onChange, taxOptions, nonTaxableOptions, on
               onClick={() => handleSelectTax(option.id)}
               className={`px-4 py-2.5 text-xs cursor-pointer transition-colors ${
                 value === option.id
-                  ? "bg-purple-50 text-[#9333ea] font-medium"
+                  ? "bg-purple-50 text-[#F2572B] font-medium"
                   : "text-gray-700 hover:bg-gray-50"
               }`}
             >
@@ -355,12 +356,12 @@ const TaxDropdown = ({ rowId, value, onChange, taxOptions, nonTaxableOptions, on
               onClick={() => handleSelectTax(tax.id)}
               className={`flex items-center justify-between px-4 py-2.5 text-xs cursor-pointer transition-colors ${
                 value === tax.id
-                  ? "bg-purple-50 text-[#9333ea] font-medium"
+                  ? "bg-purple-50 text-[#F2572B] font-medium"
                   : "text-gray-700 hover:bg-gray-50"
               }`}
             >
               <span>{tax.display}</span>
-              {value === tax.id && <Check size={14} className="text-[#9333ea]" />}
+              {value === tax.id && <Check size={14} className="text-[#F2572B]" />}
             </div>
           ))}
           <div
@@ -368,7 +369,7 @@ const TaxDropdown = ({ rowId, value, onChange, taxOptions, nonTaxableOptions, on
               onNewTax();
               setIsOpen(false);
             }}
-            className="flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-[#9333ea] hover:bg-purple-50 cursor-pointer transition-colors border-t border-gray-100 mt-2"
+            className="flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-[#F2572B] hover:bg-purple-50 cursor-pointer transition-colors border-t border-gray-100 mt-2"
           >
             <Plus size={14} />
             <span>New Tax</span>
@@ -386,7 +387,7 @@ const TaxDropdown = ({ rowId, value, onChange, taxOptions, nonTaxableOptions, on
           ref={buttonRef}
           onClick={toggleDropdown}
           type="button"
-          className="w-full h-[42px] rounded-xl border border-gray-200 bg-white text-sm text-gray-700 hover:border-gray-300 focus:border-[#9333ea] focus:outline-none transition-colors cursor-pointer flex items-center justify-between px-3 m-0"
+          className="w-full h-[42px] rounded-xl border border-gray-200 bg-white text-sm text-gray-700 hover:border-gray-300 focus:border-[#F2572B] focus:outline-none transition-colors cursor-pointer flex items-center justify-between px-3 m-0"
         >
           {/* Text and X icon */}
           <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -726,7 +727,7 @@ const ItemDropdown = ({ rowId, value, description, onDescriptionChange, onChange
             type="text"
             readOnly
             placeholder="Type of click to select an item"
-            className="w-full h-[42px] rounded-xl border border-gray-200 bg-white text-sm text-gray-700 placeholder:text-gray-400 hover:border-gray-300 focus:border-[#9333ea] focus:outline-none transition-colors cursor-pointer px-3.5"
+            className="w-full h-[42px] rounded-xl border border-gray-200 bg-white text-sm text-gray-700 placeholder:text-gray-400 hover:border-gray-300 focus:border-[#F2572B] focus:outline-none transition-colors cursor-pointer px-3.5"
           />
         </div>
       )}
@@ -759,7 +760,7 @@ const VendorDropdown = ({ value, onChange, onNewVendor }) => {
       try {
         const userStr = localStorage.getItem("rootfinuser");
         const user = userStr ? JSON.parse(userStr) : null;
-        // Use email as primary identifier (e.g., officerootments@gmail.com)
+        // Use email as primary identifier
         const userId = user?.email || user?._id || user?.id || user?.locCode || null;
         
         let vendorsFromAPI = [];
@@ -995,13 +996,13 @@ const VendorDropdown = ({ value, onChange, onNewVendor }) => {
             readOnly
             value={selectedVendor ? (selectedVendor.displayName || selectedVendor.companyName) : ""}
             placeholder="Search a vendors"
-            className="flex-1 h-[42px] rounded-xl border border-gray-200 bg-white text-sm text-gray-700 placeholder:text-gray-400 hover:border-gray-300 focus:border-[#9333ea] focus:outline-none transition-colors cursor-pointer px-3.5"
+            className="flex-1 h-[42px] rounded-xl border border-gray-200 bg-white text-sm text-gray-700 placeholder:text-gray-400 hover:border-gray-300 focus:border-[#F2572B] focus:outline-none transition-colors cursor-pointer px-3.5"
           />
           <button
             type="button"
             onClick={toggleDropdown}
             style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}
-            className="h-[42px] w-[42px] rounded-xl bg-[#9333ea] hover:bg-[#7e22ce] text-white transition-colors shrink-0 cursor-pointer shadow-sm"
+            className="h-[42px] w-[42px] rounded-xl bg-[#F2572B] hover:bg-[#D9431A] text-white transition-colors shrink-0 cursor-pointer shadow-sm"
             title="Search"
           >
             <Search size={18} className="shrink-0" />
@@ -1031,7 +1032,7 @@ const PurchaseOrderCreate = () => {
     console.error("Error parsing user from localStorage:", e);
   }
   
-  // Use email as primary identifier (e.g., officerootments@gmail.com)
+  // Use email as primary identifier
   const userId = currentuser?.email || currentuser?._id || currentuser?.id || currentuser?.locCode || null;
 
   const [addresses, setAddresses] = useState([]);
@@ -1187,8 +1188,9 @@ const PurchaseOrderCreate = () => {
     "At Line Item Level and at Transaction Level",
   ];
 
-  const branchOptions = ["Brides Berry", "Warehouse"];
-  const warehouseSelectOptions = ["Select a warehouse", "Brides Berry", "Warehouse"];
+  // Store options come from the backend store list
+  const branchOptions = getActiveStores().map((st) => st.locName).filter(Boolean);
+  const warehouseSelectOptions = ["Select a warehouse", ...branchOptions];
   const paymentTermOptions = ["Due on Receipt", "Net 7", "Net 15", "Net 30", "Net 60"];
   const shipmentPreferenceOptions = [
     "Choose the shipment preference or type to add",
@@ -2595,9 +2597,9 @@ const PurchaseOrderCreate = () => {
           </h1>
           <Link
             to={isEditMode ? `/purchase/orders/${id}` : "/purchase/orders"}
-            className="inline-flex items-center gap-1.5 h-[38px] px-4 rounded-[10px] border border-[#E5E5E5] bg-white hover:bg-[#FAFAFA] text-[13px] font-medium text-[#9D43D6] transition-colors"
+            className="inline-flex items-center gap-1.5 h-[38px] px-4 rounded-[10px] border border-[#E5E5E5] bg-white hover:bg-[#FAFAFA] text-[13px] font-medium text-[#F2572B] transition-colors"
           >
-            <X size={14} className="text-[#9D43D6]" />
+            <X size={14} className="text-[#F2572B]" />
             <span>Close</span>
           </Link>
         </div>
@@ -2633,16 +2635,16 @@ const PurchaseOrderCreate = () => {
 
             {/* Delivery Address */}
             <div className="pt-2">
-              <div className="text-[11px] font-bold text-[#9D43D6] tracking-wider uppercase mb-2.5">
+              <div className="text-[11px] font-bold text-[#F2572B] tracking-wider uppercase mb-2.5">
                 DELIVERY ADDRESS
               </div>
               <div className="flex items-center gap-6 mb-3">
                 <label className="inline-flex items-center gap-2 text-[13px] text-[#212121] cursor-pointer">
-                  <input type="radio" name="deliveryTo" defaultChecked className="accent-[#9D43D6] h-4 w-4 cursor-pointer" />
+                  <input type="radio" name="deliveryTo" defaultChecked className="accent-[#F2572B] h-4 w-4 cursor-pointer" />
                   Warehouse
                 </label>
                 <label className="inline-flex items-center gap-2 text-[13px] text-[#212121] cursor-pointer">
-                  <input type="radio" name="deliveryTo" className="accent-[#9D43D6] h-4 w-4 cursor-pointer" />
+                  <input type="radio" name="deliveryTo" className="accent-[#F2572B] h-4 w-4 cursor-pointer" />
                   Customer
                 </label>
               </div>
@@ -2701,7 +2703,7 @@ const PurchaseOrderCreate = () => {
             {/* Purchase Order # */}
             <div>
               <Label required>Purchase Order</Label>
-              <div className="flex items-center h-[42px] border border-[#E5E5E5] rounded-[10px] pl-3.5 pr-1.5 bg-white focus-within:ring-2 focus-within:ring-[#9D43D6]/15 focus-within:border-[#9D43D6] transition-colors">
+              <div className="flex items-center h-[42px] border border-[#E5E5E5] rounded-[10px] pl-3.5 pr-1.5 bg-white focus-within:ring-2 focus-within:ring-[#F2572B]/15 focus-within:border-[#F2572B] transition-colors">
                 <input
                   type="text"
                   value={orderNumberLoading ? "Generating..." : orderNumber}
@@ -2714,7 +2716,7 @@ const PurchaseOrderCreate = () => {
                 <button
                   type="button"
                   style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}
-                  className="h-[30px] w-[30px] rounded-[8px] text-white bg-[#9D43D6] hover:bg-[#8732BE] shrink-0 transition-colors cursor-pointer"
+                  className="h-[30px] w-[30px] rounded-[8px] text-white bg-[#F2572B] hover:bg-[#D9431A] shrink-0 transition-colors cursor-pointer"
                   disabled={orderNumberLoading}
                   title="Settings"
                 >
@@ -2737,7 +2739,7 @@ const PurchaseOrderCreate = () => {
             {/* Date */}
             <div>
               <Label required>Date</Label>
-              <div className="flex items-center h-[42px] border border-[#E5E5E5] rounded-[10px] bg-white px-3.5 focus-within:ring-2 focus-within:ring-[#9D43D6]/15 focus-within:border-[#9D43D6] transition-colors">
+              <div className="flex items-center h-[42px] border border-[#E5E5E5] rounded-[10px] bg-white px-3.5 focus-within:ring-2 focus-within:ring-[#F2572B]/15 focus-within:border-[#F2572B] transition-colors">
                 <input
                   type="text"
                   placeholder="28-08-2026"
@@ -2755,7 +2757,7 @@ const PurchaseOrderCreate = () => {
             {/* Delivery Date */}
             <div>
               <Label required>Delivery Date</Label>
-              <div className="flex items-center h-[42px] border border-[#E5E5E5] rounded-[10px] bg-white px-3.5 focus-within:ring-2 focus-within:ring-[#9D43D6]/15 focus-within:border-[#9D43D6] transition-colors">
+              <div className="flex items-center h-[42px] border border-[#E5E5E5] rounded-[10px] bg-white px-3.5 focus-within:ring-2 focus-within:ring-[#F2572B]/15 focus-within:border-[#F2572B] transition-colors">
                 <input
                   type="text"
                   placeholder="dd/mm/yyyy"
@@ -2831,7 +2833,7 @@ const PurchaseOrderCreate = () => {
         {/* Dark table header */}
         <div className="bg-[#1B1B1B] rounded-t-[12px] flex items-center px-4 py-3.5 text-white text-[11px] font-semibold uppercase tracking-wider">
           <div className="w-9 shrink-0 flex items-center justify-center">
-            <input type="checkbox" className="h-4 w-4 rounded-[4px] accent-[#9D43D6] cursor-pointer" />
+            <input type="checkbox" className="h-4 w-4 rounded-[4px] accent-[#F2572B] cursor-pointer" />
           </div>
           <div className="flex-1 min-w-[200px] px-2 text-left">ITEM DETAILS</div>
           <div className="w-36 px-2 text-left">ACCOUNT</div>
@@ -2849,7 +2851,7 @@ const PurchaseOrderCreate = () => {
             <div key={row.id} className="flex items-center px-4 py-3 gap-0 overflow-visible hover:bg-[#FAFAFA] transition-colors">
               {/* Checkbox */}
               <div className="w-9 shrink-0 flex items-center justify-center">
-                <input type="checkbox" className="h-4 w-4 rounded-[4px] accent-[#9D43D6] cursor-pointer" />
+                <input type="checkbox" className="h-4 w-4 rounded-[4px] accent-[#F2572B] cursor-pointer" />
               </div>
 
               {/* Item Details */}
@@ -2920,7 +2922,7 @@ const PurchaseOrderCreate = () => {
                   value={row.quantity}
                   onChange={(e) => handleUpdateRow(row.id, "quantity", e.target.value)}
                   placeholder="0.00"
-                  className="w-full h-[42px] rounded-[10px] border border-[#E5E5E5] bg-white text-[13px] text-[#212121] placeholder:text-[#A1A1AA] text-center focus:border-[#9D43D6] focus:outline-none transition-colors"
+                  className="w-full h-[42px] rounded-[10px] border border-[#E5E5E5] bg-white text-[13px] text-[#212121] placeholder:text-[#A1A1AA] text-center focus:border-[#F2572B] focus:outline-none transition-colors"
                 />
               </div>
 
@@ -2931,7 +2933,7 @@ const PurchaseOrderCreate = () => {
                   value={row.rate}
                   onChange={(e) => handleUpdateRow(row.id, "rate", e.target.value)}
                   placeholder="0.00"
-                  className="w-full h-[42px] rounded-[10px] border border-[#E5E5E5] bg-white text-[13px] text-[#212121] placeholder:text-[#A1A1AA] text-center focus:border-[#9D43D6] focus:outline-none transition-colors"
+                  className="w-full h-[42px] rounded-[10px] border border-[#E5E5E5] bg-white text-[13px] text-[#212121] placeholder:text-[#A1A1AA] text-center focus:border-[#F2572B] focus:outline-none transition-colors"
                 />
               </div>
 
@@ -3044,7 +3046,7 @@ const PurchaseOrderCreate = () => {
                       <button
                         type="button"
                         onClick={() => setApplyDiscountAfterTax(!applyDiscountAfterTax)}
-                        className={`text-[12px] cursor-pointer ${applyDiscountAfterTax ? 'text-[#9D43D6] font-medium' : 'text-[#7A7A7A]'} hover:text-[#9D43D6] hover:underline underline-offset-4 transition-colors`}
+                        className={`text-[12px] cursor-pointer ${applyDiscountAfterTax ? 'text-[#F2572B] font-medium' : 'text-[#7A7A7A]'} hover:text-[#F2572B] hover:underline underline-offset-4 transition-colors`}
                       >
                         Apply after tax
                       </button>
@@ -3087,7 +3089,7 @@ const PurchaseOrderCreate = () => {
                     />
                     <button
                       type="button"
-                      className="text-[12px] font-medium text-[#9D43D6] hover:text-[#7E22CE] hover:underline underline-offset-4 transition-colors cursor-pointer"
+                      className="text-[12px] font-medium text-[#F2572B] hover:text-[#D9431A] hover:underline underline-offset-4 transition-colors cursor-pointer"
                       title="Edit tax amount"
                     >
                       Edit
@@ -3112,7 +3114,7 @@ const PurchaseOrderCreate = () => {
                             setTdsTcsType(e.target.value);
                             setTdsTcsTax("");
                           }}
-                          className="accent-[#9D43D6] h-4 w-4"
+                          className="accent-[#F2572B] h-4 w-4"
                         />
                         <span className="text-[13px] text-[#212121]">TDS</span>
                       </label>
@@ -3126,7 +3128,7 @@ const PurchaseOrderCreate = () => {
                             setTdsTcsType(e.target.value);
                             setTdsTcsTax("");
                           }}
-                          className="accent-[#9D43D6] h-4 w-4"
+                          className="accent-[#F2572B] h-4 w-4"
                         />
                         <span className="text-[13px] text-[#212121]">TCS</span>
                       </label>

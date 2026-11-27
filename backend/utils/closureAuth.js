@@ -57,15 +57,10 @@ export const requireClosureApprover = async (req, res, next) => {
             console.error("Closure approver lookup failed:", error);
             return res.status(503).json({ message: "Database unavailable. Please try again shortly." });
         }
-        const adminEmails = [
-            "officerootments@gmail.com",
-            "operationsrootments@gmail.com", "headoffice01@gmail.com"
-        ];
         const userRole = (user.role || "").toLowerCase().trim();
         const permitted = user && (
             ["admin", "super_admin", "superadmin", "financial_head"].includes(userRole) ||
-            ["admin", "super_admin"].includes(user.power) ||
-            adminEmails.includes((user.email || "").toLowerCase())
+            ["admin", "super_admin"].includes(user.power)
         );
         if (!permitted) {
             return res.status(403).json({ message: "Accountant or admin access required." });

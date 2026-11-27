@@ -7,6 +7,7 @@ import useSidebar from "../hooks/useSidebar";
 import { Search, Calendar, FileText, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, RotateCcw } from "lucide-react";
 
 import AppSelect from "../components/AppSelect.jsx";
+import { getUserStoreName } from "../utils/storeService";
 const SalesInvoiceReturns = () => {
   const isSidebarOpen = useSidebar();
   const [invoices, setInvoices] = useState([]);
@@ -127,7 +128,7 @@ const SalesInvoiceReturns = () => {
           }
         }
         if (!userLocName) {
-          userLocName = user?.username || user?.locName || "";
+          userLocName = getUserStoreName(user);
         }
         
         const userWarehouse = mapWarehouse(userLocName);
@@ -212,7 +213,7 @@ const SalesInvoiceReturns = () => {
         <div className="px-8 py-4 border-b border-[#E5E5E5] bg-white flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
             <h1 className="text-[18px] font-semibold text-[#212121]">Invoice Returns</h1>
-            <span className="bg-[#EFE3F7] text-[#9D43D6] text-[11px] font-semibold px-2.5 py-0.5 rounded-full">
+            <span className="bg-[#FDE3D9] text-[#F2572B] text-[11px] font-semibold px-2.5 py-0.5 rounded-full">
               {filteredInvoices.length} {filteredInvoices.length === 1 ? 'Return' : 'Returns'}
             </span>
           </div>
@@ -250,7 +251,7 @@ const SalesInvoiceReturns = () => {
                 onClick={() => setShowDateFilter(!showDateFilter)}
                 className={`h-[40px] px-4 rounded-xl border text-[13px] font-medium transition-colors inline-flex items-center gap-2 cursor-pointer ${
                   showDateFilter || fromDate || toDate
-                    ? 'border-[#9D43D6] bg-[#FBF5FC] text-[#9D43D6]'
+                    ? 'border-[#F2572B] bg-[#FEF3EE] text-[#F2572B]'
                     : 'border-[#E5E5E5] bg-white hover:bg-[#F7F7F7] text-[#212121]'
                 }`}
               >
@@ -262,7 +263,7 @@ const SalesInvoiceReturns = () => {
             {/* Active Filter Badges */}
             <div className="flex items-center gap-2">
               {(fromDate || toDate) && (
-                <span className="inline-flex items-center gap-1 rounded-md bg-[#EFE3F7] px-2.5 py-1 text-[11px] font-semibold text-[#9D43D6]">
+                <span className="inline-flex items-center gap-1 rounded-md bg-[#FDE3D9] px-2.5 py-1 text-[11px] font-semibold text-[#F2572B]">
                   Date Filtered
                 </span>
               )}
@@ -314,7 +315,7 @@ const SalesInvoiceReturns = () => {
           <section className="rounded-lg border border-[#E5E5E5] bg-white overflow-hidden">
             {loading ? (
               <div className="px-8 py-16 text-center flex flex-col items-center justify-center">
-                <div className="inline-block animate-spin rounded-full h-6 w-6 border-2 border-[#9D43D6] border-t-transparent mb-2" />
+                <div className="inline-block animate-spin rounded-full h-6 w-6 border-2 border-[#F2572B] border-t-transparent mb-2" />
                 <p className="text-[13px] text-[#6A6A6A]">Loading return invoices...</p>
               </div>
             ) : error ? (
@@ -323,8 +324,8 @@ const SalesInvoiceReturns = () => {
               </div>
             ) : invoices.length === 0 ? (
               <div className="px-8 py-16 text-center flex flex-col items-center justify-center">
-                <div className="w-12 h-12 rounded-full bg-[#EFE3F7] flex items-center justify-center mb-3">
-                  <RotateCcw size={22} className="text-[#9D43D6]" />
+                <div className="w-12 h-12 rounded-full bg-[#FDE3D9] flex items-center justify-center mb-3">
+                  <RotateCcw size={22} className="text-[#F2572B]" />
                 </div>
                 <h3 className="text-[15px] font-semibold text-[#212121] mb-1">No Return Invoices Found</h3>
                 <p className="text-[13px] text-[#6A6A6A] max-w-sm mb-4">
@@ -351,7 +352,7 @@ const SalesInvoiceReturns = () => {
                       <th className="w-10 px-3 py-3 text-center whitespace-nowrap">
                         <input
                           type="checkbox"
-                          className="h-3.5 w-3.5 rounded accent-[#9D43D6] cursor-pointer"
+                          className="h-3.5 w-3.5 rounded accent-[#F2572B] cursor-pointer"
                         />
                       </th>
                       <th className="px-3.5 py-3 text-left whitespace-nowrap">DATE</th>
@@ -368,7 +369,7 @@ const SalesInvoiceReturns = () => {
                     {paginatedInvoices.map((invoice, index) => (
                       <tr
                         key={invoice._id || invoice.id}
-                        className="bg-white hover:bg-[#FBF5FC] transition-colors"
+                        className="bg-white hover:bg-[#FEF3EE] transition-colors"
                       >
                         <td className="px-3 py-3 text-center text-[#6A6A6A] border-r border-[#F3F3F3] tabular-nums">
                           {startIndex + index + 1}
@@ -376,7 +377,7 @@ const SalesInvoiceReturns = () => {
                         <td className="px-3 py-3 text-center border-r border-[#F3F3F3]">
                           <input
                             type="checkbox"
-                            className="h-3.5 w-3.5 rounded accent-[#9D43D6] cursor-pointer"
+                            className="h-3.5 w-3.5 rounded accent-[#F2572B] cursor-pointer"
                           />
                         </td>
                         <td className="px-3.5 py-3 whitespace-nowrap text-[#4A4A4A] border-r border-[#F3F3F3]">
@@ -385,7 +386,7 @@ const SalesInvoiceReturns = () => {
                         <td className="px-3.5 py-3 font-semibold border-r border-[#F3F3F3]">
                           <Link
                             to={`/sales/invoices/${invoice._id || invoice.id}`}
-                            className="text-[#9D43D6] hover:text-[#8B3CBD] hover:underline"
+                            className="text-[#F2572B] hover:text-[#D9431A] hover:underline"
                           >
                             {invoice.invoiceNumber}
                           </Link>

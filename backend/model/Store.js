@@ -57,6 +57,13 @@ const StoreSchema = new mongoose.Schema(
   }
 );
 
+// Notify listeners (utils/storeResolver.js cache) whenever stores change.
+const storeChangeListeners = new Set();
+export const onStoreChange = (fn) => storeChangeListeners.add(fn);
+const notifyStoreChange = () => storeChangeListeners.forEach((fn) => { try { fn(); } catch { /* ignore */ } });
+StoreSchema.post("save", notifyStoreChange);
+StoreSchema.post(["findOneAndUpdate", "findOneAndDelete", "updateOne", "updateMany", "deleteOne", "deleteMany"], notifyStoreChange);
+
 const Store = mongoose.model("Store", StoreSchema);
 
 export default Store;

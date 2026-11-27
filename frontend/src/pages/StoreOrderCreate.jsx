@@ -8,6 +8,7 @@ import Header from "../components/Header";
 import baseUrl from "../api/api";
 import { mapLocNameToWarehouse as mapWarehouse } from "../utils/warehouseMapping";
 import useSidebar from "../hooks/useSidebar";
+import { getActiveStores, getUserStoreName } from "../utils/storeService";
 
 const Label = ({ children, required = false }) => (
   <label className="block text-xs font-medium text-gray-700 mb-1.5">
@@ -157,7 +158,7 @@ const WarehouseDropdown = ({ value, onChange, options, placeholder = "Select war
             disabled
               ? "cursor-not-allowed bg-[#FAFAFA] border-[#E5E5E5] opacity-70"
               : isOpen
-              ? "cursor-pointer border-[#9D43D6] ring-2 ring-[#9D43D6]/15"
+              ? "cursor-pointer border-[#F2572B] ring-2 ring-[#F2572B]/15"
               : "cursor-pointer border-[#E5E5E5] hover:border-[#D4D4D8]"
           }`}
         >
@@ -195,7 +196,7 @@ const ItemDropdown = ({ rowId, value, onChange, storeWarehouse, onStockFetched, 
     // Normalize target warehouse using mapping utility
     const normalizedTarget = mapWarehouse(targetWarehouse);
     const targetWarehouseLower = (normalizedTarget || targetWarehouse).toLowerCase().trim();
-    const targetBase = targetWarehouseLower.replace(/\s*(branch|warehouse|sg|g|z)\s*$/i, "").trim();
+    const targetBase = targetWarehouseLower.replace(/\s*branch\s*$/i, "").trim();
     
     return itemsList.filter(item => {
       if (!item.warehouseStocks || !Array.isArray(item.warehouseStocks)) return false;
@@ -215,8 +216,8 @@ const ItemDropdown = ({ rowId, value, onChange, storeWarehouse, onStockFetched, 
         // Check exact match after normalization
         if (stockWarehouse === targetWarehouseLower) return true;
         
-        // Check base name match (e.g., "edappally" matches "edapally branch")
-        const stockBase = stockWarehouse.replace(/\s*(branch|warehouse|sg|g|z)\s*$/i, "").trim();
+        // Check base name match (e.g., "store" matches "store branch")
+        const stockBase = stockWarehouse.replace(/\s*branch\s*$/i, "").trim();
         if (stockBase && targetBase && stockBase === targetBase) return true;
         
         // Partial match - check if warehouse name contains target or vice versa
@@ -470,7 +471,7 @@ const ItemDropdown = ({ rowId, value, onChange, storeWarehouse, onStockFetched, 
     // Normalize warehouse using mapping utility
     const normalizedWarehouse = mapWarehouse(warehouse);
     const warehouseLower = (normalizedWarehouse || warehouse || "").toLowerCase().trim();
-    const warehouseBase = warehouseLower.replace(/\s*(branch|warehouse|sg|g|z|suitorguy)\s*$/i, "").trim();
+    const warehouseBase = warehouseLower.replace(/\s*branch\s*$/i, "").trim();
     
     if (item.warehouseStocks && Array.isArray(item.warehouseStocks) && item.warehouseStocks.length > 0) {
       const warehouseStock = item.warehouseStocks.find(ws => {
@@ -478,7 +479,7 @@ const ItemDropdown = ({ rowId, value, onChange, storeWarehouse, onStockFetched, 
         const wsWarehouseRaw = ws.warehouse.toString().trim();
         const normalizedWs = mapWarehouse(wsWarehouseRaw);
         const wsWarehouse = (normalizedWs || wsWarehouseRaw).toLowerCase().trim();
-        const wsBase = wsWarehouse.replace(/\s*(branch|warehouse|sg|g|z|suitorguy)\s*$/i, "").trim();
+        const wsBase = wsWarehouse.replace(/\s*branch\s*$/i, "").trim();
         
         // Exact match after normalization
         if (wsWarehouse === warehouseLower) return true;
@@ -549,7 +550,7 @@ const ItemDropdown = ({ rowId, value, onChange, storeWarehouse, onStockFetched, 
                     key={item._id || item.itemName || Math.random()}
                     onClick={() => handleSelectItem(item)}
                     className={`px-4 py-3 cursor-pointer transition-colors ${
-                      isSelected ? "bg-[#9D43D6] text-white" : "hover:bg-[#FAFAFA]"
+                      isSelected ? "bg-[#F2572B] text-white" : "hover:bg-[#FAFAFA]"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-4">
@@ -649,7 +650,7 @@ const StoreOrderCreate = () => {
     }
   }
   if (!userLocName) {
-    userLocName = user?.username || user?.locName || "";
+    userLocName = getUserStoreName(user);
   }
   const userWarehouse = mapWarehouse(userLocName);
   
@@ -659,7 +660,9 @@ const StoreOrderCreate = () => {
   const [orderNumberLoading, setOrderNumberLoading] = useState(false);
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [reason, setReason] = useState("");
-  const [storeWarehouse, setStoreWarehouse] = useState("SuitorGuy MG Road");
+  // Branch stores (non-warehouse) from the backend store list
+  const branchStoreNames = getActiveStores().filter((st) => st.storeType !== "warehouse").map((st) => st.locName).filter(Boolean);
+  const [storeWarehouse, setStoreWarehouse] = useState(() => branchStoreNames[0] || "");
   const [tableRows, setTableRows] = useState([{ 
     id: 1, 
     item: null, 
@@ -671,10 +674,8 @@ const StoreOrderCreate = () => {
     quantity: "" 
   }]);
   
-  // Warehouse options for admin (stores/branches only, exclude Warehouse)
-  const storeWarehouseOptions = [
-    "SuitorGuy MG Road",
-  ];
+  // Warehouse options for admin (stores/branches only, exclude the warehouse)
+  const storeWarehouseOptions = branchStoreNames;
   
   // For store users, only show their own warehouse as option
   const availableWarehouseOptions = isStoreUser && userWarehouse 
@@ -971,7 +972,7 @@ const StoreOrderCreate = () => {
                 <label className="rf-field-label">
                   Order Number <span className="text-[#EF4444]">*</span>
                 </label>
-                <div className="flex items-center h-[42px] border border-[#E5E5E5] rounded-[10px] pl-3.5 pr-1.5 bg-white focus-within:ring-2 focus-within:ring-[#9D43D6]/15 focus-within:border-[#9D43D6] transition-colors">
+                <div className="flex items-center h-[42px] border border-[#E5E5E5] rounded-[10px] pl-3.5 pr-1.5 bg-white focus-within:ring-2 focus-within:ring-[#F2572B]/15 focus-within:border-[#F2572B] transition-colors">
                   <input
                     type="text"
                     value={orderNumberLoading ? "Generating..." : orderNumber}
@@ -986,7 +987,7 @@ const StoreOrderCreate = () => {
                       orderNumberLoading ? "opacity-50" : ""
                     }`}
                   />
-                  <span className="h-[28px] px-3 rounded-[7px] text-[12px] font-semibold text-[#9D43D6] bg-[#F3E8FF] inline-flex items-center justify-center shrink-0">
+                  <span className="h-[28px] px-3 rounded-[7px] text-[12px] font-semibold text-[#F2572B] bg-[#FDE3D9] inline-flex items-center justify-center shrink-0">
                     Auto
                   </span>
                 </div>
@@ -1049,7 +1050,7 @@ const StoreOrderCreate = () => {
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="Describe the transfer reason"
                 maxLength={500}
-                className="w-full rounded-[10px] border border-[#E5E5E5] bg-white p-3.5 text-[13px] text-[#212121] placeholder:text-[#A1A1AA] focus:border-[#9D43D6] focus:outline-none focus:ring-2 focus:ring-[#9D43D6]/15 resize-none transition-colors"
+                className="w-full rounded-[10px] border border-[#E5E5E5] bg-white p-3.5 text-[13px] text-[#212121] placeholder:text-[#A1A1AA] focus:border-[#F2572B] focus:outline-none focus:ring-2 focus:ring-[#F2572B]/15 resize-none transition-colors"
               />
               <div className="text-right text-[11px] text-[#7A7A7A] mt-1">
                 Maximum 500 characters
@@ -1064,7 +1065,7 @@ const StoreOrderCreate = () => {
                 <thead>
                   <tr className="bg-[#1B1B1B] text-white text-[11px] font-semibold uppercase tracking-wider select-none">
                     <th className="py-3.5 px-4 w-12 text-center">
-                      <input type="checkbox" className="h-4 w-4 rounded-[4px] border-gray-500 accent-[#9D43D6] cursor-pointer align-middle" />
+                      <input type="checkbox" className="h-4 w-4 rounded-[4px] border-gray-500 accent-[#F2572B] cursor-pointer align-middle" />
                     </th>
                     <th className="py-3.5 px-4 text-left min-w-[280px]">ITEM DETAILS</th>
                     <th className="py-3.5 px-4 text-center w-56">CURRENT STOCK (READ-ONLY)</th>
@@ -1077,7 +1078,7 @@ const StoreOrderCreate = () => {
                     <tr key={row.id} className="hover:bg-[#FAFAFA] transition-colors">
                       {/* Checkbox */}
                       <td className="py-3.5 px-4 text-center border-r border-[#F5F5F5] align-middle">
-                        <input type="checkbox" className="h-4 w-4 rounded-[4px] border-[#D4D4D8] accent-[#9D43D6] cursor-pointer align-middle" />
+                        <input type="checkbox" className="h-4 w-4 rounded-[4px] border-[#D4D4D8] accent-[#F2572B] cursor-pointer align-middle" />
                       </td>
 
                       {/* Item Details */}

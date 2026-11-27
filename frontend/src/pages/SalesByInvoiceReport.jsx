@@ -8,6 +8,8 @@ import useSidebar from '../hooks/useSidebar.js';
 import { fetchActiveStores } from '../utils/storeService.js';
 
 import AppSelect from "../components/AppSelect.jsx";
+import { isWarehouseStore } from "../utils/storeService";
+import { isAdminOrSuperAdmin } from "../utils/roleUtils";
 /* ── tiny native select wrapper ── */
 const NativeSelect = ({ value, onChange, options, placeholder }) => (
   <div className="relative">
@@ -42,10 +44,10 @@ const SalesByInvoiceReport = () => {
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   const currentUser = JSON.parse(localStorage.getItem("rootfinuser"));
-  const isAdmin = (currentUser?.power || "").toLowerCase() === "admin";
+  const isAdmin = (currentUser?.power || "").toLowerCase() === "admin" || isAdminOrSuperAdmin(currentUser);
   const userRole = (currentUser?.role || "").toLowerCase();
   const isSuperOrAdmin = userRole === 'super_admin' || userRole === 'superadmin' || userRole === 'admin';
-  const isMainAdmin = isSuperOrAdmin || currentUser?.locCode === '858' || currentUser?.locCode === '103';
+  const isMainAdmin = isSuperOrAdmin || isWarehouseStore(currentUser?.locCode);
   const isWarehouse = (currentUser?.power || "").toLowerCase() === "warehouse";
   const canSeeCost = isAdmin || isWarehouse || isMainAdmin;
   const isClusterManager = (currentUser?.role || "").toLowerCase() === "cluster_manager";
@@ -142,7 +144,7 @@ const SalesByInvoiceReport = () => {
   const paymentBadgeStyle = (method) => {
     const m = (method || "").toLowerCase();
     if (m.includes("cash")) return "bg-[#DCFCE7] text-[#16A34A]";
-    if (m.includes("upi") || m.includes("card") || m.includes("bank")) return "bg-[#F3E8FF] text-[#9D43D6]";
+    if (m.includes("upi") || m.includes("card") || m.includes("bank")) return "bg-[#FDE3D9] text-[#F2572B]";
     return "bg-[#F4F4F5] text-[#525252]";
   };
 
@@ -207,7 +209,7 @@ const SalesByInvoiceReport = () => {
               data-no-confirm="true"
               onClick={fetchReport}
               disabled={loading}
-              className="rf-btn-primary !h-[40px] !px-6 !rounded-[10px] !bg-[#9D43D6] hover:!bg-[#8732BE] !text-[13px] !font-medium inline-flex items-center gap-2 disabled:opacity-60 cursor-pointer shadow-[0_2px_8px_rgba(157,67,214,0.24)]"
+              className="rf-btn-primary !h-[40px] !px-6 !rounded-[10px] !bg-[#F2572B] hover:!bg-[#D9431A] !text-[13px] !font-medium inline-flex items-center gap-2 disabled:opacity-60 cursor-pointer shadow-[0_2px_8px_rgba(242, 87, 43,0.24)]"
             >
               {loading ? (
                 <><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
@@ -225,7 +227,7 @@ const SalesByInvoiceReport = () => {
             onClick={() => setShowAdvancedFilters(v => !v)}
             className={`h-[40px] px-4 rounded-[10px] text-[13px] font-medium inline-flex items-center gap-2 transition-colors cursor-pointer ${
               showAdvancedFilters
-                ? 'bg-white border border-[#9D43D6] text-[#1B1B1B] shadow-[0_0_0_2px_rgba(157,67,214,0.12)]'
+                ? 'bg-white border border-[#F2572B] text-[#1B1B1B] shadow-[0_0_0_2px_rgba(242, 87, 43,0.12)]'
                 : 'bg-[#EFEFF1] hover:bg-[#E4E4E7] text-[#1B1B1B] border border-transparent'
             }`}
           >
@@ -279,7 +281,7 @@ const SalesByInvoiceReport = () => {
               data-no-confirm="true"
               onClick={clearFilters}
               disabled={!hasActiveFilters}
-              className="h-[40px] px-5 rounded-[10px] border border-[#9D43D6] text-[#9D43D6] text-[13px] font-medium bg-white hover:bg-[#FAF5FF] transition-colors inline-flex items-center cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="h-[40px] px-5 rounded-[10px] border border-[#F2572B] text-[#F2572B] text-[13px] font-medium bg-white hover:bg-[#FEF3EE] transition-colors inline-flex items-center cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Clear all Filters
             </button>
@@ -377,7 +379,7 @@ const SalesByInvoiceReport = () => {
                             className={`transition-colors ${
                               isReturned
                                 ? 'bg-[#FEF2F2] hover:bg-[#FEE2E2]/60'
-                                : 'bg-white hover:bg-[#FAF5FF]/60'
+                                : 'bg-white hover:bg-[#FEF3EE]/60'
                             }`}
                           >
                             <td className="px-4 py-3.5 border-r border-[#F5F5F5] text-[#212121] whitespace-nowrap">
@@ -397,12 +399,12 @@ const SalesByInvoiceReport = () => {
                               {inv.customer}
                             </td>
                             <td className="px-4 py-3.5 border-r border-[#F5F5F5] text-center whitespace-nowrap">
-                              <span className="text-[#9D43D6] font-medium text-[12.5px]">
+                              <span className="text-[#F2572B] font-medium text-[12.5px]">
                                 {inv.skus || "N/A"}
                               </span>
                             </td>
                             <td className="px-4 py-3.5 border-r border-[#F5F5F5] text-center whitespace-nowrap">
-                              <span className="inline-block min-w-[82px] px-3.5 py-1 bg-[#F3E8FF] text-[#9D43D6] text-[12px] font-medium rounded-[8px] text-center">
+                              <span className="inline-block min-w-[82px] px-3.5 py-1 bg-[#FDE3D9] text-[#F2572B] text-[12px] font-medium rounded-[8px] text-center">
                                 {inv.category}
                               </span>
                             </td>
@@ -443,7 +445,7 @@ const SalesByInvoiceReport = () => {
           ) : (
             <div className="bg-white rounded-[12px] border border-[#EAEAEA] flex flex-col items-center justify-center py-24 text-[#8A8A8A]">
               {loading ? (
-                <><svg className="animate-spin h-7 w-7 text-[#9D43D6] mb-3" viewBox="0 0 24 24" fill="none">
+                <><svg className="animate-spin h-7 w-7 text-[#F2572B] mb-3" viewBox="0 0 24 24" fill="none">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
                 </svg><span className="text-[13px] font-medium">Loading report...</span></>

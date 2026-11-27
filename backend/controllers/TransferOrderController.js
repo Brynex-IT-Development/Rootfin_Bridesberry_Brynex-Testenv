@@ -3,190 +3,14 @@ import TransferOrder from "../model/TransferOrder.js"; // MongoDB model
 import ShoeItem from "../model/ShoeItem.js";
 import ItemGroup from "../model/ItemGroup.js";
 import { updateMonthlyStockForTransfer } from "../utils/monthlyStockTracking.js";
+import { isWarehouseStore, sameStore, storeName } from "../utils/storeResolver.js";
+import { isAdminUserId } from "../utils/adminUsers.js";
 
-// Helper function for flexible warehouse matching
-// Warehouse name normalization mapping (same as frontend)
-const WAREHOUSE_NAME_MAPPING = {
-  // Trivandrum variations
-  "Grooms Trivandum": "Grooms Trivandrum",
-  "Grooms Trivandrum": "Grooms Trivandrum",
-  "SG-Trivandrum": "Grooms Trivandrum",
-  
-  // Palakkad variations
-  "G.Palakkad": "Palakkad Branch",
-  "G.Palakkad ": "Palakkad Branch",
-  "GPalakkad": "Palakkad Branch",
-  "Palakkad Branch": "Palakkad Branch",
-  
-  // Warehouse variations
-  "Warehouse": "Warehouse",
-  "warehouse": "Warehouse",
-  "WAREHOUSE": "Warehouse",
-  
-  // Calicut variations
-  "G.Calicut": "Calicut",
-  "G.Calicut ": "Calicut",
-  "GCalicut": "Calicut",
-  "Calicut": "Calicut",
-  
-  // Manjeri/Manjery variations
-  "G.Manjeri": "Manjery Branch",
-  "G.Manjery": "Manjery Branch",
-  "GManjeri": "Manjery Branch",
-  "GManjery": "Manjery Branch",
-  "Manjery Branch": "Manjery Branch",
-  
-  // Kannur variations
-  "G.Kannur": "Kannur Branch",
-  "GKannur": "Kannur Branch",
-  "Kannur Branch": "Kannur Branch",
-  
-  // Edappal variations
-  "G.Edappal": "Edappal Branch",
-  "GEdappal": "Edappal Branch",
-  "Edappal Branch": "Edappal Branch",
-  
-  // Edapally variations
-  "G.Edappally": "Edapally Branch",
-  "G-Edappally": "Edapally Branch",
-  "GEdappally": "Edapally Branch",
-  "Edapally Branch": "Edapally Branch",
-  
-  // Kalpetta variations
-  "G.Kalpetta": "Kalpetta Branch",
-  "GKalpetta": "Kalpetta Branch",
-  "Kalpetta Branch": "Kalpetta Branch",
-  
-  // Kottakkal variations
-  "G.Kottakkal": "Kottakkal Branch",
-  "GKottakkal": "Kottakkal Branch",
-  "Kottakkal Branch": "Kottakkal Branch",
-  "Z.Kottakkal": "Kottakkal Branch",
-  
-  // Perinthalmanna variations
-  "G.Perinthalmanna": "Perinthalmanna Branch",
-  "GPerinthalmanna": "Perinthalmanna Branch",
-  "Perinthalmanna Branch": "Perinthalmanna Branch",
-  "Z.Perinthalmanna": "Perinthalmanna Branch",
-  
-  // Chavakkad variations
-  "G.Chavakkad": "Chavakkad Branch",
-  "GChavakkad": "Chavakkad Branch",
-  "Chavakkad Branch": "Chavakkad Branch",
-  
-  // Thrissur variations
-  "G.Thrissur": "Thrissur Branch",
-  "GThrissur": "Thrissur Branch",
-  "Thrissur Branch": "Thrissur Branch",
-  
-  // Perumbavoor variations
-  "G.Perumbavoor": "Perumbavoor Branch",
-  "GPerumbavoor": "Perumbavoor Branch",
-  "Perumbavoor Branch": "Perumbavoor Branch",
-  
-  // Kottayam variations
-  "G.Kottayam": "Kottayam Branch",
-  "GKottayam": "Kottayam Branch",
-  "Kottayam Branch": "Kottayam Branch",
-  
-  // MG Road variations
-  "G.MG Road": "SuitorGuy MG Road",
-  "G.Mg Road": "SuitorGuy MG Road",
-  "GMG Road": "SuitorGuy MG Road",
-  "GMg Road": "SuitorGuy MG Road",
-  "MG Road": "SuitorGuy MG Road",
-  "Mg Road": "SuitorGuy MG Road",
-  "MG Road Branch": "SuitorGuy MG Road",
-  "Mg Road Branch": "SuitorGuy MG Road",
-  "G Road Branch": "SuitorGuy MG Road",
-  "SuitorGuy MG Road": "SuitorGuy MG Road",
-  
-  // Head Office variations
-  "HEAD OFFICE01": "Head Office",
-  "Head Office": "Head Office",
-  
-  // Brides Berry variations
-  "Brides Berry": "Brides Berry",
-  "BridesBerry": "Brides Berry",
-  "bridesberry": "Brides Berry",
-  "brides berry": "Brides Berry",
-  "Bridesberry": "Brides Berry",
+// Store names come only from the Store collection
+const normalizeWarehouseName = (warehouseName) => storeName(warehouseName);
 
-  // Other locations (default to Warehouse)
-  "Z-Edapally1": "Warehouse",
-  "Z- Edappal": "Warehouse",
-  "Production": "Warehouse",
-  "Office": "Warehouse",
-  "G.Vadakara": "Warehouse",
-};
-
-// Normalize warehouse name to standard format
-const normalizeWarehouseName = (warehouseName) => {
-  if (!warehouseName) return null;
-  
-  const trimmed = warehouseName.toString().trim();
-  
-  // Check direct mapping
-  if (WAREHOUSE_NAME_MAPPING[trimmed]) {
-    return WAREHOUSE_NAME_MAPPING[trimmed];
-  }
-  
-  // Check case-insensitive mapping
-  const lowerName = trimmed.toLowerCase();
-  for (const [key, value] of Object.entries(WAREHOUSE_NAME_MAPPING)) {
-    if (key.toLowerCase() === lowerName) {
-      return value;
-    }
-  }
-  
-  // If no mapping found, return original (trimmed)
-  return trimmed;
-};
-
-const matchesWarehouse = (itemWarehouse, targetWarehouse) => {
-  if (!itemWarehouse || !targetWarehouse) return false;
-  
-  // Normalize both warehouse names
-  const normalizedItem = normalizeWarehouseName(itemWarehouse);
-  const normalizedTarget = normalizeWarehouseName(targetWarehouse);
-  
-  // Exact match after normalization
-  if (normalizedItem && normalizedTarget && normalizedItem.toLowerCase() === normalizedTarget.toLowerCase()) {
-    return true;
-  }
-  
-  // Fallback to original flexible matching
-  const itemWarehouseLower = itemWarehouse.toString().toLowerCase().trim();
-  const targetWarehouseLower = targetWarehouse.toLowerCase().trim();
-  
-  // Exact match
-  if (itemWarehouseLower === targetWarehouseLower) {
-    return true;
-  }
-
-  // Exact match ignoring spaces/hyphens (e.g., "Brides Berry" vs "BridesBerry")
-  if (
-    itemWarehouseLower.replace(/[\s\-_.]+/g, "") ===
-    targetWarehouseLower.replace(/[\s\-_.]+/g, "")
-  ) {
-    return true;
-  }
-  
-  // Base name match (e.g., "warehouse" matches "Warehouse", "kannur" matches "Kannur Branch")
-  const itemBase = itemWarehouseLower.replace(/\s*(branch|warehouse)\s*$/i, "").trim();
-  const targetBase = targetWarehouseLower.replace(/\s*(branch|warehouse)\s*$/i, "").trim();
-  
-  if (itemBase && targetBase && itemBase === targetBase) {
-    return true;
-  }
-  
-  // Partial match (e.g., "kannur branch" contains "kannur")
-  if (itemWarehouseLower.includes(targetWarehouseLower) || targetWarehouseLower.includes(itemWarehouseLower)) {
-    return true;
-  }
-  
-  return false;
-};
+// Same store? (backend Store collection; ignores case/spacing)
+const matchesWarehouse = (itemWarehouse, targetWarehouse) => sameStore(itemWarehouse, targetWarehouse);
 
 // Helper function to update warehouse stock for transfer
 const updateWarehouseStock = (warehouseStocks, quantityChange, targetWarehouse, operation = 'subtract') => {
@@ -1844,8 +1668,8 @@ export const getTransferOrders = async (req, res) => {
     const validDestinationWarehouse = destinationWarehouse && destinationWarehouse !== 'undefined' && destinationWarehouse !== 'null' ? destinationWarehouse : null;
     
     // Check if user is admin or warehouse user
-    const isAdmin = userPower === 'admin' || (userId && userId.toLowerCase() === 'officerootments@gmail.com');
-    const isWarehouseUser = userPower === 'warehouse' || locCode === '858' || locCode === '103';
+    const isAdmin = userPower === 'admin' || (await isAdminUserId(userId)); // admin by role, not by email
+    const isWarehouseUser = userPower === 'warehouse' || isWarehouseStore(locCode);
     
     console.log(`\n=== GET TRANSFER ORDERS REQUEST ===`);
     console.log(`Query params:`, req.query);
@@ -1860,7 +1684,7 @@ export const getTransferOrders = async (req, res) => {
     console.log(`==============================\n`);
     
     // Don't filter by sourceWarehouse or destinationWarehouse here - we'll filter after fetching
-    // This allows for flexible matching (e.g., "Kannur" vs "Kannur Branch")
+    // This allows for flexible matching (e.g., "Store" vs "Store Branch")
     
     const mongoQuery = {};
     
@@ -1918,7 +1742,7 @@ export const getTransferOrders = async (req, res) => {
         return true;
       }
 
-      // Exact match ignoring spaces/hyphens (e.g., "Brides Berry" vs "BridesBerry")
+      // Exact match ignoring spaces/hyphens (e.g., "Store Name" vs "StoreName")
       if (
         orderWarehouseLower.replace(/[\s\-_.]+/g, "") ===
         targetWarehouseLower.replace(/[\s\-_.]+/g, "")
@@ -1926,18 +1750,11 @@ export const getTransferOrders = async (req, res) => {
         return true;
       }
       
-      // Base name match (e.g., "kannur" matches "kannur branch")
+      // Base name match (e.g., "store" matches "store branch")
       if (orderBase && targetBase && orderBase === targetBase) {
         return true;
       }
       
-      // Special handling for Trivandrum variations
-      const trivandrumVariations = ["trivandrum", "grooms trivandrum", "sg-trivandrum"];
-      const orderIsTrivandrum = trivandrumVariations.some(v => orderWarehouseLower.includes(v));
-      const targetIsTrivandrum = trivandrumVariations.some(v => targetWarehouseLower.includes(v));
-      if (orderIsTrivandrum && targetIsTrivandrum) {
-        return true;
-      }
       
       // Partial match
       if (orderWarehouseLower.includes(targetWarehouseLower) || targetWarehouseLower.includes(orderWarehouseLower)) {
@@ -2374,6 +2191,4 @@ export const getItemStock = async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
-
-
 
