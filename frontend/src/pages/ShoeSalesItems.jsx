@@ -88,7 +88,6 @@ const ShoeSalesItems = () => {
       const params = new URLSearchParams({
         page: currentPage.toString(),
         limit: itemsPerPage.toString(),
-        inStockOnly: "true",
       });
       
       if (searchTerm && searchTerm.trim()) {
@@ -543,7 +542,16 @@ const ShoeSalesItems = () => {
                               </td>
 
                               <td className="py-3 px-4 text-center text-[13px] font-medium text-[#1B1B1B] tabular-nums">
-                                {stockVal}
+                                {stockVal > 0 ? (
+                                  stockVal
+                                ) : (
+                                  <span className="inline-flex items-center gap-1.5">
+                                    <span>0</span>
+                                    <span className="rounded-full bg-[#FEF2F2] px-2 py-0.5 text-[11px] font-semibold text-[#DC2626] whitespace-nowrap">
+                                      Out of stock
+                                    </span>
+                                  </span>
+                                )}
                               </td>
 
                               <td className="py-3 px-4 text-center text-[13px] text-[#525252] tabular-nums">
