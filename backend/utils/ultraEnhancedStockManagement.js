@@ -1,479 +1,270 @@
-// Ultra-Enhanced Stock Management - 100% Success Rate Guarantee
+// Sales stock management — reduces stock on sale and restores it on return/delete.
+//
+// Every change is applied with a single atomic MongoDB `$inc`, so concurrent
+// sales (two stores selling sizes of the same item group at the same moment)
+// can never overwrite each other. The same item/warehouse matching is used for
+// deduction and reversal so a sale and its reversal always net to zero.
 import ShoeItem from "../model/ShoeItem.js";
 import ItemGroup from "../model/ItemGroup.js";
 import { checkAndCreateReorderAlerts } from "./reorderNotification.js";
-import { sameStore } from "./storeResolver.js";
+import { ensureStores, findStore, sameStore, storeName } from "./storeResolver.js";
 import { updateMonthlyStockForSale } from "./monthlyStockTracking.js";
 
+const STOCK_FIELDS = ["stockOnHand", "availableForSale", "physicalStockOnHand", "physicalAvailableForSale"];
+
+const norm = (v) => (v ?? "").toString().toLowerCase().trim();
+
+const findWarehouseIndex = (warehouseStocks, warehouse) =>
+  Array.isArray(warehouseStocks)
+    ? warehouseStocks.findIndex((ws) => ws?.warehouse && sameStore(ws.warehouse, warehouse))
+    : -1;
+
 /**
- * Ultra-smart warehouse matching with fuzzy logic
+ * Locate a line item inside its group. Exact matches only (id, SKU, item code,
+ * full name) — partial name matching could silently reduce the wrong size.
  */
-const findWarehouseMatch = (warehouseStocks, targetWarehouse) => {
-  if (!warehouseStocks || !Array.isArray(warehouseStocks) || !targetWarehouse) {
-    return -1;
+const findGroupItemIndex = (group, lineItem) => {
+  const items = Array.isArray(group?.items) ? group.items : [];
+  const data = lineItem.itemData || {};
+  const id = (data._id || data.id || "").toString();
+  if (id) {
+    const i = items.findIndex((gi) => gi._id?.toString() === id);
+    if (i !== -1) return i;
   }
-  
-  // Stores are matched only via the backend Store collection (case/spacing-insensitive)
-  return warehouseStocks.findIndex(ws => ws.warehouse && sameStore(ws.warehouse, targetWarehouse));
-};
-/**
- * Ultra-smart item matching with multiple fallback strategies
- */
-const findItemInGroupUltra = (group, itemData, itemName, itemSku, itemCode) => {
-  if (!group.items || !Array.isArray(group.items)) {
-    return -1;
+  const skus = [data.sku, lineItem.itemSku, lineItem.itemCode].map(norm).filter(Boolean);
+  for (const sku of skus) {
+    const i = items.findIndex((gi) => norm(gi.sku) === sku || norm(gi.itemCode) === sku);
+    if (i !== -1) return i;
   }
-  
-  const itemId = itemData?._id?.toString() || "";
-  
-  // Strategy 1: Exact _id match
-  if (itemId) {
-    let index = group.items.findIndex(gi => gi._id?.toString() === itemId);
-    if (index !== -1) return index;
+  const names = [data.itemName, data.name, lineItem.item].map(norm).filter(Boolean);
+  for (const name of names) {
+    const i = items.findIndex((gi) => norm(gi.name) === name);
+    if (i !== -1) return i;
   }
-  
-  // Strategy 2: SKU match (most reliable for business logic)
-  if (itemSku) {
-    const skuLower = itemSku.toLowerCase().trim();
-    let index = group.items.findIndex(gi => 
-      gi.sku && gi.sku.toLowerCase().trim() === skuLower
-    );
-    if (index !== -1) return index;
-  }
-  
-  // Strategy 3: Item code match
-  if (itemCode) {
-    const codeLower = itemCode.toLowerCase().trim();
-    let index = group.items.findIndex(gi => 
-      (gi.sku && gi.sku.toLowerCase().trim() === codeLower) ||
-      (gi.itemCode && gi.itemCode.toLowerCase().trim() === codeLower)
-    );
-    if (index !== -1) return index;
-  }
-  
-  // Strategy 4: Exact name match
-  if (itemName) {
-    const nameLower = itemName.toLowerCase().trim();
-    let index = group.items.findIndex(gi => 
-      gi.name && gi.name.toLowerCase().trim() === nameLower
-    );
-    if (index !== -1) return index;
-  }
-  
-  // Strategy 5: Partial name match
-  if (itemName) {
-    const nameLower = itemName.toLowerCase().trim();
-    let index = group.items.findIndex(gi => {
-      if (!gi.name) return false;
-      const giNameLower = gi.name.toLowerCase().trim();
-      return nameLower.includes(giNameLower) || giNameLower.includes(nameLower);
-    });
-    if (index !== -1) return index;
-  }
-  
-  // Strategy 6: Name without prefix match
-  if (itemName && itemName.includes('-')) {
-    const nameWithoutPrefix = itemName.split('-').slice(1).join('-').trim();
-    if (nameWithoutPrefix) {
-      const index = group.items.findIndex(gi => 
-        gi.name && gi.name.toLowerCase().trim() === nameWithoutPrefix.toLowerCase()
-      );
-      if (index !== -1) return index;
-    }
-  }
-  
   return -1;
 };
 
+const buildInc = (prefix, delta) =>
+  Object.fromEntries(STOCK_FIELDS.map((f) => [`${prefix}${f}`, delta]));
+
+const newWarehouseEntry = (warehouse, delta) => ({
+  warehouse: storeName(warehouse) || warehouse,
+  ...Object.fromEntries(STOCK_FIELDS.map((f) => [f, delta])),
+});
+
 /**
- * Ultra-Enhanced Stock Update with 100% Success Rate Guarantee
+ * Apply a signed quantity change (negative = sale, positive = return) to one line item.
+ * A deduction is only applied if enough stock is on hand at that moment (checked
+ * atomically) — stock never goes below zero.
+ * Returns { ok, reason, available }.
  */
-export const updateStockOnInvoiceCreateUltra = async (lineItems, warehouse) => {
-  const results = {
-    totalItems: 0,
-    successful: 0,
-    failed: 0,
-    failures: [],
-    successes: [],
-    summary: {}
-  };
-  
-  try {
-    console.log(`🚀 ULTRA-ENHANCED STOCK UPDATE for warehouse: ${warehouse}`);
-    console.log(`📦 Processing ${lineItems?.length || 0} items with 100% success guarantee`);
+const applyLineItemDelta = async (lineItem, warehouse, delta) => {
+  const groupId = lineItem.itemData?.itemGroupId || lineItem.itemGroupId;
+  const isDeduction = delta < 0;
+  const need = -delta;
+  const storeLabel = storeName(warehouse) || warehouse;
+  // Only create a missing warehouse entry (for returns) for a real store, never a fallback name.
+  const canCreateEntry = !isDeduction && Boolean(findStore(warehouse));
+  const insufficient = (name, available) => ({
+    ok: false,
+    available: Math.max(0, available || 0),
+    reason: `Not enough stock for "${name}" at ${storeLabel}: ${Math.max(0, available || 0)} available, ${need} needed`,
+  });
 
-    if (!lineItems || lineItems.length === 0) {
-      console.warn("No line items to process");
-      return results;
+  if (groupId) {
+    const group = await ItemGroup.findById(groupId).select("name items._id items.name items.sku items.itemCode items.warehouseStocks._id items.warehouseStocks.warehouse items.warehouseStocks.stockOnHand").lean();
+    if (!group) return { ok: false, reason: `Item group not found: ${groupId}` };
+
+    const itemIndex = findGroupItemIndex(group, lineItem);
+    if (itemIndex === -1) return { ok: false, reason: `Item not found in group "${group.name}"` };
+
+    const groupItem = group.items[itemIndex];
+    const wsIndex = findWarehouseIndex(groupItem.warehouseStocks, warehouse);
+
+    if (wsIndex !== -1) {
+      const ws = groupItem.warehouseStocks[wsIndex];
+      // The stock condition lives in the query filter: timestamps always bump
+      // updatedAt, so modifiedCount can't tell us whether stock actually changed.
+      const wsMatch = isDeduction ? { _id: ws._id, stockOnHand: { $gte: need } } : { _id: ws._id };
+      const res = await ItemGroup.updateOne(
+        { _id: groupId, items: { $elemMatch: { _id: groupItem._id, warehouseStocks: { $elemMatch: wsMatch } } } },
+        { $inc: buildInc("items.$[it].warehouseStocks.$[ws].", delta) },
+        { arrayFilters: [{ "it._id": groupItem._id }, { "ws._id": ws._id }] }
+      );
+      if (!res.matchedCount) {
+        if (!isDeduction) return { ok: false, reason: "Stock entry changed during update" };
+        const fresh = await ItemGroup.findById(groupId).select("items._id items.warehouseStocks._id items.warehouseStocks.stockOnHand").lean();
+        const fws = fresh?.items?.find((it) => it._id.equals(groupItem._id))?.warehouseStocks?.find((w) => w._id.equals(ws._id));
+        return insufficient(groupItem.name, fws?.stockOnHand);
+      }
+    } else if (isDeduction) {
+      return insufficient(groupItem.name, 0);
+    } else if (canCreateEntry) {
+      await ItemGroup.updateOne(
+        { _id: groupId },
+        { $push: { "items.$[it].warehouseStocks": newWarehouseEntry(warehouse, delta) } },
+        { arrayFilters: [{ "it._id": groupItem._id }] }
+      );
+    } else {
+      return { ok: false, reason: `Warehouse "${warehouse}" not found for item` };
     }
 
-    for (const item of lineItems) {
-      const itemCode = item.itemCode || item.item || item.sku || 'Unknown';
-      const quantity = parseFloat(item.quantity) || 0;
-      results.totalItems++;
-      
-      console.log(`\n🔍 Processing: ${itemCode} (Quantity: ${quantity})`);
-      
-      if (quantity <= 0) {
-        results.failed++;
-        results.failures.push({
-          itemCode,
-          reason: 'Invalid quantity (0 or negative)',
-          quantity
-        });
-        console.warn(`❌ Skipping ${itemCode} - invalid quantity: ${quantity}`);
-        continue;
-      }
+    if (isDeduction) {
+      await updateMonthlyStockForSale(groupId, groupItem._id.toString(), warehouse, need, groupItem.name);
+    }
+    return { ok: true };
+  }
 
-      try {
-        const success = await processItemUltra(item, warehouse, quantity, results);
-        if (success) {
-          results.successful++;
-          results.successes.push({
-            itemCode,
-            quantity,
-            warehouse
-          });
-        } else {
-          results.failed++;
+  const itemId = lineItem.itemData?._id;
+  if (!itemId) return { ok: false, reason: "No itemData._id for standalone item" };
+
+  const shoeItem = await ShoeItem.findById(itemId).select("itemName warehouseStocks._id warehouseStocks.warehouse warehouseStocks.stockOnHand").lean();
+  if (!shoeItem) return { ok: false, reason: `Standalone item not found: ${itemId}` };
+
+  const wsIndex = findWarehouseIndex(shoeItem.warehouseStocks, warehouse);
+  if (wsIndex !== -1) {
+    const ws = shoeItem.warehouseStocks[wsIndex];
+    const res = await ShoeItem.updateOne(
+      { _id: itemId, warehouseStocks: { $elemMatch: isDeduction ? { _id: ws._id, stockOnHand: { $gte: need } } : { _id: ws._id } } },
+      { $inc: buildInc("warehouseStocks.$.", delta) }
+    );
+    if (!res.matchedCount) {
+      if (!isDeduction) return { ok: false, reason: "Stock entry changed during update" };
+      const fresh = await ShoeItem.findById(itemId).select("warehouseStocks._id warehouseStocks.stockOnHand").lean();
+      return insufficient(shoeItem.itemName, fresh?.warehouseStocks?.find((w) => w._id.equals(ws._id))?.stockOnHand);
+    }
+  } else if (isDeduction) {
+    return insufficient(shoeItem.itemName, 0);
+  } else if (canCreateEntry) {
+    await ShoeItem.updateOne({ _id: itemId }, { $push: { warehouseStocks: newWarehouseEntry(warehouse, delta) } });
+  } else {
+    return { ok: false, reason: `Warehouse "${warehouse}" not found for item` };
+  }
+  return { ok: true };
+};
+
+/**
+ * Apply stock changes for all line items. sign = -1 for a sale, +1 for a return/reversal.
+ * With { allOrNothing: true } the first failure undoes the lines already applied and stops.
+ */
+const applyInvoiceStock = async (lineItems, warehouse, sign, { allOrNothing = false } = {}) => {
+  const results = { ok: true, totalItems: 0, successful: 0, failed: 0, failures: [] };
+  if (!Array.isArray(lineItems) || lineItems.length === 0) return results;
+
+  await ensureStores();
+  const applied = [];
+
+  for (const lineItem of lineItems) {
+    const itemCode = lineItem.itemCode || lineItem.item || lineItem.itemData?.sku || "Unknown";
+    const quantity = parseFloat(lineItem.quantity) || 0;
+    if (quantity <= 0) continue;
+    results.totalItems++;
+
+    let outcome;
+    try {
+      outcome = await applyLineItemDelta(lineItem, warehouse, sign * quantity);
+    } catch (error) {
+      outcome = { ok: false, reason: error.message };
+    }
+
+    if (outcome.ok) {
+      results.successful++;
+      applied.push(lineItem);
+      continue;
+    }
+
+    results.ok = false;
+    results.failed++;
+    results.failures.push({ itemCode, quantity, reason: outcome.reason, available: outcome.available });
+
+    if (allOrNothing) {
+      for (const done of applied) {
+        try {
+          await applyLineItemDelta(done, warehouse, -sign * (parseFloat(done.quantity) || 0));
+        } catch (error) {
+          console.error("Stock rollback failed for", done.item, error);
         }
-      } catch (error) {
-        console.error(`❌ Critical error processing ${itemCode}:`, error);
-        results.failed++;
-        results.failures.push({
-          itemCode,
-          reason: `Processing error: ${error.message}`,
-          quantity
-        });
       }
+      results.successful = 0;
+      break;
     }
+  }
 
-    // Calculate success rate
-    const successRate = results.totalItems > 0 ? 
-      (results.successful / results.totalItems * 100).toFixed(1) : 0;
-    
-    results.summary = {
-      totalItems: results.totalItems,
-      successful: results.successful,
-      failed: results.failed,
-      successRate: `${successRate}%`
-    };
+  if (results.failures.length > 0) {
+    console.warn(`⚠️ Stock ${sign < 0 ? "deduction" : "reversal"} at "${warehouse}" failed:`, results.failures);
+  }
+  return results;
+};
 
-    console.log('\n📊 ULTRA-ENHANCED STOCK UPDATE RESULTS');
-    console.log('=====================================');
-    console.log(`Success Rate: ${successRate}%`);
-    console.log(`Successful: ${results.successful}/${results.totalItems}`);
-    console.log(`Failed: ${results.failed}/${results.totalItems}`);
-    
-    if (results.failures.length > 0) {
-      console.log('\n❌ FAILURES:');
-      results.failures.forEach(failure => {
-        console.log(`- ${failure.itemCode}: ${failure.reason}`);
-      });
-    }
+/** Human-readable message for a failed stock operation. */
+export const stockFailureMessage = (results) =>
+  (results?.failures || []).map((f) => f.reason).join("\n") || "Stock could not be updated";
 
-    // Check reorder points
+/**
+ * Reduce stock for a sale. All-or-nothing: if any line lacks stock, nothing is
+ * deducted and { ok: false, failures } is returned. Stock never goes below zero.
+ */
+export const updateStockOnInvoiceCreate = async (lineItems, warehouse) => {
+  const results = await applyInvoiceStock(lineItems, warehouse, -1, { allOrNothing: true });
+  if (results.ok) {
     try {
       await checkAndCreateReorderAlerts(lineItems, warehouse);
-    } catch (reorderError) {
-      console.error("Error checking reorder points:", reorderError);
+    } catch (error) {
+      console.error("Error checking reorder points:", error);
     }
-    
-    return results;
-    
-  } catch (error) {
-    console.error("❌ Ultra-enhanced stock update failed:", error);
-    throw error;
   }
+  return results;
 };
+
+/** Restore stock for a return, or when a sale is deleted. */
+export const reverseStockOnInvoiceDelete = (lineItems, warehouse) => applyInvoiceStock(lineItems, warehouse, +1);
+
 /**
- * Process individual item with ultra-enhanced logic
+ * Re-sync stock after an invoice is edited. All-or-nothing: if the edit needs more
+ * stock than is available, every change is undone and { ok: false, failures } is
+ * returned so the edit can be rejected. `isReturn` flips the direction.
  */
-const processItemUltra = async (item, warehouse, quantity, results) => {
-  const itemCode = item.itemCode || item.item || item.sku || 'Unknown';
-  const itemGroupId = item.itemData?.itemGroupId || item.itemGroupId;
-  const itemName = item.itemData?.itemName || item.itemData?.name || item.item || itemCode;
-  const itemSku = item.itemData?.sku || item.itemSku || itemCode;
-  
-  console.log(`   📋 Item Details:`);
-  console.log(`      Code: ${itemCode}`);
-  console.log(`      Name: ${itemName}`);
-  console.log(`      SKU: ${itemSku}`);
-  console.log(`      Group ID: ${itemGroupId || 'None'}`);
-  
-  if (itemGroupId) {
-    return await processGroupItemUltra(itemGroupId, item, itemName, itemSku, itemCode, warehouse, quantity, results);
+export const adjustStockOnInvoiceEdit = async ({ oldLineItems = [], oldWarehouse, newLineItems = [], newWarehouse, isReturn }) => {
+  const sign = isReturn ? 1 : -1;
+
+  // Work out what to put back (restore) and what to take (deduct), per store.
+  let restore;
+  let deduct;
+  if (!sameStore(oldWarehouse, newWarehouse) && norm(oldWarehouse) !== norm(newWarehouse)) {
+    restore = { items: oldLineItems, warehouse: oldWarehouse };
+    deduct = { items: newLineItems, warehouse: newWarehouse };
   } else {
-    return await processStandaloneItemUltra(item, itemName, itemCode, warehouse, quantity, results);
+    const keyOf = (li) => [
+      li.itemData?.itemGroupId || li.itemGroupId || "",
+      li.itemData?._id || li.itemData?.sku || li.itemSku || li.item || "",
+    ].map((v) => v.toString()).join("|");
+    const net = new Map();
+    const add = (li, factor) => {
+      const k = keyOf(li);
+      const entry = net.get(k) || { lineItem: li, qty: 0 };
+      entry.qty += factor * (parseFloat(li.quantity) || 0);
+      if (factor > 0) entry.lineItem = li;
+      net.set(k, entry);
+    };
+    oldLineItems.forEach((li) => add(li, -1));
+    newLineItems.forEach((li) => add(li, +1));
+    const increased = [];
+    const decreased = [];
+    for (const { lineItem, qty } of net.values()) {
+      if (qty > 0) increased.push({ ...lineItem, quantity: qty });
+      else if (qty < 0) decreased.push({ ...lineItem, quantity: -qty });
+    }
+    restore = { items: decreased, warehouse: newWarehouse };
+    deduct = { items: increased, warehouse: newWarehouse };
   }
-};
 
-/**
- * Process group item with ultra-enhanced validation
- */
-const processGroupItemUltra = async (itemGroupId, item, itemName, itemSku, itemCode, warehouse, quantity, results) => {
-  console.log(`   📦 Processing GROUP item: ${itemCode}`);
-  
-  try {
-    // Find the group with retry logic
-    let group = await ItemGroup.findById(itemGroupId);
-    if (!group) {
-      // Retry with different query
-      group = await ItemGroup.findOne({ _id: itemGroupId });
-    }
-    
-    if (!group) {
-      const reason = `Group not found: ${itemGroupId}`;
-      console.warn(`❌ ${reason}`);
-      results.failures.push({ itemCode, reason, quantity });
-      return false;
-    }
-    
-    console.log(`   ✅ Group found: "${group.name}" (${group.items?.length || 0} items)`);
-    
-    // Find the item in the group with ultra-enhanced matching
-    const groupItemIndex = findItemInGroupUltra(group, item.itemData, itemName, itemSku, itemCode);
-    
-    if (groupItemIndex === -1) {
-      const reason = `Item not found in group "${group.name}"`;
-      console.warn(`❌ ${reason}`);
-      console.log(`   Available items: ${group.items?.map(gi => `"${gi.name}" (SKU: ${gi.sku || 'N/A'})`).join(", ")}`);
-      results.failures.push({ itemCode, reason, quantity });
-      return false;
-    }
-    
-    const groupItem = group.items[groupItemIndex];
-    console.log(`   ✅ Item found: "${groupItem.name}" (SKU: ${groupItem.sku})`);
-    
-    // Check warehouse stocks
-    if (!groupItem.warehouseStocks || !Array.isArray(groupItem.warehouseStocks)) {
-      const reason = 'No warehouse stocks found';
-      console.warn(`❌ ${reason}`);
-      results.failures.push({ itemCode, reason, quantity });
-      return false;
-    }
-    
-    console.log(`   Available warehouses: ${groupItem.warehouseStocks.map(ws => `"${ws.warehouse}"`).join(", ")}`);
-    
-    // Find the warehouse stock with ultra-enhanced matching
-    const warehouseStockIndex = findWarehouseMatch(groupItem.warehouseStocks, warehouse);
-    
-    if (warehouseStockIndex === -1) {
-      const reason = `Warehouse "${warehouse}" not found`;
-      console.warn(`❌ ${reason}`);
-      results.failures.push({ itemCode, reason, quantity });
-      return false;
-    }
-    
-    const warehouseStock = groupItem.warehouseStocks[warehouseStockIndex];
-    const currentStock = parseFloat(warehouseStock.stockOnHand) || 0;
-    
-    console.log(`   📊 Current stock: ${currentStock} pieces`);
-    console.log(`   📉 Reducing by: ${quantity} pieces`);
-    
-    // Update stock with validation
-    const newStock = Math.max(0, currentStock - quantity);
-    warehouseStock.stockOnHand = newStock;
-    warehouseStock.availableForSale = newStock;
-    
-    // Update physical stock fields
-    const currentPhysicalStock = parseFloat(warehouseStock.physicalStockOnHand) || 0;
-    const newPhysicalStock = Math.max(0, currentPhysicalStock - quantity);
-    warehouseStock.physicalStockOnHand = newPhysicalStock;
-    warehouseStock.physicalAvailableForSale = newPhysicalStock;
-    
-    console.log(`   📊 New stock: ${newStock} pieces (Physical: ${newPhysicalStock})`);
-    
-    // Save with retry logic
-    let saveAttempts = 0;
-    const maxAttempts = 3;
-    
-    while (saveAttempts < maxAttempts) {
-      try {
-        group.markModified('items');
-        await group.save();
-        break;
-      } catch (saveError) {
-        saveAttempts++;
-        console.warn(`⚠️ Save attempt ${saveAttempts} failed:`, saveError.message);
-        if (saveAttempts >= maxAttempts) {
-          throw saveError;
-        }
-        // Wait before retry
-        await new Promise(resolve => setTimeout(resolve, 100));
-      }
-    }
-    
-    // Verify the save with retry
-    let verifyAttempts = 0;
-    while (verifyAttempts < maxAttempts) {
-      try {
-        const verifyGroup = await ItemGroup.findById(itemGroupId);
-        const verifyStock = verifyGroup.items[groupItemIndex].warehouseStocks[warehouseStockIndex];
-        
-        if (Math.abs(verifyStock.stockOnHand - newStock) < 0.01) {
-          console.log(`   ✅ Stock successfully updated and verified`);
-          
-          // Update monthly tracking
-          try {
-            const itemId = groupItem._id?.toString() || groupItem.id?.toString();
-            await updateMonthlyStockForSale(itemGroupId, itemId, warehouse, quantity, itemName);
-          } catch (monthlyError) {
-            console.error(`   ⚠️ Monthly tracking error (non-critical):`, monthlyError);
-          }
-          
-          return true;
-        } else {
-          throw new Error(`Verification failed: Expected ${newStock}, got ${verifyStock.stockOnHand}`);
-        }
-      } catch (verifyError) {
-        verifyAttempts++;
-        if (verifyAttempts >= maxAttempts) {
-          const reason = `Stock update verification failed: ${verifyError.message}`;
-          console.error(`❌ ${reason}`);
-          results.failures.push({ itemCode, reason, quantity });
-          return false;
-        }
-        await new Promise(resolve => setTimeout(resolve, 100));
-      }
-    }
-    
-    return true;
-    
-  } catch (error) {
-    const reason = `Group processing error: ${error.message}`;
-    console.error(`❌ ${reason}`);
-    results.failures.push({ itemCode, reason, quantity });
-    return false;
+  // For a sale, "restore" adds stock and "deduct" removes it; for a return it's the opposite.
+  const first = await applyInvoiceStock(restore.items, restore.warehouse, -sign, { allOrNothing: true });
+  if (!first.ok) return first;
+  const second = await applyInvoiceStock(deduct.items, deduct.warehouse, sign, { allOrNothing: true });
+  if (!second.ok) {
+    await applyInvoiceStock(restore.items, restore.warehouse, sign); // undo the first step
+    return second;
   }
+  return { ok: true };
 };
-/**
- * Process standalone item with ultra-enhanced validation
- */
-const processStandaloneItemUltra = async (item, itemName, itemCode, warehouse, quantity, results) => {
-  console.log(`   📦 Processing STANDALONE item: ${itemCode}`);
-  
-  try {
-    if (!item.itemData || !item.itemData._id) {
-      const reason = 'No itemData._id for standalone item';
-      console.warn(`❌ ${reason}`);
-      results.failures.push({ itemCode, reason, quantity });
-      return false;
-    }
-
-    const itemId = item.itemData._id;
-    
-    // Find the standalone item with retry logic
-    let shoeItem = await ShoeItem.findById(itemId);
-    if (!shoeItem) {
-      // Retry with different query
-      shoeItem = await ShoeItem.findOne({ _id: itemId });
-    }
-    
-    if (!shoeItem) {
-      const reason = `Standalone item not found: ${itemId}`;
-      console.warn(`❌ ${reason}`);
-      results.failures.push({ itemCode, reason, quantity });
-      return false;
-    }
-
-    console.log(`   ✅ Standalone item found: "${shoeItem.itemName}"`);
-
-    // Check warehouse stocks
-    if (!shoeItem.warehouseStocks || !Array.isArray(shoeItem.warehouseStocks)) {
-      const reason = 'No warehouse stocks found';
-      console.warn(`❌ ${reason}`);
-      results.failures.push({ itemCode, reason, quantity });
-      return false;
-    }
-
-    console.log(`   Available warehouses: ${shoeItem.warehouseStocks.map(ws => `"${ws.warehouse}"`).join(", ")}`);
-
-    // Find the warehouse stock with ultra-enhanced matching
-    const warehouseStockIndex = findWarehouseMatch(shoeItem.warehouseStocks, warehouse);
-
-    if (warehouseStockIndex === -1) {
-      const reason = `Warehouse "${warehouse}" not found`;
-      console.warn(`❌ ${reason}`);
-      results.failures.push({ itemCode, reason, quantity });
-      return false;
-    }
-
-    const warehouseStock = shoeItem.warehouseStocks[warehouseStockIndex];
-    const currentStock = parseFloat(warehouseStock.stockOnHand) || 0;
-
-    console.log(`   📊 Current stock: ${currentStock} pieces`);
-    console.log(`   📉 Reducing by: ${quantity} pieces`);
-
-    // Update stock
-    const newStock = Math.max(0, currentStock - quantity);
-    warehouseStock.stockOnHand = newStock;
-    warehouseStock.availableForSale = newStock;
-
-    // Update physical stock fields
-    const currentPhysicalStock = parseFloat(warehouseStock.physicalStockOnHand) || 0;
-    const newPhysicalStock = Math.max(0, currentPhysicalStock - quantity);
-    warehouseStock.physicalStockOnHand = newPhysicalStock;
-    warehouseStock.physicalAvailableForSale = newPhysicalStock;
-
-    console.log(`   📊 New stock: ${newStock} pieces (Physical: ${newPhysicalStock})`);
-
-    // Save with retry logic
-    let saveAttempts = 0;
-    const maxAttempts = 3;
-    
-    while (saveAttempts < maxAttempts) {
-      try {
-        shoeItem.markModified('warehouseStocks');
-        await shoeItem.save();
-        break;
-      } catch (saveError) {
-        saveAttempts++;
-        console.warn(`⚠️ Save attempt ${saveAttempts} failed:`, saveError.message);
-        if (saveAttempts >= maxAttempts) {
-          throw saveError;
-        }
-        await new Promise(resolve => setTimeout(resolve, 100));
-      }
-    }
-
-    // Verify the save with retry
-    let verifyAttempts = 0;
-    while (verifyAttempts < maxAttempts) {
-      try {
-        const verifyItem = await ShoeItem.findById(itemId);
-        const verifyStock = verifyItem.warehouseStocks[warehouseStockIndex];
-
-        if (Math.abs(verifyStock.stockOnHand - newStock) < 0.01) {
-          console.log(`   ✅ Stock successfully updated and verified`);
-          return true;
-        } else {
-          throw new Error(`Verification failed: Expected ${newStock}, got ${verifyStock.stockOnHand}`);
-        }
-      } catch (verifyError) {
-        verifyAttempts++;
-        if (verifyAttempts >= maxAttempts) {
-          const reason = `Stock update verification failed: ${verifyError.message}`;
-          console.error(`❌ ${reason}`);
-          results.failures.push({ itemCode, reason, quantity });
-          return false;
-        }
-        await new Promise(resolve => setTimeout(resolve, 100));
-      }
-    }
-    
-    return true;
-    
-  } catch (error) {
-    const reason = `Standalone processing error: ${error.message}`;
-    console.error(`❌ ${reason}`);
-    results.failures.push({ itemCode, reason, quantity });
-    return false;
-  }
-};
-
-// Export the ultra-enhanced function as the main function
-export const updateStockOnInvoiceCreate = updateStockOnInvoiceCreateUltra;
-
-// Also export the reverse function (reuse from original version)
-export { reverseStockOnInvoiceDelete } from "./stockManagement.js";

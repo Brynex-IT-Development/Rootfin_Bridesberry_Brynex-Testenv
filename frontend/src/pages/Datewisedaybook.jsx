@@ -218,11 +218,6 @@ const Datewisedaybook = () => {
       ? "2025-01-01"
       : new Date(new Date(fromDate).setDate(new Date(fromDate).getDate() - 1)).toISOString().split("T")[0];
 
-    const twsBase = "https://rentalapi.rootments.live/api/GetBooking";
-    const bookingU = `${twsBase}/GetBookingList?LocCode=${currentusers.locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
-    const rentoutU = `${twsBase}/GetRentoutList?LocCode=${currentusers.locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
-    const returnU = `${twsBase}/GetReturnList?LocCode=${currentusers.locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
-    const deleteU = `${twsBase}/GetDeleteList?LocCode=${currentusers.locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
     const mongoU = `${baseUrl.baseUrl}user/Getpayment?LocCode=${currentusers.locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
     const openingU = `${baseUrl.baseUrl}user/getsaveCashBank?locCode=${currentusers.locCode}&date=${prevDayStr}`;
 
@@ -247,134 +242,13 @@ const Datewisedaybook = () => {
         openingRbl = Number(openData?.data?.rbl ?? 0); // ✅ Added RBL opening
       } catch {}
 
-      const twsBase = "https://rentalapi.rootments.live/api/GetBooking";
-      const bookingU = `${twsBase}/GetBookingList?LocCode=${locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
-      const rentoutU = `${twsBase}/GetRentoutList?LocCode=${locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
-      const returnU = `${twsBase}/GetReturnList?LocCode=${locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
-      const deleteU = `${twsBase}/GetDeleteList?LocCode=${locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
       const mongoU = `${baseUrl.baseUrl}user/Getpayment?LocCode=${locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
 
-      let overrideRowsStore = [];
+      let mongoData = {};
       try {
-        const res = await fetch(
-          `${baseUrl.baseUrl}api/tws/getEditedTransactions?fromDate=${fromDate}&toDate=${toDate}&locCode=${locCode}`
-        );
-        const json = await res.json();
-        overrideRowsStore = json?.data || [];
+        const mongoRes = await fetch(mongoU);
+        mongoData = await mongoRes.json();
       } catch {}
-
-      let bookingData = {}, rentoutData = {}, returnData = {}, deleteData = {}, mongoData = {};
-      try {
-        const [bookingRes, rentoutRes, returnRes, deleteRes, mongoRes] = await Promise.all([
-          fetch(bookingU), fetch(rentoutU), fetch(returnU), fetch(deleteU), fetch(mongoU)
-        ]);
-        [bookingData, rentoutData, returnData, deleteData, mongoData] = await Promise.all([
-          bookingRes.json(), rentoutRes.json(), returnRes.json(), deleteRes.json(), mongoRes.json()
-        ]);
-      } catch {}
-
-      const bookingList = (bookingData?.dataSet?.data || []).map(item => ({
-        ...item,
-        date: item.bookingDate?.split("T")[0],
-        invoiceNo: item.invoiceNo,
-        customerName: item.customerName,
-        quantity: item.quantity || 1,
-        Category: "Booking",
-        SubCategory: "Advance",
-        billValue: Number(item.invoiceAmount || 0),
-        cash: Number(item.bookingCashAmount || 0),
-        rbl: Number(item.rblRazorPay || 0), // ✅ Added RBL mapping
-        bank: Number(item.bookingBankAmount || 0),
-        upi: Number(item.bookingUPIAmount || 0),
-        amount: Number(item.bookingCashAmount || 0) + Number(item.rblRazorPay || 0) + Number(item.bookingBankAmount || 0) + Number(item.bookingUPIAmount || 0),
-        totalTransaction: Number(item.bookingCashAmount || 0) + Number(item.rblRazorPay || 0) + Number(item.bookingBankAmount || 0) + Number(item.bookingUPIAmount || 0),
-        remark: "",
-        source: "booking"
-      }));
-
-      const rentoutList = (rentoutData?.dataSet?.data || []).map(item => {
-        const advance = Number(item.advanceAmount || 0);
-        const security = Number(item.securityAmount || 0);
-        const balancePayable = Number(item.invoiceAmount || 0) - advance;
-        const totalSplit = security + balancePayable;
-        return {
-          ...item,
-          date: (item.rentOutDate || "").split("T")[0],
-          invoiceNo: item.invoiceNo,
-          customerName: item.customerName,
-          quantity: item.quantity || 1,
-          Category: "RentOut",
-          SubCategory: "Security",
-          SubCategory1: "Balance Payable",
-          securityAmount: security,
-          Balance: balancePayable,
-          billValue: Number(item.invoiceAmount || 0),
-          cash: Number(item.rentoutCashAmount || 0),
-          rbl: Number(item.rblRazorPay || 0), // ✅ Added RBL mapping
-          bank: Number(item.rentoutBankAmount || 0),
-          upi: Number(item.rentoutUPIAmount || 0),
-          amount: totalSplit,
-          totalTransaction: totalSplit,
-          remark: "",
-          source: "rentout"
-        };
-      });
-
-      // ✅ Updated return list with RBL prevention logic
-      const returnList = (returnData?.dataSet?.data || []).map(item => {
-        const returnCashAmount = -Math.abs(Number(item.returnCashAmount || 0));
-        const returnRblAmount = -Math.abs(Number(item.rblRazorPay || 0));
-       
-        // ✅ Only process bank/UPI if no RBL value
-        const returnBankAmount = returnRblAmount !== 0 ? 0 : -Math.abs(Number(item.returnBankAmount || 0));
-        const returnUPIAmount = returnRblAmount !== 0 ? 0 : -Math.abs(Number(item.returnUPIAmount || 0));
-
-        return {
-          ...item,
-          date: (item.returnedDate || item.returnDate || item.createdDate || "").split("T")[0],
-          customerName: item.customerName || item.custName || item.customer || "",
-          invoiceNo: item.invoiceNo,
-          Category: "Return",
-          SubCategory: "Security Refund",
-          billValue: Number(item.invoiceAmount || 0),
-          cash: returnCashAmount,
-          rbl: returnRblAmount,
-          bank: returnBankAmount,
-          upi: returnUPIAmount,
-          amount: returnCashAmount + returnRblAmount + returnBankAmount + returnUPIAmount,
-          totalTransaction: returnCashAmount + returnRblAmount + returnBankAmount + returnUPIAmount,
-          remark: "",
-          source: "return"
-        };
-      });
-
-      // ✅ Updated delete list with RBL prevention logic
-      const deleteList = (deleteData?.dataSet?.data || []).map(item => {
-        const deleteCashAmount = -Math.abs(Number(item.deleteCashAmount || 0));
-        const deleteRblAmount = -Math.abs(Number(item.rblRazorPay || 0));
-       
-        // ✅ Only process bank/UPI if no RBL value
-        const deleteBankAmount = deleteRblAmount !== 0 ? 0 : -Math.abs(Number(item.deleteBankAmount || 0));
-        const deleteUPIAmount = deleteRblAmount !== 0 ? 0 : -Math.abs(Number(item.deleteUPIAmount || 0));
-
-        return {
-          ...item,
-          date: item.cancelDate?.split("T")[0],
-          invoiceNo: item.invoiceNo,
-          customerName: item.customerName,
-          Category: "Cancel",
-          SubCategory: "Cancellation Refund",
-          billValue: Number(item.invoiceAmount || 0),
-          cash: deleteCashAmount,
-          rbl: deleteRblAmount,
-          bank: deleteBankAmount,
-          upi: deleteUPIAmount,
-          amount: deleteCashAmount + deleteRblAmount + deleteBankAmount + deleteUPIAmount,
-          totalTransaction: deleteCashAmount + deleteRblAmount + deleteBankAmount + deleteUPIAmount,
-          remark: "",
-          source: "deleted"
-        };
-      });
 
       const mongoList = excludeAdminOnlyTransactions(mongoData?.data || []).map(tx => {
         const cash = Number(tx.cash || 0);
@@ -405,63 +279,7 @@ const Datewisedaybook = () => {
         };
       });
 
-      const editedMapStore = new Map();
-      overrideRowsStore.forEach(row => {
-        const key = String(row.invoiceNo || row.invoice).trim();
-        const category = (row.type || row.Category || '').toLowerCase();
-        // Create a unique key that includes both invoice number AND category
-        const uniqueKey = `${key}-${category}`;
-        const cash = Number(row.cash || 0);
-        const rbl = Number(row.rbl || 0); // ✅ Added RBL support in overrides
-        const bank = Number(row.bank || 0);
-        const upi = Number(row.upi || 0);
-        const total = cash + rbl + bank + upi;
-        editedMapStore.set(uniqueKey, {
-          ...row,
-          invoiceNo: key,
-          Category: row.type,
-          SubCategory: row.category,
-          SubCategory1: row.subCategory1 || row.SubCategory1 || "Balance Payable",
-          billValue: Number(row.billValue ?? row.invoiceAmount ?? 0),
-          cash, rbl, bank, upi, // ✅ Added rbl
-          amount: total,
-          totalTransaction: total,
-          source: "edited"
-        });
-      });
-
-      const allTws = [...bookingList, ...rentoutList, ...returnList, ...deleteList];
-      const finalTws = allTws.map(t => {
-        const key = String(t.invoiceNo).trim();
-        const category = (t.Category || t.category || '').toLowerCase();
-        // Match using both invoice number AND category
-        const uniqueKey = `${key}-${category}`;
-        const override = editedMapStore.get(uniqueKey);
-        const isRentOutStore = category === 'rentout';
-        return override
-          ? {
-            ...t,
-            ...override,
-            Category: override.Category || t.Category || "",
-            SubCategory: override.SubCategory || override.category || t.SubCategory || t.category || "",
-            SubCategory1: override.SubCategory1 || override.subCategory1 || t.SubCategory1 || t.subCategory1 || "",
-            customerName: override.customerName || t.customerName || "",
-            date: override.date || t.date || "",
-            securityAmount: isRentOutStore
-              ? Number(override.securityAmount ?? t.securityAmount ?? 0)
-              : 0,
-            Balance: isRentOutStore
-              ? Number(override.Balance ?? t.Balance ?? 0)
-              : 0,
-            amount: Number(override.amount ?? t.amount),
-            totalTransaction: isRentOutStore
-              ? Number(override.securityAmount ?? t.securityAmount ?? 0) + Number(override.Balance ?? t.Balance ?? 0)
-              : Number(override.totalTransaction ?? t.totalTransaction ?? override.cash + override.rbl + override.bank + override.upi) // ✅ Added rbl
-          }
-          : t;
-      });
-
-      const allTransactions = [...finalTws, ...mongoList];
+      const allTransactions = [...mongoList];
       const deduped = Array.from(
         new Map(
           allTransactions.map((tx) => {
@@ -513,134 +331,13 @@ const Datewisedaybook = () => {
       const storesToFetch = visibleLocations.filter(loc => selectedStores.includes(loc.locCode));
       const allResults = await Promise.all(
         storesToFetch.map(async ({ locCode, locName }) => {
-          const twsBase = "https://rentalapi.rootments.live/api/GetBooking";
-          const bU = `${twsBase}/GetBookingList?LocCode=${locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
-          const rU = `${twsBase}/GetRentoutList?LocCode=${locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
-          const retU = `${twsBase}/GetReturnList?LocCode=${locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
-          const dU = `${twsBase}/GetDeleteList?LocCode=${locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
           const mU = `${baseUrl.baseUrl}user/Getpayment?LocCode=${locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
 
-          let overrideRowsMulti = [];
+          let mongoData = {};
           try {
-            const res = await fetch(
-              `${baseUrl.baseUrl}api/tws/getEditedTransactions?fromDate=${fromDate}&toDate=${toDate}&locCode=${locCode}`
-            );
-            const json = await res.json();
-            overrideRowsMulti = json?.data || [];
+            const mRes = await fetch(mU);
+            mongoData = await mRes.json();
           } catch {}
-
-          let bookingData = {}, rentoutData = {}, returnData = {}, deleteData = {}, mongoData = {};
-          try {
-            const [bRes, rRes, retRes, dRes, mRes] = await Promise.all([
-              fetch(bU), fetch(rU), fetch(retU), fetch(dU), fetch(mU)
-            ]);
-            [bookingData, rentoutData, returnData, deleteData, mongoData] = await Promise.all([
-              bRes.json(), rRes.json(), retRes.json(), dRes.json(), mRes.json()
-            ]);
-          } catch {}
-
-          const bList = (bookingData?.dataSet?.data || []).map(item => ({
-            ...item,
-            date: item.bookingDate?.split("T")[0],
-            invoiceNo: item.invoiceNo,
-            customerName: item.customerName,
-            quantity: item.quantity || 1,
-            Category: "Booking",
-            SubCategory: "Advance",
-            discountAmount: Number(item.discountAmount || 0),
-            billValue: Number(item.invoiceAmount || 0),
-            cash: Number(item.bookingCashAmount || 0),
-            rbl: Number(item.rblRazorPay || 0),
-            bank: Number(item.bookingBankAmount || 0),
-            upi: Number(item.bookingUPIAmount || 0),
-            amount: Number(item.bookingCashAmount || 0) + Number(item.rblRazorPay || 0) + Number(item.bookingBankAmount || 0) + Number(item.bookingUPIAmount || 0),
-            totalTransaction: Number(item.bookingCashAmount || 0) + Number(item.rblRazorPay || 0) + Number(item.bookingBankAmount || 0) + Number(item.bookingUPIAmount || 0),
-            remark: "",
-            source: "booking",
-            branch: locName,
-          }));
-
-          const rList = (rentoutData?.dataSet?.data || []).map(item => {
-            const advance = Number(item.advanceAmount || 0);
-            const security = Number(item.securityAmount || 0);
-            const balancePayable = Number(item.invoiceAmount || 0) - advance;
-            const totalSplit = security + balancePayable;
-            return {
-              ...item,
-              date: (item.rentOutDate || "").split("T")[0],
-              invoiceNo: item.invoiceNo,
-              customerName: item.customerName,
-              quantity: item.quantity || 1,
-              Category: "RentOut",
-              SubCategory: "Security",
-              SubCategory1: "Balance Payable",
-              securityAmount: security,
-              Balance: balancePayable,
-              discountAmount: Number(item.discountAmount || 0),
-              billValue: Number(item.invoiceAmount || 0),
-              cash: Number(item.rentoutCashAmount || 0),
-              rbl: Number(item.rblRazorPay || 0),
-              bank: Number(item.rentoutBankAmount || 0),
-              upi: Number(item.rentoutUPIAmount || 0),
-              totalTransaction: totalSplit,
-              amount: totalSplit,
-              remark: "",
-              source: "rentout",
-              branch: locName,
-            };
-          });
-
-          const retList = (returnData?.dataSet?.data || []).map(item => {
-            const returnCashAmount = -Math.abs(Number(item.returnCashAmount || 0));
-            const returnRblAmount = -Math.abs(Number(item.rblRazorPay || 0));
-            const returnBankAmount = returnRblAmount !== 0 ? 0 : -Math.abs(Number(item.returnBankAmount || 0));
-            const returnUPIAmount = returnRblAmount !== 0 ? 0 : -Math.abs(Number(item.returnUPIAmount || 0));
-            return {
-              ...item,
-              date: (item.returnedDate || item.returnDate || item.createdDate || "").split("T")[0],
-              customerName: item.customerName || item.custName || item.customer || "",
-              invoiceNo: item.invoiceNo,
-              Category: "Return",
-              SubCategory: "Security Refund",
-              discountAmount: Number(item.discountAmount || 0),
-              billValue: Number(item.invoiceAmount || 0),
-              cash: returnCashAmount,
-              rbl: returnRblAmount,
-              bank: returnBankAmount,
-              upi: returnUPIAmount,
-              amount: returnCashAmount + returnRblAmount + returnBankAmount + returnUPIAmount,
-              totalTransaction: returnCashAmount + returnRblAmount + returnBankAmount + returnUPIAmount,
-              remark: "",
-              source: "return",
-              branch: locName,
-            };
-          });
-
-          const dList = (deleteData?.dataSet?.data || []).map(item => {
-            const deleteCashAmount = -Math.abs(Number(item.deleteCashAmount || 0));
-            const deleteRblAmount = -Math.abs(Number(item.rblRazorPay || 0));
-            const deleteBankAmount = deleteRblAmount !== 0 ? 0 : -Math.abs(Number(item.deleteBankAmount || 0));
-            const deleteUPIAmount = deleteRblAmount !== 0 ? 0 : -Math.abs(Number(item.deleteUPIAmount || 0));
-            return {
-              ...item,
-              date: item.cancelDate?.split("T")[0],
-              invoiceNo: item.invoiceNo,
-              customerName: item.customerName,
-              Category: "Cancel",
-              SubCategory: "Cancellation Refund",
-              discountAmount: Number(item.discountAmount || 0),
-              billValue: Number(item.invoiceAmount || 0),
-              cash: deleteCashAmount,
-              rbl: deleteRblAmount,
-              bank: deleteBankAmount,
-              upi: deleteUPIAmount,
-              amount: deleteCashAmount + deleteRblAmount + deleteBankAmount + deleteUPIAmount,
-              totalTransaction: deleteCashAmount + deleteRblAmount + deleteBankAmount + deleteUPIAmount,
-              remark: "",
-              source: "deleted",
-              branch: locName,
-            };
-          });
 
           const mList = excludeAdminOnlyTransactions(mongoData?.data || []).map(tx => {
             const cash = Number(tx.cash || 0);
@@ -671,59 +368,7 @@ const Datewisedaybook = () => {
             };
           });
 
-          const editedMapMulti = new Map();
-          overrideRowsMulti.forEach(row => {
-            const key = String(row.invoiceNo || row.invoice).trim();
-            const category = (row.type || row.Category || '').toLowerCase();
-            const uniqueKey = `${key}-${category}`;
-            const cash = Number(row.cash || 0);
-            const rbl = Number(row.rbl || 0);
-            const bank = Number(row.bank || 0);
-            const upi = Number(row.upi || 0);
-            const total = cash + rbl + bank + upi;
-            editedMapMulti.set(uniqueKey, {
-              ...row,
-              invoiceNo: key,
-              Category: row.type,
-              SubCategory: row.category,
-              SubCategory1: row.subCategory1 || row.SubCategory1 || "Balance Payable",
-              billValue: Number(row.billValue ?? row.invoiceAmount ?? 0),
-              cash, rbl, bank, upi,
-              amount: total,
-              totalTransaction: total,
-              source: "edited",
-              branch: locName,
-            });
-          });
-
-          const allTwsMulti = [...bList, ...rList, ...retList, ...dList];
-          const finalTwsMulti = allTwsMulti.map(t => {
-            const key = String(t.invoiceNo).trim();
-            const category = (t.Category || t.category || '').toLowerCase();
-            const uniqueKey = `${key}-${category}`;
-            const override = editedMapMulti.get(uniqueKey);
-            const isRentOutMulti = category === 'rentout';
-            return override
-              ? {
-                ...t,
-                ...override,
-                Category: override.Category || t.Category || "",
-                SubCategory: override.SubCategory || override.category || t.SubCategory || t.category || "",
-                SubCategory1: override.SubCategory1 || override.subCategory1 || t.SubCategory1 || t.subCategory1 || "",
-                customerName: override.customerName || t.customerName || "",
-                date: override.date || t.date || "",
-                securityAmount: isRentOutMulti ? Number(override.securityAmount ?? t.securityAmount ?? 0) : 0,
-                Balance: isRentOutMulti ? Number(override.Balance ?? t.Balance ?? 0) : 0,
-                amount: Number(override.amount ?? t.amount),
-                totalTransaction: isRentOutMulti
-                  ? Number(override.securityAmount ?? t.securityAmount ?? 0) + Number(override.Balance ?? t.Balance ?? 0)
-                  : Number(override.totalTransaction ?? t.totalTransaction ?? override.cash + override.rbl + override.bank + override.upi),
-                branch: locName,
-              }
-              : t;
-          });
-
-          const allTransactionsMulti = [...finalTwsMulti, ...mList];
+          const allTransactionsMulti = [...mList];
           const dedupedMulti = Array.from(
             new Map(
               allTransactionsMulti.map((tx) => {
@@ -748,124 +393,12 @@ const Datewisedaybook = () => {
     }
 
     try {
-      const [bookingRes, rentoutRes, returnRes, deleteRes, mongoRes] = await Promise.all([
-        fetch(bookingU), fetch(rentoutU), fetch(returnU), fetch(deleteU), fetch(mongoU)
-      ]);
+      const mongoRes = await fetch(mongoU);
       if (!mongoRes.ok) {
         const errorText = await mongoRes.text();
         throw new Error(`mongoRes failed: ${mongoRes.status} ${errorText}`);
       }
-      const [bookingData, rentoutData, returnData, deleteData, mongoData] = await Promise.all([
-        bookingRes.json(), rentoutRes.json(), returnRes.json(), deleteRes.json(), mongoRes.json()
-      ]);
-
-      const bookingList = (bookingData?.dataSet?.data || []).map(item => ({
-        ...item,
-        date: item.bookingDate?.split("T")[0],
-        invoiceNo: item.invoiceNo,
-        customerName: item.customerName,
-        quantity: item.quantity || 1,
-        Category: "Booking",
-        SubCategory: "Advance",
-        discountAmount: Number(item.discountAmount || 0),
-        billValue: Number(item.invoiceAmount || 0),
-        cash: Number(item.bookingCashAmount || 0),
-        rbl: Number(item.rblRazorPay || 0), // ✅ Added RBL mapping
-        bank: Number(item.bookingBankAmount || 0),
-        upi: Number(item.bookingUPIAmount || 0),
-        amount: Number(item.bookingCashAmount || 0) + Number(item.rblRazorPay || 0) + Number(item.bookingBankAmount || 0) + Number(item.bookingUPIAmount || 0), // ✅ Added rbl
-        totalTransaction: Number(item.bookingCashAmount || 0) + Number(item.rblRazorPay || 0) + Number(item.bookingBankAmount || 0) + Number(item.bookingUPIAmount || 0), // ✅ Added rbl
-        remark: "",
-        source: "booking"
-      }));
-
-      const rentoutList = (rentoutData?.dataSet?.data || []).map(item => {
-        const advance = Number(item.advanceAmount || 0);
-        const security = Number(item.securityAmount || 0);
-        const balancePayable = Number(item.invoiceAmount || 0) - advance;
-        const totalSplit = security + balancePayable;
-
-        return {
-          ...item,
-          date: (item.rentOutDate || "").split("T")[0],
-          invoiceNo: item.invoiceNo,
-          customerName: item.customerName,
-          quantity: item.quantity || 1,
-          Category: "RentOut",
-          SubCategory: "Security",
-          SubCategory1: "Balance Payable",
-          securityAmount: security,
-          Balance: balancePayable,
-          discountAmount: Number(item.discountAmount || 0),
-          billValue: Number(item.invoiceAmount || 0),
-          cash: Number(item.rentoutCashAmount || 0),
-          rbl: Number(item.rblRazorPay || 0), // ✅ Added RBL mapping
-          bank: Number(item.rentoutBankAmount || 0),
-          upi: Number(item.rentoutUPIAmount || 0),
-          totalTransaction: totalSplit,
-          amount: totalSplit,
-          remark: "",
-          source: "rentout"
-        };
-      });
-
-      // ✅ Updated return list with RBL prevention logic
-      const returnList = (returnData?.dataSet?.data || []).map(item => {
-        const returnCashAmount = -Math.abs(Number(item.returnCashAmount || 0));
-        const returnRblAmount = -Math.abs(Number(item.rblRazorPay || 0));
-       
-        // ✅ Only process bank/UPI if no RBL value
-        const returnBankAmount = returnRblAmount !== 0 ? 0 : -Math.abs(Number(item.returnBankAmount || 0));
-        const returnUPIAmount = returnRblAmount !== 0 ? 0 : -Math.abs(Number(item.returnUPIAmount || 0));
-
-        return {
-          ...item,
-          date: (item.returnedDate || item.returnDate || item.createdDate || "").split("T")[0],
-          customerName: item.customerName || item.custName || item.customer || "",
-          invoiceNo: item.invoiceNo,
-          Category: "Return",
-          SubCategory: "Security Refund",
-          discountAmount: Number(item.discountAmount || 0),
-          billValue: Number(item.invoiceAmount || 0),
-          cash: returnCashAmount,
-          rbl: returnRblAmount,
-          bank: returnBankAmount,
-          upi: returnUPIAmount,
-          amount: returnCashAmount + returnRblAmount + returnBankAmount + returnUPIAmount, // ✅ Added rbl
-          totalTransaction: returnCashAmount + returnRblAmount + returnBankAmount + returnUPIAmount, // ✅ Added rbl
-          remark: "",
-          source: "return"
-        };
-      });
-
-      // ✅ Updated delete list with RBL prevention logic
-      const deleteList = (deleteData?.dataSet?.data || []).map(item => {
-        const deleteCashAmount = -Math.abs(Number(item.deleteCashAmount || 0));
-        const deleteRblAmount = -Math.abs(Number(item.rblRazorPay || 0));
-       
-        // ✅ Only process bank/UPI if no RBL value
-        const deleteBankAmount = deleteRblAmount !== 0 ? 0 : -Math.abs(Number(item.deleteBankAmount || 0));
-        const deleteUPIAmount = deleteRblAmount !== 0 ? 0 : -Math.abs(Number(item.deleteUPIAmount || 0));
-
-        return {
-          ...item,
-          date: item.cancelDate?.split("T")[0],
-          invoiceNo: item.invoiceNo,
-          customerName: item.customerName,
-          Category: "Cancel",
-          SubCategory: "Cancellation Refund",
-          discountAmount: Number(item.discountAmount || 0),
-          billValue: Number(item.invoiceAmount || 0),
-          cash: deleteCashAmount,
-          rbl: deleteRblAmount,
-          bank: deleteBankAmount,
-          upi: deleteUPIAmount,
-          amount: deleteCashAmount + deleteRblAmount + deleteBankAmount + deleteUPIAmount, // ✅ Added rbl
-          totalTransaction: deleteCashAmount + deleteRblAmount + deleteBankAmount + deleteUPIAmount, // ✅ Added rbl
-          remark: "",
-          source: "deleted"
-        };
-      });
+      const mongoData = await mongoRes.json();
 
       const mongoList = excludeAdminOnlyTransactions(mongoData?.data || []).map(tx => {
         const cash = Number(tx.cash || 0);
@@ -898,77 +431,7 @@ const Datewisedaybook = () => {
         };
       });
 
-      let overrideRows = [];
-      try {
-        const res = await fetch(
-          `${baseUrl.baseUrl}api/tws/getEditedTransactions?fromDate=${fromDate}&toDate=${toDate}&locCode=${currentusers.locCode}`
-        );
-        const json = await res.json();
-        overrideRows = json?.data || [];
-      } catch (err) {
-        console.warn("⚠️ Override fetch failed:", err.message);
-      }
-
-      const editedMap = new Map();
-      overrideRows.forEach(row => {
-        const key = String(row.invoiceNo || row.invoice).trim();
-        const category = (row.type || row.Category || '').toLowerCase();
-        // Create a unique key that includes both invoice number AND category
-        // This prevents edits to RentOut from affecting Booking for the same invoice
-        const uniqueKey = `${key}-${category}`;
-        const cash = Number(row.cash || 0);
-        const rbl = Number(row.rbl || 0); // ✅ Added RBL support in overrides
-        const bank = Number(row.bank || 0);
-        const upi = Number(row.upi || 0);
-        const total = cash + rbl + bank + upi; // ✅ Added rbl
-
-        editedMap.set(uniqueKey, {
-          ...row,
-          invoiceNo: key,
-          Category: row.type,
-          SubCategory: row.category,
-          SubCategory1: row.subCategory1 || row.SubCategory1 || "Balance Payable",
-          billValue: Number(row.billValue ?? row.invoiceAmount ?? 0),
-          cash, rbl, bank, upi, // ✅ Added rbl
-          amount: total,
-          totalTransaction: total,
-          source: "edited"
-        });
-      });
-
-      const allTws = [...bookingList, ...rentoutList, ...returnList, ...deleteList];
-      const finalTws = allTws.map(t => {
-        const key = String(t.invoiceNo).trim();
-        const category = (t.Category || t.category || '').toLowerCase();
-        // Match using both invoice number AND category
-        const uniqueKey = `${key}-${category}`;
-        const override = editedMap.get(uniqueKey);
-        const isRentOut = category === 'rentout';
-
-        return override
-          ? {
-            ...t,
-            ...override,
-            Category: override.Category || t.Category || "",
-            SubCategory: override.SubCategory || override.category || t.SubCategory || t.category || "",
-            SubCategory1: override.SubCategory1 || override.subCategory1 || t.SubCategory1 || t.subCategory1 || "",
-            customerName: override.customerName || t.customerName || "",
-            date: override.date || t.date || "",
-            securityAmount: isRentOut
-              ? Number(override.securityAmount ?? t.securityAmount ?? 0)
-              : 0,
-            Balance: isRentOut
-              ? Number(override.Balance ?? t.Balance ?? 0)
-              : 0,
-            amount: Number(override.amount ?? t.amount),
-            totalTransaction: isRentOut
-              ? Number(override.securityAmount ?? t.securityAmount ?? 0) + Number(override.Balance ?? t.Balance ?? 0)
-              : Number(override.totalTransaction ?? t.totalTransaction ?? override.cash + override.rbl + override.bank + override.upi) // ✅ Added rbl
-          }
-          : t;
-      });
-
-      const allTransactions = [...finalTws, ...mongoList];
+      const allTransactions = [...mongoList];
       
       const deduped = Array.from(
         new Map(

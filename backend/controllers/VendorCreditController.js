@@ -626,6 +626,38 @@ export const updateVendorCredit = async (req, res) => {
       }
     }
     
+    // ✅ Open credit edited (items/qty/warehouse): put the old items back, remove the new ones.
+    // Without this, stock drifted and a later delete restored the wrong quantities.
+    if (oldStatus === "open" && newStatus === "open") {
+      const oldWarehouse = existingCredit.warehouse?.trim() || "Warehouse";
+      const newWarehouse = creditData.warehouse?.trim() || oldWarehouse;
+      const oldItems = Array.isArray(existingCredit.items) ? existingCredit.items : [];
+      const newItems = Array.isArray(creditData.items) ? creditData.items : oldItems;
+      const key = (list) => JSON.stringify(
+        list.map((it) => [String(it.itemId || ""), String(it.itemGroupId || ""), String(it.itemName || ""), String(it.itemSku || ""), parseFloat(it.quantity) || 0]).sort()
+      );
+      if (key(oldItems) !== key(newItems) || oldWarehouse !== newWarehouse) {
+        for (const item of oldItems) {
+          const qty = parseFloat(item.quantity) || 0;
+          if (qty <= 0) continue;
+          try {
+            await addItemStock(item.itemId, qty, oldWarehouse, item.itemName, item.itemGroupId, item.itemSku);
+          } catch (error) {
+            console.error(`Error restoring stock for edited vendor credit item ${item.itemName}:`, error);
+          }
+        }
+        for (const item of newItems) {
+          const qty = parseFloat(item.quantity) || 0;
+          if (qty <= 0) continue;
+          try {
+            await reduceItemStock(item.itemId, qty, newWarehouse, item.itemName, item.itemGroupId, item.itemSku);
+          } catch (error) {
+            console.error(`Error reducing stock for edited vendor credit item ${item.itemName}:`, error);
+          }
+        }
+      }
+    }
+
     if (oldStatus === "open" && newStatus === "open" && oldFinalTotal !== newFinalTotal) {
       const difference = newFinalTotal - oldFinalTotal;
       const vendorId = creditData.vendorId || existingCredit.vendorId;

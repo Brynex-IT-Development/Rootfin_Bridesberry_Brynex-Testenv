@@ -113,92 +113,15 @@ export const calculateTotalCashForDate = async (locCode, dateInput) => {
   const startOfDay = new Date(`${dateStr}T00:00:00.000Z`);
   const endOfDay = new Date(`${dateStr}T23:59:59.999Z`);
 
-  // 1. Fetch TWS External Transactions
-  let twsTransactions = [];
-  const twsBase = "https://rentalapi.rootments.live/api/GetBooking";
-
-  try {
-    const [bookingRes, rentoutRes, returnRes, deleteRes] = await Promise.all([
-      fetch(`${twsBase}/GetBookingList?LocCode=${locCode}&DateFrom=${dateStr}&DateTo=${dateStr}`),
-      fetch(`${twsBase}/GetRentoutList?LocCode=${locCode}&DateFrom=${dateStr}&DateTo=${dateStr}`),
-      fetch(`${twsBase}/GetReturnList?LocCode=${locCode}&DateFrom=${dateStr}&DateTo=${dateStr}`),
-      fetch(`${twsBase}/GetDeleteList?LocCode=${locCode}&DateFrom=${dateStr}&DateTo=${dateStr}`)
-    ]);
-
-    if (bookingRes.ok) {
-      const bData = await bookingRes.json();
-      (bData?.dataSet?.data || []).forEach(item => {
-        const cash = Number(item.bookingCashAmount || 0);
-        twsTransactions.push({ invoiceNo: String(item.invoiceNo || '').trim(), category: 'booking', cash });
-      });
-    }
-    if (rentoutRes.ok) {
-      const rData = await rentoutRes.json();
-      (rData?.dataSet?.data || []).forEach(item => {
-        const cash = Number(item.rentoutCashAmount || 0);
-        twsTransactions.push({ invoiceNo: String(item.invoiceNo || '').trim(), category: 'rentout', cash });
-      });
-    }
-    if (returnRes.ok) {
-      const retData = await returnRes.json();
-      (retData?.dataSet?.data || []).forEach(item => {
-        const cash = -Math.abs(Number(item.returnCashAmount || 0));
-        twsTransactions.push({ invoiceNo: String(item.invoiceNo || '').trim(), category: 'return', cash });
-      });
-    }
-    if (deleteRes.ok) {
-      const dData = await deleteRes.json();
-      (dData?.dataSet?.data || []).forEach(item => {
-        const cash = -Math.abs(Number(item.deleteCashAmount || 0));
-        twsTransactions.push({ invoiceNo: String(item.invoiceNo || '').trim(), category: 'cancel', cash });
-      });
-    }
-  } catch (err) {
-    console.warn(`⚠️ Error fetching TWS transactions for ${locCode} on ${dateStr}:`, err.message);
-  }
-
-  // 2. Fetch Mongo Transactions (includes edits and overrides)
+  // Sum all store transactions (Mongo) for the day
   const mongoTxs = await Transaction.find({
     locCode,
     date: { $gte: startOfDay, $lte: endOfDay }
   });
 
-  // Map Mongo transactions by invoiceNo and invoiceNo-category
-  const mongoMap = new Map();
-  const mongoOnlyTxs = [];
-
-  mongoTxs.forEach(tx => {
-    const invKey = String(tx.invoiceNo || "").trim();
-    const catKey = String(tx.type || tx.category || "").toLowerCase();
-    if (invKey) {
-      mongoMap.set(`${invKey}-${catKey}`, tx);
-      mongoMap.set(invKey, tx);
-    }
-    mongoOnlyTxs.push(tx);
-  });
-
-  // 3. Combine TWS + Mongo using override logic
   let netDayCash = 0;
-  const processedKeys = new Set();
-
-  twsTransactions.forEach(tws => {
-    const invKey = tws.invoiceNo;
-    const compositeKey = `${invKey}-${tws.category}`;
-    const override = (invKey && mongoMap.get(compositeKey)) || (invKey && mongoMap.get(invKey));
-
-    if (override) {
-      netDayCash += Number(override.cash || 0);
-      processedKeys.add(override._id.toString());
-    } else {
-      netDayCash += Number(tws.cash || 0);
-    }
-  });
-
-  // Add remaining Mongo transactions that were NOT overrides for TWS items (e.g. standalone Income/Expense/Booking)
-  mongoOnlyTxs.forEach(tx => {
-    if (!processedKeys.has(tx._id.toString())) {
-      netDayCash += Number(tx.cash || 0);
-    }
+  mongoTxs.forEach(tx => {
+    netDayCash += Number(tx.cash || 0);
   });
 
   // 4. Fetch Previous Day Opening Cash

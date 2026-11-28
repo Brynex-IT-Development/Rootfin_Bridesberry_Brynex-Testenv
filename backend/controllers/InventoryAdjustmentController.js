@@ -63,9 +63,9 @@ const adjustItemStock = async (itemIdValue, quantityAdjustment, warehouseName, i
     const currentStock = parseFloat(wsEntry.stockOnHand) || 0;
     const newStock = Math.max(0, currentStock + quantityAdjustment);
     wsEntry.stockOnHand = newStock;
-    wsEntry.availableForSale = Math.max(0, (parseFloat(wsEntry.availableForSale) || 0) + quantityAdjustment);
-    wsEntry.physicalStockOnHand = Math.max(0, (parseFloat(wsEntry.physicalStockOnHand) || 0) + quantityAdjustment);
-    wsEntry.physicalAvailableForSale = Math.max(0, (parseFloat(wsEntry.physicalAvailableForSale) || 0) + quantityAdjustment);
+    wsEntry.availableForSale = (parseFloat(wsEntry.availableForSale) || 0) + quantityAdjustment;
+    wsEntry.physicalStockOnHand = (parseFloat(wsEntry.physicalStockOnHand) || 0) + quantityAdjustment;
+    wsEntry.physicalAvailableForSale = (parseFloat(wsEntry.physicalAvailableForSale) || 0) + quantityAdjustment;
     wsEntry.warehouse = targetWarehouse;
     
     console.log(`   📊 Inventory adjustment: ${currentStock} ${quantityAdjustment >= 0 ? '+' : ''}${quantityAdjustment} = ${newStock}`);
@@ -151,9 +151,9 @@ const adjustItemStock = async (itemIdValue, quantityAdjustment, warehouseName, i
       const currentStock = parseFloat(wsEntry.stockOnHand) || 0;
       const newStock = Math.max(0, currentStock + quantityAdjustment);
       wsEntry.stockOnHand = newStock;
-      wsEntry.availableForSale = Math.max(0, (parseFloat(wsEntry.availableForSale) || 0) + quantityAdjustment);
-      wsEntry.physicalStockOnHand = Math.max(0, (parseFloat(wsEntry.physicalStockOnHand) || 0) + quantityAdjustment);
-      wsEntry.physicalAvailableForSale = Math.max(0, (parseFloat(wsEntry.physicalAvailableForSale) || 0) + quantityAdjustment);
+      wsEntry.availableForSale = (parseFloat(wsEntry.availableForSale) || 0) + quantityAdjustment;
+      wsEntry.physicalStockOnHand = (parseFloat(wsEntry.physicalStockOnHand) || 0) + quantityAdjustment;
+      wsEntry.physicalAvailableForSale = (parseFloat(wsEntry.physicalAvailableForSale) || 0) + quantityAdjustment;
       wsEntry.warehouse = targetWarehouse;
       
       const updateResult = await ItemGroup.findByIdAndUpdate(
@@ -243,9 +243,9 @@ const adjustItemStockByName = async (itemGroupId, itemName, quantityAdjustment, 
   const currentStock = parseFloat(wsEntry.stockOnHand) || 0;
   const newStock = Math.max(0, currentStock + quantityAdjustment);
   wsEntry.stockOnHand = newStock;
-  wsEntry.availableForSale = Math.max(0, (parseFloat(wsEntry.availableForSale) || 0) + quantityAdjustment);
-  wsEntry.physicalStockOnHand = Math.max(0, (parseFloat(wsEntry.physicalStockOnHand) || 0) + quantityAdjustment);
-  wsEntry.physicalAvailableForSale = Math.max(0, (parseFloat(wsEntry.physicalAvailableForSale) || 0) + quantityAdjustment);
+  wsEntry.availableForSale = (parseFloat(wsEntry.availableForSale) || 0) + quantityAdjustment;
+  wsEntry.physicalStockOnHand = (parseFloat(wsEntry.physicalStockOnHand) || 0) + quantityAdjustment;
+  wsEntry.physicalAvailableForSale = (parseFloat(wsEntry.physicalAvailableForSale) || 0) + quantityAdjustment;
   wsEntry.warehouse = targetWarehouse;
   
   console.log(`   📊 Inventory adjustment: ${currentStock} ${quantityAdjustment >= 0 ? '+' : ''}${quantityAdjustment} = ${newStock}`);
@@ -349,6 +349,45 @@ const getCurrentStock = async (itemIdValue, warehouseName, itemName = null, item
 };
 
 // Create a new inventory adjustment
+// ---- Stock must never go below zero ----------------------------------------
+const adjKey = (it) => [it.itemId || "", it.itemGroupId || "", it.itemName || "", it.itemSku || ""].map((v) => String(v)).join("|");
+
+/**
+ * changes: [{ item, delta }] for one warehouse. Returns the items whose stock would
+ * end up below zero if all changes were applied.
+ */
+const findNegativeStock = async (changes, warehouse) => {
+  const net = new Map();
+  for (const { item, delta } of changes) {
+    if (!item?.itemName || !delta) continue;
+    const k = adjKey(item);
+    const entry = net.get(k) || { item, delta: 0 };
+    entry.delta += delta;
+    net.set(k, entry);
+  }
+  const problems = [];
+  for (const { item, delta } of net.values()) {
+    if (delta >= 0) continue;
+    const info = await getCurrentStock(item.itemId || null, warehouse, item.itemName, item.itemGroupId || null, item.itemSku || null);
+    const current = parseFloat(info?.currentQuantity) || 0;
+    if (current + delta < 0) {
+      problems.push({ itemName: item.itemName, available: Math.max(0, current), requested: -delta });
+    }
+  }
+  return problems;
+};
+
+const negativeStockResponse = (res, problems, warehouse) =>
+  res.status(409).json({
+    message: problems
+      .map((p) => `Not enough stock for "${p.itemName}" at ${warehouse}: ${p.available} available, ${p.requested} would be removed`)
+      .join("\n"),
+    stockErrors: problems,
+  });
+
+const qtyChanges = (items, factor = 1) =>
+  (items || []).map((item) => ({ item, delta: factor * (parseFloat(item.quantityAdjusted) || 0) }));
+
 export const createInventoryAdjustment = async (req, res) => {
   try {
     const adjustmentData = req.body;
@@ -493,6 +532,12 @@ export const createInventoryAdjustment = async (req, res) => {
       return res.status(400).json({ message: "No valid items to process" });
     }
     
+    // ✅ Refuse an adjustment that would take stock below zero
+    if ((adjustmentData.status || "draft") === "adjusted" && adjustmentData.adjustmentType === "quantity") {
+      const problems = await findNegativeStock(qtyChanges(processedItems), adjustmentData.warehouse);
+      if (problems.length > 0) return negativeStockResponse(res, problems, adjustmentData.warehouse);
+    }
+
     let referenceNumber = adjustmentData.referenceNumber || "";
     if (!referenceNumber || referenceNumber.trim() === "") {
       referenceNumber = await nextInventoryAdjustment("IA-");
@@ -621,6 +666,28 @@ export const updateInventoryAdjustment = async (req, res) => {
     const warehouse = adjustmentData.warehouse || existingAdjustment.warehouse;
     const adjustmentType = adjustmentData.adjustmentType || existingAdjustment.adjustmentType;
     
+    // ✅ Refuse the change if any stock would go below zero (checked before touching stock)
+    if (adjustmentType === "quantity") {
+      const oldWarehouse = existingAdjustment.warehouse;
+      const checks = [];
+      if (oldStatus === "draft" && newStatus === "adjusted") {
+        checks.push([qtyChanges(newItems), warehouse]);
+      } else if (oldStatus === "adjusted" && newStatus === "draft") {
+        checks.push([qtyChanges(oldItems, -1), oldWarehouse]);
+      } else if (oldStatus === "adjusted" && newStatus === "adjusted") {
+        if (oldWarehouse === warehouse) {
+          checks.push([[...qtyChanges(oldItems, -1), ...qtyChanges(newItems)], warehouse]);
+        } else {
+          checks.push([qtyChanges(oldItems, -1), oldWarehouse]);
+          checks.push([qtyChanges(newItems), warehouse]);
+        }
+      }
+      for (const [changes, wh] of checks) {
+        const problems = await findNegativeStock(changes, wh);
+        if (problems.length > 0) return negativeStockResponse(res, problems, wh);
+      }
+    }
+
     // If changing from draft to adjusted, apply stock changes
     if (oldStatus === "draft" && newStatus === "adjusted") {
       for (const item of newItems) {
@@ -725,6 +792,11 @@ export const deleteInventoryAdjustment = async (req, res) => {
       return res.status(404).json({ message: "Inventory adjustment not found" });
     }
     
+    if (adjustment.status === "adjusted" && adjustment.adjustmentType === "quantity") {
+      const problems = await findNegativeStock(qtyChanges(adjustment.items, -1), adjustment.warehouse);
+      if (problems.length > 0) return negativeStockResponse(res, problems, adjustment.warehouse);
+    }
+
     if (adjustment.status === "adjusted") {
       const items = adjustment.items || [];
       for (const item of items) {

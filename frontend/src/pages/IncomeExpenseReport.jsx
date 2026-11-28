@@ -11,7 +11,6 @@ import { canViewAdminOnlyTransactions } from "../utils/adminTransactionVisibilit
 
 import AppSelect from "../components/AppSelect.jsx";
 import { isAdminOrSuperAdmin } from "../utils/roleUtils";
-const TWS_BASE = "https://rentalapi.rootments.live/api/GetBooking";
 
 const fmt = (n) =>
   new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", minimumFractionDigits: 2 }).format(n || 0);
@@ -328,9 +327,9 @@ export default function IncomeExpenseReport() {
       const safeFetch = async (url) => {
         try {
           const res = await fetch(url);
-          if (!res.ok) { console.warn(`TWS fetch failed (${res.status}): ${url}`); return {}; }
+          if (!res.ok) { console.warn(`Fetch failed (${res.status}): ${url}`); return {}; }
           return await res.json();
-        } catch (e) { console.warn("TWS fetch error:", url, e.message); return {}; }
+        } catch (e) { console.warn("Fetch error:", url, e.message); return {}; }
       };
 
       let locCodesToFetch = [locCode];
@@ -341,24 +340,6 @@ export default function IncomeExpenseReport() {
       } else if (locCode === "all_depts") {
         locCodesToFetch = ALL_DEPTS_ONLY;
       }
-
-      // TWS rental endpoints only exist for retail stores, so exclude department codes
-      const twsLocCodes = locCodesToFetch.filter(lc => !DEPT_LOC_CODES.includes(lc));
-
-      const twsResults = await Promise.all(
-        twsLocCodes.map(lc => Promise.all([
-          safeFetch(`${TWS_BASE}/GetBookingList?LocCode=${lc}&DateFrom=${fromDate}&DateTo=${toDate}`),
-          safeFetch(`${TWS_BASE}/GetRentoutList?LocCode=${lc}&DateFrom=${fromDate}&DateTo=${toDate}`),
-          safeFetch(`${TWS_BASE}/GetReturnList?LocCode=${lc}&DateFrom=${fromDate}&DateTo=${toDate}`),
-          safeFetch(`${TWS_BASE}/GetDeleteList?LocCode=${lc}&DateFrom=${fromDate}&DateTo=${toDate}`),
-        ]))
-      );
-
-      const withLoc = (rows, lc) => (rows || []).map((item) => ({ ...item, locCode: item.locCode || lc }));
-      const bookingData = { dataSet: { data: twsResults.flatMap((r, i) => withLoc(r[0]?.dataSet?.data, twsLocCodes[i])) } };
-      const rentoutData = { dataSet: { data: twsResults.flatMap((r, i) => withLoc(r[1]?.dataSet?.data, twsLocCodes[i])) } };
-      const returnData  = { dataSet: { data: twsResults.flatMap((r, i) => withLoc(r[2]?.dataSet?.data, twsLocCodes[i])) } };
-      const cancelData  = { dataSet: { data: twsResults.flatMap((r, i) => withLoc(r[3]?.dataSet?.data, twsLocCodes[i])) } };
 
       let mongoJson = { data: [] };
       if (locCode === "all" || (!locCode && canSelectStore)) {
@@ -379,95 +360,6 @@ export default function IncomeExpenseReport() {
         const mongoRes  = await fetch(`${API}/user/Getpayment?LocCode=${locCode}&DateFrom=${fromDate}&DateTo=${toDate}`);
         mongoJson = mongoRes.ok ? await mongoRes.json() : {};
       }
-
-      // Booking -> Income
-      const bookingList = (bookingData?.dataSet?.data || []).map(item => ({
-        date: (item.bookingDate || "").split("T")[0],
-        invoiceNo: item.invoiceNo,
-        customerName: item.customerName || "",
-        category: "Booking",
-        subCategory: "Advance",
-        cash: Number(item.bookingCashAmount || 0),
-        rbl:  Number(item.rblRazorPay || 0),
-        bank: Number(item.bookingBankAmount || 0),
-        upi:  Number(item.bookingUPIAmount || 0),
-        locCode: item.locCode || locCode,
-      }));
-
-      // RentOut -> Split into Income (Balance Payable) and Returnable Income (Security)
-      const rentoutIncomeList = [];
-      const returnableList = [];
-
-      (rentoutData?.dataSet?.data || []).forEach(item => {
-        const security       = Number(item.securityAmount || 0);
-        const advance        = Number(item.advanceAmount || 0);
-        const balancePayable = Number(item.invoiceAmount || 0) - advance;
-        const cash  = Number(item.rentoutCashAmount || 0);
-        const rbl   = Number(item.rblRazorPay || 0);
-        const bank  = Number(item.rentoutBankAmount || 0);
-        const upi   = Number(item.rentoutUPIAmount || 0);
-        const base  = {
-          date: (item.rentOutDate || "").split("T")[0],
-          invoiceNo: item.invoiceNo,
-          customerName: item.customerName || "",
-          locCode: item.locCode || locCode,
-          cash, rbl, bank, upi,
-        };
-
-        // Returnable Income (Security received on RentOut)
-        if (security > 0 || item.securityAmount) {
-          returnableList.push({
-            ...base,
-            category: "Returnable Income",
-            subCategory: "Returnable Income",
-            amount: security,
-            cash: security,
-          });
-        }
-
-        // Actual non-returnable Income (Balance Payable)
-        rentoutIncomeList.push({
-          ...base,
-          category: "RentOut",
-          subCategory: "Balance Payable",
-          amount: balancePayable,
-          cash: balancePayable,
-        });
-      });
-
-      // Return -> Security Refund
-      const returnList = (returnData?.dataSet?.data || []).map(item => {
-        const rbl = -Math.abs(Number(item.rblRazorPay || 0));
-        return {
-          date: (item.returnedDate || item.returnDate || "").split("T")[0],
-          invoiceNo: item.invoiceNo,
-          customerName: item.customerName || "",
-          category: "Security Refund",
-          subCategory: "Security Refund",
-          cash: -Math.abs(Number(item.returnCashAmount || 0)),
-          rbl,
-          bank: rbl !== 0 ? 0 : -Math.abs(Number(item.returnBankAmount || 0)),
-          upi:  rbl !== 0 ? 0 : -Math.abs(Number(item.returnUPIAmount || 0)),
-          locCode: item.locCode || locCode,
-        };
-      });
-
-      // Cancel -> Expense
-      const cancelList = (cancelData?.dataSet?.data || []).map(item => {
-        const rbl = -Math.abs(Number(item.rblRazorPay || 0));
-        return {
-          date: (item.cancelDate || "").split("T")[0],
-          invoiceNo: item.invoiceNo,
-          customerName: item.customerName || "",
-          category: "Cancel",
-          subCategory: "Cancellation Refund",
-          cash: -Math.abs(Number(item.deleteCashAmount || 0)),
-          rbl,
-          bank: rbl !== 0 ? 0 : -Math.abs(Number(item.deleteBankAmount || 0)),
-          upi:  rbl !== 0 ? 0 : -Math.abs(Number(item.deleteUPIAmount || 0)),
-          locCode: item.locCode || locCode,
-        };
-      });
 
       // MongoDB income / expense / cash to bank / bank to cash
       const mongoTxns = Array.isArray(mongoJson) ? mongoJson : (mongoJson.data || []);
@@ -579,10 +471,10 @@ export default function IncomeExpenseReport() {
         }
       });
 
-      setIncomeRows([...bookingList, ...rentoutIncomeList, ...mongoIncome]);
-      setReturnableIncomeRows(returnableList);
-      setExpenseRows([...cancelList, ...mongoExpense]);
-      setHoldedSecurityRefundRows([...returnList, ...mongoHoldedSecurity]);
+      setIncomeRows(mongoIncome);
+      setReturnableIncomeRows([]);
+      setExpenseRows(mongoExpense);
+      setHoldedSecurityRefundRows(mongoHoldedSecurity);
       setCashToBankRows(mongoCashToBank);
       setBankToCashRows(mongoBankToCash);
 

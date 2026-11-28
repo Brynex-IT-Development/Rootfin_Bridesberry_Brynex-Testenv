@@ -6,16 +6,12 @@ import { RootfinDialogHost } from "./components/RootfinModal.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import DayBookInc from "./pages/BillWiseIncome.jsx";
 import Datewisedaybook from "./pages/Datewisedaybook.jsx";
-import Booking from "./pages/Booking.jsx";
-import DayBook from "./pages/DayBook.jsx";
 import SecurityReturn from "./pages/SecurityReturn";
 import SecurityPending from "./pages/SecurityPending";
 import Nav from "./components/Nav.jsx";
 import DaybookGuard from "./components/DaybookGuard.jsx";
 import Login from "./pages/Login.jsx";
-import Security from "./pages/Security.jsx";
 import CloseReport from "./pages/CloseReport.jsx";
-import Revenuereport from "./pages/Revenuereport.jsx";
 import AdminClose from "./pages/AdminClose.jsx";
 import PendingDaybookClosures from "./pages/PendingDaybookClosures.jsx";
 import ManageStores from "./pages/ManageStores.jsx";
@@ -142,7 +138,7 @@ const App = () => {
   const canAccessAdminRestrictedModules = (isAdmin || isWarehouse) && !isClusterAdmin;
 
   // Allowed routes for cluster managers
-  const clusterAllowedRoutes = ["/", "/datewisedaybook", "/BookingReport", "/RentOutReport", "/securityReport", "/Revenuereport", "/reports/income-expense", "/reports/inventory", "/reports/sales", "/reports/sales-by-invoice", "/reports/sales-by-group"];
+  const clusterAllowedRoutes = ["/", "/datewisedaybook", "/reports/income-expense", "/reports/inventory", "/reports/sales", "/reports/sales-by-invoice", "/reports/sales-by-group"];
   const ClusterGuard = ({ children }) => {
     if (isClusterManager && !clusterAllowedRoutes.includes(location.pathname)) {
       return <Navigate to="/datewisedaybook" />;
@@ -249,8 +245,6 @@ const App = () => {
           <Route path="/" element={currentuser ? <Dashboard /> : <Navigate to="/login" />} />
           <Route path="/daybook" element={currentuser ? (isClusterManager ? <Navigate to="/datewisedaybook" /> : <DayBookInc admin={isAdmin} />) : <Navigate to="/login" />} />
           <Route path="/datewisedaybook" element={currentuser ? <Datewisedaybook /> : <Navigate to="/login" />} />
-          <Route path="/BookingReport" element={currentuser ? <Booking /> : <Navigate to="/login" />} />
-          <Route path="/RentOutReport" element={currentuser ? <DayBook /> : <Navigate to="/login" />} />
           <Route path="/Income&Expenses" element={currentuser ? <ClusterGuard><SecurityReturn /></ClusterGuard> : <Navigate to="/login" />} />
           <Route path="/income" element={currentuser ? <ClusterGuard><Income /></ClusterGuard> : <Navigate to="/login" />} />
           <Route path="/expenses" element={currentuser ? <ClusterGuard><Expenses /></ClusterGuard> : <Navigate to="/login" />} />
@@ -260,7 +254,6 @@ const App = () => {
           <Route path="/direct-expenses" element={currentuser && canAccessRecordExpense ? <ClusterGuard><DirectIndirectExpenses initialType="direct" /></ClusterGuard> : <Navigate to={currentuser ? "/" : "/login"} />} />
           <Route path="/indirect-expenses" element={currentuser && canAccessRecordExpense ? <ClusterGuard><DirectIndirectExpenses initialType="indirect" /></ClusterGuard> : <Navigate to={currentuser ? "/" : "/login"} />} />
           <Route path="/CashBankLedger" element={currentuser ? <ClusterGuard><SecurityPending /></ClusterGuard> : <Navigate to="/login" />} />
-          <Route path="/securityReport" element={currentuser ? <Security /> : <Navigate to='/login' />} />
           <Route path="/CloseReport" element={isAdmin || isSuperAdmin(currentuser) ? <CloseReport /> : <Navigate to='/' />} />
           <Route path="/AdminClose" element={isAdmin || isSuperAdmin(currentuser) ? <AdminClose /> : <Navigate to='/' />} />
           <Route path="/pending-closures" element={isAdmin || userRole === "financial_head" || userRole === "financial_admin" ? <PendingDaybookClosures /> : <Navigate to="/" />} />
@@ -317,7 +310,6 @@ const App = () => {
           <Route path="/sales/returns" element={currentuser ? <SalesReturns /> : <Navigate to="/login" />} />
           <Route path="/sales/credit-notes" element={currentuser ? <CreditNotes /> : <Navigate to="/login" />} />
 
-          <Route path="/Revenuereport" element={currentuser ? <Revenuereport /> : <Navigate to="/login" />} />
           <Route path="/shoe-sales/inactive" element={<AdminRestrictedGuard><InactiveItems /></AdminRestrictedGuard>} />
 
           {/* Purchase */}

@@ -208,7 +208,7 @@ export const createPublicOrder = async (req, res) => {
         await rollback();
         return res.status(409).json({
           message: `Stock could not be reserved for ${found.sku}`,
-          problems: [{ sku: found.sku, reason: report.error || "stock update failed" }],
+          problems: [{ sku: found.sku, reason: report.error || report.failures?.[0]?.reason || "stock update failed" }],
         });
       }
       applied.push(line);

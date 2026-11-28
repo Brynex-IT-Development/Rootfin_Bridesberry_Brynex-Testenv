@@ -3,7 +3,6 @@ import Headers from '../components/Header.jsx';
 import React, { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import Select from "react-select";
 import { appSelectStyles } from "../components/AppSelect.jsx";
-import useFetch from '../hooks/useFetch.jsx';
 import baseUrl from '../api/api.js';
 import { Minus, Plus } from "lucide-react";
 import { useEnterToSave } from "../hooks/useEnterToSave";
@@ -250,10 +249,6 @@ const DayBookInc = ({ admin = false }) => {
         checkYesterday();
     }, [currentDate, currentusers?.locCode, exemptFromLock, yesterday]);
 
-    const apiUrl = currentusers?.locCode ? `https://rentalapi.rootments.live/api/GetBooking/GetBookingList?LocCode=${currentusers?.locCode}&DateFrom=${currentDate}&DateTo=${currentDate}` : null;
-    const apiurl1 = currentusers?.locCode ? `https://rentalapi.rootments.live/api/GetBooking/GetRentoutList?LocCode=${currentusers?.locCode}&DateFrom=${currentDate}&DateTo=${currentDate}` : null;
-    const apiUrl2 = currentusers?.locCode ? `https://rentalapi.rootments.live/api/GetBooking/GetReturnList?LocCode=${currentusers?.locCode}&DateFrom=${currentDate}&DateTo=${currentDate}` : null;
-    const apiUrl3 = currentusers?.locCode ? `https://rentalapi.rootments.live/api/GetBooking/GetDeleteList?LocCode=${currentusers?.locCode}&DateFrom=${currentDate}&DateTo=${currentDate}` : null;
     const apiUrl4_fallback = currentusers?.locCode ? `${baseUrl.baseUrl}user/Getpayment?LocCode=${currentusers?.locCode}&DateFrom=${currentDate}&DateTo=${currentDate}` : null;
     const apiUrl5 = `${baseUrl.baseUrl}user/saveCashBank`;
     const apiUrl6 = currentusers?.locCode ? `${baseUrl.baseUrl}user/getsaveCashBank?locCode=${currentusers?.locCode}&date=${formattedDate}` : null;
@@ -269,12 +264,7 @@ const DayBookInc = ({ admin = false }) => {
         window.print();
     };
 
-    const fetchOptions = useMemo(() => ({}), []);
 
-    const { data, loading: bookingLoading, error: bookingError } = useFetch(apiUrl, fetchOptions);
-    const { data: data1, loading: rentoutLoading, error: rentoutError } = useFetch(apiurl1, fetchOptions);
-    const { data: data2, loading: returnLoading, error: returnError } = useFetch(apiUrl2, fetchOptions);
-    const { data: data3, loading: cancelLoading, error: cancelError } = useFetch(apiUrl3, fetchOptions);
 
     const [dayBookData, setDayBookData] = useState([]);
 
@@ -296,9 +286,8 @@ const DayBookInc = ({ admin = false }) => {
             .finally(() => setDayBookDataLoading(false));
     }, [apiUrl4_fallback, currentusers?.locCode]);
 
-    const daybookLoadError = currentusers?.locCode ? (bookingError || rentoutError || returnError || cancelError) : null;
-    const isDataReady = !bookingLoading && !rentoutLoading && !returnLoading && !cancelLoading &&
-        !dayBookDataLoading && !daybookLoadError;
+    const daybookLoadError = null;
+    const isDataReady = !dayBookDataLoading;
 
     // Re-arm the settling timer whenever figures are (re)loading, and unlock save ~2.5s after they settle.
     const figuresSettled = isDataReady && !closingDataLoading;
@@ -312,143 +301,7 @@ const DayBookInc = ({ admin = false }) => {
     }, [figuresSettled, currentDate]);
 
     const processedTransactions = useMemo(() => {
-        if (!isDataReady) return { booking: [], rentOut: [], return: [], cancel: [], mongo: [] };
-
-        const bookingTransactions = (data?.dataSet?.data || []).map(transaction => {
-            const bookingCashAmount = parseInt(transaction?.bookingCashAmount || 0, 10);
-            const bookingBankAmount = parseInt(transaction?.bookingBankAmount || 0, 10);
-            const bookingUPIAmount = parseInt(transaction?.bookingUPIAmount || 0, 10);
-            const rblAmount = parseInt(transaction?.rblRazorPay || 0, 10);
-            const invoiceAmount = parseInt(transaction?.invoiceAmount || 0, 10);
-            const discountAmount = parseInt(transaction?.discountAmount || 0, 10);
-
-            const totalAmount = bookingCashAmount + bookingBankAmount + bookingUPIAmount + rblAmount;
-
-            return {
-                ...transaction,
-                date: transaction?.bookingDate || null,
-                time: transaction?.time || transaction?.bookingTime || "10:34 am",
-                customerName: transaction?.customerName || transaction?.customer || "Customer",
-                bookingCashAmount,
-                bookingBankAmount,
-                billValue: transaction.invoiceAmount,
-                discountAmount: discountAmount,
-                invoiceAmount,
-                bookingBank1: bookingBankAmount,
-                TotaltransactionBooking: totalAmount,
-                Category: "Booking",
-                SubCategory: "Advance",
-                totalTransaction: totalAmount,
-                cash: bookingCashAmount,
-                rbl: rblAmount,
-                bank: bookingBankAmount,
-                upi: bookingUPIAmount,
-                amount: totalAmount,
-                remarks: transaction?.remarks || transaction?.remark || "-"
-            };
-        });
-
-        const rentOutTransactions = (data1?.dataSet?.data || []).map(transaction => {
-            const rentoutCashAmount = parseInt(transaction?.rentoutCashAmount ?? 0, 10);
-            const rentoutBankAmount = parseInt(transaction?.rentoutBankAmount ?? 0, 10);
-            const invoiceAmount = parseInt(transaction?.invoiceAmount ?? 0, 10);
-            const advanceAmount = parseInt(transaction?.advanceAmount ?? 0, 10);
-            const rentoutUPIAmount = parseInt(transaction?.rentoutUPIAmount ?? 0, 10);
-            const rblAmount = parseInt(transaction?.rblRazorPay ?? 0, 10);
-            const securityAmount = parseInt(transaction?.securityAmount ?? 0, 10);
-
-            const totalAmount = rentoutCashAmount + rentoutBankAmount + rentoutUPIAmount + rblAmount;
-
-            return {
-                ...transaction,
-                date: transaction?.rentOutDate ?? "",
-                time: transaction?.time || transaction?.rentOutTime || "10:34 am",
-                customerName: transaction?.customerName || transaction?.customer || "Customer",
-                rentoutCashAmount,
-                rentoutBankAmount,
-                invoiceAmount,
-                discountAmount: parseInt(transaction.discountAmount || 0),
-                billValue: transaction.invoiceAmount,
-                securityAmount,
-                advanceAmount,
-                Balance: invoiceAmount - advanceAmount,
-                rentoutUPIAmount,
-                Category: "RentOut",
-                SubCategory: "Security",
-                SubCategory1: "Balance Payable",
-                totalTransaction: totalAmount,
-                cash: rentoutCashAmount,
-                rbl: rblAmount,
-                bank: rentoutBankAmount,
-                upi: rentoutUPIAmount,
-                amount: totalAmount,
-                remarks: transaction?.remarks || transaction?.remark || "-"
-            };
-        });
-
-        const returnOutTransactions = (data2?.dataSet?.data || []).map(transaction => {
-            const returnCashAmount = -(parseInt(transaction?.returnCashAmount || 0, 10));
-            const returnRblAmount = -(parseInt(transaction?.rblRazorPay || 0, 10));
-            const returnBankAmount = returnRblAmount !== 0 ? 0 : -(parseInt(transaction?.returnBankAmount || 0, 10));
-            const returnUPIAmount = returnRblAmount !== 0 ? 0 : -(parseInt(transaction?.returnUPIAmount || 0, 10));
-            const invoiceAmount = parseInt(transaction?.invoiceAmount || 0, 10);
-            const advanceAmount = parseInt(transaction?.advanceAmount || 0, 10);
-            const RsecurityAmount = -(parseInt(transaction?.securityAmount || 0, 10));
-
-            const totalAmount = returnCashAmount + returnRblAmount + returnBankAmount + returnUPIAmount;
-
-            return {
-                ...transaction,
-                date: transaction?.returnedDate || null,
-                time: transaction?.time || transaction?.returnedTime || "10:34 am",
-                customerName: transaction?.customerName || transaction?.customer || "Customer",
-                returnBankAmount,
-                returnCashAmount,
-                returnUPIAmount,
-                invoiceAmount,
-                advanceAmount,
-                discountAmount: parseInt(transaction.discountAmount || 0),
-                billValue: invoiceAmount,
-                amount: totalAmount,
-                totalTransaction: totalAmount,
-                RsecurityAmount,
-                Category: "Return",
-                SubCategory: "Security Refund",
-                cash: returnCashAmount,
-                rbl: returnRblAmount,
-                bank: returnBankAmount,
-                upi: returnUPIAmount,
-                remarks: transaction?.remarks || transaction?.remark || "-"
-            };
-        });
-
-        const canCelTransactions = (data3?.dataSet?.data || []).map(transaction => {
-            const deleteCashAmount = -Math.abs(parseInt(transaction.deleteCashAmount || 0));
-            const deleteRblAmount = -Math.abs(parseInt(transaction.rblRazorPay || 0));
-            const originalRblAmount = parseInt(transaction.rblRazorPay || 0);
-            const deleteBankAmount = originalRblAmount !== 0 ? 0 : -Math.abs(parseInt(transaction.deleteBankAmount || 0));
-            const deleteUPIAmount = originalRblAmount !== 0 ? 0 : -Math.abs(parseInt(transaction.deleteUPIAmount || 0));
-
-            const totalAmount = deleteCashAmount + deleteRblAmount + deleteBankAmount + deleteUPIAmount;
-
-            return {
-                ...transaction,
-                date: transaction.cancelDate,
-                time: transaction?.time || transaction?.cancelTime || "10:34 am",
-                customerName: transaction?.customerName || transaction?.customer || "Customer",
-                Category: "Cancel",
-                SubCategory: "cancellation Refund",
-                discountAmount: parseInt(transaction.discountAmount || 0),
-                billValue: transaction.invoiceAmount,
-                amount: totalAmount,
-                totalTransaction: totalAmount,
-                cash: deleteCashAmount,
-                rbl: deleteRblAmount,
-                bank: deleteBankAmount,
-                upi: deleteUPIAmount,
-                remarks: transaction?.remarks || transaction?.remark || "-"
-            };
-        });
+        if (!isDataReady) return { mongo: [] };
 
         const expenseCategoryValues = new Set([
             "petty expenses","staff reimbursement","maintenance expenses","telephone internet",
@@ -505,23 +358,11 @@ const DayBookInc = ({ admin = false }) => {
             };
         });
 
-        return {
-            booking: bookingTransactions,
-            rentOut: rentOutTransactions,
-            return: returnOutTransactions,
-            cancel: canCelTransactions,
-            mongo: mongoTransactions
-        };
-    }, [data, data1, data2, data3, dayBookData, isDataReady, currentusers?.locCode]);
+        return { mongo: mongoTransactions };
+    }, [dayBookData, isDataReady, currentusers?.locCode]);
 
     const allTransactions = useMemo(() => {
-        const combined = [
-            ...processedTransactions.booking,
-            ...processedTransactions.rentOut,
-            ...processedTransactions.return,
-            ...processedTransactions.cancel,
-            ...processedTransactions.mongo,
-        ];
+        const combined = [...processedTransactions.mongo];
 
         return combined.map(t => {
             const invoicePart = String(t.invoiceNo || t.locCode || "").trim();

@@ -70,10 +70,6 @@ export const ALL_MODULE_DEFINITIONS = [
         label: "Reports",
         isStandalone: false,
         subpages: [
-            { path: "/BookingReport", label: "Booking Report" },
-            { path: "/RentOutReport", label: "Rent Out Report" },
-            { path: "/securityReport", label: "Security Report" },
-            { path: "/Revenuereport", label: "Revenue Report" },
             { path: "/reports/sales-by-invoice", label: "Sales by Invoice" },
             { path: "/reports/sales", label: "Sales Report" },
             { path: "/reports/sales-by-group", label: "Sales by Group" },
@@ -262,10 +258,6 @@ export const getDefaultPermissionsForRole = (role) => {
                 reports: {
                     enabled: true,
                     subpages: [
-                        "/BookingReport",
-                        "/RentOutReport",
-                        "/securityReport",
-                        "/Revenuereport",
                         "/reports/income-expense"
                     ]
                 },
@@ -297,14 +289,7 @@ export const getDefaultPermissionsForRole = (role) => {
                     ]
                 },
                 purchase: disabledModule(),
-                reports: {
-                    enabled: true,
-                    subpages: [
-                        "/BookingReport",
-                        "/RentOutReport",
-                        "/securityReport"
-                    ]
-                },
+                reports: disabledModule(),
                 income: standaloneEnabled("/income"),
                 record_expense: standaloneDisabled("/record-expense"),
                 expenses: standaloneEnabled("/expenses"),

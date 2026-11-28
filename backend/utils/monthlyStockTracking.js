@@ -1,5 +1,6 @@
 import ItemGroup from "../model/ItemGroup.js";
 import ShoeItem from "../model/ShoeItem.js";
+import { sameStore } from "./storeResolver.js";
 
 /**
  * Get current month in YYYY-MM format
@@ -52,9 +53,10 @@ export const updateMonthlyStockForSale = async (itemGroupId, itemId, warehouse, 
     }
 
     // Find warehouse stock entry
-    let wsEntry = itemPlain.warehouseStocks.find(ws => 
-      ws.warehouse && ws.warehouse.toString().trim() === warehouse.toString().trim()
+    const wsIndex = itemPlain.warehouseStocks.findIndex(ws =>
+      ws.warehouse && sameStore(ws.warehouse, warehouse)
     );
+    let wsEntry = wsIndex === -1 ? null : itemPlain.warehouseStocks[wsIndex];
 
     if (!wsEntry) {
       console.warn(`   ❌ Warehouse "${warehouse}" not found for item`);
@@ -110,10 +112,11 @@ export const updateMonthlyStockForSale = async (itemGroupId, itemId, warehouse, 
     monthlyEntry.updatedAt = new Date();
 
     // Update the item group
-    await ItemGroup.findByIdAndUpdate(
-      itemGroupId,
-      { $set: { [`items.${itemIndex}`]: itemPlain } },
-      { new: true }
+    // Only write the monthly tracking array — never the whole item, otherwise a
+    // stale snapshot would overwrite stock changes made by concurrent operations.
+    await ItemGroup.updateOne(
+      { _id: itemGroupId },
+      { $set: { [`items.${itemIndex}.warehouseStocks.${wsIndex}.monthlyOpeningStock`]: wsEntry.monthlyOpeningStock } }
     );
 
     console.log(`   ✅ Monthly stock updated for sale: sales=${monthlyEntry.sales}, closingStock=${monthlyEntry.closingStock}`);
@@ -164,9 +167,10 @@ export const updateMonthlyStockForPurchase = async (itemGroupId, itemId, warehou
     }
 
     // Find warehouse stock entry
-    let wsEntry = itemPlain.warehouseStocks.find(ws => 
-      ws.warehouse && ws.warehouse.toString().trim() === warehouse.toString().trim()
+    const wsIndex = itemPlain.warehouseStocks.findIndex(ws =>
+      ws.warehouse && sameStore(ws.warehouse, warehouse)
     );
+    let wsEntry = wsIndex === -1 ? null : itemPlain.warehouseStocks[wsIndex];
 
     if (!wsEntry) {
       console.warn(`   ❌ Warehouse "${warehouse}" not found for item`);
@@ -224,10 +228,11 @@ export const updateMonthlyStockForPurchase = async (itemGroupId, itemId, warehou
     monthlyEntry.updatedAt = new Date();
 
     // Update the item group
-    await ItemGroup.findByIdAndUpdate(
-      itemGroupId,
-      { $set: { [`items.${itemIndex}`]: itemPlain } },
-      { new: true }
+    // Only write the monthly tracking array — never the whole item, otherwise a
+    // stale snapshot would overwrite stock changes made by concurrent operations.
+    await ItemGroup.updateOne(
+      { _id: itemGroupId },
+      { $set: { [`items.${itemIndex}.warehouseStocks.${wsIndex}.monthlyOpeningStock`]: wsEntry.monthlyOpeningStock } }
     );
 
     console.log(`   ✅ Monthly stock updated for purchase: closingStock=${monthlyEntry.closingStock}`);

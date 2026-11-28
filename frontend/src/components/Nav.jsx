@@ -188,7 +188,7 @@ const Nav = () => {
     const expanded = isDesktop ? (isHovered || showUserMenu) : true;
 
     const getInitialSection = useMemo(() => {
-        if (activePath === "/reports/sales" || activePath === "/reports/sales-by-invoice" || activePath === "/reports/inventory" || activePath === "/reports/income-expense" || activePath === "/securityReport" || activePath === "/Revenuereport" || activePath === "/BookingReport" || activePath === "/RentOutReport" || activePath === "/reports/sales-by-group") {
+        if (activePath === "/reports/sales" || activePath === "/reports/sales-by-invoice" || activePath === "/reports/inventory" || activePath === "/reports/income-expense" || activePath === "/reports/sales-by-group") {
             return "reports";
         }
         if (activePath.startsWith("/inventory") ||
@@ -270,10 +270,6 @@ const Nav = () => {
     const isManageUsersActive = manageUsersLinks.some((link) => link.to === activePath);
 
     const reportsLinks = [
-        { to: "/BookingReport", label: "Booking Report" },
-        { to: "/RentOutReport", label: "Rent Out Report" },
-        { to: "/securityReport", label: "Security Report" },
-        { to: "/Revenuereport", label: "Revenue Report" },
         ...(hasSalesInventoryAccess ? [
             { to: "/reports/sales-by-invoice", label: "Sales by Invoice" },
             { to: "/reports/sales", label: "Sales Report" },

@@ -3989,11 +3989,11 @@ Customer Service Available`;
                               </div>
                               <div className="flex items-center gap-2 flex-wrap">
                                 <div className={`text-xs font-medium px-2.5 py-1 rounded-md ${
-                                  stockOnHand > 0 
+                                  availableStock > 0 
                                     ? 'bg-[#d1fae5] text-[#065f46]' 
                                     : 'bg-[#fee2e2] text-[#991b1b]'
                                 }`}>
-                                  Stock on Hand: {stockOnHand.toFixed(1)} pcs
+                                  Stock on Hand: {availableStock.toFixed(1)} pcs
                                 </div>
                                 {item.groupName && (
                                   <div className="text-xs text-[#9ca3af] bg-[#f1f5f9] px-2 py-1 rounded-md">

@@ -6,7 +6,6 @@ import useSidebar from "../hooks/useSidebar";
 import { findStore } from "../utils/storeService";
 
 const formatCurrency = (value) => {
-  const isSidebarOpen = useSidebar();
   return new Intl.NumberFormat("en-IN", {
     style: "currency",
     currency: "INR",
@@ -29,6 +28,7 @@ const VendorCreditDetail = () => {
   const navigate = useNavigate();
   const API_URL = baseUrl?.baseUrl?.replace(/\/$/, "") || "http://localhost:7000";
   const printRef = useRef(null);
+  const isSidebarOpen = useSidebar();
 
   const [credit, setCredit] = useState(null);
   const [vendor, setVendor] = useState(null);

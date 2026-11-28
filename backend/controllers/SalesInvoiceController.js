@@ -1,6 +1,6 @@
 import SalesInvoice from "../model/SalesInvoice.js";
 import { nextGlobalSalesInvoice } from "../utils/nextSalesInvoice.js";
-import { updateStockOnInvoiceCreate, reverseStockOnInvoiceDelete } from "../utils/ultraEnhancedStockManagement.js";
+import { updateStockOnInvoiceCreate, reverseStockOnInvoiceDelete, adjustStockOnInvoiceEdit, stockFailureMessage } from "../utils/ultraEnhancedStockManagement.js";
 import { validateStockBeforeInvoice, validateStockAfterInvoice } from "../utils/stockValidationSystem.js";
 import Transaction from "../model/Transaction.js";
 import User from "../model/UserModel.js";
@@ -200,13 +200,38 @@ export const createSalesInvoice = async (req, res) => {
     invoiceData.createdBy = userId;
     invoiceData.storeId = user.storeId;
 
-    // Save invoice to MongoDB
-    const invoice = await SalesInvoice.create(invoiceData);
+    // ✅ Take the stock BEFORE saving the sale. If any item doesn't have enough
+    // stock at this store, nothing is deducted and the sale is refused —
+    // stock never goes below zero.
+    const stockWarehouse = invoiceData.warehouse || invoiceData.branch || "Warehouse";
+    const isStockReturn = ["return", "refund", "cancel"].includes(categoryLower.trim());
+    const hasLineItems = Array.isArray(invoiceData.lineItems) && invoiceData.lineItems.length > 0;
+    if (hasLineItems && !isStockReturn) {
+      const stockResult = await updateStockOnInvoiceCreate(invoiceData.lineItems, stockWarehouse);
+      if (!stockResult.ok) {
+        return res.status(409).json({
+          message: stockFailureMessage(stockResult),
+          stockErrors: stockResult.failures,
+        });
+      }
+    }
 
-    // Respond immediately — don't wait for stock/transaction updates
+    // Save invoice to MongoDB (give the stock back if saving fails)
+    let invoice;
+    try {
+      invoice = await SalesInvoice.create(invoiceData);
+    } catch (createError) {
+      if (hasLineItems && !isStockReturn) {
+        await reverseStockOnInvoiceDelete(invoiceData.lineItems, stockWarehouse).catch((e) =>
+          console.error("Stock rollback after failed invoice save:", e)
+        );
+      }
+      throw createError;
+    }
+
     res.status(201).json(invoice);
 
-    // Run stock update + financial transaction in background (non-blocking)
+    // Financial transaction + return restock in background (non-blocking)
     setImmediate(async () => {
       try {
         await createFinancialTransaction(invoice);
@@ -214,19 +239,11 @@ export const createSalesInvoice = async (req, res) => {
         console.error("Background financial transaction error:", err.message);
       }
 
-      if (invoice.lineItems?.length > 0) {
-        const warehouse = invoice.warehouse || invoice.branch || "Warehouse";
-        const shouldReverseStock = ["return", "refund", "cancel"].includes(
-          (invoice.category || "").toLowerCase().trim()
-        );
+      if (hasLineItems && isStockReturn) {
         try {
-          if (shouldReverseStock) {
-            await reverseStockOnInvoiceDelete(invoice.lineItems, warehouse);
-          } else {
-            await updateStockOnInvoiceCreate(invoice.lineItems, warehouse);
-          }
+          await reverseStockOnInvoiceDelete(invoice.lineItems, invoice.warehouse || invoice.branch || "Warehouse");
         } catch (err) {
-          console.error("Background stock update error:", err.message);
+          console.error("Background return restock error:", err.message);
         }
       }
     });
@@ -601,11 +618,56 @@ export const updateSalesInvoice = async (req, res) => {
       }
     }
 
-    const invoice = await SalesInvoice.findByIdAndUpdate(
-      id,
-      req.body,
-      { new: true, runValidators: true }
-    );
+    const previousInvoice = await SalesInvoice.findById(id).select("lineItems warehouse branch category").lean();
+    if (!previousInvoice) {
+      return res.status(404).json({ message: "Sales invoice not found" });
+    }
+
+    // ✅ RE-SYNC STOCK BEFORE SAVING THE EDIT
+    // If the edit needs more stock than the store has, nothing changes and the edit is refused.
+    // Return-triggered updates (returnStatus set) only shrink the original invoice's
+    // quantities; the RTN invoice already restored that stock, so they are skipped.
+    const isReturnTriggeredUpdate = req.body.returnStatus === "partial" || req.body.returnStatus === "full";
+    const stockFieldsChanged = req.body.lineItems !== undefined || req.body.warehouse !== undefined || req.body.branch !== undefined;
+    let stockEdit = null;
+    if (stockFieldsChanged && !isReturnTriggeredUpdate) {
+      const category = (req.body.category ?? previousInvoice.category ?? "").toLowerCase().trim();
+      stockEdit = {
+        oldLineItems: previousInvoice.lineItems || [],
+        oldWarehouse: previousInvoice.warehouse || previousInvoice.branch || "Warehouse",
+        newLineItems: req.body.lineItems !== undefined ? (req.body.lineItems || []) : (previousInvoice.lineItems || []),
+        newWarehouse: req.body.warehouse || req.body.branch || previousInvoice.warehouse || previousInvoice.branch || "Warehouse",
+        isReturn: ["return", "refund", "cancel"].includes(category),
+      };
+      const stockResult = await adjustStockOnInvoiceEdit(stockEdit);
+      if (!stockResult.ok) {
+        return res.status(409).json({
+          message: stockFailureMessage(stockResult),
+          stockErrors: stockResult.failures,
+        });
+      }
+    }
+
+    let invoice;
+    try {
+      invoice = await SalesInvoice.findByIdAndUpdate(
+        id,
+        req.body,
+        { new: true, runValidators: true }
+      );
+    } catch (updateError) {
+      if (stockEdit) {
+        // Put stock back the way it was
+        await adjustStockOnInvoiceEdit({
+          oldLineItems: stockEdit.newLineItems,
+          oldWarehouse: stockEdit.newWarehouse,
+          newLineItems: stockEdit.oldLineItems,
+          newWarehouse: stockEdit.oldWarehouse,
+          isReturn: stockEdit.isReturn,
+        }).catch((e) => console.error("Stock rollback after failed invoice edit:", e));
+      }
+      throw updateError;
+    }
 
     if (!invoice) {
       return res

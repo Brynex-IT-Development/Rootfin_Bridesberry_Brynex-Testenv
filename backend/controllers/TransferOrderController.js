@@ -1469,6 +1469,50 @@ const getCurrentStock = async (itemIdValue, warehouseName, itemName = null, item
 };
 
 // Create a new transfer order
+// Key that identifies the same item across a transfer's line items
+const transferItemKey = (it) =>
+  [it.itemId || "", it.itemGroupId || "", it.itemName || "", it.itemSku || ""].map((v) => String(v)).join("|");
+
+/**
+ * Check that `warehouse` has enough stock for every item being moved out of it.
+ * `alreadyTaken` maps item key → quantity this same order has already deducted
+ * there (when editing), which counts as available. Returns a list of problems.
+ */
+const findStockShortages = async (items, warehouse, alreadyTaken = new Map()) => {
+  const needed = new Map();
+  for (const it of items || []) {
+    const qty = parseFloat(it.quantity) || 0;
+    if (qty <= 0 || !it.itemName) continue;
+    const k = transferItemKey(it);
+    const entry = needed.get(k) || { item: it, qty: 0 };
+    entry.qty += qty;
+    needed.set(k, entry);
+  }
+  const shortages = [];
+  for (const [k, { item, qty }] of needed) {
+    const info = await getCurrentStock(item.itemId || null, warehouse, item.itemName, item.itemGroupId || null, item.itemSku || null);
+    const available = (parseFloat(info?.currentQuantity) || 0) + (alreadyTaken.get(k) || 0);
+    if (qty > available) {
+      shortages.push({ itemName: item.itemName, available: Math.max(0, available), requested: qty });
+    }
+  }
+  return shortages;
+};
+
+const shortageResponse = (res, shortages, warehouse) =>
+  res.status(409).json({
+    message: shortages
+      .map((sh) => `Not enough stock for "${sh.itemName}" at ${warehouse}: ${sh.available} available, ${sh.requested} needed`)
+      .join("\n"),
+    stockErrors: shortages,
+  });
+
+const quantitiesByKey = (items) => {
+  const map = new Map();
+  for (const it of items || []) map.set(transferItemKey(it), (map.get(transferItemKey(it)) || 0) + (parseFloat(it.quantity) || 0));
+  return map;
+};
+
 export const createTransferOrder = async (req, res) => {
   try {
     const transferData = req.body;
@@ -1564,6 +1608,12 @@ export const createTransferOrder = async (req, res) => {
       return res.status(400).json({ message: "At least one item is required" });
     }
     
+    // ✅ Never move more than the source store has (stock must not go below zero)
+    const createShortages = await findStockShortages(transferData.items, transferData.sourceWarehouse);
+    if (createShortages.length > 0) {
+      return shortageResponse(res, createShortages, transferData.sourceWarehouse);
+    }
+
     for (const item of transferData.items) {
       if (!item.itemName) continue;
       
@@ -1936,17 +1986,82 @@ export const updateTransferOrder = async (req, res) => {
     
     const oldStatus = mongoOrder.status;
     const newStatus = transferData.status || oldStatus;
+
+    // ✅ If the items/quantities were edited, re-sync the stock already moved for the OLD
+    // items under the CURRENT status before saving the new ones. Without this, editing a
+    // draft from 10 → 4 and then deleting it restored only 4 to the source (6 lost).
+    const itemsKey = (list) => JSON.stringify(
+      (list || [])
+        .map((it) => [String(it.itemId || ""), String(it.itemGroupId || ""), String(it.itemName || ""), String(it.itemSku || ""), parseFloat(it.quantity) || 0])
+        .sort()
+    );
+    const itemsChanged = Array.isArray(transferData.items) && itemsKey(transferData.items) !== itemsKey(mongoOrder.items);
+    // Moving a completed transfer back to draft/in_transit takes its items out of the
+    // destination — check (before any stock changes) that the destination still has them.
+    if (oldStatus === "transferred" && (newStatus === "draft" || newStatus === "in_transit")) {
+      const backItems = Array.isArray(transferData.items) ? transferData.items : (mongoOrder.items || []);
+      const credit = new Map();
+      if (itemsChanged) {
+        // the item edit below first swaps old → new quantities at the destination
+        const oldQ = quantitiesByKey(mongoOrder.items);
+        for (const [k, q] of quantitiesByKey(backItems)) credit.set(k, q - (oldQ.get(k) || 0));
+      }
+      const destShortages = await findStockShortages(backItems, mongoOrder.destinationWarehouse, credit);
+      if (destShortages.length > 0) {
+        return shortageResponse(res, destShortages, mongoOrder.destinationWarehouse);
+      }
+    }
+
+    if (itemsChanged) {
+      const oldItems = mongoOrder.items || [];
+      const newItems = transferData.items;
+
+      // ✅ Refuse the edit if the source store can't cover the new quantities.
+      // Quantities this order already took from the source count as available.
+      const shortages = await findStockShortages(newItems, mongoOrder.sourceWarehouse, quantitiesByKey(oldItems));
+      if (shortages.length > 0) {
+        return shortageResponse(res, shortages, mongoOrder.sourceWarehouse);
+      }
+      // Undoing a completed transfer takes the old items back out of the destination
+      if (oldStatus === "transferred") {
+        const destShortages = await findStockShortages(oldItems, mongoOrder.destinationWarehouse);
+        if (destShortages.length > 0) {
+          return shortageResponse(res, destShortages, mongoOrder.destinationWarehouse);
+        }
+      }
+
+      if (oldStatus === "draft" || oldStatus === "in_transit") {
+        for (const item of oldItems) {
+          try {
+            await restoreSourceStock(item.itemId, parseFloat(item.quantity) || 0, mongoOrder.sourceWarehouse, item.itemName, item.itemGroupId, item.itemSku);
+          } catch (stockError) {
+            console.error(`Error restoring source stock for edited item ${item.itemName}:`, stockError);
+          }
+        }
+        await batchDeductSourceStock(newItems, mongoOrder.sourceWarehouse);
+      } else if (oldStatus === "transferred") {
+        for (const item of oldItems) {
+          try {
+            await reverseTransferStock(item.itemId, parseFloat(item.quantity) || 0, mongoOrder.sourceWarehouse, mongoOrder.destinationWarehouse, item.itemName, item.itemGroupId, item.itemSku);
+          } catch (stockError) {
+            console.error(`Error reversing transfer stock for edited item ${item.itemName}:`, stockError);
+          }
+        }
+        await batchDeductSourceStock(newItems, mongoOrder.sourceWarehouse);
+        await batchAddDestinationStock(newItems, mongoOrder.destinationWarehouse);
+      }
+    }
+    // Status transitions below must act on the items being saved, not the old ones
+    const effectiveItems = Array.isArray(transferData.items) ? transferData.items : (mongoOrder.items || []);
     
     // If changing from draft/in_transit to transferred, only add to destination (source already deducted)
     if ((oldStatus === "draft" || oldStatus === "in_transit") && newStatus === "transferred") {
-      const items = mongoOrder.items || [];
-      await batchAddDestinationStock(items, mongoOrder.destinationWarehouse);
+      await batchAddDestinationStock(effectiveItems, mongoOrder.destinationWarehouse);
     }
     
     // If changing from transferred back to draft/in_transit, only remove from destination (source stays deducted)
     if (oldStatus === "transferred" && (newStatus === "draft" || newStatus === "in_transit")) {
-      const items = mongoOrder.items || [];
-      for (const item of items) {
+      for (const item of effectiveItems) {
         try {
           // Remove from destination only
           await deductSourceStock(
@@ -2117,6 +2232,11 @@ export const deleteTransferOrder = async (req, res) => {
     // If status is "transferred", reverse full stock transfer (both source and destination)
     // If status is "draft" or "in_transit", only restore source stock (destination was never updated)
     if (transferOrder.status === "transferred") {
+      // Reversing takes the items back out of the destination — it must still have them
+      const destShortages = await findStockShortages(transferOrder.items, transferOrder.destinationWarehouse);
+      if (destShortages.length > 0) {
+        return shortageResponse(res, destShortages, transferOrder.destinationWarehouse);
+      }
       console.log(`   ⚠️ Status is "transferred", reversing full stock transfer...`);
       const items = transferOrder.items || [];
       for (const item of items) {

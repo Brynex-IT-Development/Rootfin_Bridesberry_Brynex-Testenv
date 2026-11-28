@@ -19,7 +19,6 @@ import { useActiveStores } from "../utils/storeService.js";
 import { canViewAdminOnlyTransactions } from "../utils/adminTransactionVisibility.js";
 import { isAdminOrSuperAdmin } from "../utils/roleUtils";
 
-const TWS_BASE = "https://rentalapi.rootments.live/api/GetBooking";
 
 const formatINR = (val) => {
   const num = Number(val) || 0;
@@ -400,128 +399,6 @@ const Dashboard = () => {
         meta: json.meta || { statusDate: toDate },
       });
       setLoading(false);
-
-      // Merge TWS rental data in background (Booking + RentOut + Delete/Cancel)
-      const storesToFetchTws =
-        selectedStore && selectedStore !== "all"
-          ? [selectedStore]
-          : (json.stores || []).map((s) => s.locCode).filter(Boolean);
-
-      if (storesToFetchTws.length > 0) {
-        const twsResults = await Promise.all(
-          storesToFetchTws.map((lc) =>
-            Promise.all([
-              safeFetchWithTimeout(`${TWS_BASE}/GetBookingList?LocCode=${lc}&DateFrom=${fromDate}&DateTo=${toDate}`),
-              safeFetchWithTimeout(`${TWS_BASE}/GetRentoutList?LocCode=${lc}&DateFrom=${fromDate}&DateTo=${toDate}`),
-              safeFetchWithTimeout(`${TWS_BASE}/GetDeleteList?LocCode=${lc}&DateFrom=${fromDate}&DateTo=${toDate}`),
-            ])
-          )
-        );
-
-        let twsIncCash = 0;
-        let twsIncBank = 0;
-        let twsIncUpi = 0;
-        let twsIncRbl = 0;
-        let twsReturnable = 0;
-        let twsExpCash = 0;
-        let twsExpBank = 0;
-        let twsExpUpi = 0;
-        let twsExpRbl = 0;
-        let hasTwsData = false;
-
-        twsResults.forEach(([bookingRes, rentoutRes, cancelRes], idx) => {
-          const lc = String(storesToFetchTws[idx]);
-          const lcKey = lc.toLowerCase();
-          const storeEntry = rankingsMap.get(lcKey);
-
-          const bookings = bookingRes?.dataSet?.data || [];
-          bookings.forEach((item) => {
-            hasTwsData = true;
-            const c = Number(item.bookingCashAmount || 0);
-            const b = Number(item.bookingBankAmount || 0);
-            const u = Number(item.bookingUPIAmount || 0);
-            const r = Number(item.rblRazorPay || 0);
-            twsIncCash += c;
-            twsIncBank += b;
-            twsIncUpi += u;
-            twsIncRbl += r;
-            if (storeEntry) storeEntry.income += c + b + u + r;
-          });
-
-          const rentouts = rentoutRes?.dataSet?.data || [];
-          rentouts.forEach((item) => {
-            hasTwsData = true;
-            const security = Number(item.securityAmount || 0);
-            const advance = Number(item.advanceAmount || 0);
-            const balancePayable = Number(item.invoiceAmount || 0) - advance;
-
-            if (security > 0) {
-              twsReturnable += security;
-            }
-            if (balancePayable > 0) {
-              twsIncCash += balancePayable;
-              if (storeEntry) storeEntry.income += balancePayable;
-            }
-          });
-
-          const cancels = cancelRes?.dataSet?.data || [];
-          cancels.forEach((item) => {
-            hasTwsData = true;
-            const r = Math.abs(Number(item.rblRazorPay || 0));
-            const c = Math.abs(Number(item.deleteCashAmount || 0));
-            const b = r !== 0 ? 0 : Math.abs(Number(item.deleteBankAmount || 0));
-            const u = r !== 0 ? 0 : Math.abs(Number(item.deleteUPIAmount || 0));
-            twsExpCash += c;
-            twsExpBank += b;
-            twsExpUpi += u;
-            twsExpRbl += r;
-            if (storeEntry) storeEntry.expense += c + b + u + r;
-          });
-        });
-
-        if (hasTwsData) {
-          const mergedIncome = {
-            cash: baseKpis.totalIncome.cash + twsIncCash,
-            bank: baseKpis.totalIncome.bank + twsIncBank + twsIncRbl,
-            upi: baseKpis.totalIncome.upi + twsIncUpi,
-            rbl: baseKpis.totalIncome.rbl + twsIncRbl,
-            total: baseKpis.totalIncome.total + twsIncCash + twsIncBank + twsIncUpi + twsIncRbl,
-          };
-          const mergedExpenses = {
-            cash: baseKpis.totalExpenses.cash + twsExpCash,
-            bank: baseKpis.totalExpenses.bank + twsExpBank + twsExpRbl,
-            upi: baseKpis.totalExpenses.upi + twsExpUpi,
-            rbl: baseKpis.totalExpenses.rbl + twsExpRbl,
-            total: baseKpis.totalExpenses.total + twsExpCash + twsExpBank + twsExpUpi + twsExpRbl,
-          };
-          const mergedReturnable = {
-            total: baseKpis.returnableIncome.total + twsReturnable,
-          };
-          const mergedNet = {
-            cash: mergedIncome.cash - mergedExpenses.cash,
-            bank: mergedIncome.bank - mergedExpenses.bank,
-            upi: mergedIncome.upi - mergedExpenses.upi,
-            rbl: mergedIncome.rbl - mergedExpenses.rbl,
-            total: mergedIncome.total - mergedExpenses.total,
-          };
-
-          const mergedRankings = Array.from(rankingsMap.values()).map((s) => ({
-            ...s,
-            difference: s.income - s.expense,
-          }));
-
-          setDashboardData((prev) => ({
-            ...prev,
-            kpis: {
-              totalIncome: mergedIncome,
-              returnableIncome: mergedReturnable,
-              totalExpenses: mergedExpenses,
-              netDifference: mergedNet,
-            },
-            storeRankings: mergedRankings,
-          }));
-        }
-      }
     } catch (err) {
       console.error("Dashboard load error:", err);
       setError(err.message || "Failed to load dashboard data");
