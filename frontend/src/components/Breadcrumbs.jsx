@@ -31,6 +31,7 @@ const ROUTE_RULES = [
   { pattern: /^\/manage-users\/existing-users$/, crumbs: [{ label: "Home", path: "/" }, { label: "Manage Users", path: "/manage-users/existing-users" }, { label: "Existing Users" }] },
   { pattern: /^\/manage-users\/add-user$/, crumbs: [{ label: "Home", path: "/" }, { label: "Manage Users", path: "/manage-users/existing-users" }, { label: "Add New User" }] },
   { pattern: /^\/manage-users\/permissions$/, crumbs: [{ label: "Home", path: "/" }, { label: "Manage Users", path: "/manage-users/existing-users" }, { label: "Permissions" }] },
+  { pattern: /^\/manage-users\/subscription$/, crumbs: [{ label: "Home", path: "/" }, { label: "Manage Users", path: "/manage-users/existing-users" }, { label: "Subscription" }] },
   { pattern: /^\/manage-users\/edit-user\/[^\/]+$/, crumbs: [{ label: "Home", path: "/" }, { label: "Manage Users", path: "/manage-users/existing-users" }, { label: "Edit User" }] },
   { pattern: /^\/manage-users\/reset-password$/, crumbs: [{ label: "Home", path: "/" }, { label: "Manage Users", path: "/manage-users/existing-users" }, { label: "Reset Password" }] },
 

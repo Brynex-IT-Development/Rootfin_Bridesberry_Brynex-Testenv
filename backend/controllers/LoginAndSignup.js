@@ -3,6 +3,7 @@ import User from '../model/UserModel.js';
 import Store from '../model/Store.js';
 import { createClosureAuthToken } from '../utils/closureAuth.js';
 import { isAllowedStore } from './StoreController.js';
+import { assertCanAddStore, assertCanAddUser, sendLimitError } from '../utils/subscription.js';
 
 export const SignUp = async (req, res) => {
     try {
@@ -26,6 +27,12 @@ export const SignUp = async (req, res) => {
         const existingUser = await User.findOne({ $or: [{ username: finalUsername }, { email: normalizedEmail }] });
         if (existingUser) {
             return res.status(400).json({ message: 'Username or email already exists.' });
+        }
+
+        // Subscription limits: one more user, and possibly one more store
+        await assertCanAddUser();
+        if ((isStoreAdmin || isWarehouseAdmin) && locCode && locCode.trim()) {
+            await assertCanAddStore(locCode.trim(), { storeType: isWarehouseAdmin ? 'warehouse' : 'branch' });
         }
 
         const salt = await bcrypt.genSalt(10);
@@ -84,6 +91,7 @@ export const SignUp = async (req, res) => {
             user: newUser,
         });
     } catch (error) {
+        if (sendLimitError(res, error)) return;
         console.error('Error:', error);
         res.status(500).json({
             message: 'An error occurred while creating the user.',
@@ -355,6 +363,17 @@ export const UpdateUser = async (req, res) => {
             user.allowedLocCodes = [];
         }
 
+        // Subscription: moving this user to a store that doesn't exist yet takes a store
+        // slot — unless their old store is freed at the same time (a rename).
+        if ((isStoreAdmin || isWarehouseAdmin) && newLocCode && newLocCode !== oldLocCode) {
+            const othersOnOld = oldLocCode
+                ? await User.countDocuments({ locCode: oldLocCode, _id: { $ne: user._id } })
+                : 1;
+            if (othersOnOld > 0) {
+                await assertCanAddStore(newLocCode, { storeType: isWarehouseAdmin ? 'warehouse' : 'branch' });
+            }
+        }
+
         // Only update password if provided
         if (password && password.trim() !== '') {
             const salt = await bcrypt.genSalt(10);
@@ -405,6 +424,7 @@ export const UpdateUser = async (req, res) => {
             },
         });
     } catch (error) {
+        if (sendLimitError(res, error)) return;
         console.error('UpdateUser Error:', error);
         res.status(500).json({
             message: 'An error occurred while updating the user.',

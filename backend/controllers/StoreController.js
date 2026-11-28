@@ -1,6 +1,7 @@
 import Store from "../model/Store.js";
 import User from "../model/UserModel.js";
 import mongoose from "mongoose";
+import { assertCanAddStore, assertStoreSlotAvailable, sendLimitError } from "../utils/subscription.js";
 
 // Stores come only from the backend: a store is listed when it has an active
 // Store Admin / Warehouse Admin user (see getStores / GetAllStores). There is no
@@ -26,6 +27,11 @@ export const createStore = async (req, res) => {
       delete storeData.email;
     }
 
+    // Subscription: refuse a new store once the plan's store limit is reached
+    if (storeData.isActive !== false) {
+      await assertCanAddStore(storeData.locCode, { storeType: storeData.storeType });
+    }
+
     const store = await Store.findOneAndUpdate(
       { locCode: storeData.locCode.toString().trim() },
       { ...storeData, isActive: storeData.isActive !== false },
@@ -40,6 +46,7 @@ export const createStore = async (req, res) => {
       store: storeObj,
     });
   } catch (error) {
+    if (sendLimitError(res, error)) return;
     console.error("Create store error:", error);
     if (error.code === 11000) {
       return res.status(409).json({ 
@@ -234,6 +241,18 @@ export const updateStore = async (req, res) => {
       return res.status(400).json({ message: "Invalid store ID" });
     }
     
+    // Subscription: re-activating a store, or turning a warehouse into a branch,
+    // takes a store slot
+    const current = await Store.findById(id).select("isActive storeType").lean();
+    if (current) {
+      const wasCounted = current.isActive !== false && current.storeType !== "warehouse";
+      const willBeActive = updateData.isActive !== undefined ? updateData.isActive !== false : current.isActive !== false;
+      const willBeType = updateData.storeType !== undefined ? updateData.storeType : current.storeType;
+      if (!wasCounted && willBeActive && willBeType !== "warehouse") {
+        await assertStoreSlotAvailable();
+      }
+    }
+
     const store = await Store.findByIdAndUpdate(id, updateData, { 
       new: true, 
       runValidators: true 
@@ -251,6 +270,7 @@ export const updateStore = async (req, res) => {
       store: obj,
     });
   } catch (error) {
+    if (sendLimitError(res, error)) return;
     console.error("Update store error:", error);
     if (error.code === 11000) {
       return res.status(409).json({ 

@@ -28,12 +28,14 @@ import {
     KeyRound,
     Menu,
     ShieldCheck,
+    CreditCard,
     BookOpen,
     LayoutDashboard,
     TrendingUp
 } from "lucide-react";
 import salesInventoryAccessConfig from "../config/salesInventoryAccess.json";
 import { usePermissions } from "../utils/permissionService";
+import { useHiddenPages } from "../utils/subscriptionPages";
 import { isSuperAdmin, normalizeRole, getRoleLabel, isAdminOrSuperAdmin } from "../utils/roleUtils";
 import { findStore, isWarehouseStore } from "../utils/storeService";
 
@@ -97,6 +99,8 @@ const Nav = () => {
     const activePath = location.pathname;
 
     const { hasModule, hasSubpage, isSuperAdminUser } = usePermissions(currentuser);
+    // Pages hidden by the subscription are hidden for everyone, admins included
+    const { isHidden: isHiddenBySubscription } = useHiddenPages();
 
     const [showUserMenu, setShowUserMenu] = useState(false);
     const userMenuRef = useRef(null);
@@ -217,7 +221,7 @@ const Nav = () => {
 
     const isReportsOpen = openSection === "reports";
     const allowAllSubpages = isAdmin || isSuper;
-    const checkSubpage = (path) => allowAllSubpages || hasSubpage(path);
+    const checkSubpage = (path) => !isHiddenBySubscription(path) && (allowAllSubpages || hasSubpage(path));
 
     const isInventoryOpen = openSection === "inventory";
     const isSalesOpen = openSection === "sales";
@@ -262,7 +266,10 @@ const Nav = () => {
     const isPurchaseActive = purchaseLinks.some((link) => link.to === activePath);
     
     const manageUsersLinks = [
-        ...(isSuperAdminUser ? [{ to: "/manage-users/permissions", label: "Permissions", Icon: ShieldCheck }] : []),
+        ...(isSuperAdminUser ? [
+            { to: "/manage-users/permissions", label: "Permissions", Icon: ShieldCheck },
+            { to: "/manage-users/subscription", label: "Subscription", Icon: CreditCard },
+        ] : []),
         { to: "/manage-users/add-user", label: "Add New User", Icon: UserPlus },
         { to: "/manage-users/existing-users", label: "Existing Users", Icon: UserCog },
         { to: "/manage-users/reset-password", label: "Reset Password", Icon: KeyRound },
@@ -298,6 +305,7 @@ const Nav = () => {
         : "text-zinc-400 font-medium hover:text-white hover:bg-[#27272a]/70";
 
     const renderSingleItem = (to, label, IconComponent) => {
+        if (isHiddenBySubscription(to)) return null;
         const isActive = isLinkActive(to);
         return (
             <Link

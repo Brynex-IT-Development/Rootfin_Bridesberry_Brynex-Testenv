@@ -32,6 +32,7 @@ import {
     saveRolePermissions
 } from "../utils/permissionService";
 import { SYSTEM_ROLES, normalizeRole, isSuperAdmin } from "../utils/roleUtils";
+import { useHiddenPages } from "../utils/subscriptionPages";
 import { useSidebar } from "../hooks/useSidebar.js";
 import Header from "../components/Header.jsx";
 
@@ -55,6 +56,12 @@ const MODULE_ICONS = {
 const Permissions = () => {
     const navigate = useNavigate();
     const isSidebarOpen = useSidebar();
+
+    // Only list pages included in the subscription (hidden ones are set on /subscriptionadmin)
+    const { hiddenPages, isHidden } = useHiddenPages();
+    const MODULES = ALL_MODULE_DEFINITIONS
+        .map(m => ({ ...m, subpages: m.subpages.filter(sp => !isHidden(sp.path)) }))
+        .filter(m => m.subpages.length > 0);
 
     // Verify current user
     const [currentUser, setCurrentUser] = useState(() => {
@@ -136,7 +143,7 @@ const Permissions = () => {
         const currentMod = rolePerms[moduleKey] || { enabled: false, subpages: [] };
         const willEnable = !currentMod.enabled;
 
-        const modDef = ALL_MODULE_DEFINITIONS.find(m => m.key === moduleKey);
+        const modDef = MODULES.find(m => m.key === moduleKey);
         let newSubpages = [];
 
         if (willEnable) {
@@ -198,7 +205,7 @@ const Permissions = () => {
 
     // Select all subpages of a module for a role
     const handleSelectAllSubpages = (roleKey, moduleKey) => {
-        const modDef = ALL_MODULE_DEFINITIONS.find(m => m.key === moduleKey);
+        const modDef = MODULES.find(m => m.key === moduleKey);
         if (!modDef) return;
 
         const rolePerms = allPermissions[roleKey] || getDefaultPermissionsForRole(roleKey);
@@ -370,6 +377,12 @@ const Permissions = () => {
                 )}
 
                 {/* Standard Clean Tab Bar */}
+                {hiddenPages.length > 0 && (
+                    <p className="text-[12px] text-[#6A6A6A]">
+                        Only pages included in your subscription are listed. {hiddenPages.length} page{hiddenPages.length === 1 ? " is" : "s are"} not part of your plan.
+                    </p>
+                )}
+
                 <div className="border-b border-[#E5E5E5] flex flex-wrap items-center gap-1">
                     {/* All Roles Matrix Tab */}
                     <button
@@ -428,7 +441,7 @@ const Permissions = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100 text-xs">
-                                    {ALL_MODULE_DEFINITIONS.map((moduleDef) => {
+                                    {MODULES.map((moduleDef) => {
                                         const modKey = moduleDef.key;
                                         const IconComp = MODULE_ICONS[modKey] || Layers;
                                         const isExpanded = Boolean(expandedModules[modKey]);
@@ -538,11 +551,12 @@ const Permissions = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100 text-xs">
-                                    {ALL_MODULE_DEFINITIONS.map((moduleDef, idx) => {
+                                    {MODULES.map((moduleDef, idx) => {
                                         const modKey = moduleDef.key;
                                         const modPerm = currentRolePerms[modKey] || { enabled: false, subpages: [] };
                                         const isModuleEnabled = Boolean(modPerm.enabled);
-                                        const allowedSubpages = Array.isArray(modPerm.subpages) ? modPerm.subpages : [];
+                                        const allowedSubpages = (Array.isArray(modPerm.subpages) ? modPerm.subpages : [])
+                                            .filter(p => moduleDef.subpages.some(sp => sp.path === p)); // only pages in the subscription
                                         const isExpanded = Boolean(expandedModules[modKey]);
                                         const hasSubpages = !moduleDef.isStandalone && moduleDef.subpages && moduleDef.subpages.length > 0;
                                         const IconComp = MODULE_ICONS[modKey] || Layers;

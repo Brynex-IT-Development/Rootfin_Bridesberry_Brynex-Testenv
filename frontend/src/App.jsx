@@ -10,6 +10,10 @@ import SecurityReturn from "./pages/SecurityReturn";
 import SecurityPending from "./pages/SecurityPending";
 import Nav from "./components/Nav.jsx";
 import DaybookGuard from "./components/DaybookGuard.jsx";
+import SubscriptionNotice from "./components/SubscriptionNotice.jsx";
+import NotInPlan from "./components/NotInPlan.jsx";
+import { useHiddenPages } from "./utils/subscriptionPages";
+import Subscription from "./pages/Subscription.jsx";
 import Login from "./pages/Login.jsx";
 import CloseReport from "./pages/CloseReport.jsx";
 import AdminClose from "./pages/AdminClose.jsx";
@@ -90,6 +94,9 @@ const App = () => {
 
   // Prevent mouse wheel from changing number input values globally
   usePreventNumberInputScroll();
+
+  // Pages hidden by the subscription can't be opened by typing the address either
+  const { isHidden: isHiddenBySubscription } = useHiddenPages();
 
   // Retrieve the current user from localStorage
   const currentuser = JSON.parse(localStorage.getItem("rootfinuser")); // Convert back to an object
@@ -235,8 +242,10 @@ const App = () => {
     <div className="">
       <RootfinLoader visible={showSplash} fading={fadingSplash} />
       {currentuser && <Nav />} {/* Show Nav only if user is logged in */}
+      {currentuser && <SubscriptionNotice />}
       <div className="w-full">
         <DaybookGuard user={currentuser} admin={isAdmin}>
+        {currentuser && isHiddenBySubscription(location.pathname) ? <NotInPlan /> : (
         <Routes>
           {/* Login Route */}
           <Route path="/login" element={!currentuser ? <Login /> : <Navigate to="/" />} />
@@ -263,6 +272,7 @@ const App = () => {
           <Route path="/manage-users/add-store" element={<Navigate to='/manage-users/add-user' replace />} />
           <Route path="/manage-users/add-user" element={isAdmin || isSuperAdmin(currentuser) ? <AddNewUser /> : <Navigate to='/' />} />
           <Route path="/manage-users/permissions" element={isSuperAdmin(currentuser) ? <Permissions /> : <Navigate to='/' />} />
+          <Route path="/manage-users/subscription" element={isSuperAdmin(currentuser) ? <Subscription /> : <Navigate to='/' />} />
           <Route path="/manage-users/existing-users" element={isAdmin || isSuperAdmin(currentuser) ? <ExistingUsers /> : <Navigate to='/' />} />
           <Route path="/manage-users/edit-user/:id" element={isAdmin || isSuperAdmin(currentuser) ? <EditUser /> : <Navigate to='/' />} />
           <Route path="/manage-users/reset-password" element={isAdmin || isSuperAdmin(currentuser) ? <ResetUserPassword /> : <Navigate to='/' />} />
@@ -347,6 +357,7 @@ const App = () => {
           <Route path="/inventory/reorder-alerts" element={<AdminRestrictedGuard><ReorderAlerts /></AdminRestrictedGuard>} />
 
         </Routes>
+        )}
         </DaybookGuard>
       </div>
       <RootfinDialogHost />

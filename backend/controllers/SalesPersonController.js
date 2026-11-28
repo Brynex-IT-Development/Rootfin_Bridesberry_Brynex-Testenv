@@ -3,6 +3,7 @@ import Store from "../model/Store.js";
 import User from "../model/UserModel.js";
 import mongoose from "mongoose";
 import { storeCode, storeName, warehouseName } from "../utils/storeResolver.js";
+import { assertCanAddStore, sendLimitError, SubscriptionLimitError } from "../utils/subscription.js";
 
 // Create a new sales person
 export const createSalesPerson = async (req, res) => {
@@ -44,6 +45,12 @@ export const createSalesPerson = async (req, res) => {
         return res.status(400).json({ message: "A valid store (locCode) is required for the sales person." });
       }
       const name = salesPersonData.storeName || storeName(code) || `Store ${code}`;
+      try {
+        await assertCanAddStore(code);
+      } catch (limitError) {
+        if (sendLimitError(res, limitError)) return;
+        throw limitError;
+      }
       try {
         store = await Store.findOneAndUpdate(
           { locCode: code },
@@ -133,13 +140,15 @@ export const getSalesPersonsByLocCode = async (req, res) => {
       // Auto-create a store record for this locCode (name from the backend store list when known)
       const name = storeName(locCode) || `Store ${locCode}`;
       try {
+        // Reading must never create a store past the subscription's store limit
+        await assertCanAddStore(locCode);
         store = await Store.findOneAndUpdate(
           { locCode },
           { name, locCode, isActive: true },
           { upsert: true, new: true, setDefaultsOnInsert: true }
         );
       } catch (err) {
-        store = await Store.findOne({ locCode });
+        store = err instanceof SubscriptionLimitError ? null : await Store.findOne({ locCode });
       }
     }
     
